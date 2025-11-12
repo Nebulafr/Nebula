@@ -1,0 +1,270 @@
+
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Represents a user of the platform, can be a student, coach, or admin.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "The unique identifier for the user, typically from Firebase Auth."
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "The user's email address."
+        },
+        "fullName": {
+          "type": "string",
+          "description": "The user's full name."
+        },
+        "role": {
+          "type": "string",
+          "enum": ["student", "coach", "admin"],
+          "description": "The role of the user on the platform."
+        },
+        "avatarUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL for the user's profile picture."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when the user account was created."
+        }
+      },
+      "required": ["uid", "email", "fullName", "role"]
+    },
+    "Coach": {
+      "title": "Coach Profile",
+      "description": "Detailed profile for a coach.",
+      "type": "object",
+      "properties": {
+        "userRef": {
+          "$ref": "#/entities/User",
+          "description": "A reference to the base User entity."
+        },
+        "title": {
+          "type": "string",
+          "description": "The coach's professional title (e.g., 'Partner, BCG')."
+        },
+        "bio": {
+          "type": "string",
+          "description": "A detailed biography of the coach."
+        },
+        "specialties": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "A list of the coach's areas of expertise."
+        },
+        "pastCompanies": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "A list of companies the coach has worked for."
+        },
+        "rating": {
+          "type": "number",
+          "description": "The coach's average rating from student reviews."
+        },
+        "reviewsCount": {
+          "type": "number",
+          "description": "Total number of reviews the coach has received."
+        },
+        "studentsCoached": {
+          "type": "number",
+          "description": "The total number of students coached."
+        }
+      },
+      "required": ["userRef", "title", "bio"]
+    },
+    "Student": {
+      "title": "Student Profile",
+      "description": "Profile for a student user.",
+      "type": "object",
+      "properties": {
+        "userRef": {
+          "$ref": "#/entities/User",
+          "description": "A reference to the base User entity."
+        },
+        "interestedProgram": {
+          "type": "string",
+          "description": "The program the student is interested in, selected during onboarding."
+        },
+        "skillLevel": {
+          "type": "string",
+          "enum": ["Beginner", "Intermediate", "Advanced"],
+          "description": "The student's self-assessed skill level."
+        },
+        "commitment": {
+          "type": "string",
+          "description": "The time commitment the student can make per week."
+        }
+      },
+      "required": ["userRef"]
+    },
+    "Program": {
+      "title": "Coaching Program",
+      "description": "Represents a coaching program offered on the platform.",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "slug": {
+          "type": "string"
+        },
+        "category": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "coachRef": {
+          "$ref": "#/entities/Coach",
+          "description": "Reference to the coach running the program."
+        },
+        "objectives": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "rating": {
+          "type": "number"
+        }
+      },
+      "required": ["title", "slug", "category", "description", "coachRef"]
+    },
+    "Session": {
+        "title": "Session",
+        "description": "A scheduled session between a coach and one or more students.",
+        "type": "object",
+        "properties": {
+            "programRef": {
+                "$ref": "#/entities/Program"
+            },
+            "coachRef": {
+                "$ref": "#/entities/Coach"
+            },
+            "studentRefs": {
+                "type": "array",
+                "items": {
+                    "$ref": "#/entities/Student"
+                }
+            },
+            "scheduledTime": {
+                "type": "string",
+                "format": "date-time"
+            },
+            "status": {
+                "type": "string",
+                "enum": ["scheduled", "completed", "cancelled"]
+            }
+        },
+        "required": ["programRef", "coachRef", "scheduledTime", "status"]
+    },
+    "Review": {
+      "title": "Review",
+      "description": "A review left by a student for a coach or a program.",
+      "type": "object",
+      "properties": {
+        "authorRef": {
+          "$ref": "#/entities/User"
+        },
+        "targetRef": {
+            "description": "Reference to the entity being reviewed (Coach or Program).",
+            "oneOf": [
+                { "$ref": "#/entities/Coach" },
+                { "$ref": "#/entities/Program" }
+            ]
+        },
+        "rating": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "text": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["authorRef", "targetRef", "rating", "text"]
+    },
+    "Event": {
+        "title": "Event",
+        "description": "A webinar or social event hosted on the platform.",
+        "type": "object",
+        "properties": {
+            "title": { "type": "string" },
+            "type": { "type": "string", "enum": ["webinar", "social"] },
+            "organizerRef": { "$ref": "#/entities/User" },
+            "date": { "type": "string", "format": "date-time" },
+            "description": { "type": "string" },
+            "tag": { "type": "string", "enum": ["Free", "Premium"] }
+        },
+        "required": ["title", "type", "organizerRef", "date"]
+    },
+    "Message": {
+        "title": "Message",
+        "description": "A message within a conversation.",
+        "type": "object",
+        "properties": {
+            "conversationId": { "type": "string" },
+            "senderRef": { "$ref": "#/entities/User" },
+            "text": { "type": "string" },
+            "timestamp": { "type": "string", "format": "date-time" }
+        },
+        "required": ["conversationId", "senderRef", "text", "timestamp"]
+    }
+  },
+  "auth": {
+    "providers": ["email", "google"]
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "Stores basic profile information for all users."
+    },
+    "/coaches/{userId}": {
+        "schema": { "$ref": "#/entities/Coach" },
+        "description": "Stores detailed profiles for users with the 'coach' role."
+    },
+    "/students/{userId}": {
+        "schema": { "$ref": "#/entities/Student" },
+        "description": "Stores profiles for users with the 'student' role, including their onboarding choices."
+    },
+    "/programs/{programId}": {
+      "schema": { "$ref": "#/entities/Program" },
+      "description": "Stores all available coaching programs."
+    },
+    "/programs/{programId}/reviews/{reviewId}": {
+        "schema": { "$ref": "#/entities/Review" },
+        "description": "Reviews specific to a program."
+    },
+    "/coaches/{userId}/reviews/{reviewId}": {
+        "schema": { "$ref": "#/entities/Review" },
+        "description": "Reviews specific to a coach."
+    },
+    "/sessions/{sessionId}": {
+        "schema": { "$ref": "#/entities/Session" },
+        "description": "Stores all scheduled sessions."
+    },
+    "/events/{eventId}": {
+        "schema": { "$ref": "#/entities/Event" },
+        "description": "Stores all platform events (webinars and social)."
+    },
+    "/conversations/{conversationId}/messages/{messageId}": {
+      "schema": { "$ref": "#/entities/Message" },
+      "description": "Stores messages within a specific conversation."
+    }
+  }
+}
