@@ -6,6 +6,7 @@ import { doc, onSnapshot, Unsubscribe } from "firebase/firestore";
 import { useRouter, usePathname } from "next/navigation";
 import type { IUser, ICoach, IStudent } from "@/models";
 import { auth, db } from "@/firebase/config";
+import { publicRoutes } from "@/lib/utils";
 
 type AuthState =
   | "LOADING"
@@ -146,13 +147,11 @@ export function useUser(): UseUserReturn {
               }
             );
           } else {
-            // Admin or other role - no separate profile needed
             setCoachProfile(null);
             setStudentProfile(null);
             setAuthState("AUTHENTICATED_WITH_PROFILE");
           }
         } else {
-          // User document doesn't exist - needs to be created
           setProfile(null);
           setCoachProfile(null);
           setStudentProfile(null);
@@ -182,9 +181,8 @@ export function useUser(): UseUserReturn {
         unsubscribeRoleRef.current = undefined;
       }
     };
-  }, [user]); // Only depend on user
+  }, [user]);
 
-  // NAVIGATION LOGIC
   useEffect(() => {
     if (authState === "LOADING") return;
 
@@ -194,7 +192,6 @@ export function useUser(): UseUserReturn {
       pathname.startsWith("/coach-login") ||
       pathname.startsWith("/coach-signup");
 
-    // Reset redirecting flag when pathname changes
     if (isRedirecting.current) {
       const timer = setTimeout(() => {
         isRedirecting.current = false;
@@ -204,14 +201,12 @@ export function useUser(): UseUserReturn {
 
     if (isRedirecting.current) return;
 
-    // Redirect to onboarding if profile incomplete
     if (authState === "AUTHENTICATED_NO_PROFILE" && profile) {
       const onboardingUrl =
         profile.role === "coach"
           ? "/coach-onboarding/step-1"
           : "/onboarding/step-1";
 
-      // Don't redirect if already on onboarding page
       if (
         !pathname.startsWith("/onboarding") &&
         !pathname.startsWith("/coach-onboarding")
@@ -232,7 +227,6 @@ export function useUser(): UseUserReturn {
     // Redirect to login if unauthenticated and not on auth page
     else if (authState === "UNAUTHENTICATED" && !isAuthPage) {
       // Optional: Add public routes that don't require auth
-      const publicRoutes = ["/", "/about", "/contact"];
       if (!publicRoutes.includes(pathname)) {
         console.log("Redirecting to login");
         isRedirecting.current = true;
