@@ -25,4 +25,5 @@ export const publicRoutes = [
   "/about",
   "/help-center",
   "/events",
+  "/become-a-coach",
 ];
