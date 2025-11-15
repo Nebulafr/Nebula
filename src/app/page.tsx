@@ -22,8 +22,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Footer } from "@/components/layout/footer";
-import { useUser } from "@/firebase";
+import { useUser } from "@/hooks/use-user";
 import { getAuth, signOut } from "firebase/auth";
+import "./globals.css";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function Home() {
   const featureCards = [

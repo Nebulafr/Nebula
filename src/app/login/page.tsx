@@ -1,22 +1,21 @@
+"use client";
 
-'use client';
-
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
-import Image from 'next/image';
-import Link from 'next/link';
-import { useAuthActions } from '@/firebase/auth/auth-provider';
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { PlaceHolderImages } from "@/lib/placeholder-images";
+import { ArrowLeft, Eye, EyeOff } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { useAuthActions } from "@/context/auth-context";
 
 function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -48,20 +47,20 @@ function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
 }
 
 export default function LoginPage() {
-  const loginImage = PlaceHolderImages.find((img) => img.id === 'coach-hero');
+  const loginImage = PlaceHolderImages.find((img) => img.id === "coach-hero");
   const { signIn, signInWithGoogle, error, clearError } = useAuthActions();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (loading) return;
-    
+
     setLoading(true);
     clearError();
-    
+
     try {
       await signIn({ email, password });
       // The useUser hook will handle redirection
@@ -74,15 +73,15 @@ export default function LoginPage() {
 
   const handleGoogleSignIn = async () => {
     if (loading) return;
-    
+
     setLoading(true);
     clearError();
-    
+
     try {
-      await signInWithGoogle('student'); // Default to student, user can change role later
+      await signInWithGoogle("student"); // Default to student, user can change role later
     } catch (error: any) {
       // Don't set loading to false if redirecting
-      if (error?.code !== 'auth/redirect-initiated') {
+      if (error?.code !== "auth/redirect-initiated") {
         setLoading(false);
       }
       // Error is handled by auth provider
@@ -159,7 +158,7 @@ export default function LoginPage() {
                   <div className="relative">
                     <Input
                       id="password"
-                      type={showPassword ? 'text' : 'password'}
+                      type={showPassword ? "text" : "password"}
                       required
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
@@ -179,8 +178,13 @@ export default function LoginPage() {
                     </button>
                   </div>
                 </div>
-                <Button type="submit" className="w-full" size="lg" disabled={loading}>
-                  {loading ? 'Signing in...' : 'Sign In'}
+                <Button
+                  type="submit"
+                  className="w-full"
+                  size="lg"
+                  disabled={loading}
+                >
+                  {loading ? "Signing in..." : "Sign In"}
                 </Button>
               </CardContent>
             </form>
@@ -189,7 +193,9 @@ export default function LoginPage() {
                 <span className="w-full border-t" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+                <span className="bg-background px-2 text-muted-foreground">
+                  Or continue with
+                </span>
               </div>
             </div>
             <Button
@@ -200,11 +206,11 @@ export default function LoginPage() {
               disabled={loading}
             >
               <GoogleIcon className="mr-2 h-5 w-5" />
-              {loading ? 'Signing in...' : 'Sign in with Google'}
+              {loading ? "Signing in..." : "Sign in with Google"}
             </Button>
           </Card>
           <div className="mt-4 text-center text-sm">
-            Don&apos;t have an account?{' '}
+            Don&apos;t have an account?{" "}
             <Link href="/signup" className="underline">
               Sign up
             </Link>

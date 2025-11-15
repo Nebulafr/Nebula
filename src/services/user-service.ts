@@ -1,15 +1,6 @@
-import {
-  collection,
-  query,
-  where,
-  getDocs,
-  limit,
-  getFirestore,
-} from "firebase/firestore";
-import { firebaseApp } from "@/firebase/config";
-import type { User as UserModel } from "@/models";
-
-const db = getFirestore(firebaseApp);
+import { collection, query, where, getDocs, limit } from "firebase/firestore";
+import { db } from "@/firebase/config";
+import type { IUser as UserModel } from "@/models";
 
 /**
  * Get user by email and role from users collection

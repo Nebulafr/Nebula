@@ -1,33 +1,33 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { ArrowLeft, Mail } from 'lucide-react';
-import Link from 'next/link';
-import { useAuthActions } from '@/firebase/auth/auth-provider';
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { ArrowLeft, Mail } from "lucide-react";
+import Link from "next/link";
+import { useAuthActions } from "@/context/auth-context";
 
 export default function ForgotPasswordPage() {
   const { resetPassword, error, clearError } = useAuthActions();
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (loading) return;
-    
+
     setLoading(true);
     clearError();
-    
+
     try {
       await resetPassword(email);
       setEmailSent(true);
@@ -57,7 +57,8 @@ export default function ForgotPasswordPage() {
             <CardContent className="p-0 mt-6">
               <div className="space-y-4 text-center text-sm text-muted-foreground">
                 <p>
-                  Click the link in your email to reset your password. If you don&apos;t see it, check your spam folder.
+                  Click the link in your email to reset your password. If you
+                  don&apos;t see it, check your spam folder.
                 </p>
                 <div className="flex flex-col gap-2">
                   <Button
@@ -97,7 +98,8 @@ export default function ForgotPasswordPage() {
               Reset Password
             </CardTitle>
             <CardDescription>
-              Enter your email address and we&apos;ll send you a link to reset your password.
+              Enter your email address and we&apos;ll send you a link to reset
+              your password.
             </CardDescription>
           </CardHeader>
           {error && (
@@ -119,8 +121,13 @@ export default function ForgotPasswordPage() {
                   disabled={loading}
                 />
               </div>
-              <Button type="submit" className="w-full" size="lg" disabled={loading}>
-                {loading ? 'Sending...' : 'Send Reset Link'}
+              <Button
+                type="submit"
+                className="w-full"
+                size="lg"
+                disabled={loading}
+              >
+                {loading ? "Sending..." : "Send Reset Link"}
               </Button>
             </CardContent>
           </form>

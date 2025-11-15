@@ -1,22 +1,21 @@
+"use client";
 
-'use client';
-
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
-import Image from 'next/image';
-import Link from 'next/link';
-import { useAuthActions } from '@/firebase/auth/auth-provider';
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { PlaceHolderImages } from "@/lib/placeholder-images";
+import { ArrowLeft, Eye, EyeOff } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { useAuthActions } from "@/context/auth-context";
 
 function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -48,20 +47,22 @@ function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
 }
 
 export default function CoachLoginPage() {
-  const loginImage = PlaceHolderImages.find((img) => img.id === 'coach-network');
+  const loginImage = PlaceHolderImages.find(
+    (img) => img.id === "coach-network"
+  );
   const { signIn, signInWithGoogle, error, clearError } = useAuthActions();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (loading) return;
-    
+
     setLoading(true);
     clearError();
-    
+
     try {
       await signIn({ email, password });
       // The useUser hook will handle redirection to /coach-dashboard
@@ -71,15 +72,15 @@ export default function CoachLoginPage() {
       setLoading(false);
     }
   };
-  
+
   const handleGoogleSignIn = async () => {
     if (loading) return;
-    
+
     setLoading(true);
     clearError();
-    
+
     try {
-      await signInWithGoogle('coach');
+      await signInWithGoogle("coach");
       // The useUser hook will handle redirection
     } catch (error) {
       // Error is handled by auth provider
@@ -127,7 +128,9 @@ export default function CoachLoginPage() {
                 Enter your email below to log in to your coach account.
               </CardDescription>
             </CardHeader>
-            {error && <p className="text-red-500 text-sm mt-4">{error.message}</p>}
+            {error && (
+              <p className="text-red-500 text-sm mt-4">{error.message}</p>
+            )}
             <form onSubmit={handleLogin}>
               <CardContent className="grid gap-4 p-0 mt-6">
                 <div className="grid gap-2">
@@ -175,7 +178,12 @@ export default function CoachLoginPage() {
                     </Button>
                   </div>
                 </div>
-                <Button type="submit" className="w-full" size="lg" disabled={loading}>
+                <Button
+                  type="submit"
+                  className="w-full"
+                  size="lg"
+                  disabled={loading}
+                >
                   {loading ? "Logging in..." : "Log In"}
                 </Button>
               </CardContent>
@@ -192,7 +200,7 @@ export default function CoachLoginPage() {
             </Button>
           </Card>
           <div className="mt-4 text-center text-sm">
-            Don&apos;t have a coach account?{' '}
+            Don&apos;t have a coach account?{" "}
             <Link href="/coach-signup" className="underline">
               Sign up
             </Link>

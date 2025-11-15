@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import { Toaster } from "@/components/ui/toaster";
-import { FirebaseProvider } from "@/firebase/provider";
-import { AuthProvider } from "@/firebase/auth/auth-provider";
+import { AuthProvider } from "@/context/auth-context";
+import { ToastContainer } from "react-toastify";
 import React from "react";
-import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Nebula - Coaching Platform",
@@ -30,10 +29,20 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased">
-        <FirebaseProvider>
-          <AuthProvider>{children}</AuthProvider>
-        </FirebaseProvider>
+        <AuthProvider>{children}</AuthProvider>
         <Toaster />
+        <ToastContainer
+          position="top-right"
+          autoClose={5000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="light"
+        />
       </body>
     </html>
   );

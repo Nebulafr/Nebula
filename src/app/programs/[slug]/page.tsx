@@ -25,7 +25,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { Footer } from "@/components/layout/footer";
-import { useUser } from "@/firebase";
+import { useUser } from "@/hooks/use-user";
 import { getAuth, signOut } from "firebase/auth";
 
 export default function ProgramDetailPage({

@@ -1,5 +1,4 @@
-
-'use client';
+"use client";
 
 import {
   Card,
@@ -7,32 +6,32 @@ import {
   CardTitle,
   CardContent,
   CardDescription,
-} from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Separator } from '@/components/ui/separator';
-import { useUser } from '@/firebase/auth/use-user';
-import { useEffect, useState } from 'react';
+} from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Separator } from "@/components/ui/separator";
+import { useUser } from "@/hooks/use-user";
+import { useEffect, useState } from "react";
 
 export default function CoachProfilePage() {
   const { user, profile: userProfile, coachProfile } = useUser();
-  const [name, setName] = useState('');
-  const [role, setRole] = useState('');
-  const [bio, setBio] = useState('');
+  const [name, setName] = useState("");
+  const [role, setRole] = useState("");
+  const [bio, setBio] = useState("");
   const [specialties, setSpecialties] = useState<string[]>([]);
   const [pastCompanies, setPastCompanies] = useState<string[]>([]);
 
   useEffect(() => {
     if (userProfile) {
-      setName(userProfile.fullName || '');
+      setName(userProfile.fullName || "");
     }
     if (coachProfile) {
-      setRole(coachProfile.title || '');
-      setBio(coachProfile.bio || '');
+      setRole(coachProfile.title || "");
+      setBio(coachProfile.bio || "");
       setSpecialties(coachProfile.specialties || []);
       setPastCompanies(coachProfile.pastCompanies || []);
     }
@@ -41,7 +40,7 @@ export default function CoachProfilePage() {
   if (!user) {
     return <div>Loading...</div>;
   }
-  
+
   const coach = {
     name: name,
     role: role,
@@ -65,7 +64,7 @@ export default function CoachProfilePage() {
               <CardDescription>{coach.role}</CardDescription>
             </CardHeader>
             <CardContent className="text-center">
-               <Button className="w-full">Change Photo</Button>
+              <Button className="w-full">Change Photo</Button>
             </CardContent>
           </Card>
         </div>
@@ -73,39 +72,66 @@ export default function CoachProfilePage() {
           <Card>
             <CardHeader>
               <CardTitle>My Profile</CardTitle>
-              <CardDescription>Update your public profile information.</CardDescription>
+              <CardDescription>
+                Update your public profile information.
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-               <div className="space-y-2">
+              <div className="space-y-2">
                 <Label htmlFor="name">Full Name</Label>
-                <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
+                <Input
+                  id="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="role">Role / Title</Label>
-                <Input id="role" value={role} onChange={(e) => setRole(e.target.value)} />
+                <Input
+                  id="role"
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="bio">Biography</Label>
-                <Textarea id="bio" value={bio} onChange={(e) => setBio(e.target.value)} rows={5} />
+                <Textarea
+                  id="bio"
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                  rows={5}
+                />
               </div>
-               <div className="space-y-2">
+              <div className="space-y-2">
                 <Label htmlFor="specialties">Specialties</Label>
-                <p className="text-sm text-muted-foreground">Add tags that describe your expertise.</p>
+                <p className="text-sm text-muted-foreground">
+                  Add tags that describe your expertise.
+                </p>
                 <div className="flex flex-wrap gap-2">
-                  {coach.specialties.map(s => <Badge key={s} variant="secondary">{s}</Badge>)}
+                  {coach.specialties.map((s) => (
+                    <Badge key={s} variant="secondary">
+                      {s}
+                    </Badge>
+                  ))}
                 </div>
-                 <Input id="specialties" placeholder="Add a new specialty..." />
+                <Input id="specialties" placeholder="Add a new specialty..." />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="pastCompanies">Work Experience</Label>
-                <p className="text-sm text-muted-foreground">Add companies you've worked at.</p>
+                <p className="text-sm text-muted-foreground">
+                  Add companies you've worked at.
+                </p>
                 <div className="flex flex-wrap gap-2">
-                  {coach.pastCompanies.map(c => <Badge key={c} variant="secondary">{c}</Badge>)}
+                  {coach.pastCompanies.map((c) => (
+                    <Badge key={c} variant="secondary">
+                      {c}
+                    </Badge>
+                  ))}
                 </div>
-                 <Input id="pastCompanies" placeholder="Add a new company..." />
+                <Input id="pastCompanies" placeholder="Add a new company..." />
               </div>
               <Separator />
-               <div className="flex justify-end">
+              <div className="flex justify-end">
                 <Button>Save Changes</Button>
               </div>
             </CardContent>

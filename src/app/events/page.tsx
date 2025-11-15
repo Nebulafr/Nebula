@@ -36,7 +36,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { Footer } from '@/components/layout/footer';
-import { useUser } from '@/firebase';
+import { useUser } from '@/hooks/use-user';
 import { getAuth, signOut } from 'firebase/auth';
 
 const webinarEvents = [

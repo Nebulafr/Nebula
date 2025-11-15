@@ -15,7 +15,7 @@ import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useAuthActions } from "@/firebase/auth/auth-provider";
+import { useAuthActions } from "@/context/auth-context";
 
 function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
   return (

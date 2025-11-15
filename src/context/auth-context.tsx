@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { createContext, useContext, useEffect, useState } from 'react';
-import type { User } from 'firebase/auth';
-import { useUser, type UseUserReturn } from './use-user';
+import { createContext, useContext, useEffect, useState } from "react";
+import type { User } from "firebase/auth";
+import { useUser, type UseUserReturn } from "../hooks/use-user";
 import {
   signUpWithEmail,
   signInWithEmail,
@@ -15,19 +15,22 @@ import {
   type SignUpData,
   type SignInData,
   type AuthError,
-} from './auth-functions';
+} from "../firebase/auth";
 
 export interface AuthContextValue extends UseUserReturn {
-  // Auth actions
   signUp: (data: SignUpData) => Promise<User>;
   signIn: (data: SignInData) => Promise<User>;
-  signInWithGoogle: (role?: 'student' | 'coach') => Promise<User>;
+  signInWithGoogle: (role?: "student" | "coach") => Promise<User>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
-  updatePassword: (currentPassword: string, newPassword: string) => Promise<void>;
-  updateProfile: (data: { displayName?: string; photoURL?: string }) => Promise<void>;
-  
-  // Auth state
+  updatePassword: (
+    currentPassword: string,
+    newPassword: string
+  ) => Promise<void>;
+  updateProfile: (data: {
+    displayName?: string;
+    photoURL?: string;
+  }) => Promise<void>;
   error: AuthError | null;
   clearError: () => void;
 }
@@ -44,19 +47,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const clearError = () => setError(null);
 
-  // Handle Google redirect result on mount
   useEffect(() => {
     const handleRedirect = async () => {
       try {
         await handleGoogleRedirectResult();
       } catch (error) {
-        console.error('Error handling redirect:', error);
+        console.error("Error handling redirect:", error);
       }
     };
     handleRedirect();
   }, []);
 
-  // Clear error when auth state changes
   useEffect(() => {
     if (userHook.user) {
       setError(null);
@@ -77,12 +78,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const authActions = {
     signUp: (data: SignUpData) => handleAuthAction(() => signUpWithEmail(data)),
     signIn: (data: SignInData) => handleAuthAction(() => signInWithEmail(data)),
-    signInWithGoogle: (role?: 'student' | 'coach') => handleAuthAction(() => signInWithGoogle(role)),
+    signInWithGoogle: (role?: "student" | "coach") =>
+      handleAuthAction(() => signInWithGoogle(role)),
     signOut: () => handleAuthAction(() => signOut()),
-    resetPassword: (email: string) => handleAuthAction(() => resetPassword(email)),
-    updatePassword: (currentPassword: string, newPassword: string) => 
+    resetPassword: (email: string) =>
+      handleAuthAction(() => resetPassword(email)),
+    updatePassword: (currentPassword: string, newPassword: string) =>
       handleAuthAction(() => updateUserPassword(currentPassword, newPassword)),
-    updateProfile: (data: { displayName?: string; photoURL?: string }) => 
+    updateProfile: (data: { displayName?: string; photoURL?: string }) =>
       handleAuthAction(() => updateUserProfile(data)),
   };
 
@@ -99,7 +102,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 }
@@ -116,27 +119,27 @@ export function useAuthState() {
 }
 
 export function useAuthActions() {
-  const { 
-    signUp, 
-    signIn, 
-    signInWithGoogle, 
-    signOut, 
-    resetPassword, 
-    updatePassword, 
+  const {
+    signUp,
+    signIn,
+    signInWithGoogle,
+    signOut,
+    resetPassword,
+    updatePassword,
     updateProfile,
     error,
-    clearError
+    clearError,
   } = useAuth();
-  
-  return { 
-    signUp, 
-    signIn, 
-    signInWithGoogle, 
-    signOut, 
-    resetPassword, 
-    updatePassword, 
+
+  return {
+    signUp,
+    signIn,
+    signInWithGoogle,
+    signOut,
+    resetPassword,
+    updatePassword,
     updateProfile,
     error,
-    clearError
+    clearError,
   };
 }

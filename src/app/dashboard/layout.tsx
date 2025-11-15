@@ -1,5 +1,4 @@
-
-'use client';
+"use client";
 
 import {
   Home,
@@ -12,8 +11,8 @@ import {
   Bell,
   PanelLeft,
   ExternalLink,
-} from 'lucide-react';
-import Link from 'next/link';
+} from "lucide-react";
+import Link from "next/link";
 import {
   SidebarProvider,
   Sidebar,
@@ -26,22 +25,23 @@ import {
   SidebarInset,
   SidebarTrigger,
   useSidebar,
-} from '@/components/ui/sidebar';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { usePathname } from 'next/navigation';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+} from "@/components/ui/sidebar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { usePathname } from "next/navigation";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { useAuth } from "@/context/auth-context";
 
 function TopBar() {
   const pathname = usePathname();
-  let pageTitle = 'Dashboard';
-  if (pathname.includes('/programs')) {
-    pageTitle = 'Programs';
-  } else if (pathname.includes('/coaches')) {
-    pageTitle = 'Coaches';
-  } else if (pathname.includes('/messaging')) {
-    pageTitle = 'Messaging';
+  let pageTitle = "Dashboard";
+  if (pathname.includes("/programs")) {
+    pageTitle = "Programs";
+  } else if (pathname.includes("/coaches")) {
+    pageTitle = "Coaches";
+  } else if (pathname.includes("/messaging")) {
+    pageTitle = "Messaging";
   }
 
   return (
@@ -73,13 +73,12 @@ function CollapseButton() {
   return (
     <SidebarMenuItem>
       <SidebarMenuButton tooltip="Collapse" onClick={() => toggleSidebar()}>
-          <PanelLeft />
-          <span>Collapse</span>
+        <PanelLeft />
+        <span>Collapse</span>
       </SidebarMenuButton>
     </SidebarMenuItem>
   );
 }
-
 
 export default function DashboardLayout({
   children,
@@ -87,17 +86,31 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const { user, profile } = useAuth();
+
   return (
     <SidebarProvider>
       <Sidebar collapsible="icon">
         <SidebarHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-                <Avatar className="h-8 w-8">
-                <AvatarImage src="https://i.pravatar.cc/150?u=alex" />
-                <AvatarFallback>A</AvatarFallback>
-                </Avatar>
-                <span className="font-headline text-lg font-bold">Alex</span>
+              <Avatar className="h-8 w-8">
+                <AvatarImage
+                  src={
+                    profile?.avatarUrl ||
+                    user?.photoURL ||
+                    "https://i.pravatar.cc/150?u=student"
+                  }
+                />
+                <AvatarFallback>
+                  {profile?.fullName?.charAt(0) ||
+                    user?.displayName?.charAt(0) ||
+                    "S"}
+                </AvatarFallback>
+              </Avatar>
+              <span className="font-headline text-lg font-bold">
+                {profile?.fullName || user?.displayName || "Student"}
+              </span>
             </div>
           </div>
         </SidebarHeader>
@@ -105,7 +118,11 @@ export default function DashboardLayout({
           <SidebarMenu className="mt-6">
             <SidebarMenuItem>
               <Link href="/dashboard">
-                <SidebarMenuButton tooltip="Dashboard" isActive={pathname === '/dashboard'} asChild>
+                <SidebarMenuButton
+                  tooltip="Dashboard"
+                  isActive={pathname === "/dashboard"}
+                  asChild
+                >
                   <div>
                     <Home />
                     <span>Dashboard</span>
@@ -115,7 +132,11 @@ export default function DashboardLayout({
             </SidebarMenuItem>
             <SidebarMenuItem>
               <Link href="/programs">
-                <SidebarMenuButton tooltip="Programs" isActive={pathname.startsWith('/programs')} asChild>
+                <SidebarMenuButton
+                  tooltip="Programs"
+                  isActive={pathname.startsWith("/programs")}
+                  asChild
+                >
                   <div>
                     <Briefcase />
                     <span>Programs</span>
@@ -125,7 +146,11 @@ export default function DashboardLayout({
             </SidebarMenuItem>
             <SidebarMenuItem>
               <Link href="/coaches">
-                <SidebarMenuButton tooltip="Coaches" isActive={pathname.startsWith('/coaches')} asChild>
+                <SidebarMenuButton
+                  tooltip="Coaches"
+                  isActive={pathname.startsWith("/coaches")}
+                  asChild
+                >
                   <div>
                     <Users />
                     <span>Coaches</span>
@@ -135,7 +160,11 @@ export default function DashboardLayout({
             </SidebarMenuItem>
             <SidebarMenuItem>
               <Link href="/dashboard/messaging">
-                <SidebarMenuButton tooltip="Messaging" isActive={pathname === '/dashboard/messaging'} asChild>
+                <SidebarMenuButton
+                  tooltip="Messaging"
+                  isActive={pathname === "/dashboard/messaging"}
+                  asChild
+                >
                   <div>
                     <MessageSquare />
                     <span>Messaging</span>
@@ -148,7 +177,7 @@ export default function DashboardLayout({
         <SidebarFooter>
           <SidebarMenu>
             <CollapseButton />
-             <SidebarMenuItem>
+            <SidebarMenuItem>
               <Link href="#">
                 <SidebarMenuButton tooltip="Help" asChild>
                   <div>

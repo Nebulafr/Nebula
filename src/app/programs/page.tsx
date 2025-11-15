@@ -9,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Linkedin, LogOut, Star, Twitter, Youtube } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Footer } from "@/components/layout/footer";
-import { useUser } from "@/firebase";
+import { useUser } from "@/hooks/use-user";
 import { getAuth, signOut } from "firebase/auth";
 
 const programsData = [

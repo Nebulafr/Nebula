@@ -1,5 +1,4 @@
-
-'use client';
+"use client";
 
 import {
   LayoutDashboard,
@@ -15,8 +14,8 @@ import {
   MessageSquare,
   ExternalLink,
   Briefcase,
-} from 'lucide-react';
-import Link from 'next/link';
+} from "lucide-react";
+import Link from "next/link";
 import {
   SidebarProvider,
   Sidebar,
@@ -29,29 +28,30 @@ import {
   SidebarInset,
   SidebarTrigger,
   useSidebar,
-} from '@/components/ui/sidebar';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { usePathname } from 'next/navigation';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+} from "@/components/ui/sidebar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { usePathname } from "next/navigation";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { useAuth } from "@/context/auth-context";
 
 function TopBar() {
   const pathname = usePathname();
-  let pageTitle = 'Dashboard';
+  let pageTitle = "Dashboard";
 
-  if (pathname.includes('/my-profile')) {
-    pageTitle = 'My Profile';
-  } else if (pathname.includes('/programs')) {
-    pageTitle = 'Programs';
-  } else if (pathname.includes('/schedule')) {
-    pageTitle = 'Schedule';
-  } else if (pathname.includes('/students')) {
-    pageTitle = 'Students';
-  } else if (pathname.includes('/payouts')) {
-    pageTitle = 'Payouts';
-  } else if (pathname.includes('/messaging')) {
-    pageTitle = 'Messaging';
+  if (pathname.includes("/my-profile")) {
+    pageTitle = "My Profile";
+  } else if (pathname.includes("/programs")) {
+    pageTitle = "Programs";
+  } else if (pathname.includes("/schedule")) {
+    pageTitle = "Schedule";
+  } else if (pathname.includes("/students")) {
+    pageTitle = "Students";
+  } else if (pathname.includes("/payouts")) {
+    pageTitle = "Payouts";
+  } else if (pathname.includes("/messaging")) {
+    pageTitle = "Messaging";
   }
 
   return (
@@ -62,7 +62,7 @@ function TopBar() {
       </div>
 
       <div className="ml-auto flex items-center gap-4">
-         <Button variant="ghost" size="sm" asChild>
+        <Button variant="ghost" size="sm" asChild>
           <Link href="/">
             <ExternalLink className="mr-2 h-4 w-4" />
             Go to Homepage
@@ -83,13 +83,12 @@ function CollapseButton() {
   return (
     <SidebarMenuItem>
       <SidebarMenuButton tooltip="Collapse" onClick={() => toggleSidebar()}>
-          <PanelLeft />
-          <span>Collapse</span>
+        <PanelLeft />
+        <span>Collapse</span>
       </SidebarMenuButton>
     </SidebarMenuItem>
   );
 }
-
 
 export default function CoachDashboardLayout({
   children,
@@ -97,18 +96,32 @@ export default function CoachDashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const { user, profile } = useAuth();
+
   return (
-    <div className='coach-theme'>
+    <div className="coach-theme">
       <SidebarProvider>
         <Sidebar collapsible="icon">
           <SidebarHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                  <Avatar className="h-8 w-8">
-                  <AvatarImage src="https://i.pravatar.cc/150?u=coach" />
-                  <AvatarFallback>C</AvatarFallback>
-                  </Avatar>
-                  <span className="font-headline text-lg font-bold">Coach</span>
+                <Avatar className="h-8 w-8">
+                  <AvatarImage
+                    src={
+                      profile?.avatarUrl ||
+                      user?.photoURL ||
+                      "https://i.pravatar.cc/150?u=coach"
+                    }
+                  />
+                  <AvatarFallback>
+                    {profile?.fullName?.charAt(0) ||
+                      user?.displayName?.charAt(0) ||
+                      "C"}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="font-headline text-lg font-bold">
+                  {profile?.fullName || user?.displayName || "Coach"}
+                </span>
               </div>
             </div>
           </SidebarHeader>
@@ -116,7 +129,11 @@ export default function CoachDashboardLayout({
             <SidebarMenu className="mt-6">
               <SidebarMenuItem>
                 <Link href="/coach-dashboard">
-                  <SidebarMenuButton tooltip="Dashboard" isActive={pathname === '/coach-dashboard'} asChild>
+                  <SidebarMenuButton
+                    tooltip="Dashboard"
+                    isActive={pathname === "/coach-dashboard"}
+                    asChild
+                  >
                     <div>
                       <LayoutDashboard />
                       <span>Dashboard</span>
@@ -124,9 +141,13 @@ export default function CoachDashboardLayout({
                   </SidebarMenuButton>
                 </Link>
               </SidebarMenuItem>
-               <SidebarMenuItem>
+              <SidebarMenuItem>
                 <Link href="/coach-dashboard/programs">
-                  <SidebarMenuButton tooltip="Programs" isActive={pathname.startsWith('/coach-dashboard/programs')} asChild>
+                  <SidebarMenuButton
+                    tooltip="Programs"
+                    isActive={pathname.startsWith("/coach-dashboard/programs")}
+                    asChild
+                  >
                     <div>
                       <Briefcase />
                       <span>Programs</span>
@@ -136,7 +157,11 @@ export default function CoachDashboardLayout({
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <Link href="/coach-dashboard/my-profile">
-                  <SidebarMenuButton tooltip="My Profile" isActive={pathname === '/coach-dashboard/my-profile'} asChild>
+                  <SidebarMenuButton
+                    tooltip="My Profile"
+                    isActive={pathname === "/coach-dashboard/my-profile"}
+                    asChild
+                  >
                     <div>
                       <User />
                       <span>My Profile</span>
@@ -146,7 +171,11 @@ export default function CoachDashboardLayout({
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <Link href="/coach-dashboard/schedule">
-                  <SidebarMenuButton tooltip="Schedule" isActive={pathname.startsWith('/coach-dashboard/schedule')} asChild>
+                  <SidebarMenuButton
+                    tooltip="Schedule"
+                    isActive={pathname.startsWith("/coach-dashboard/schedule")}
+                    asChild
+                  >
                     <div>
                       <Calendar />
                       <span>Schedule</span>
@@ -156,7 +185,11 @@ export default function CoachDashboardLayout({
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <Link href="/coach-dashboard/students">
-                  <SidebarMenuButton tooltip="Students" isActive={pathname === '/coach-dashboard/students'} asChild>
+                  <SidebarMenuButton
+                    tooltip="Students"
+                    isActive={pathname === "/coach-dashboard/students"}
+                    asChild
+                  >
                     <div>
                       <Users />
                       <span>Students</span>
@@ -166,7 +199,11 @@ export default function CoachDashboardLayout({
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <Link href="/coach-dashboard/payouts">
-                  <SidebarMenuButton tooltip="Payouts" isActive={pathname === '/coach-dashboard/payouts'} asChild>
+                  <SidebarMenuButton
+                    tooltip="Payouts"
+                    isActive={pathname === "/coach-dashboard/payouts"}
+                    asChild
+                  >
                     <div>
                       <Wallet />
                       <span>Payouts</span>
@@ -176,7 +213,11 @@ export default function CoachDashboardLayout({
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <Link href="/coach-dashboard/messaging">
-                  <SidebarMenuButton tooltip="Messaging" isActive={pathname === '/coach-dashboard/messaging'} asChild>
+                  <SidebarMenuButton
+                    tooltip="Messaging"
+                    isActive={pathname === "/coach-dashboard/messaging"}
+                    asChild
+                  >
                     <div>
                       <MessageSquare />
                       <span>Messaging</span>
@@ -220,5 +261,3 @@ export default function CoachDashboardLayout({
     </div>
   );
 }
-
-    

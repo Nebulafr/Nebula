@@ -1,5 +1,3 @@
-"use client";
-
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -7,7 +5,6 @@ import {
   signInWithRedirect,
   getRedirectResult,
   GoogleAuthProvider,
-  signOut as firebaseSignOut,
   sendPasswordResetEmail,
   updateProfile,
   updatePassword,
@@ -15,10 +12,9 @@ import {
   reauthenticateWithCredential,
   type User,
 } from "firebase/auth";
-import { auth, db } from "../config";
-import { createUserDocument } from "./create-user";
-import { getUserByEmailAndRole } from "@/services/user-service";
-import type { User as UserModel } from "@/models";
+import { auth, db } from "./config";
+import { createUserDocument } from "./firestore/user";
+import { toast } from "react-toastify";
 
 export interface SignUpData {
   email: string;
@@ -101,39 +97,42 @@ function handleAuthError(error: any): never {
   }
 }
 
-// Sign up with email and password
 export async function signUpWithEmail(data: SignUpData): Promise<User> {
   try {
-    // Check if user already exists with this email and role
-    const existingUser = await getUserByEmailAndRole(data.email, data.role);
-    if (existingUser) {
-      throw new AuthError(
-        "auth/email-already-in-use",
-        `A ${data.role} account with this email already exists.`
-      );
-    }
-
     const { user } = await createUserWithEmailAndPassword(
       auth,
       data.email,
       data.password
     );
-
-    // Update user profile
     await updateProfile(user, {
       displayName: data.fullName,
     });
-
-    // Create user document in Firestore
     await createUserDocument(user, data.role, data.fullName);
-
+    toast.success("Account created successfully!");
     return user;
   } catch (error: any) {
-    handleAuthError(error);
+    // Handle signup-specific errors with toastify
+    let message: string;
+
+    switch (error.code) {
+      case "auth/email-already-in-use":
+        message = "An account with this email already exists.";
+        break;
+      case "auth/weak-password":
+        message = "Password should be at least 6 characters.";
+        break;
+      case "auth/invalid-email":
+        message = "Invalid email address.";
+        break;
+      default:
+        message = "Failed to create account. Please try again.";
+    }
+
+    toast.error(message);
+    throw new AuthError(error.code || "unknown", message);
   }
 }
 
-// Sign in with email and password
 export async function signInWithEmail(data: SignInData): Promise<User> {
   try {
     const { user } = await signInWithEmailAndPassword(
@@ -148,7 +147,6 @@ export async function signInWithEmail(data: SignInData): Promise<User> {
   }
 }
 
-// Sign in with Google (with popup fallback to redirect)
 export async function signInWithGoogle(
   role: "student" | "coach" = "student"
 ): Promise<User> {
@@ -157,37 +155,30 @@ export async function signInWithGoogle(
     provider.addScope("email");
     provider.addScope("profile");
 
-    // Store role for redirect fallback
     if (typeof window !== "undefined") {
       sessionStorage.setItem("pendingGoogleSignInRole", role);
     }
 
     try {
-      // Try popup first
       const { user } = await signInWithPopup(auth, provider);
 
-      // Clear stored role since popup succeeded
       if (typeof window !== "undefined") {
         sessionStorage.removeItem("pendingGoogleSignInRole");
       }
 
-      // Create user document if this is a new user
       await createUserDocument(user, role, user.displayName);
 
       return user;
     } catch (popupError: any) {
-      // If popup is blocked, fallback to redirect
       if (popupError.code === "auth/popup-blocked") {
         console.log("Popup blocked, falling back to redirect");
         await signInWithRedirect(auth, provider);
-        // signInWithRedirect doesn't return a user, it redirects the page
         throw new AuthError(
           "auth/redirect-initiated",
           "Redirecting to Google sign-in..."
         );
       }
 
-      // Clear stored role on other errors
       if (typeof window !== "undefined") {
         sessionStorage.removeItem("pendingGoogleSignInRole");
       }
@@ -202,31 +193,27 @@ export async function signInWithGoogle(
       throw new AuthError(error.code, "Sign-in was cancelled.");
     }
     if (error.code === "auth/redirect-initiated") {
-      throw error; // Don't modify this one
+      throw error;
     }
     handleAuthError(error);
   }
 }
 
-// Handle redirect result (call this on app initialization)
 export async function handleGoogleRedirectResult(): Promise<User | null> {
   try {
     const result = await getRedirectResult(auth);
     if (result && result.user) {
       const user = result.user;
 
-      // Get the stored role or default to student
       const role =
         ((typeof window !== "undefined"
           ? sessionStorage.getItem("pendingGoogleSignInRole")
           : null) as "student" | "coach") || "student";
 
-      // Clear stored role
       if (typeof window !== "undefined") {
         sessionStorage.removeItem("pendingGoogleSignInRole");
       }
 
-      // Create user document if this is a new user
       await createUserDocument(user, role, user.displayName);
 
       return user;
@@ -238,16 +225,14 @@ export async function handleGoogleRedirectResult(): Promise<User | null> {
   }
 }
 
-// Sign out
 export async function signOut(): Promise<void> {
   try {
-    await firebaseSignOut(auth);
+    await auth.signOut();
   } catch (error: any) {
     handleAuthError(error);
   }
 }
 
-// Reset password
 export async function resetPassword(email: string): Promise<void> {
   try {
     await sendPasswordResetEmail(auth, email);
@@ -256,7 +241,6 @@ export async function resetPassword(email: string): Promise<void> {
   }
 }
 
-// Update user password (requires recent authentication)
 export async function updateUserPassword(
   currentPassword: string,
   newPassword: string
@@ -270,21 +254,18 @@ export async function updateUserPassword(
       );
     }
 
-    // Re-authenticate user
     const credential = EmailAuthProvider.credential(
       user.email,
       currentPassword
     );
     await reauthenticateWithCredential(user, credential);
 
-    // Update password
     await updatePassword(user, newPassword);
   } catch (error: any) {
     handleAuthError(error);
   }
 }
 
-// Update user profile
 export async function updateUserProfile(data: {
   displayName?: string;
   photoURL?: string;
@@ -304,17 +285,14 @@ export async function updateUserProfile(data: {
   }
 }
 
-// Get current user
 export function getCurrentUser(): User | null {
   return auth.currentUser;
 }
 
-// Check if user is authenticated
 export function isAuthenticated(): boolean {
   return !!auth.currentUser;
 }
 
-// Wait for auth state to be determined
 export function waitForAuthState(): Promise<User | null> {
   return new Promise((resolve) => {
     const unsubscribe = auth.onAuthStateChanged((user) => {

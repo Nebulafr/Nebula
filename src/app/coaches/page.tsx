@@ -1,126 +1,144 @@
+"use client";
 
-'use client';
-
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Linkedin, LogOut, Search, Star, Twitter, Users, Youtube } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Input } from '@/components/ui/input';
-import { useSearchParams } from 'next/navigation';
-import React from 'react';
-import { Footer } from '@/components/layout/footer';
-import { useUser } from '@/firebase';
-import { getAuth, signOut } from 'firebase/auth';
+  Linkedin,
+  LogOut,
+  Search,
+  Star,
+  Twitter,
+  Users,
+  Youtube,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
+import { useSearchParams } from "next/navigation";
+import React from "react";
+import { Footer } from "@/components/layout/footer";
+import { useUser } from "@/hooks/use-user";
+import { getAuth, signOut } from "firebase/auth";
 
 const coachesData = [
   {
-    group: 'Career Prep',
+    group: "Career Prep",
     items: [
       {
-        name: 'Adrian Cucurella',
-        role: 'Partner, BCG',
-        avatar: 'https://i.pravatar.cc/150?u=adrian-cucurella',
+        name: "Adrian Cucurella",
+        role: "Partner, BCG",
+        avatar: "https://i.pravatar.cc/150?u=adrian-cucurella",
         rating: 4.9,
         studentsCoached: 120,
-        specialties: ['Career Prep', 'Interview Skills'],
-        slug: 'adrian-cucurella',
-        category: 'Career Prep',
+        specialties: ["Career Prep", "Interview Skills"],
+        slug: "adrian-cucurella",
+        category: "Career Prep",
       },
       {
-        name: 'Sarah Chen',
-        role: 'Senior PM, Google',
-        avatar: 'https://i.pravatar.cc/150?u=sarah-chen',
+        name: "Sarah Chen",
+        role: "Senior PM, Google",
+        avatar: "https://i.pravatar.cc/150?u=sarah-chen",
         rating: 4.8,
         studentsCoached: 95,
-        specialties: ['Product Management', 'Resume Review'],
-        slug: 'sarah-chen',
-        category: 'Product Management',
+        specialties: ["Product Management", "Resume Review"],
+        slug: "sarah-chen",
+        category: "Product Management",
       },
       {
-        name: 'Michael B. Jordan',
-        role: 'Actor, Director',
-        avatar: 'https://i.pravatar.cc/150?u=michael-jordan',
+        name: "Michael B. Jordan",
+        role: "Actor, Director",
+        avatar: "https://i.pravatar.cc/150?u=michael-jordan",
         rating: 4.9,
         studentsCoached: 150,
-        specialties: ['Acting', 'Film Direction'],
-        slug: 'michael-b-jordan',
-        category: 'Comedy',
+        specialties: ["Acting", "Film Direction"],
+        slug: "michael-b-jordan",
+        category: "Comedy",
       },
       {
-        name: 'Lisa Kudrow',
-        role: 'Comedian, Actress',
-        avatar: 'https://i.pravatar.cc/150?u=lisa-kudrow',
+        name: "Lisa Kudrow",
+        role: "Comedian, Actress",
+        avatar: "https://i.pravatar.cc/150?u=lisa-kudrow",
         rating: 4.7,
         studentsCoached: 80,
-        specialties: ['Comedy', 'Improvisation'],
-        slug: 'lisa-kudrow',
-        category: 'Comedy',
+        specialties: ["Comedy", "Improvisation"],
+        slug: "lisa-kudrow",
+        category: "Comedy",
       },
     ],
   },
-    {
-    group: 'School Admissions',
+  {
+    group: "School Admissions",
     items: [
-        {
-            name: 'John Hughes',
-            role: 'Admissions Officer, Harvard',
-            avatar: 'https://i.pravatar.cc/150?u=john-hughes',
-            rating: 4.9,
-            studentsCoached: 200,
-            specialties: ['Essay Writing', 'College Apps'],
-            slug: 'john-hughes',
-            category: 'School Admission',
-        },
-        {
-            name: 'Emily Blunt',
-            role: 'Consultant, Bain',
-            avatar: 'https://i.pravatar.cc/150?u=emily-blunt',
-            rating: 4.8,
-            studentsCoached: 150,
-            specialties: ['MBA Applications', 'Interview Prep'],
-            slug: 'emily-blunt',
-            category: 'School Admission',
-        }
-    ]
-  }
+      {
+        name: "John Hughes",
+        role: "Admissions Officer, Harvard",
+        avatar: "https://i.pravatar.cc/150?u=john-hughes",
+        rating: 4.9,
+        studentsCoached: 200,
+        specialties: ["Essay Writing", "College Apps"],
+        slug: "john-hughes",
+        category: "School Admission",
+      },
+      {
+        name: "Emily Blunt",
+        role: "Consultant, Bain",
+        avatar: "https://i.pravatar.cc/150?u=emily-blunt",
+        rating: 4.8,
+        studentsCoached: 150,
+        specialties: ["MBA Applications", "Interview Prep"],
+        slug: "emily-blunt",
+        category: "School Admission",
+      },
+    ],
+  },
 ];
 
-const allCoaches = coachesData.flatMap(group => group.items);
-
+const allCoaches = coachesData.flatMap((group) => group.items);
 
 function CoachesPageContent() {
   const searchParams = useSearchParams();
-  const initialSearch = searchParams.get('search') || '';
-  const [activeCategory, setActiveCategory] = useState('All');
+  const initialSearch = searchParams.get("search") || "";
+  const [activeCategory, setActiveCategory] = useState("All");
   const [searchTerm, setSearchTerm] = useState(initialSearch);
 
-  const categories = ['All', 'Career Prep', 'School Admission', 'Skill Assessment', 'Product Management', 'Comedy'];
-  
-  const filteredCoaches = allCoaches.filter(coach => {
-    const categoryMatch = activeCategory === 'All' || coach.category === activeCategory;
-    const searchMatch = searchTerm === '' || 
-                        coach.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                        coach.specialties.some(s => s.toLowerCase().includes(searchTerm.toLowerCase()));
+  const categories = [
+    "All",
+    "Career Prep",
+    "School Admission",
+    "Skill Assessment",
+    "Product Management",
+    "Comedy",
+  ];
+
+  const filteredCoaches = allCoaches.filter((coach) => {
+    const categoryMatch =
+      activeCategory === "All" || coach.category === activeCategory;
+    const searchMatch =
+      searchTerm === "" ||
+      coach.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      coach.specialties.some((s) =>
+        s.toLowerCase().includes(searchTerm.toLowerCase())
+      );
     return categoryMatch && searchMatch;
   });
 
   const groupedCoaches = filteredCoaches.reduce((acc, coach) => {
-    const groupKey = coach.specialties.includes('Career Prep') || coach.specialties.includes('Product Management') || coach.specialties.includes('Acting') || coach.specialties.includes('Comedy') ? 'Career Prep' : 'School Admissions';
+    const groupKey =
+      coach.specialties.includes("Career Prep") ||
+      coach.specialties.includes("Product Management") ||
+      coach.specialties.includes("Acting") ||
+      coach.specialties.includes("Comedy")
+        ? "Career Prep"
+        : "School Admissions";
     if (!acc[groupKey]) {
       acc[groupKey] = [];
     }
     acc[groupKey].push(coach);
     return acc;
   }, {} as Record<string, typeof allCoaches>);
-
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -131,12 +149,13 @@ function CoachesPageContent() {
             Meet Our World-Class Coaches
           </h1>
           <p className="mx-auto mt-4 max-w-2xl font-body text-lg text-foreground/70">
-            Learn from the best. Our coaches are industry leaders and experts in their fields, ready to guide you to success.
+            Learn from the best. Our coaches are industry leaders and experts in
+            their fields, ready to guide you to success.
           </p>
           <div className="mx-auto mt-8 relative max-w-xl">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-            <Input 
-              placeholder="Search by name or specialty" 
+            <Input
+              placeholder="Search by name or specialty"
               className="h-12 w-full rounded-full pl-12"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -175,35 +194,45 @@ function CoachesPageContent() {
                     >
                       <Card className="flex w-full flex-col rounded-xl border transition-all hover:shadow-lg">
                         <CardContent className="flex flex-1 flex-col p-4">
-                            <div className="flex flex-col items-center text-center">
-                                <Avatar className="h-24 w-24">
-                                <AvatarImage src={coach.avatar} />
-                                <AvatarFallback>{coach.name[0]}</AvatarFallback>
-                                </Avatar>
-                                <div className="mt-4">
-                                <h3 className="font-headline text-lg font-semibold">{coach.name}</h3>
-                                <p className="text-sm text-muted-foreground">{coach.role}</p>
-                                <div className="mt-2 flex items-center justify-center gap-1">
-                                    <Star className="h-2 w-2 text-yellow-500 fill-yellow-500" />
-                                    <span className="text-[10px] font-semibold">{coach.rating}</span>
-                                </div>
-                                </div>
+                          <div className="flex flex-col items-center text-center">
+                            <Avatar className="h-24 w-24">
+                              <AvatarImage src={coach.avatar} />
+                              <AvatarFallback>{coach.name[0]}</AvatarFallback>
+                            </Avatar>
+                            <div className="mt-4">
+                              <h3 className="font-headline text-lg font-semibold">
+                                {coach.name}
+                              </h3>
+                              <p className="text-sm text-muted-foreground">
+                                {coach.role}
+                              </p>
+                              <div className="mt-2 flex items-center justify-center gap-1">
+                                <Star className="h-2 w-2 text-yellow-500 fill-yellow-500" />
+                                <span className="text-[10px] font-semibold">
+                                  {coach.rating}
+                                </span>
+                              </div>
                             </div>
-                            <div className="mt-4 text-center">
-                                <div className="flex flex-wrap justify-center gap-2">
-                                {coach.specialties.map((specialty) => (
-                                    <Badge key={specialty} variant="secondary">{specialty}</Badge>
-                                ))}
-                                </div>
+                          </div>
+                          <div className="mt-4 text-center">
+                            <div className="flex flex-wrap justify-center gap-2">
+                              {coach.specialties.map((specialty) => (
+                                <Badge key={specialty} variant="secondary">
+                                  {specialty}
+                                </Badge>
+                              ))}
                             </div>
-                            <div className="flex-grow"/>
-                            <div className="mt-4 flex items-center justify-center gap-1">
-                                <Users className="h-4 w-4 text-muted-foreground" />
-                                <span className="text-sm text-muted-foreground">{coach.studentsCoached}+ students</span>
-                            </div>
-                            <Button variant="outline" className="mt-4 w-full">
-                                View Profile
-                            </Button>
+                          </div>
+                          <div className="flex-grow" />
+                          <div className="mt-4 flex items-center justify-center gap-1">
+                            <Users className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm text-muted-foreground">
+                              {coach.studentsCoached}+ students
+                            </span>
+                          </div>
+                          <Button variant="outline" className="mt-4 w-full">
+                            View Profile
+                          </Button>
                         </CardContent>
                       </Card>
                     </Link>
@@ -230,12 +259,13 @@ export default function CoachesPage() {
 function Header() {
   const { user, profile } = useUser();
   const auth = getAuth();
-  
+
   const handleLogout = async () => {
     await signOut(auth);
   };
 
-  const dashboardUrl = profile?.role === 'coach' ? '/coach-dashboard' : '/dashboard';
+  const dashboardUrl =
+    profile?.role === "coach" ? "/coach-dashboard" : "/dashboard";
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -286,8 +316,12 @@ function Header() {
             </>
           ) : (
             <>
-              <Button variant="ghost" asChild><Link href="/login">Log In</Link></Button>
-              <Button asChild><Link href="/signup">Sign Up</Link></Button>
+              <Button variant="ghost" asChild>
+                <Link href="/login">Log In</Link>
+              </Button>
+              <Button asChild>
+                <Link href="/signup">Sign Up</Link>
+              </Button>
             </>
           )}
         </div>

@@ -26,7 +26,7 @@ import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { Separator } from "@/components/ui/separator";
 import { useParams } from "next/navigation";
 import { Footer } from "@/components/layout/footer";
-import { useUser } from "@/firebase";
+import { useUser } from "@/hooks/use-user";
 import { getAuth, signOut } from "firebase/auth";
 
 const eventData: Record<string, any> = {
