@@ -1,16 +1,95 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Linkedin, LogOut, Star, Twitter, Youtube } from "lucide-react";
+import { LogOut, Star, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Footer } from "@/components/layout/footer";
 import { useUser } from "@/hooks/use-user";
 import { getAuth, signOut } from "firebase/auth";
+import { getActivePrograms } from "@/firebase/firestore/program";
+import { getCoach } from "@/firebase/firestore/coach";
+import type { IProgram, ICoach } from "@/models";
+
+type ProgramWithCoach = IProgram & {
+  coachData?: ICoach;
+};
+
+const mockProgramsData = [
+  {
+    group: "Career Prep",
+    items: [
+      {
+        category: "Career Prep",
+        title: "Consulting, Associate Level",
+        description: "Here's a short text that describes the program.",
+        coach: {
+          name: "Adrian Cucurella",
+          role: "Partner, BCG",
+          avatar: `https://i.pravatar.cc/40?u=adrian`,
+        },
+        attendees: [
+          `https://i.pravatar.cc/40?u=1`,
+          `https://i.pravatar.cc/40?u=2`,
+          `https://i.pravatar.cc/40?u=3`,
+        ],
+        otherAttendees: 32,
+        rating: 4.9,
+        slug: "consulting-associate-level",
+      },
+    ],
+  },
+  {
+    group: "School Admissions",
+    items: [
+      {
+        category: "School Admissions",
+        title: "Statement of Purpose",
+        description: "Here's a short text that describes the program.",
+        coach: {
+          name: "Sarah Hughes",
+          role: "Coach",
+          avatar: `https://i.pravatar.cc/40?u=sarah-hughes`,
+        },
+        attendees: [
+          `https://i.pravatar.cc/40?u=4`,
+          `https://i.pravatar.cc/40?u=5`,
+          `https://i.pravatar.cc/40?u=6`,
+        ],
+        otherAttendees: 28,
+        rating: 4.8,
+        slug: "statement-of-purpose",
+      },
+    ],
+  },
+  {
+    group: "Skill Assessment",
+    items: [
+      {
+        category: "Skill Assessment",
+        title: "Product roadmap",
+        description: "Here's a short text that describes the program.",
+        coach: {
+          name: "Natasha Daniels",
+          role: "Coach",
+          avatar: `https://i.pravatar.cc/40?u=natasha-daniels`,
+        },
+        attendees: [
+          `https://i.pravatar.cc/40?u=7`,
+          `https://i.pravatar.cc/40?u=8`,
+          `https://i.pravatar.cc/40?u=9`,
+        ],
+        otherAttendees: 15,
+        rating: 4.7,
+        slug: "product-roadmap",
+      },
+    ],
+  },
+];
 
 const programsData = [
   {
@@ -272,12 +351,84 @@ const programsData = [
 
 export default function ProgramsPage() {
   const [activeCategory, setActiveCategory] = useState("All");
+  const [programs, setPrograms] = useState<ProgramWithCoach[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [programsData, setProgramsData] = useState(mockProgramsData);
+
+  console.log({ programsData });
+
   const categories = [
     "All",
     "Career Prep",
     "School Admission",
     "Skill Assessment",
   ];
+
+  useEffect(() => {
+    const fetchPrograms = async () => {
+      try {
+        setLoading(true);
+        const activePrograms = await getActivePrograms(20);
+        console.log("Fetched active programs:", activePrograms);
+
+        if (activePrograms.length > 0) {
+          const programsWithCoaches = await Promise.all(
+            activePrograms.map(async (program) => {
+              try {
+                const coachData = await getCoach(program.coachRef);
+                return { ...program, coachData };
+              } catch (error) {
+                console.error("Error fetching coach data:", error);
+                return program;
+              }
+            })
+          );
+
+          const groupedPrograms = programsWithCoaches.reduce((acc, program) => {
+            const category = program.category;
+            if (!acc[category]) {
+              acc[category] = [];
+            }
+            acc[category].push(program as IProgram);
+            return acc;
+          }, {} as Record<string, ProgramWithCoach[]>);
+
+          const formattedData = Object.entries(groupedPrograms).map(
+            ([group, items]) => ({
+              group,
+              items: items.map((item) => ({
+                category: item.category,
+                title: item.title,
+                description: item.description,
+                coach: {
+                  name: item.coachData?.fullName || "Unknown Coach",
+                  role: item.coachData?.title || "Coach",
+                  avatar:
+                    item.coachData?.avatarUrl ||
+                    `https://i.pravatar.cc/40?u=${item.coachData?.fullName}`,
+                },
+                attendees: [],
+                otherAttendees: item.currentEnrollments || 0,
+                rating: item.rating || 0,
+                slug: item.slug,
+              })),
+            })
+          );
+
+          setProgramsData(formattedData);
+        } else {
+          setProgramsData(mockProgramsData);
+        }
+      } catch (error) {
+        console.error("Error fetching programs:", error);
+        setProgramsData(mockProgramsData);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPrograms();
+  }, []);
 
   const filteredGroups = programsData
     .map((group) => {
@@ -376,23 +527,35 @@ export default function ProgramsPage() {
                             </div>
                             <div className="flex items-center justify-between">
                               <div className="flex items-center">
-                                <div className="flex -space-x-2">
-                                  {program.attendees
-                                    .slice(0, 3)
-                                    .map((attendee, i) => (
-                                      <Avatar
-                                        key={i}
-                                        className="h-6 w-6 border-2 border-background"
-                                      >
-                                        <AvatarImage src={attendee} />
-                                        <AvatarFallback>A</AvatarFallback>
-                                      </Avatar>
-                                    ))}
-                                </div>
-                                {program.otherAttendees > 0 && (
-                                  <span className="ml-2 text-xs font-medium text-muted-foreground">
-                                    +{program.otherAttendees}
-                                  </span>
+                                {program.attendees &&
+                                program.attendees.length > 0 ? (
+                                  <>
+                                    <div className="flex -space-x-2">
+                                      {program.attendees
+                                        .slice(0, 3)
+                                        .map((attendee, i) => (
+                                          <Avatar
+                                            key={i}
+                                            className="h-6 w-6 border-2 border-background"
+                                          >
+                                            <AvatarImage src={attendee} />
+                                            <AvatarFallback>A</AvatarFallback>
+                                          </Avatar>
+                                        ))}
+                                    </div>
+                                    {program.otherAttendees > 0 && (
+                                      <span className="ml-2 text-xs font-medium text-muted-foreground">
+                                        +{program.otherAttendees}
+                                      </span>
+                                    )}
+                                  </>
+                                ) : (
+                                  <div className="flex items-center gap-1">
+                                    <Users className="h-4 w-4 text-muted-foreground" />
+                                    <span className="text-xs font-medium text-muted-foreground">
+                                      {program.otherAttendees} students
+                                    </span>
+                                  </div>
                                 )}
                               </div>
                               <Badge

@@ -89,7 +89,6 @@ export default function SignupPage() {
     try {
       await signInWithGoogle("student");
     } catch (error) {
-      // Error handled by auth provider
     } finally {
       setLoading(false);
     }

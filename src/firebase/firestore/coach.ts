@@ -12,6 +12,7 @@ import {
   limit,
   collection,
   Timestamp,
+  DocumentReference,
 } from "firebase/firestore";
 import { db } from "../config";
 import type { ICoach, ICoachOnboardingData } from "@/models";
@@ -71,6 +72,15 @@ export async function deleteCoachProfile(coachId: string) {
 
 export async function getCoachProfile(coachId: string) {
   const coachRef = doc(db, "coaches", coachId);
+  const coachSnap = await getDoc(coachRef);
+
+  if (coachSnap.exists()) {
+    return { id: coachSnap.id, ...coachSnap.data() } as ICoach;
+  }
+  return null;
+}
+
+export async function getCoach(coachRef: DocumentReference) {
   const coachSnap = await getDoc(coachRef);
 
   if (coachSnap.exists()) {

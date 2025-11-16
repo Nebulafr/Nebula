@@ -14,7 +14,7 @@ import {
   Timestamp,
 } from "firebase/firestore";
 import { db } from "../config";
-import type { IProgram } from "@/models";
+import type { IProgram, Module } from "@/models";
 
 export async function createProgram(data: {
   title: string;
@@ -28,7 +28,7 @@ export async function createProgram(data: {
   maxStudents?: number;
   tags?: string[];
   prerequisites?: string[];
-  materials?: string[];
+  modules: Module[];
 }) {
   const programsCollection = collection(db, "programs");
 
@@ -44,15 +44,15 @@ export async function createProgram(data: {
       .replace(/[^\w-]/g, ""),
     rating: 0,
     totalReviews: 0,
-    price: data.price,
-    duration: data.duration,
-    difficultyLevel: data.difficultyLevel,
-    maxStudents: data.maxStudents,
+    price: data.price || 0,
+    duration: data.duration || "4 weeks",
+    difficultyLevel: data.difficultyLevel || "beginner",
+    maxStudents: data.maxStudents || 100,
     currentEnrollments: 0,
     isActive: true,
     tags: data.tags || [],
     prerequisites: data.prerequisites || [],
-    materials: data.materials || [],
+    modules: data.modules || [],
     createdAt: Timestamp.now(),
     updatedAt: serverTimestamp(),
   };

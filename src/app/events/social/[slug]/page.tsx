@@ -125,9 +125,9 @@ export default function SocialEventPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:items-start">
             {/* Left side: Image Collage */}
-            <div className="grid grid-cols-2 grid-rows-2 gap-4 h-[500px]">
+            <div className="relative h-[500px] rounded-xl overflow-hidden">
               {images.length > 0 && images[0] && (
-                <div className="col-span-2 row-span-2 rounded-xl overflow-hidden">
+                <div className="w-full h-full">
                   <Image
                     src={images[0].imageUrl}
                     alt={images[0].description}
@@ -139,14 +139,26 @@ export default function SocialEventPage() {
                 </div>
               )}
               {images.length > 1 && images[1] && (
-                <div className="absolute bottom-4 right-4 col-span-1 row-span-1 rounded-xl overflow-hidden w-1/3 border-4 border-white shadow-lg">
+                <div className="absolute bottom-4 right-4 w-32 h-32 rounded-xl overflow-hidden border-4 border-white shadow-lg">
                   <Image
                     src={images[1].imageUrl}
                     alt={images[1].description}
-                    width={400}
-                    height={400}
+                    width={128}
+                    height={128}
                     className="object-cover w-full h-full"
                     data-ai-hint={images[1].imageHint}
+                  />
+                </div>
+              )}
+              {images.length > 2 && images[2] && (
+                <div className="absolute bottom-4 right-40 w-32 h-32 rounded-xl overflow-hidden border-4 border-white shadow-lg">
+                  <Image
+                    src={images[2].imageUrl}
+                    alt={images[2].description}
+                    width={128}
+                    height={128}
+                    className="object-cover w-full h-full"
+                    data-ai-hint={images[2].imageHint}
                   />
                 </div>
               )}

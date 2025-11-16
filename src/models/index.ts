@@ -1,3 +1,5 @@
+import { DocumentReference } from "firebase/firestore";
+
 export interface IBaseTimestamp {
   createdAt: Date;
   updatedAt?: Date;
@@ -15,7 +17,7 @@ export interface IUser extends IBaseTimestamp {
 export interface ICoach extends IBaseTimestamp {
   id: string;
   userId?: string;
-  userRef: string;
+  userRef: DocumentReference;
   email?: string;
   fullName?: string;
   avatarUrl?: string;
@@ -42,7 +44,7 @@ export interface ICoach extends IBaseTimestamp {
 export interface IStudent extends IBaseTimestamp {
   id: string;
   userId?: string; // Direct user ID reference
-  userRef: string; // Firestore reference
+  userRef: DocumentReference; // Firestore reference
   email?: string;
   fullName?: string;
   avatarUrl?: string;
@@ -66,13 +68,19 @@ export interface IStudentPreferences {
   communicationStyle?: string;
 }
 
+export interface Module {
+  title: string;
+  week: number;
+  description?: string;
+}
+
 export interface IProgram extends IBaseTimestamp {
   id: string;
   title: string;
   category: string;
   description: string;
   objectives: string[];
-  coachRef: string;
+  coachRef: DocumentReference;
   slug: string;
   rating: number;
   totalReviews?: number;
@@ -84,14 +92,14 @@ export interface IProgram extends IBaseTimestamp {
   isActive: boolean;
   tags?: string[];
   prerequisites?: string[];
-  materials?: string[];
+  modules?: Module[];
 }
 
 export interface ISession extends IBaseTimestamp {
   id: string;
-  programRef: string;
-  coachRef: string;
-  studentRefs: string[];
+  programRef: DocumentReference;
+  coachRef: DocumentReference;
+  studentRefs: DocumentReference[];
   title?: string;
   description?: string;
   scheduledTime: Date;
@@ -114,7 +122,7 @@ export interface ISessionRecording {
 }
 
 export interface ISessionAttendance {
-  studentRef: string;
+  studentRef: DocumentReference;
   joinTime?: Date;
   leaveTime?: Date;
   attended: boolean;
@@ -123,9 +131,9 @@ export interface ISessionAttendance {
 
 export interface IEnrollment extends IBaseTimestamp {
   id: string;
-  studentRef: string;
-  programRef: string;
-  coachRef: string;
+  studentRef: DocumentReference;
+  programRef: DocumentReference;
+  coachRef: DocumentReference;
   status: "active" | "completed" | "cancelled" | "paused";
   enrollmentDate: Date;
   completionDate?: Date;
@@ -136,9 +144,9 @@ export interface IEnrollment extends IBaseTimestamp {
 
 export interface IReview extends IBaseTimestamp {
   id: string;
-  reviewerRef: string;
-  revieweeRef: string;
-  targetRef: string;
+  reviewerRef: DocumentReference;
+  revieweeRef: DocumentReference;
+  targetRef: DocumentReference;
   targetType: "program" | "coach" | "session";
   rating: number;
   title?: string;
@@ -151,7 +159,7 @@ export interface IReview extends IBaseTimestamp {
 
 export interface IMessage extends IBaseTimestamp {
   id: string;
-  conversationRef: any; // Document reference
+  conversationRef: DocumentReference; // Document reference
   senderRef: any; // Document reference
   content: string;
   type?: "text" | "image" | "file" | "link";
@@ -183,7 +191,7 @@ export interface IMessageReaction {
 
 export interface IConversation extends IBaseTimestamp {
   id: string;
-  participantRefs: any[];
+  participantRefs: DocumentReference[];
   type: "direct" | "group" | "support";
   title?: string;
   lastMessage?: string;
@@ -273,7 +281,7 @@ export interface IEvent extends IBaseTimestamp {
   title: string;
   description: string;
   type: "workshop" | "webinar" | "networking" | "social" | "conference";
-  organizerRef: string;
+  organizerRef: DocumentReference;
   startTime: Date;
   endTime: Date;
   location?: string;
@@ -301,8 +309,8 @@ export interface IEvent extends IBaseTimestamp {
 
 export interface IEventRegistration extends IBaseTimestamp {
   id: string;
-  eventRef: string;
-  attendeeRef: string;
+  eventRef: DocumentReference;
+  attendeeRef: DocumentReference;
   status: "registered" | "attended" | "no-show" | "cancelled";
   registrationDate: Date;
   paymentStatus?: "pending" | "paid" | "failed";
@@ -313,7 +321,7 @@ export interface IEventRegistration extends IBaseTimestamp {
 
 export interface IAnalytics {
   id: string;
-  entityRef: string;
+  entityRef: DocumentReference;
   entityType: "user" | "coach" | "student" | "program" | "session" | "event";
   metricType: string;
   value: number;
@@ -323,7 +331,7 @@ export interface IAnalytics {
 
 export interface IFeedback extends IBaseTimestamp {
   id: string;
-  fromRef: string;
+  fromRef: DocumentReference;
   toRef?: string;
   type: "bug" | "feature_request" | "general" | "complaint" | "compliment";
   subject: string;
@@ -348,7 +356,7 @@ export interface IAdminSettings extends IBaseTimestamp {
 
 export interface IActivityLog extends IBaseTimestamp {
   id: string;
-  userRef: string;
+  userRef: DocumentReference;
   action: string;
   entityType: string;
   entityRef?: string;
@@ -504,7 +512,7 @@ export interface ISortOptions {
 // Navigation and Layout interfaces
 export interface INavigationItem {
   label: string;
-  href: string;
+  href: DocumentReference;
   icon?: string;
   badge?: string | number;
   children?: INavigationItem[];

@@ -20,6 +20,7 @@ export async function createEnrollment(data: {
   studentId: string;
   programId: string;
   coachId: string;
+  time: string;
   amountPaid?: number;
 }) {
   const enrollmentsCollection = collection(db, "enrollments");
@@ -30,6 +31,7 @@ export async function createEnrollment(data: {
     coachRef: doc(db, "coaches", data.coachId),
     status: "active" as const,
     enrollmentDate: new Date(),
+    time: data.time,
     progress: 0,
     paymentStatus: "pending" as const,
     amountPaid: data.amountPaid || 0,
