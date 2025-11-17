@@ -81,7 +81,7 @@ const eventData: Record<string, any> = {
 export default function SocialEventPage() {
   const params = useParams<{ slug: string }>();
   const slug = params.slug;
-  const event = eventData[slug] || eventData["hiking-adventure"]; // Fallback to default
+  const event = eventData[slug] || eventData["hiking-adventure"];
   const [showPayment, setShowPayment] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
   const [selectedSession, setSelectedSession] = useState<any>(null);

@@ -14,7 +14,7 @@ import {
   arrayUnion,
   Timestamp,
 } from "firebase/firestore";
-import { db } from "../config";
+import { db } from "../client";
 import type { ISession } from "@/models";
 
 export async function createSession(data: {

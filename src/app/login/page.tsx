@@ -63,9 +63,7 @@ export default function LoginPage() {
 
     try {
       await signIn({ email, password });
-      // The useUser hook will handle redirection
     } catch (error) {
-      // Error is handled by auth provider
     } finally {
       setLoading(false);
     }
@@ -78,13 +76,11 @@ export default function LoginPage() {
     clearError();
 
     try {
-      await signInWithGoogle("student"); // Default to student, user can change role later
+      await signInWithGoogle("student");
     } catch (error: any) {
-      // Don't set loading to false if redirecting
       if (error?.code !== "auth/redirect-initiated") {
         setLoading(false);
       }
-      // Error is handled by auth provider
     }
   };
 

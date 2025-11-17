@@ -14,7 +14,7 @@ import {
   increment,
   Timestamp,
 } from "firebase/firestore";
-import { db } from "../config";
+import { db } from "../client";
 import type { IReview } from "@/models";
 
 export async function createReview(data: {

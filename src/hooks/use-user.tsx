@@ -5,7 +5,7 @@ import { onAuthStateChanged, type User } from "firebase/auth";
 import { doc, onSnapshot, Unsubscribe } from "firebase/firestore";
 import { useRouter, usePathname } from "next/navigation";
 import type { IUser, ICoach, IStudent } from "@/models";
-import { auth, db } from "@/firebase/config";
+import { auth, db } from "@/firebase/client";
 import { publicRoutes } from "@/lib/utils";
 
 type AuthState =

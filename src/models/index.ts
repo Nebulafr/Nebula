@@ -43,8 +43,8 @@ export interface ICoach extends IBaseTimestamp {
 
 export interface IStudent extends IBaseTimestamp {
   id: string;
-  userId?: string; // Direct user ID reference
-  userRef: DocumentReference; // Firestore reference
+  userId?: string;
+  userRef: DocumentReference;
   email?: string;
   fullName?: string;
   avatarUrl?: string;
@@ -140,6 +140,7 @@ export interface IEnrollment extends IBaseTimestamp {
   progress: number;
   paymentStatus: "pending" | "paid" | "failed" | "refunded";
   amountPaid?: number;
+  time: string;
 }
 
 export interface IReview extends IBaseTimestamp {
@@ -159,11 +160,11 @@ export interface IReview extends IBaseTimestamp {
 
 export interface IMessage extends IBaseTimestamp {
   id: string;
-  conversationRef: DocumentReference; // Document reference
-  senderRef: any; // Document reference
+  conversationRef: DocumentReference;
+  senderRef: any;
   content: string;
   type?: "text" | "image" | "file" | "link";
-  messageType?: "text" | "image" | "file" | "link"; // Legacy field
+  messageType?: "text" | "image" | "file" | "link";
   attachments?: IMessageAttachment[];
   isRead: boolean;
   readAt?: Date;
@@ -184,7 +185,7 @@ export interface IMessageAttachment {
 
 export interface IMessageReaction {
   userId: string;
-  userRef: any; // Document reference
+  userRef: any;
   emoji: string;
   createdAt: Date;
 }
@@ -207,7 +208,7 @@ export interface IConversation extends IBaseTimestamp {
 
 export interface IPayment extends IBaseTimestamp {
   id: string;
-  userRef: any; // Document reference
+  userRef: any;
   payerRef?: string;
   payeeRef?: string;
   enrollmentRef?: any;
@@ -254,7 +255,7 @@ export interface IPayout extends IBaseTimestamp {
 
 export interface INotification extends IBaseTimestamp {
   id: string;
-  userRef: any; // Document reference
+  userRef: any;
   recipientRef?: string;
   type:
     | "message"

@@ -33,7 +33,10 @@ import {
   createEnrollment,
   getEnrollmentsByStudent,
 } from "@/firebase/firestore/enrollment";
-import { getStudentProfile } from "@/firebase/firestore/student";
+import {
+  getStudentProfile,
+  updateStudentProfile,
+} from "@/firebase/firestore/student";
 import type { IProgram, ICoach, IReview } from "@/models";
 import { getReviewsByReviewee } from "@/firebase/firestore/review";
 import { useToast } from "@/hooks/use-toast";
@@ -71,12 +74,8 @@ export default function ProgramDetailPage({
         if (programData) {
           let coachData = null;
           let reviews: IReview[] = [] as IReview[];
-          try {
-            coachData = await getCoach(programData.coachRef);
-            reviews = await getReviewsByReviewee(coachData?.id as string);
-          } catch (error) {
-            console.error("Error fetching coach data:", error);
-          }
+          coachData = await getCoach(programData.coachRef);
+          reviews = await getReviewsByReviewee(coachData?.id as string);
 
           setProgram({
             ...programData,
@@ -84,12 +83,10 @@ export default function ProgramDetailPage({
             reviews,
           });
         } else {
-          // Fallback to mock data if program not found
           setProgram(mockProgramData as any);
         }
       } catch (error) {
         console.error("Error fetching program:", error);
-        // Fallback to mock data on error
         setProgram(mockProgramData as any);
       } finally {
         setLoading(false);
@@ -275,26 +272,24 @@ export default function ProgramDetailPage({
         return;
       }
 
-      await createEnrollment({
-        studentId: user.uid,
-        programId: program.id,
-        coachId: program.coach?.id || "",
-        amountPaid: program.price || 0,
-        time,
-      });
+      await Promise.all([
+        createEnrollment({
+          studentId: user.uid,
+          programId: program.id,
+          coachId: program.coach?.id || "",
+          amountPaid: program.price || 0,
+          time,
+        }),
+        updateProgram(program.id, {
+          currentEnrollments: (program.currentEnrollments || 0) + 1,
+        }),
+      ]);
 
-      await updateProgram(program.id, {
-        currentEnrollments: (program.currentEnrollments || 0) + 1,
-      });
+      const enrollments = studentProfile.enrolledPrograms || [];
+      enrollments.push(program.id);
 
-      setProgram((prevProgram) => {
-        if (prevProgram) {
-          return {
-            ...prevProgram,
-            currentEnrollments: (prevProgram.currentEnrollments || 0) + 1,
-          };
-        }
-        return prevProgram;
+      await updateStudentProfile(user.uid, {
+        enrolledPrograms: enrollments,
       });
 
       toast({

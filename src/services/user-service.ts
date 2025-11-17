@@ -1,5 +1,5 @@
 import { collection, query, where, getDocs, limit } from "firebase/firestore";
-import { db } from "@/firebase/config";
+import { db } from "@/firebase/client";
 import type { IUser as UserModel } from "@/models";
 
 /**

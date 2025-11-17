@@ -13,7 +13,7 @@ import {
   limit,
   Timestamp,
 } from "firebase/firestore";
-import { db } from "../config";
+import { db } from "../client";
 import type { IPayment } from "@/models";
 
 export async function createPayment(data: {

@@ -13,7 +13,7 @@ import {
   limit,
   Timestamp,
 } from "firebase/firestore";
-import { db } from "../config";
+import { db } from "../client";
 import type { IMessage } from "@/models";
 
 export async function createMessage(data: {

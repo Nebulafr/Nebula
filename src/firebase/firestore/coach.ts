@@ -14,7 +14,7 @@ import {
   Timestamp,
   DocumentReference,
 } from "firebase/firestore";
-import { db } from "../config";
+import { db } from "../client";
 import type { ICoach, ICoachOnboardingData } from "@/models";
 
 export async function createCoachProfile(

@@ -15,7 +15,7 @@ import {
   arrayRemove,
   Timestamp,
 } from "firebase/firestore";
-import { db } from "../config";
+import { db } from "../client";
 import type { IConversation } from "@/models";
 
 export async function createConversation(data: {

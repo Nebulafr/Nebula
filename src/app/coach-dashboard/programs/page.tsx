@@ -25,15 +25,14 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useUser } from "@/hooks/use-user";
-import {
-  createProgram,
-  getProgramsByCoach,
-} from "@/firebase/firestore/program";
+import { createProgram, getPrograms } from "@/actions/programs";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import type { IProgram } from "@/models";
 import { ModuleFormData } from "@/types";
 import ModulesForm from "@/components/ModuleForm";
+import { createProgramSchema } from "@/lib/validations";
+import { z } from "zod";
 
 const mockPrograms: IProgram[] = [
   {
@@ -97,10 +96,15 @@ export default function CoachProgramsPage() {
     const fetchPrograms = async () => {
       try {
         setLoading(true);
-        const fetchedPrograms = await getProgramsByCoach(user.uid);
-        setPrograms(
-          fetchedPrograms.length > 0 ? fetchedPrograms : mockPrograms
-        );
+        const result = await getPrograms({ coachId: user.uid });
+        if (result.success) {
+          setPrograms(
+            result.programs.length > 0 ? result.programs : mockPrograms
+          );
+        } else {
+          console.error("Error fetching programs:", result.error);
+          setPrograms(mockPrograms);
+        }
       } catch (error) {
         console.error("Error fetching programs:", error);
         setPrograms(mockPrograms);
@@ -115,8 +119,15 @@ export default function CoachProgramsPage() {
   const refreshPrograms = async () => {
     if (!user?.uid) return;
     try {
-      const fetchedPrograms = await getProgramsByCoach(user.uid);
-      setPrograms(fetchedPrograms.length > 0 ? fetchedPrograms : mockPrograms);
+      const result = await getPrograms({ coachId: user.uid });
+      if (result.success) {
+        setPrograms(
+          result.programs.length > 0 ? result.programs : mockPrograms
+        );
+      } else {
+        console.error("Error refreshing programs:", result.error);
+        setPrograms(mockPrograms);
+      }
     } catch (error) {
       console.error("Error refreshing programs:", error);
       setPrograms(mockPrograms);
@@ -252,21 +263,38 @@ function CreateProgramDialog({
 
   const handleNext = () => {
     if (currentStep === 1) {
-      // Validate step 1 fields
-      if (
-        !title.trim() ||
-        !category.trim() ||
-        !description.trim() ||
-        !objectives.trim()
-      ) {
-        toast({
-          variant: "destructive",
-          title: "Missing Information",
-          description: "Please fill in all required fields.",
-        });
-        return;
+      try {
+        // Validate step 1 using Zod schema
+        const step1Data = {
+          title: title.trim(),
+          category: category.trim(),
+          description: description.trim(),
+          objectives: objectives.split("\n").filter((o) => o.trim() !== ""),
+        };
+
+        // Partial validation for step 1
+        createProgramSchema
+          .pick({
+            title: true,
+            category: true,
+            description: true,
+            objectives: true,
+          })
+          .parse(step1Data);
+
+        setCurrentStep(2);
+      } catch (error) {
+        if (error instanceof z.ZodError) {
+          const errorMessage =
+            error.errors[0]?.message ||
+            "Please fill in all required fields correctly.";
+          toast({
+            variant: "destructive",
+            title: "Validation Error",
+            description: errorMessage,
+          });
+        }
       }
-      setCurrentStep(2);
     }
   };
 
@@ -296,45 +324,56 @@ function CreateProgramDialog({
       return;
     }
 
-    const objectivesArray = objectives
-      .split("\n")
-      .filter((o) => o.trim() !== "");
-
-    if (modules.length === 0) {
-      toast({
-        variant: "destructive",
-        title: "Modules Missing",
-        description: "Please add at least one module to the program.",
-      });
-      return;
-    }
-
     try {
       setLoading(true);
-      await createProgram({
-        coachId: user.uid,
-        title,
-        category,
-        description,
-        objectives: objectivesArray,
+
+      // Prepare data for validation
+      const programData = {
+        title: title.trim(),
+        category: category.trim(),
+        description: description.trim(),
+        objectives: objectives.split("\n").filter((o) => o.trim() !== ""),
         modules,
-      });
+      };
 
-      toast({
-        title: "Success!",
-        description: "Your new program has been created.",
-      });
+      createProgramSchema.parse(programData);
 
-      setOpen(false);
-      resetForm();
-      onProgramCreated?.();
+      const result = await createProgram(programData);
+
+      console.log({ result });
+
+      if (result.success) {
+        toast({
+          title: "Success!",
+          description: result.message || "Your new program has been created.",
+        });
+
+        setOpen(false);
+        resetForm();
+        onProgramCreated?.();
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: result.message || "Could not create the program.",
+        });
+      }
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Could not create the program.",
-      });
-      console.error(error);
+      if (error instanceof z.ZodError) {
+        const errorMessage = error.errors.map((err) => err.message).join(", ");
+        toast({
+          variant: "destructive",
+          title: "Validation Error",
+          description: errorMessage,
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Could not create the program.",
+        });
+        console.error(error);
+      }
     } finally {
       setLoading(false);
     }

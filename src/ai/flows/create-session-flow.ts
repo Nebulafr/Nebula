@@ -11,7 +11,7 @@ import { ai } from "@/ai/genkit";
 import { createCalendarEvent } from "@/services/google-api";
 import { addDoc, collection, doc, serverTimestamp } from "firebase/firestore";
 import { z } from "genkit";
-import { db } from "@/firebase/config";
+import { db } from "@/firebase/client";
 
 const CreateSessionInputSchema = z.object({
   programId: z.string().describe("The ID of the program for this session."),

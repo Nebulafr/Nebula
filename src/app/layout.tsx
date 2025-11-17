@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/context/auth-context";
+import { AuthSyncProvider } from "@/components/auth-sync-provider";
 import { ToastContainer } from "react-toastify";
 import React from "react";
 
@@ -29,7 +30,10 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased">
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <AuthSyncProvider />
+          {children}
+        </AuthProvider>
         <Toaster />
         <ToastContainer
           position="top-right"

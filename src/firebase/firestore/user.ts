@@ -1,5 +1,5 @@
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
-import { db } from "../config";
+import { db } from "../client";
 import type { User } from "firebase/auth";
 
 export async function createUserDocument(

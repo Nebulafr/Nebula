@@ -1,0 +1,143 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Users collection
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read: if request.auth != null && hasRole('admin');
+    }
+
+    // Coaches collection
+    match /coaches/{coachId} {
+      allow read: if true; // Public read for coach profiles
+      allow write: if request.auth != null && (
+        request.auth.uid == coachId || 
+        hasRole('admin') ||
+        hasRole('coach')
+      );
+    }
+
+    // Students collection
+    match /students/{studentId} {
+      allow read: if request.auth != null && (
+        request.auth.uid == studentId || 
+        hasRole('admin') ||
+        hasRole('coach')
+      );
+      allow write: if request.auth != null && (
+        request.auth.uid == studentId || 
+        hasRole('admin')
+      );
+    }
+
+    // Programs collection
+    match /programs/{programId} {
+      allow read: if true; // Public read for programs
+      allow create: if request.auth != null && hasRole('coach');
+      allow update, delete: if request.auth != null && (
+        resource.data.coachId == request.auth.uid ||
+        hasRole('admin')
+      );
+    }
+
+    // Enrollments collection
+    match /enrollments/{enrollmentId} {
+      allow read: if request.auth != null && (
+        resource.data.studentId == request.auth.uid ||
+        resource.data.coachId == request.auth.uid ||
+        hasRole('admin')
+      );
+      allow create: if request.auth != null && (
+        request.resource.data.studentId == request.auth.uid ||
+        hasRole('admin')
+      );
+      allow update: if request.auth != null && (
+        resource.data.coachId == request.auth.uid ||
+        hasRole('admin')
+      );
+    }
+
+    // Sessions collection
+    match /sessions/{sessionId} {
+      allow read, write: if request.auth != null && (
+        resource.data.studentId == request.auth.uid ||
+        resource.data.coachId == request.auth.uid ||
+        hasRole('admin')
+      );
+    }
+
+    // Reviews collection
+    match /reviews/{reviewId} {
+      allow read: if true; // Public read for reviews
+      allow create: if request.auth != null && 
+        request.resource.data.studentId == request.auth.uid;
+      allow update, delete: if request.auth != null && (
+        resource.data.studentId == request.auth.uid ||
+        hasRole('admin')
+      );
+    }
+
+    // Messages collection
+    match /messages/{messageId} {
+      allow read, write: if request.auth != null && (
+        resource.data.senderId == request.auth.uid ||
+        resource.data.receiverId == request.auth.uid ||
+        hasRole('admin')
+      );
+    }
+
+    // Conversations collection
+    match /conversations/{conversationId} {
+      allow read, write: if request.auth != null && (
+        request.auth.uid in resource.data.participants ||
+        hasRole('admin')
+      );
+    }
+
+    // Notifications collection
+    match /notifications/{notificationId} {
+      allow read, write: if request.auth != null && (
+        resource.data.userId == request.auth.uid ||
+        hasRole('admin')
+      );
+    }
+
+    // Events collection
+    match /events/{eventId} {
+      allow read: if true; // Public read for events
+      allow write: if request.auth != null && hasRole('admin');
+    }
+
+    // Payments collection
+    match /payments/{paymentId} {
+      allow read: if request.auth != null && (
+        resource.data.studentId == request.auth.uid ||
+        resource.data.coachId == request.auth.uid ||
+        hasRole('admin')
+      );
+      allow create: if request.auth != null && 
+        request.resource.data.studentId == request.auth.uid;
+      allow update: if request.auth != null && hasRole('admin');
+    }
+
+    // Payouts collection
+    match /payouts/{payoutId} {
+      allow read: if request.auth != null && (
+        resource.data.coachId == request.auth.uid ||
+        hasRole('admin')
+      );
+      allow write: if request.auth != null && hasRole('admin');
+    }
+
+    // Helper function to check user roles
+    function hasRole(role) {
+      return request.auth != null && 
+        request.auth.token.role == role;
+    }
+
+    // Helper function to get user data
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+  }
+}

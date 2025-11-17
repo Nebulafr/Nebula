@@ -12,7 +12,7 @@ import {
   reauthenticateWithCredential,
   type User,
 } from "firebase/auth";
-import { auth, db } from "./config";
+import { auth, db } from "./client";
 import { createUserDocument } from "./firestore/user";
 import { toast } from "react-toastify";
 
