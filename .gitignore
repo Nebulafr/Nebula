@@ -53,3 +53,4 @@ firebase/service-account-key.json
 
 # OS
 Thumbs.db
+/src/generated/prisma

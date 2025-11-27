@@ -15,7 +15,10 @@ import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useAuthActions } from "@/context/auth-context";
+import { UserRole } from "@/generated/prisma";
+import { useUser } from "@/hooks/use-user";
+import { signInWithEmail, signInWithGoogle } from "@/firebase/auth";
+import { toast } from "react-toastify";
 
 function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -50,24 +53,28 @@ export default function CoachLoginPage() {
   const loginImage = PlaceHolderImages.find(
     (img) => img.id === "coach-network"
   );
-  const { signIn, signInWithGoogle, error, clearError } = useAuthActions();
+  const { setAccessToken } = useUser();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (loading) return;
 
     setLoading(true);
-    clearError();
 
     try {
-      await signIn({ email, password });
-      // The useUser hook will handle redirection to /coach-dashboard
-    } catch (error) {
-      // Error is handled by auth provider
+      const result = await signInWithEmail({ email, password });
+      console.log("Coach login result:", result);
+      setAccessToken(result.accessToken, result.user);
+      
+      // Centralized redirect logic will handle navigation
+    } catch (error: any) {
+      console.error("Coach login error:", error);
+      toast.error(error.message || "Failed to sign in");
     } finally {
       setLoading(false);
     }
@@ -77,13 +84,18 @@ export default function CoachLoginPage() {
     if (loading) return;
 
     setLoading(true);
-    clearError();
 
     try {
-      await signInWithGoogle("coach");
-      // The useUser hook will handle redirection
-    } catch (error) {
-      // Error is handled by auth provider
+      const result = await signInWithGoogle(UserRole.COACH);
+      console.log("Coach Google login result:", result);
+      setAccessToken(result.accessToken, result.user);
+      
+      // Centralized redirect logic will handle navigation
+    } catch (error: any) {
+      console.error("Coach Google login error:", error);
+      if (error?.message !== "Redirecting to Google sign-in...") {
+        toast.error(error.message || "Failed to sign in with Google");
+      }
     } finally {
       setLoading(false);
     }
@@ -128,9 +140,6 @@ export default function CoachLoginPage() {
                 Enter your email below to log in to your coach account.
               </CardDescription>
             </CardHeader>
-            {error && (
-              <p className="text-red-500 text-sm mt-4">{error.message}</p>
-            )}
             <form onSubmit={handleLogin}>
               <CardContent className="grid gap-4 p-0 mt-6">
                 <div className="grid gap-2">

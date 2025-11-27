@@ -27,7 +27,8 @@
     "**/*.tsx",
     "next-env.d.ts",
     "src/interfaces/**/*.d.ts",
+    "src/types/**/*.d.ts",
     ".next/types/**/*.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "src/generated/prisma"]
 }

@@ -1,5 +1,4 @@
-
-'use client';
+"use client";
 
 import {
   Users,
@@ -10,8 +9,11 @@ import {
   Bell,
   Home,
   ExternalLink,
-} from 'lucide-react';
-import Link from 'next/link';
+  GraduationCap,
+  Calendar,
+  Star,
+} from "lucide-react";
+import Link from "next/link";
 import {
   SidebarProvider,
   Sidebar,
@@ -24,20 +26,26 @@ import {
   SidebarInset,
   SidebarTrigger,
   useSidebar,
-} from '@/components/ui/sidebar';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { usePathname } from 'next/navigation';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+} from "@/components/ui/sidebar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { usePathname } from "next/navigation";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 function TopBar() {
   const pathname = usePathname();
-  let pageTitle = 'Dashboard';
+  let pageTitle = "Dashboard";
 
-  if (pathname.includes('/users')) {
-    pageTitle = 'User Management';
-  } else if (pathname.includes('/settings')) {
-    pageTitle = 'Settings';
+  if (pathname.includes("/users")) {
+    pageTitle = "User Management";
+  } else if (pathname.includes("/programs")) {
+    pageTitle = "Program Management";
+  } else if (pathname.includes("/events")) {
+    pageTitle = "Event Management";
+  } else if (pathname.includes("/reviews")) {
+    pageTitle = "Review Management";
+  } else if (pathname.includes("/settings")) {
+    pageTitle = "Settings";
   }
 
   return (
@@ -69,13 +77,12 @@ function CollapseButton() {
   return (
     <SidebarMenuItem>
       <SidebarMenuButton tooltip="Collapse" onClick={() => toggleSidebar()}>
-          <PanelLeft />
-          <span>Collapse</span>
+        <PanelLeft />
+        <span>Collapse</span>
       </SidebarMenuButton>
     </SidebarMenuItem>
   );
 }
-
 
 export default function AdminLayout({
   children,
@@ -89,11 +96,11 @@ export default function AdminLayout({
         <SidebarHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-                <Avatar className="h-8 w-8">
+              <Avatar className="h-8 w-8">
                 <AvatarImage src="https://i.pravatar.cc/150?u=admin" />
                 <AvatarFallback>A</AvatarFallback>
-                </Avatar>
-                <span className="font-headline text-lg font-bold">Admin</span>
+              </Avatar>
+              <span className="font-headline text-lg font-bold">Admin</span>
             </div>
           </div>
         </SidebarHeader>
@@ -101,7 +108,11 @@ export default function AdminLayout({
           <SidebarMenu className="mt-6">
             <SidebarMenuItem>
               <Link href="/admin">
-                <SidebarMenuButton tooltip="Dashboard" isActive={pathname === '/admin'} asChild>
+                <SidebarMenuButton
+                  tooltip="Dashboard"
+                  isActive={pathname === "/admin"}
+                  asChild
+                >
                   <div>
                     <Home />
                     <span>Dashboard</span>
@@ -111,7 +122,11 @@ export default function AdminLayout({
             </SidebarMenuItem>
             <SidebarMenuItem>
               <Link href="/admin/users">
-                <SidebarMenuButton tooltip="Users" isActive={pathname.startsWith('/admin/users')} asChild>
+                <SidebarMenuButton
+                  tooltip="Users"
+                  isActive={pathname.startsWith("/admin/users")}
+                  asChild
+                >
                   <div>
                     <Users />
                     <span>Users</span>
@@ -119,9 +134,55 @@ export default function AdminLayout({
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
-             <SidebarMenuItem>
+            <SidebarMenuItem>
+              <Link href="/admin/programs">
+                <SidebarMenuButton
+                  tooltip="Programs"
+                  isActive={pathname.startsWith("/admin/programs")}
+                  asChild
+                >
+                  <div>
+                    <GraduationCap />
+                    <span>Programs</span>
+                  </div>
+                </SidebarMenuButton>
+              </Link>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <Link href="/admin/events">
+                <SidebarMenuButton
+                  tooltip="Events"
+                  isActive={pathname.startsWith("/admin/events")}
+                  asChild
+                >
+                  <div>
+                    <Calendar />
+                    <span>Events</span>
+                  </div>
+                </SidebarMenuButton>
+              </Link>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <Link href="/admin/reviews">
+                <SidebarMenuButton
+                  tooltip="Reviews"
+                  isActive={pathname.startsWith("/admin/reviews")}
+                  asChild
+                >
+                  <div>
+                    <Star />
+                    <span>Reviews</span>
+                  </div>
+                </SidebarMenuButton>
+              </Link>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
               <Link href="/admin/settings">
-                <SidebarMenuButton tooltip="Settings" isActive={pathname.startsWith('/admin/settings')} asChild>
+                <SidebarMenuButton
+                  tooltip="Settings"
+                  isActive={pathname.startsWith("/admin/settings")}
+                  asChild
+                >
                   <div>
                     <Settings />
                     <span>Settings</span>
@@ -134,7 +195,7 @@ export default function AdminLayout({
         <SidebarFooter>
           <SidebarMenu>
             <CollapseButton />
-             <SidebarMenuItem>
+            <SidebarMenuItem>
               <Link href="/help-center">
                 <SidebarMenuButton tooltip="Help" asChild>
                   <div>

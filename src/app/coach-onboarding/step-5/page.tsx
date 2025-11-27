@@ -18,16 +18,15 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Input } from "@/components/ui/input";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useState } from "react";
-import { useUser } from "@/hooks/use-user";
-import { useToast } from "@/hooks/use-toast";
-import { createCoachProfile } from "@/firebase/firestore/coach";
+import { toast } from "react-toastify";
+import { createCoach } from "@/actions/coach";
+import { useAuth } from "@/contexts/AuthContext";
 
 function CoachOnboardingStep5Content() {
   const image = PlaceHolderImages.find((img) => img.id === "benefit-schedule");
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user } = useUser();
-  const { toast } = useToast();
+  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [availability, setAvailability] = useState("1-3");
   const [rate, setRate] = useState("");
@@ -51,11 +50,7 @@ function CoachOnboardingStep5Content() {
     e.preventDefault();
 
     if (!user) {
-      toast({
-        variant: "destructive",
-        title: "Authentication Error",
-        description: "You must be logged in to submit an application.",
-      });
+      toast.error("You must be logged in to submit an application.");
       return;
     }
 
@@ -65,7 +60,9 @@ function CoachOnboardingStep5Content() {
       const specialties = specialtiesParam ? JSON.parse(specialtiesParam) : [];
 
       const coachData = {
-        userId: user.uid,
+        email: user.email as string,
+        userId: user.id,
+        fullName: user.displayName as string,
         title: role || "",
         bio: motivation || "",
         style: style || "",
@@ -74,26 +71,25 @@ function CoachOnboardingStep5Content() {
         linkedinUrl: linkedin || "",
         availability: availability,
         hourlyRate: Number(rate) || 0,
+        experience: motivation || "",
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        languages: ["English"],
+        qualifications: [],
       };
 
-      await createCoachProfile(
-        coachData,
-        user.email as string,
-        user.displayName as string
+      const result = await createCoach(coachData);
+
+      if (!result.success) {
+        throw new Error(result.message || "Failed to create coach profile");
+      }
+
+      toast.success(
+        `We've received your application and will be in touch soon.`
       );
-      toast({
-        title: "Application Submitted!",
-        description:
-          "We've received your application and will be in touch soon.",
-      });
-      router.push("/coach-dashboard");
+      router.replace("/coach-dashboard");
     } catch (error) {
       console.error("Error submitting coach application:", error);
-      toast({
-        variant: "destructive",
-        title: "Submission Error",
-        description: "Could not submit your application. Please try again.",
-      });
+      toast.error("Could not submit your application. Please try again.");
     } finally {
       setIsLoading(false);
     }

@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, Mail } from "lucide-react";
 import Link from "next/link";
-import { useAuthActions } from "@/context/auth-context";
+import { useAuthActions } from "@/contexts/AuthContext";
 
 export default function ForgotPasswordPage() {
   const { resetPassword, error, clearError } = useAuthActions();

@@ -15,7 +15,10 @@ import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useAuthActions } from "@/context/auth-context";
+import { UserRole } from "@/generated/prisma";
+import { useUser } from "@/hooks/use-user";
+import { signUpWithEmail, signInWithGoogle } from "@/firebase/auth";
+import { toast } from "react-toastify";
 
 function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -48,30 +51,35 @@ function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
 
 export default function CoachSignupPage() {
   const signupImage = PlaceHolderImages.find((img) => img.id === "about-story");
-  const { signUp, signInWithGoogle, error, clearError } = useAuthActions();
+  const { setAccessToken } = useUser();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
+
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (loading) return;
 
     setLoading(true);
-    clearError();
 
     try {
-      await signUp({
+      const result = await signUpWithEmail({
         email,
         password,
         fullName,
-        role: "coach",
+        role: UserRole.COACH,
       });
-      // The useUser hook will handle redirection to /coach-onboarding/step-1
-    } catch (error) {
-      // Error is handled by auth provider
+      console.log("Coach signup result:", result);
+      setAccessToken(result.accessToken, result.user);
+      toast.success("Account created successfully!");
+      
+      // Centralized redirect logic will handle navigation
+    } catch (error: any) {
+      console.error("Coach signup error:", error);
+      toast.error(error.message || "Failed to create account");
     } finally {
       setLoading(false);
     }
@@ -81,13 +89,18 @@ export default function CoachSignupPage() {
     if (loading) return;
 
     setLoading(true);
-    clearError();
 
     try {
-      await signInWithGoogle("coach");
-      // The useUser hook will handle redirection
-    } catch (error) {
-      // Error is handled by auth provider
+      const result = await signInWithGoogle(UserRole.COACH);
+      console.log("Coach Google signup result:", result);
+      setAccessToken(result.accessToken, result.user);
+      
+      // Centralized redirect logic will handle navigation
+    } catch (error: any) {
+      console.error("Coach Google signup error:", error);
+      if (error?.message !== "Redirecting to Google sign-in...") {
+        toast.error(error.message || "Failed to sign in with Google");
+      }
     } finally {
       setLoading(false);
     }
@@ -132,11 +145,6 @@ export default function CoachSignupPage() {
                 Enter your information to get started with your application.
               </CardDescription>
             </CardHeader>
-            {error && (
-              <div className="mt-4 p-3 bg-destructive/10 border border-destructive/20 rounded-md">
-                <p className="text-destructive text-sm">{error.message}</p>
-              </div>
-            )}
             <form onSubmit={handleSignup}>
               <CardContent className="grid gap-4 p-0 mt-6">
                 <div className="grid gap-2">

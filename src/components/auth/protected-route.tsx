@@ -2,11 +2,12 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/auth-context";
+import { useAuth } from "@/contexts/AuthContext";
+import { UserRole } from "@/generated/prisma";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredRole?: "student" | "coach" | "admin";
+  requiredRole?: UserRole;
   requireProfile?: boolean;
   fallbackPath?: string;
 }
@@ -23,32 +24,25 @@ export function ProtectedRoute({
   useEffect(() => {
     if (loading) return;
 
-    // If not authenticated, redirect to login
     if (!isAuthenticated) {
-      router.push(fallbackPath);
+      router.replace(fallbackPath);
       return;
     }
 
-    // If profile is required but user doesn't have one, redirect to onboarding
     if (requireProfile && authState === "AUTHENTICATED_NO_PROFILE") {
-      const onboardingPath =
-        profile?.role === "coach"
-          ? "/coach-onboarding/step-1"
-          : "/onboarding/step-1";
-      router.push(onboardingPath);
+      const onboardingPath = "/onboarding/step-1";
+      router.replace(onboardingPath);
       return;
     }
 
-    // If specific role is required, check if user has that role
     if (requiredRole && profile?.role !== requiredRole) {
-      // Redirect to appropriate dashboard or access denied page
       const redirectPath =
-        profile?.role === "coach"
+        profile?.role === UserRole.COACH
           ? "/coach-dashboard"
-          : profile?.role === "admin"
+          : profile?.role === UserRole.ADMIN
           ? "/admin"
           : "/dashboard";
-      router.push(redirectPath);
+      router.replace(redirectPath);
       return;
     }
   }, [
@@ -62,7 +56,6 @@ export function ProtectedRoute({
     router,
   ]);
 
-  // Show loading while checking auth
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -71,7 +64,6 @@ export function ProtectedRoute({
     );
   }
 
-  // Don't render if redirecting
   if (
     !isAuthenticated ||
     (requireProfile && authState === "AUTHENTICATED_NO_PROFILE") ||
@@ -83,13 +75,12 @@ export function ProtectedRoute({
   return <>{children}</>;
 }
 
-// Convenience components for specific roles
 export function StudentRoute({
   children,
   ...props
 }: Omit<ProtectedRouteProps, "requiredRole">) {
   return (
-    <ProtectedRoute requiredRole="student" {...props}>
+    <ProtectedRoute requiredRole={UserRole.STUDENT} {...props}>
       {children}
     </ProtectedRoute>
   );
@@ -100,7 +91,7 @@ export function CoachRoute({
   ...props
 }: Omit<ProtectedRouteProps, "requiredRole">) {
   return (
-    <ProtectedRoute requiredRole="coach" {...props}>
+    <ProtectedRoute requiredRole={UserRole.COACH} {...props}>
       {children}
     </ProtectedRoute>
   );
@@ -111,7 +102,7 @@ export function AdminRoute({
   ...props
 }: Omit<ProtectedRouteProps, "requiredRole">) {
   return (
-    <ProtectedRoute requiredRole="admin" {...props}>
+    <ProtectedRoute requiredRole={UserRole.ADMIN} {...props}>
       {children}
     </ProtectedRoute>
   );

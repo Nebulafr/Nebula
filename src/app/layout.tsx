@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { Toaster } from "@/components/ui/toaster";
-import { AuthProvider } from "@/context/auth-context";
-import { AuthSyncProvider } from "@/components/auth-sync-provider";
+import { AuthProvider } from "@/contexts/AuthContext";
 import { ToastContainer } from "react-toastify";
 import React from "react";
+import { CategoryProvider } from "@/contexts/CategoryContext";
+import "./globals.css";
+import "react-toastify/dist/ReactToastify.css";
 
 export const metadata: Metadata = {
   title: "Nebula - Coaching Platform",
@@ -31,8 +33,9 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased">
         <AuthProvider>
-          <AuthSyncProvider />
-          {children}
+          <CategoryProvider>
+            {children}
+          </CategoryProvider>
         </AuthProvider>
         <Toaster />
         <ToastContainer

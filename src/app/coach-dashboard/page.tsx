@@ -27,7 +27,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { CoachRoute } from "@/components/auth/protected-route";
-import { useAuth } from "@/context/auth-context";
+import { useAuth } from "@/contexts/AuthContext";
 
 const upcomingSessions = [
   {

@@ -15,7 +15,10 @@ import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useAuthActions } from "@/context/auth-context";
+import { UserRole } from "@/generated/prisma";
+import { useUser } from "@/hooks/use-user";
+import { signInWithEmail, signInWithGoogle } from "@/firebase/auth";
+import { toast } from "react-toastify";
 
 function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -48,22 +51,29 @@ function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
 
 export default function LoginPage() {
   const loginImage = PlaceHolderImages.find((img) => img.id === "coach-hero");
-  const { signIn, signInWithGoogle, error, clearError } = useAuthActions();
+  const { setAccessToken } = useUser();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (loading) return;
 
     setLoading(true);
-    clearError();
 
     try {
-      await signIn({ email, password });
-    } catch (error) {
+      const result = await signInWithEmail({ email, password });
+      console.log("Login result:", result);
+      setAccessToken(result.accessToken, result.user);
+
+      // The useEffect above will handle redirect based on auth state
+      // Toast message is handled in the signInWithEmail function
+    } catch (error: any) {
+      console.error("Login error:", error);
+      toast.error(error.message || "Failed to sign in");
     } finally {
       setLoading(false);
     }
@@ -73,14 +83,21 @@ export default function LoginPage() {
     if (loading) return;
 
     setLoading(true);
-    clearError();
 
     try {
-      await signInWithGoogle("student");
+      const result = await signInWithGoogle(UserRole.STUDENT);
+      console.log("Google login result:", result);
+      setAccessToken(result.accessToken, result.user);
+
+      // Centralized redirect logic will handle navigation
+      // Toast message is handled in the signInWithGoogle function
     } catch (error: any) {
-      if (error?.code !== "auth/redirect-initiated") {
-        setLoading(false);
+      console.error("Google login error:", error);
+      if (error?.message !== "Redirecting to Google sign-in...") {
+        toast.error(error.message || "Failed to sign in with Google");
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -122,11 +139,6 @@ export default function LoginPage() {
                 Enter your email below to log in to your account.
               </CardDescription>
             </CardHeader>
-            {error && (
-              <div className="mt-4 p-3 bg-destructive/10 border border-destructive/20 rounded-md">
-                <p className="text-destructive text-sm">{error.message}</p>
-              </div>
-            )}
             <form onSubmit={handleLogin}>
               <CardContent className="grid gap-4 p-0 mt-6">
                 <div className="grid gap-2">

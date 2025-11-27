@@ -1,6 +1,4 @@
 import {
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
   signInWithPopup,
   signInWithRedirect,
   getRedirectResult,
@@ -10,17 +8,18 @@ import {
   updatePassword,
   EmailAuthProvider,
   reauthenticateWithCredential,
+  onAuthStateChanged,
   type User,
 } from "firebase/auth";
-import { auth, db } from "./client";
-import { createUserDocument } from "./firestore/user";
+import { auth } from "./client";
 import { toast } from "react-toastify";
+import { UserRole } from "@/generated/prisma";
 
 export interface SignUpData {
   email: string;
   password: string;
   fullName: string;
-  role: "student" | "coach";
+  role: UserRole;
 }
 
 export interface SignInData {
@@ -39,93 +38,35 @@ export class AuthError extends Error {
   }
 }
 
-// Helper function to handle Firebase auth errors
-function handleAuthError(error: any): never {
-  if (process.env.NODE_ENV === "development") {
-    console.error("Auth error:", error);
-  }
-
-  switch (error.code) {
-    case "auth/email-already-in-use":
-      throw new AuthError(
-        error.code,
-        "An account with this email already exists."
-      );
-    case "auth/weak-password":
-      throw new AuthError(
-        error.code,
-        "Password should be at least 6 characters."
-      );
-    case "auth/invalid-email":
-      throw new AuthError(error.code, "Invalid email address.");
-    case "auth/user-not-found":
-      throw new AuthError(error.code, "No account found with this email.");
-    case "auth/wrong-password":
-      throw new AuthError(error.code, "Incorrect password.");
-    case "auth/invalid-credential":
-      throw new AuthError(error.code, "Invalid email or password.");
-    case "auth/too-many-requests":
-      throw new AuthError(
-        error.code,
-        "Too many failed attempts. Please try again later."
-      );
-    case "auth/user-disabled":
-      throw new AuthError(error.code, "This account has been disabled.");
-    case "auth/operation-not-allowed":
-      throw new AuthError(error.code, "This sign-in method is not enabled.");
-    case "auth/requires-recent-login":
-      throw new AuthError(
-        error.code,
-        "Please log in again to perform this action."
-      );
-    case "auth/popup-blocked":
-      throw new AuthError(
-        error.code,
-        "Popup was blocked by your browser. Please allow popups for this site or try again."
-      );
-    case "auth/popup-closed-by-user":
-      throw new AuthError(error.code, "Sign-in was cancelled.");
-    case "auth/cancelled-popup-request":
-      throw new AuthError(error.code, "Sign-in was cancelled.");
-    case "auth/redirect-initiated":
-      throw new AuthError(error.code, "Redirecting to sign-in page...");
-    default:
-      throw new AuthError(
-        error.code || "unknown",
-        error.message || "An unexpected error occurred."
-      );
-  }
-}
-
-export async function signUpWithEmail(data: SignUpData): Promise<User> {
+export async function signUpWithEmail(
+  data: SignUpData
+): Promise<{ accessToken: string; user: any }> {
   try {
-    const { user } = await createUserWithEmailAndPassword(
-      auth,
-      data.email,
-      data.password
-    );
-    await updateProfile(user, {
-      displayName: data.fullName,
+    const response = await fetch("/api/auth/register", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
     });
-    await createUserDocument(user, data.role, data.fullName);
-    toast.success("Account created successfully!");
-    return user;
-  } catch (error: any) {
-    // Handle signup-specific errors with toastify
-    let message: string;
 
-    switch (error.code) {
-      case "auth/email-already-in-use":
-        message = "An account with this email already exists.";
-        break;
-      case "auth/weak-password":
-        message = "Password should be at least 6 characters.";
-        break;
-      case "auth/invalid-email":
-        message = "Invalid email address.";
-        break;
-      default:
-        message = "Failed to create account. Please try again.";
+    const result = await response.json();
+
+    if (!result.success) {
+      throw new AuthError(
+        "signup-failed",
+        result.message || "Failed to create account"
+      );
+    }
+
+    toast.success("Account created successfully!");
+    return result.data;
+  } catch (error: any) {
+    let message: string;
+    if (error instanceof AuthError) {
+      message = error.message;
+    } else {
+      message = "Failed to create account. Please try again.";
     }
 
     toast.error(message);
@@ -133,45 +74,98 @@ export async function signUpWithEmail(data: SignUpData): Promise<User> {
   }
 }
 
-export async function signInWithEmail(data: SignInData): Promise<User> {
+export async function signInWithEmail(
+  data: SignInData
+): Promise<{ accessToken: string; user: any }> {
   try {
-    const { user } = await signInWithEmailAndPassword(
-      auth,
-      data.email,
-      data.password
-    );
+    const response = await fetch("/api/auth/signin", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
 
-    return user;
+    const result = await response.json();
+
+    if (!result.success) {
+      throw new AuthError(
+        "signin-failed",
+        result.message || "Failed to sign in"
+      );
+    }
+
+    toast.success("Signed in successfully!");
+    return result.data;
   } catch (error: any) {
-    handleAuthError(error);
+    let message: string;
+    if (error instanceof AuthError) {
+      message = error.message;
+    } else {
+      message = "Failed to sign in. Please try again.";
+    }
+
+    toast.error(message);
+    throw new AuthError(error.code || "unknown", message);
   }
 }
 
 export async function signInWithGoogle(
-  role: "student" | "coach" = "student"
-): Promise<User> {
+  role: UserRole = UserRole.STUDENT
+): Promise<{ accessToken: string; user: any }> {
   try {
     const provider = new GoogleAuthProvider();
     provider.addScope("email");
     provider.addScope("profile");
+    provider.setCustomParameters({
+      prompt: "select_account",
+    });
 
     if (typeof window !== "undefined") {
       sessionStorage.setItem("pendingGoogleSignInRole", role);
     }
 
     try {
-      const { user } = await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
 
       if (typeof window !== "undefined") {
         sessionStorage.removeItem("pendingGoogleSignInRole");
       }
 
-      await createUserDocument(user, role, user.displayName);
+      // Use unified Google auth endpoint
+      const response = await fetch("/api/auth/google", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          googleId: user.uid,
+          email: user.email as string,
+          fullName: user.displayName as string,
+          role: role,
+          avatarUrl: user.photoURL || undefined,
+        }),
+      });
 
-      return user;
+      const authResult = await response.json();
+
+      if (!authResult.success) {
+        throw new AuthError(
+          "auth-failed",
+          authResult.message || "Authentication failed"
+        );
+      }
+
+      toast.success(authResult.message || "Authentication successful!");
+      return authResult.data;
     } catch (popupError: any) {
-      if (popupError.code === "auth/popup-blocked") {
-        console.log("Popup blocked, falling back to redirect");
+      if (
+        popupError.code === "auth/popup-blocked" ||
+        popupError.code === "auth/popup-closed-by-user" ||
+        popupError.message?.includes("Cross-Origin-Opener-Policy") ||
+        popupError.message?.includes("popup")
+      ) {
         await signInWithRedirect(auth, provider);
         throw new AuthError(
           "auth/redirect-initiated",
@@ -195,11 +189,19 @@ export async function signInWithGoogle(
     if (error.code === "auth/redirect-initiated") {
       throw error;
     }
-    handleAuthError(error);
+    if (error instanceof AuthError) {
+      toast.error(error.message);
+      throw error;
+    }
+    toast.error("An unexpected error occurred");
+    throw new AuthError("unknown", "An unexpected error occurred");
   }
 }
 
-export async function handleGoogleRedirectResult(): Promise<User | null> {
+export async function handleGoogleRedirectResult(): Promise<{
+  accessToken: string;
+  user: any;
+} | null> {
   try {
     const result = await getRedirectResult(auth);
     if (result && result.user) {
@@ -208,28 +210,67 @@ export async function handleGoogleRedirectResult(): Promise<User | null> {
       const role =
         ((typeof window !== "undefined"
           ? sessionStorage.getItem("pendingGoogleSignInRole")
-          : null) as "student" | "coach") || "student";
+          : null) as UserRole) || UserRole.STUDENT;
 
       if (typeof window !== "undefined") {
         sessionStorage.removeItem("pendingGoogleSignInRole");
       }
 
-      await createUserDocument(user, role, user.displayName);
+      // Use unified Google auth endpoint
+      const response = await fetch("/api/auth/google", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          googleId: user.uid,
+          email: user.email as string,
+          fullName: user.displayName as string,
+          role: role,
+          avatarUrl: user.photoURL || undefined,
+        }),
+      });
 
-      return user;
+      const authResult = await response.json();
+
+      if (!authResult.success) {
+        throw new AuthError(
+          "auth-failed",
+          authResult.message || "Failed to authenticate with Google"
+        );
+      }
+
+      return authResult.data;
     }
     return null;
   } catch (error: any) {
     console.error("Error handling Google redirect result:", error);
-    handleAuthError(error);
+    if (error instanceof AuthError) {
+      throw error;
+    }
+    throw new AuthError("unknown", "Failed to handle redirect result");
   }
 }
 
 export async function signOut(): Promise<void> {
   try {
+    // Clear local storage/session storage if needed
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("accessToken");
+      sessionStorage.removeItem("pendingGoogleSignInRole");
+    }
+
+    // Sign out from Firebase (for Google auth)
     await auth.signOut();
   } catch (error: any) {
-    handleAuthError(error);
+    if (error instanceof AuthError) {
+      throw error;
+    }
+    toast.error("An unexpected error occurred");
+    throw new AuthError(
+      "unknown",
+      error.message || "An unexpected error occurred"
+    );
   }
 }
 
@@ -237,7 +278,14 @@ export async function resetPassword(email: string): Promise<void> {
   try {
     await sendPasswordResetEmail(auth, email);
   } catch (error: any) {
-    handleAuthError(error);
+    if (error instanceof AuthError) {
+      throw error;
+    }
+    toast.error("An unexpected error occurred");
+    throw new AuthError(
+      "unknown",
+      error.message || "An unexpected error occurred"
+    );
   }
 }
 
@@ -262,7 +310,14 @@ export async function updateUserPassword(
 
     await updatePassword(user, newPassword);
   } catch (error: any) {
-    handleAuthError(error);
+    if (error instanceof AuthError) {
+      throw error;
+    }
+    toast.error("An unexpected error occurred");
+    throw new AuthError(
+      "unknown",
+      error.message || "An unexpected error occurred"
+    );
   }
 }
 
@@ -281,7 +336,14 @@ export async function updateUserProfile(data: {
 
     await updateProfile(user, data);
   } catch (error: any) {
-    handleAuthError(error);
+    if (error instanceof AuthError) {
+      throw error;
+    }
+    toast.error("An unexpected error occurred");
+    throw new AuthError(
+      "unknown",
+      error.message || "An unexpected error occurred"
+    );
   }
 }
 
@@ -295,7 +357,7 @@ export function isAuthenticated(): boolean {
 
 export function waitForAuthState(): Promise<User | null> {
   return new Promise((resolve) => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
       unsubscribe();
       resolve(user);
     });

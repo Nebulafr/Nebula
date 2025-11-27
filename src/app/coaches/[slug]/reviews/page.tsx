@@ -7,8 +7,8 @@ import { ArrowLeft, LogOut, Star } from "lucide-react";
 import Link from "next/link";
 import { Footer } from "@/components/layout/footer";
 import { useParams } from "next/navigation";
-import { useUser } from "@/hooks/use-user";
 import { getAuth, signOut } from "firebase/auth";
+import { useAuth } from "@/contexts/AuthContext";
 
 const reviews = [
   {
@@ -108,7 +108,7 @@ export default function CoachReviewsPage() {
 }
 
 function Header() {
-  const { user, profile } = useUser();
+  const { user, profile } = useAuth();
   const auth = getAuth();
 
   const handleLogout = async () => {
@@ -116,7 +116,7 @@ function Header() {
   };
 
   const dashboardUrl =
-    profile?.role === "coach" ? "/coach-dashboard" : "/dashboard";
+    profile?.role === "COACH" ? "/coach-dashboard" : "/dashboard";
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">

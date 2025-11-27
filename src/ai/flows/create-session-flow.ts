@@ -9,9 +9,9 @@
 
 import { ai } from "@/ai/genkit";
 import { createCalendarEvent } from "@/services/google-api";
-import { addDoc, collection, doc, serverTimestamp } from "firebase/firestore";
 import { z } from "genkit";
-import { db } from "@/firebase/client";
+import { prisma } from "@/lib/prisma";
+import { SessionStatus } from "@/generated/prisma";
 
 const CreateSessionInputSchema = z.object({
   programId: z.string().describe("The ID of the program for this session."),
@@ -22,6 +22,7 @@ const CreateSessionInputSchema = z.object({
   scheduledTime: z
     .string()
     .describe("The scheduled start time of the session in ISO 8601 format."),
+  duration: z.number().default(60).describe("The duration of the session in minutes."),
   title: z.string().describe("The title of the session."),
   description: z.string().describe("A brief description of the session."),
   attendeeEmails: z
@@ -85,21 +86,34 @@ export const createSessionFlow = ai.defineFlow(
       throw new Error("Failed to create Google Calendar event.");
     }
 
-    const sessionData = {
-      programRef: doc(db, "programs", input.programId),
-      coachRef: doc(db, "coaches", input.coachId),
-      studentRefs: input.studentIds.map((id) => doc(db, "students", id)),
-      scheduledTime: new Date(input.scheduledTime),
-      status: "scheduled",
-      meetLink: googleEvent.meetLink,
-      googleEventId: googleEvent.eventId,
-      createdAt: serverTimestamp(),
-    };
+    // Create session in Prisma database
+    const session = await prisma.session.create({
+      data: {
+        programId: input.programId,
+        coachId: input.coachId,
+        scheduledTime: new Date(input.scheduledTime),
+        duration: input.duration,
+        title: input.title,
+        description: input.description,
+        status: SessionStatus.SCHEDULED,
+        meetLink: googleEvent.meetLink,
+        googleEventId: googleEvent.eventId,
+      },
+    });
 
-    const sessionRef = await addDoc(collection(db, "sessions"), sessionData);
+    // Create session attendance records for each student
+    if (input.studentIds.length > 0) {
+      await prisma.sessionAttendance.createMany({
+        data: input.studentIds.map(studentId => ({
+          sessionId: session.id,
+          studentId: studentId,
+          attended: false,
+        })),
+      });
+    }
 
     return {
-      sessionId: sessionRef.id,
+      sessionId: session.id,
       meetLink: googleEvent.meetLink,
     };
   }

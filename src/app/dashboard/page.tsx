@@ -1,22 +1,14 @@
 "use client";
-
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/ui/card";
 import {
   RecommendedPrograms,
   UpcomingSessions,
   SuggestedCoaches,
 } from "./components";
 import { StudentRoute } from "@/components/auth/protected-route";
-import { useAuth } from "@/context/auth-context";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function DashboardPage() {
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
 
   return (
     <StudentRoute>
@@ -27,9 +19,9 @@ export default function DashboardPage() {
           </h3>
         </div>
         <div className="flex flex-col gap-[90px] mt-6">
-          <RecommendedPrograms />
-          <UpcomingSessions />
-          <SuggestedCoaches />
+          <RecommendedPrograms user={user} />
+          <UpcomingSessions user={user} />
+          <SuggestedCoaches user={user} />
         </div>
       </div>
     </StudentRoute>

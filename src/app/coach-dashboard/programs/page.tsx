@@ -24,79 +24,189 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useUser } from "@/hooks/use-user";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { createProgram, getPrograms } from "@/actions/programs";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "react-toastify";
 import Link from "next/link";
-import type { IProgram } from "@/models";
+import { useCategories } from "@/contexts/CategoryContext";
 import { ModuleFormData } from "@/types";
 import ModulesForm from "@/components/ModuleForm";
 import { createProgramSchema } from "@/lib/validations";
 import { z } from "zod";
+import { useAuth } from "@/contexts/AuthContext";
+import { Program, User } from "@/generated/prisma";
+
+interface IProgram extends Program {
+  category: any;
+  coach: any;
+  modules: any[];
+  attendees: string[];
+  otherAttendees?: number;
+}
 
 const mockPrograms: IProgram[] = [
   {
-    id: "mock-1",
-    title: "Consulting, Associate Level",
-    category: "Career Prep",
-    slug: "consulting-associate-level",
-    rating: 4.9,
-    currentEnrollments: 58,
-    description: "Prepare for associate-level consulting positions",
-    objectives: [
-      "Case study preparation",
-      "Interview skills",
-      "Industry knowledge",
-    ],
-    coachRef: {} as any,
-    isActive: true,
-    totalReviews: 45,
+    id: "program-1",
+    title: "Product Manager Interview Prep",
+    slug: "pm-interview-prep",
+    description:
+      "Comprehensive preparation for product manager interviews at top tech companies. Covers case studies, behavioral questions, and portfolio building.",
+    category: {
+      name: "Career Prep",
+      slug: "career-prep",
+    },
     price: 299,
-    duration: "8 weeks",
-    difficultyLevel: "intermediate" as const,
+    duration: "4 weeks",
+    difficultyLevel: "INTERMEDIATE",
+    rating: 4.9,
+    totalReviews: 45,
+    isActive: true,
+    status: "ACTIVE",
+    coachId: "coach-1",
     maxStudents: 20,
-    tags: ["consulting", "career prep"],
-    prerequisites: [],
-    modules: [],
+    currentEnrollments: 15,
+    tags: ["Product Management", "Interviews", "Tech"],
+    prerequisites: ["Basic understanding of product management"],
+    objectives: [
+      "Master product manager interview formats",
+      "Build compelling product portfolio",
+      "Practice case study frameworks",
+      "Develop storytelling skills",
+    ],
+    modules: [
+      {
+        title: "Product Strategy & Vision",
+        week: 1,
+        description: "Foundation concepts",
+      },
+      {
+        title: "Technical Product Management",
+        week: 2,
+        description: "Technical skills",
+      },
+      {
+        title: "Data Analysis & Metrics",
+        week: 3,
+        description: "Analytics focus",
+      },
+      {
+        title: "Mock Interviews & Final Review",
+        week: 4,
+        description: "Practice sessions",
+      },
+    ],
+    coach: {
+      name: "Sarah Chen",
+      role: "Senior PM, Google",
+      avatar: "https://i.pravatar.cc/40?u=sarah-chen",
+      email: "sarah.chen@example.com",
+    },
+    attendees: [
+      "https://i.pravatar.cc/40?u=student-1",
+      "https://i.pravatar.cc/40?u=student-2",
+      "https://i.pravatar.cc/40?u=student-3",
+    ],
+    otherAttendees: 12,
+    categoryId: "",
     createdAt: new Date(),
     updatedAt: new Date(),
   },
   {
-    id: "mock-2",
-    title: "MBA Admissions Coaching",
-    category: "School Admissions",
-    slug: "mba-admissions",
+    id: "program-2",
+    title: "Consulting Case Interview Mastery",
+    slug: "consulting-case-prep",
+    description:
+      "Master the art of case interviews for top consulting firms like McKinsey, Bain, and BCG. Learn frameworks and practice real cases.",
+    category: {
+      name: "Career Prep",
+      slug: "career-prep",
+    },
+    price: 399,
+    duration: "6 weeks",
+    difficultyLevel: "ADVANCED",
     rating: 4.8,
-    currentEnrollments: 32,
-    description: "Complete MBA application guidance",
-    objectives: ["Essay writing", "Interview prep", "School selection"],
-    coachRef: {} as any,
+    totalReviews: 32,
     isActive: true,
-    totalReviews: 28,
-    price: 499,
-    duration: "12 weeks",
-    difficultyLevel: "advanced" as const,
+    status: "ACTIVE",
+    coachId: "coach-2",
     maxStudents: 15,
-    tags: ["mba", "admissions"],
-    prerequisites: [],
-    modules: [],
+    currentEnrollments: 12,
+    tags: ["Consulting", "Case Interviews", "MBB"],
+    prerequisites: ["Business fundamentals", "Basic quantitative skills"],
+    objectives: [
+      "Master case interview frameworks",
+      "Develop structured thinking",
+      "Practice mental math",
+      "Build communication skills",
+    ],
+    modules: [
+      {
+        title: "Case Interview Fundamentals",
+        week: 1,
+        description: "Core concepts",
+      },
+      {
+        title: "Market Sizing & Estimation",
+        week: 2,
+        description: "Quantitative skills",
+      },
+      {
+        title: "Profitability Cases",
+        week: 3,
+        description: "Financial analysis",
+      },
+      {
+        title: "Market Entry & Growth",
+        week: 4,
+        description: "Strategic thinking",
+      },
+      {
+        title: "Operations & Process",
+        week: 5,
+        description: "Operational excellence",
+      },
+      {
+        title: "Final Preparation & Mock Interviews",
+        week: 6,
+        description: "Practice and review",
+      },
+    ],
+    coach: {
+      name: "Marcus Johnson",
+      role: "Partner, McKinsey",
+      avatar: "https://i.pravatar.cc/40?u=marcus-johnson",
+      email: "marcus.johnson@example.com",
+    },
+    attendees: [
+      "https://i.pravatar.cc/40?u=student-4",
+      "https://i.pravatar.cc/40?u=student-5",
+      "https://i.pravatar.cc/40?u=student-6",
+    ],
+    otherAttendees: 9,
+    categoryId: "",
     createdAt: new Date(),
     updatedAt: new Date(),
   },
 ];
 
 export default function CoachProgramsPage() {
-  const { user } = useUser();
+  const { user } = useAuth();
   const [programs, setPrograms] = useState<IProgram[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user?.uid) return;
+    if (!user) return;
 
     const fetchPrograms = async () => {
       try {
         setLoading(true);
-        const result = await getPrograms({ coachId: user.uid });
+        const result = await getPrograms({ coachId: user.coach.id });
         if (result.success) {
           setPrograms(
             result.programs.length > 0 ? result.programs : mockPrograms
@@ -114,12 +224,12 @@ export default function CoachProgramsPage() {
     };
 
     fetchPrograms();
-  }, [user?.uid]);
+  }, [user]);
 
   const refreshPrograms = async () => {
-    if (!user?.uid) return;
+    if (!user) return;
     try {
-      const result = await getPrograms({ coachId: user.uid });
+      const result = await getPrograms({ coachId: user.coach.id });
       if (result.success) {
         setPrograms(
           result.programs.length > 0 ? result.programs : mockPrograms
@@ -168,7 +278,7 @@ export default function CoachProgramsPage() {
     <div className="flex-1 space-y-4 p-4 md:p-8">
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold tracking-tight">My Programs</h2>
-        <CreateProgramDialog onProgramCreated={refreshPrograms} />
+        <CreateProgramDialog user={user} onProgramCreated={refreshPrograms} />
       </div>
 
       {programs.length === 0 ? (
@@ -184,7 +294,10 @@ export default function CoachProgramsPage() {
                   Create your first program to get started.
                 </p>
               </div>
-              <CreateProgramDialog onProgramCreated={refreshPrograms} />
+              <CreateProgramDialog
+                user={user}
+                onProgramCreated={refreshPrograms}
+              />
             </div>
           </CardContent>
         </Card>
@@ -196,12 +309,12 @@ export default function CoachProgramsPage() {
                 <div className="flex items-start justify-between">
                   <div
                     className={`flex h-12 w-12 items-center justify-center rounded-lg ${
-                      program.category === "Career Prep"
+                      program.category.name === "Career Prep"
                         ? "bg-primary/10"
                         : "bg-blue-500/10"
                     }`}
                   >
-                    {program.category === "Career Prep" ? (
+                    {program.category.name === "Career Prep" ? (
                       <Briefcase className="h-5 w-5 text-primary" />
                     ) : (
                       <GraduationCap className="h-5 w-5 text-blue-500" />
@@ -217,7 +330,7 @@ export default function CoachProgramsPage() {
                   {program.title}
                 </h3>
                 <p className="text-sm text-muted-foreground">
-                  {program.category}
+                  {program.category.name}
                 </p>
                 <div className="flex items-center gap-4 mt-4 text-sm text-muted-foreground">
                   <div className="flex items-center gap-1">
@@ -245,11 +358,12 @@ export default function CoachProgramsPage() {
 
 function CreateProgramDialog({
   onProgramCreated,
+  user,
 }: {
   onProgramCreated?: () => void;
+  user: User;
 }) {
-  const { user } = useUser();
-  const { toast } = useToast();
+  const { categories, loading: categoriesLoading } = useCategories();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
@@ -264,7 +378,6 @@ function CreateProgramDialog({
   const handleNext = () => {
     if (currentStep === 1) {
       try {
-        // Validate step 1 using Zod schema
         const step1Data = {
           title: title.trim(),
           category: category.trim(),
@@ -272,7 +385,11 @@ function CreateProgramDialog({
           objectives: objectives.split("\n").filter((o) => o.trim() !== ""),
         };
 
-        // Partial validation for step 1
+        if (!category || category === "loading" || category === "none") {
+          toast.error("Please select a valid category.");
+          return;
+        }
+
         createProgramSchema
           .pick({
             title: true,
@@ -288,11 +405,7 @@ function CreateProgramDialog({
           const errorMessage =
             error.errors[0]?.message ||
             "Please fill in all required fields correctly.";
-          toast({
-            variant: "destructive",
-            title: "Validation Error",
-            description: errorMessage,
-          });
+          toast.error(errorMessage);
         }
       }
     }
@@ -315,19 +428,19 @@ function CreateProgramDialog({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user?.uid) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "You must be logged in.",
-      });
+    if (!user) {
+      toast.error("You must be logged in.");
       return;
     }
 
     try {
       setLoading(true);
 
-      // Prepare data for validation
+      if (!category || category === "loading" || category === "none") {
+        toast.error("Please select a valid category.");
+        return;
+      }
+
       const programData = {
         title: title.trim(),
         category: category.trim(),
@@ -343,35 +456,20 @@ function CreateProgramDialog({
       console.log({ result });
 
       if (result.success) {
-        toast({
-          title: "Success!",
-          description: result.message || "Your new program has been created.",
-        });
+        toast.success(result.message || "Your new program has been created.");
 
         setOpen(false);
         resetForm();
         onProgramCreated?.();
       } else {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: result.message || "Could not create the program.",
-        });
+        toast.error(result.message || "Could not create the program.");
       }
     } catch (error) {
       if (error instanceof z.ZodError) {
         const errorMessage = error.errors.map((err) => err.message).join(", ");
-        toast({
-          variant: "destructive",
-          title: "Validation Error",
-          description: errorMessage,
-        });
+        toast.error(errorMessage);
       } else {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Could not create the program.",
-        });
+        toast.error("Could not create the program.");
         console.error(error);
       }
     } finally {
@@ -447,13 +545,28 @@ function CreateProgramDialog({
 
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label className="text-right">Category</Label>
-                <Input
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="col-span-3"
-                  placeholder="e.g., Career Prep"
-                  required
-                />
+                <Select value={category} onValueChange={setCategory} required>
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Select a category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categoriesLoading ? (
+                      <SelectItem value="loading" disabled>
+                        Loading categories...
+                      </SelectItem>
+                    ) : categories.length === 0 ? (
+                      <SelectItem value="none" disabled>
+                        No categories available
+                      </SelectItem>
+                    ) : (
+                      categories.map((cat) => (
+                        <SelectItem key={cat.name} value={cat.name}>
+                          {cat.name}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="grid grid-cols-4 items-center gap-4">

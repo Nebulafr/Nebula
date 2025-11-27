@@ -1,0 +1,440 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Enums
+enum UserRole {
+  STUDENT
+  COACH
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum SkillLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum ProgramStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum DifficultyLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum EnrollmentStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+  PAUSED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum SessionStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  FILE
+  LINK
+}
+
+enum ConversationType {
+  DIRECT
+  GROUP
+  SUPPORT
+}
+
+enum ReviewTargetType {
+  PROGRAM
+  COACH
+  SESSION
+}
+
+// Base model for timestamps
+model User {
+  id             String     @id @default(cuid())
+  googleId       String?    @unique @map("google_id") // Google Auth ID (optional)
+  email          String     @unique
+  hashedPassword String?    @map("hashed_password") // For email auth (optional)
+  role           UserRole   @default(STUDENT)
+  status         UserStatus @default(ACTIVE)
+  fullName       String?    @map("full_name")
+  avatarUrl      String?    @map("avatar_url")
+  createdAt      DateTime   @default(now()) @map("created_at")
+  updatedAt      DateTime   @updatedAt @map("updated_at")
+
+  // Relationships
+  coach   Coach?
+  student Student?
+
+  // Reviews given and received
+  reviewsGiven    Review[] @relation("ReviewerUser")
+  reviewsReceived Review[] @relation("RevieweeUser")
+
+  // Messages sent
+  messagesSent Message[]
+
+  // Conversation participants
+  conversations ConversationParticipant[]
+
+  @@map("users")
+}
+
+model Category {
+  id           String    @id @default(cuid())
+  name         String    @unique
+  slug         String    @unique
+  isActive     Boolean   @default(true) @map("is_active")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  // Relationships
+  programs Program[]
+
+  @@map("categories")
+}
+
+model Coach {
+  id               String    @id @default(cuid())
+  userId           String    @unique @map("user_id")
+  email            String?
+  fullName         String?   @map("full_name")
+  avatarUrl        String?   @map("avatar_url")
+  title            String
+  bio              String
+  style            String
+  specialties      String[]
+  pastCompanies    String[]  @map("past_companies")
+  linkedinUrl      String?   @map("linkedin_url")
+  availability     String
+  hourlyRate       Int       @map("hourly_rate")
+  rating           Float?    @default(0)
+  totalReviews     Int?      @default(0) @map("total_reviews")
+  totalSessions    Int?      @default(0) @map("total_sessions")
+  studentsCoached  Int?      @default(0) @map("students_coached")
+  isActive         Boolean   @default(true) @map("is_active")
+  isVerified       Boolean   @default(false) @map("is_verified")
+  slug             String?   @unique
+  category         String?
+  qualifications   String[]
+  experience       String?
+  timezone         String?
+  languages        String[]
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  // Relationships
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  programs    Program[]
+  sessions    Session[]
+  enrollments Enrollment[]
+
+  @@map("coaches")
+}
+
+model Student {
+  id                   String              @id @default(cuid())
+  userId               String              @unique @map("user_id")
+  email                String?
+  fullName             String?             @map("full_name")
+  avatarUrl            String?             @map("avatar_url")
+  interestedProgram    String?             @map("interested_program")
+  skillLevel           SkillLevel?         @map("skill_level")
+  commitment           String?
+  learningGoals        String[]            @map("learning_goals")
+  currentLevel         String?             @map("current_level")
+  timeZone             String?             @map("time_zone")
+  enrolledPrograms     String[]            @map("enrolled_programs")
+  completedSessions    String[]            @map("completed_sessions")
+  upcomingSessions     String[]            @map("upcoming_sessions")
+  createdAt            DateTime            @default(now()) @map("created_at")
+  updatedAt            DateTime            @updatedAt @map("updated_at")
+
+  // Relationships
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  enrollments Enrollment[]
+  sessions    SessionAttendance[]
+  preferences StudentPreferences?
+
+  @@map("students")
+}
+
+model StudentPreferences {
+  id                    String  @id @default(cuid())
+  studentId             String  @unique @map("student_id")
+  timezone              String
+  notifications         Boolean @default(true)
+  emailUpdates          Boolean @default(true) @map("email_updates")
+  preferredContactTime  String? @map("preferred_contact_time")
+  communicationStyle    String? @map("communication_style")
+
+  // Relationships
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@map("student_preferences")
+}
+
+model Program {
+  id                  String          @id @default(cuid())
+  title               String
+  categoryId          String
+  description         String
+  objectives          String[]
+  coachId             String
+  slug                String          @unique
+  rating              Float           @default(0)
+  totalReviews        Int?            @default(0)
+  price               Int?            @default(0)
+  duration            String?
+  difficultyLevel     DifficultyLevel @default(BEGINNER)
+  maxStudents         Int?            @default(100)
+  currentEnrollments  Int?            @default(0)
+  isActive            Boolean         @default(false)
+  status              ProgramStatus   @default(INACTIVE)
+  tags                String[]
+  prerequisites       String[]
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+
+  // Relationships
+  category    Category     @relation(fields: [categoryId], references: [id])
+  coach       Coach        @relation(fields: [coachId], references: [id])
+  modules     Module[]
+  enrollments Enrollment[]
+  sessions    Session[]
+  reviews     Review[]     @relation("ReviewTarget")
+
+  @@map("programs")
+}
+
+model Module {
+  id          String  @id @default(cuid())
+  programId   String
+  title       String
+  week        Int
+  description String?
+
+  // Relationships
+  program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  @@map("modules")
+}
+
+model Enrollment {
+  id              String           @id @default(cuid())
+  studentId       String
+  programId       String
+  coachId         String
+  status          EnrollmentStatus @default(ACTIVE)
+  enrollmentDate  DateTime         @default(now())
+  completionDate  DateTime?
+  progress        Float            @default(0)
+  paymentStatus   PaymentStatus    @default(PENDING)
+  time            String
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  // Relationships
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+  coach   Coach   @relation(fields: [coachId], references: [id])
+
+  @@map("enrollments")
+}
+
+model Session {
+  id            String        @id @default(cuid())
+  programId     String
+  coachId       String
+  title         String?
+  description   String?
+  scheduledTime DateTime
+  duration      Int
+  status        SessionStatus @default(SCHEDULED)
+  meetLink      String?
+  googleEventId String?
+  notes         String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  // Relationships
+  program     Program             @relation(fields: [programId], references: [id], onDelete: Cascade)
+  coach       Coach               @relation(fields: [coachId], references: [id])
+  attendance  SessionAttendance[]
+  recordings  SessionRecording[]
+
+  @@map("sessions")
+}
+
+model SessionAttendance {
+  id                  String    @id @default(cuid())
+  sessionId           String
+  studentId           String
+  joinTime            DateTime?
+  leaveTime           DateTime?
+  attended            Boolean   @default(false)
+  participationScore  Int?
+
+  // Relationships
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, studentId])
+  @@map("session_attendance")
+}
+
+model SessionRecording {
+  id          String   @id @default(cuid())
+  sessionId   String
+  title       String
+  url         String
+  duration    Int
+  uploadedAt  DateTime @default(now())
+  isPublic    Boolean  @default(false)
+
+  // Relationships
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("session_recordings")
+}
+
+model Review {
+  id           String           @id @default(cuid())
+  reviewerId   String
+  revieweeId   String?
+  targetId     String
+  targetType   ReviewTargetType
+  rating       Int
+  title        String?
+  content      String
+  isVerified   Boolean          @default(false)
+  isPublic     Boolean          @default(true)
+  helpfulCount Int?             @default(0)
+  tags         String[]
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  // Relationships
+  reviewer User     @relation("ReviewerUser", fields: [reviewerId], references: [id])
+  reviewee User?    @relation("RevieweeUser", fields: [revieweeId], references: [id])
+  program  Program? @relation("ReviewTarget", fields: [targetId], references: [id])
+
+  @@map("reviews")
+}
+
+model Conversation {
+  id              String                    @id @default(cuid())
+  type            ConversationType          @default(DIRECT)
+  title           String?
+  lastMessage     String?
+  lastMessageTime DateTime?
+  isActive        Boolean                   @default(true)
+  isArchived      Boolean                   @default(false)
+  createdAt       DateTime                  @default(now())
+  updatedAt       DateTime                  @updatedAt
+
+  // Relationships
+  participants ConversationParticipant[]
+  messages     Message[]
+
+  @@map("conversations")
+}
+
+model ConversationParticipant {
+  id             String @id @default(cuid())
+  conversationId String
+  userId         String
+  unreadCount    Int    @default(0)
+
+  // Relationships
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+  @@map("conversation_participants")
+}
+
+model Message {
+  id             String             @id @default(cuid())
+  conversationId String
+  senderId       String
+  content        String
+  type           MessageType        @default(TEXT)
+  isRead         Boolean            @default(false)
+  readAt         DateTime?
+  editedAt       DateTime?
+  isEdited       Boolean            @default(false)
+  isDeleted      Boolean            @default(false)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  // Relationships
+  conversation Conversation         @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User                 @relation(fields: [senderId], references: [id])
+  attachments  MessageAttachment[]
+  reactions    MessageReaction[]
+
+  @@map("messages")
+}
+
+model MessageAttachment {
+  id         String   @id @default(cuid())
+  messageId  String
+  fileName   String
+  fileUrl    String
+  fileSize   Int
+  mimeType   String
+  uploadedAt DateTime @default(now())
+
+  // Relationships
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@map("message_attachments")
+}
+
+model MessageReaction {
+  id        String   @id @default(cuid())
+  messageId String
+  userId    String
+  emoji     String
+  createdAt DateTime @default(now())
+
+  // Relationships
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId, emoji])
+  @@map("message_reactions")
+}

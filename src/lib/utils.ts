@@ -1,6 +1,5 @@
 import { ApiResponse } from "@/types";
 import { clsx, type ClassValue } from "clsx";
-import { getAuth } from "firebase/auth";
 import { twMerge } from "tailwind-merge";
 import axios, { AxiosError, AxiosRequestConfig } from "axios";
 
@@ -32,19 +31,15 @@ export const publicRoutes = [
 ];
 
 async function getAuthToken(): Promise<string | null> {
-  const auth = getAuth();
-  const user = auth.currentUser;
-
-  if (!user) {
+  if (typeof window === "undefined") {
+    return null;
+  }
+  const accessToken = localStorage.getItem("accessToken");
+  if (!accessToken) {
     throw new Error("User not authenticated");
   }
 
-  try {
-    return await user.getIdToken();
-  } catch (error) {
-    console.error("Error getting auth token:", error);
-    throw new Error("Failed to get authentication token");
-  }
+  return accessToken;
 }
 
 async function makeRequest<T = any>(
@@ -59,12 +54,10 @@ async function makeRequest<T = any>(
   const { body, headers = {}, requireAuth = true } = options;
 
   try {
-    // Prepare headers
     let requestHeaders: Record<string, any> = {
       "Content-Type": "application/json",
     };
 
-    // Add custom headers if provided
     if (headers && typeof headers === "object") {
       requestHeaders = { ...requestHeaders, ...headers };
     }
@@ -82,16 +75,14 @@ async function makeRequest<T = any>(
       };
     }
 
-    // Configure axios request
     const config: AxiosRequestConfig = {
       method,
       url: `/api${endpoint}`,
       headers: requestHeaders,
       withCredentials: true,
-      timeout: 30000, // 30 second timeout
+      timeout: 30000,
     };
 
-    // Add data for POST/PUT/PATCH requests
     if (method !== "GET" && method !== "DELETE" && body) {
       config.data = body;
     }
@@ -109,11 +100,16 @@ async function makeRequest<T = any>(
   } catch (error: any) {
     console.error(`API request failed [${method} /api${endpoint}]:`, error);
 
-    // Handle axios errors
     if (error instanceof AxiosError) {
-      // Network error
       if (!error.response) {
         throw new Error("Network error. Please check your connection.");
+      }
+
+      // Handle 401 Unauthorized - clear auth data
+      if (error.response.status === 401) {
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("accessToken");
+        }
       }
 
       // Server error with response

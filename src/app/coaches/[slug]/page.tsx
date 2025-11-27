@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,74 +26,288 @@ import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { useParams, useRouter } from "next/navigation";
 import { Footer } from "@/components/layout/footer";
-import { useUser } from "@/hooks/use-user";
 import { getAuth, signOut } from "firebase/auth";
+import { bookCoachSession } from "@/actions/session";
+import { toast } from "react-toastify";
+import { getCoachBySlug, CoachWithRelations } from "@/actions/coaches";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function CoachDetailPage() {
-  const [bookingStep, setBookingStep] = useState(0); // 0: default, 1: calendar, 2: time, 3: success
+  const [bookingStep, setBookingStep] = useState(0);
+  const [isBooking, setIsBooking] = useState(false);
+  const [coach, setCoach] = useState<CoachWithRelations | null>(null);
+  const [loading, setLoading] = useState(true);
   const params = useParams<{ slug: string }>();
   const router = useRouter();
+  const { user } = useAuth();
+  const [date, setDate] = useState<Date | undefined>();
+  const [selectedTime, setSelectedTime] = useState("");
 
-  const coach = {
-    name: "Adrian Cucurella",
-    slug: "adrian-cucurella",
-    role: "Partner, BCG",
-    avatar: "https://i.pravatar.cc/150?u=adrian-cucurella",
-    rating: 4.9,
-    reviewsCount: "6",
-    bio: "With over five years of experience at a leading global consulting firm, Adrian brings deep expertise in strategy and operations. Now a Consultant at BCG, they help Fortune 500 clients tackle complex business challenges. Their work spans multiple industries, with a focus on digital transformation and growth strategy. Passionate about talent development, they coach emerging professionals on a job immersion platform. Adrian holds a Master's degree in Business and thrives at the intersection of impact and innovation.",
-    pastCompanies: [{ name: "BCG" }, { name: "PALIN" }],
-    reviews: [
-      {
-        text: "Adrian was incredibly insightful and supportive. His real-world examples from BCG made complex concepts easy to understand. I left the session feeling more confident and inspired.",
-        author: "Carlos Pavol",
-        role: "Student",
-        rating: 5,
-      },
-      {
-        text: "A fantastic mentor. Adrian helped me navigate the complexities of a case interview and provided actionable feedback.",
-        author: "Sarah K.",
-        role: "UX Designer",
-        rating: 5,
-      },
-    ],
-    programs: [
-      {
-        title: "Consulting, Associate Level",
-        category: "Career Prep",
-        icon: <Briefcase className="h-5 w-5 text-primary" />,
-        slug: "/programs/consulting-associate-level",
-      },
-      {
-        title: "MBA Admissions Coaching",
-        category: "School Admissions",
-        icon: <GraduationCap className="h-5 w-5 text-blue-500" />,
-        slug: "/programs/mba-admissions",
-      },
-    ],
-  };
+  console.log("CoachDetailsPage===", { date, selectedTime });
+
+  useEffect(() => {
+    const fetchCoach = async () => {
+      if (!params.slug) return;
+
+      try {
+        setLoading(true);
+        const response = await getCoachBySlug(params.slug);
+
+        if (response.success && response.data?.coach) {
+          setCoach(response.data?.coach!);
+        } else {
+          setCoach({
+            id: "mock-coach",
+            userId: "mock-user-id",
+            email: "adrian@example.com",
+            fullName: "Adrian Cucurella",
+            title: "Partner, BCG",
+            avatarUrl: "https://i.pravatar.cc/150?u=adrian-cucurella",
+            rating: 4.9,
+            studentsCoached: 150,
+            totalSessions: 150,
+            specialties: ["Consulting", "Strategy"],
+            slug: params.slug,
+            category: "Career Prep",
+            bio: "With over five years of experience at a leading global consulting firm, Adrian brings deep expertise in strategy and operations. Now a Consultant at BCG, they help Fortune 500 clients tackle complex business challenges. Their work spans multiple industries, with a focus on digital transformation and growth strategy. Passionate about talent development, they coach emerging professionals on a job immersion platform. Adrian holds a Master's degree in Business and thrives at the intersection of impact and innovation.",
+            style: "Professional",
+            pastCompanies: ["BCG", "PALIN"],
+            linkedinUrl: "",
+            availability: "Weekends",
+            hourlyRate: 100,
+            isActive: true,
+            isVerified: true,
+            totalReviews: 6,
+            qualifications: [],
+            languages: ["English"],
+            experience: "5+ years in consulting",
+            timezone: "PST",
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            programs: [
+              {
+                id: "mock-1",
+                title: "Consulting, Associate Level",
+                category: "Career Prep",
+                slug: "consulting-associate-level",
+                description: "Learn consulting fundamentals",
+                price: 299,
+                duration: "8 weeks",
+                rating: 4.8,
+                currentEnrollments: 15,
+                createdAt: new Date().toISOString(),
+              },
+              {
+                id: "mock-2",
+                title: "MBA Admissions Coaching",
+                category: "School Admissions",
+                slug: "mba-admissions",
+                description: "Get into top MBA programs",
+                price: 499,
+                duration: "12 weeks",
+                rating: 4.9,
+                currentEnrollments: 8,
+                createdAt: new Date().toISOString(),
+              },
+            ],
+            reviews: [
+              {
+                id: "review-1",
+                reviewerId: "student-1",
+                revieweeId: "mock-coach",
+                targetId: "mock-coach",
+                targetType: "COACH",
+                rating: 5,
+                title: "Excellent PM coaching",
+                content:
+                  "Sarah was incredibly insightful and supportive. Her real-world examples from Google made complex concepts easy to understand. I left the session feeling more confident and inspired.",
+                isVerified: false,
+                isPublic: true,
+                helpfulCount: 12,
+                tags: ["product-management", "interview-prep"],
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                reviewer: {
+                  id: "student-1",
+                  fullName: "Jessica Wang",
+                  avatarUrl: "https://i.pravatar.cc/40?u=jessica-wang",
+                },
+                reviewee: {
+                  id: "mock-coach",
+                  fullName: "Adrian Cucurella",
+                  avatarUrl: "https://i.pravatar.cc/150?u=adrian-cucurella",
+                },
+              },
+              {
+                id: "review-2",
+                reviewerId: "student-6",
+                revieweeId: "mock-coach",
+                targetId: "mock-coach",
+                targetType: "COACH",
+                rating: 5,
+                title: "Great mentor for PMs",
+                content:
+                  "As a current PM looking to level up, Sarah's insights were invaluable. She helped me identify gaps in my strategy thinking and provided actionable frameworks.",
+                isVerified: true,
+                isPublic: true,
+                helpfulCount: 8,
+                tags: ["career-advancement", "strategy"],
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                reviewer: {
+                  id: "student-6",
+                  fullName: "Ryan O'Connor",
+                  avatarUrl: "https://i.pravatar.cc/40?u=ryan-oconnor",
+                },
+                reviewee: {
+                  id: "mock-coach",
+                  fullName: "Adrian Cucurella",
+                  avatarUrl: "https://i.pravatar.cc/150?u=adrian-cucurella",
+                },
+              },
+            ],
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching coach:", error);
+        setCoach({
+          id: "mock-coach",
+          userId: "mock-user-id",
+          email: "adrian@example.com",
+          fullName: "Adrian Cucurella",
+          title: "Partner, BCG",
+          avatarUrl: "https://i.pravatar.cc/150?u=adrian-cucurella",
+          rating: 4.9,
+          studentsCoached: 150,
+          totalSessions: 150,
+          specialties: ["Consulting", "Strategy"],
+          slug: params.slug,
+          category: "Career Prep",
+          bio: "With over five years of experience at a leading global consulting firm, Adrian brings deep expertise in strategy and operations.",
+          style: "Professional",
+          pastCompanies: ["BCG", "PALIN"],
+          linkedinUrl: "",
+          availability: "Weekends",
+          hourlyRate: 100,
+          isActive: true,
+          isVerified: true,
+          totalReviews: 6,
+          qualifications: [],
+          languages: ["English"],
+          experience: "5+ years in consulting",
+          timezone: "PST",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          programs: [],
+          reviews: [],
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCoach();
+  }, [params.slug]);
 
   const handleBookClick = () => {
+    console.log("Start Booking...");
+    if (!user) {
+      toast.error("Please log in to book a session.");
+      router.replace("/login");
+      return;
+    }
     setBookingStep(1);
   };
 
   const handleCancelBooking = () => {
     setBookingStep(0);
+    setDate(undefined);
+    setSelectedTime("");
   };
 
-  const handleDateSelect = () => {
-    setBookingStep(2);
+  const handleDateSelect = (date: Date | undefined) => {
+    setDate(date);
   };
 
-  const handleTimeSelect = () => {
-    // Here you would typically trigger the Genkit flow to create the session
-    // For now, we just show the success step
-    setBookingStep(3);
+  const handleTimeSelect = async (time: string) => {
+    if (!date || !user) {
+      toast.error("Please select a date and ensure you're logged in.");
+      return;
+    }
+
+    try {
+      setIsBooking(true);
+      setSelectedTime(time);
+
+      const result = await bookCoachSession({
+        coachSlug: params.slug,
+        date,
+        time,
+        duration: 60,
+      });
+
+      if (result.success) {
+        toast.success(
+          result.message || "Your session has been successfully booked."
+        );
+        setBookingStep(3);
+      } else {
+        throw new Error(result.error || "Failed to book session");
+      }
+    } catch (error: any) {
+      console.error("Booking failed:", error);
+      toast.error(
+        error.message ||
+          "There was an error booking your session. Please try again."
+      );
+    } finally {
+      setIsBooking(false);
+    }
   };
 
   const handleMessageClick = () => {
-    router.push("/dashboard/messaging?conversationId=1");
+    router.replace("/dashboard/messaging?conversationId=1");
   };
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen flex-col bg-background">
+        <Header />
+        <main className="flex-1">
+          <div className="container py-12 md:py-20">
+            <div className="animate-pulse">
+              <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
+              <div className="h-16 bg-gray-200 rounded w-3/4 mb-4"></div>
+              <div className="h-6 bg-gray-200 rounded w-1/2 mb-8"></div>
+              <div className="flex gap-4">
+                <div className="h-12 bg-gray-200 rounded w-32"></div>
+                <div className="h-12 bg-gray-200 rounded w-32"></div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (!coach) {
+    return (
+      <div className="flex min-h-screen flex-col bg-background">
+        <Header />
+        <main className="flex-1">
+          <div className="container py-12 md:py-20 text-center">
+            <h1 className="text-4xl font-bold mb-4">Coach not found</h1>
+            <p className="text-muted-foreground mb-8">
+              The coach you're looking for doesn't exist.
+            </p>
+            <Button asChild>
+              <Link href="/coaches">Browse all coaches</Link>
+            </Button>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -107,19 +321,19 @@ export default function CoachDetailPage() {
                   Coaches
                 </Link>
                 <ChevronRight className="h-4 w-4" />
-                <span>{coach.name}</span>
+                <span>{coach.fullName}</span>
               </div>
               <div className="flex items-center gap-6">
                 <Avatar className="h-24 w-24">
-                  <AvatarImage src={coach.avatar} />
-                  <AvatarFallback>{coach.name.charAt(0)}</AvatarFallback>
+                  <AvatarImage src={coach.avatarUrl!} />
+                  <AvatarFallback>{coach.fullName?.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <div>
                   <h1 className="font-headline text-4xl font-bold tracking-tighter text-primary md:text-5xl">
-                    {coach.name}
+                    {coach.fullName}
                   </h1>
                   <p className="mt-1 text-lg text-foreground/70">
-                    {coach.role}
+                    {coach.title}
                   </p>
                 </div>
                 <Badge
@@ -134,62 +348,93 @@ export default function CoachDetailPage() {
                 {coach.bio}
               </p>
 
-              <div className="mt-8">
-                <h4 className="text-sm font-semibold text-muted-foreground">
-                  Adrian has worked at:
-                </h4>
-                <div className="mt-4 flex items-center gap-4">
-                  {coach.pastCompanies.map((company) => (
-                    <div
-                      key={company.name}
-                      className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-200 text-sm font-bold text-gray-700"
-                    >
-                      {company.name}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="my-12">
-                <h2 className="mb-6 font-headline text-2xl font-bold">
-                  Programs by {coach.name}
-                </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  {coach.programs.map((program) => (
-                    <Link href={program.slug} key={program.title}>
-                      <Card className="p-6 flex items-center gap-4 hover:shadow-lg transition-shadow">
+              {coach.pastCompanies && coach.pastCompanies.length > 0 && (
+                <div className="mt-8">
+                  <h4 className="text-sm font-semibold text-muted-foreground">
+                    {coach.fullName?.split(" ")[0] || "Coach"} has worked at:
+                  </h4>
+                  <div className="mt-4 flex items-center gap-4">
+                    {coach.pastCompanies
+                      .slice(0, 3)
+                      .map((company: string, index: number) => (
                         <div
-                          className={`flex h-10 w-10 items-center justify-center rounded-full ${
-                            program.category === "Career Prep"
-                              ? "bg-primary/10"
-                              : "bg-blue-500/10"
-                          }`}
+                          key={company || index}
+                          className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-200 text-sm font-bold text-gray-700"
                         >
-                          {program.icon}
+                          {(company || "Co").substring(0, 5)}
                         </div>
-                        <div>
-                          <h3 className="font-headline font-semibold">
-                            {program.title}
-                          </h3>
-                          <p className="text-sm text-muted-foreground">
-                            {program.category}
-                          </p>
-                        </div>
-                      </Card>
-                    </Link>
-                  ))}
+                      ))}
+                  </div>
                 </div>
-              </div>
+              )}
+
+              {coach.programs && coach.programs.length > 0 && (
+                <div className="my-12">
+                  <h2 className="mb-6 font-headline text-2xl font-bold">
+                    Programs by {coach.fullName}
+                  </h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    {coach.programs.map((program) => (
+                      <Link
+                        href={
+                          program.slug.startsWith("/")
+                            ? program.slug
+                            : `/programs/${program.slug}`
+                        }
+                        key={program.id || program.title}
+                      >
+                        <Card className="p-6 flex items-center gap-4 hover:shadow-lg transition-shadow">
+                          <div
+                            className={`flex h-10 w-10 items-center justify-center rounded-full ${
+                              program.category === "Career Prep"
+                                ? "bg-primary/10"
+                                : "bg-blue-500/10"
+                            }`}
+                          >
+                            {program.category === "Career Prep" ? (
+                              <Briefcase className="h-5 w-5 text-primary" />
+                            ) : (
+                              <GraduationCap className="h-5 w-5 text-blue-500" />
+                            )}
+                          </div>
+                          <div>
+                            <h3 className="font-headline font-semibold">
+                              {program.title}
+                            </h3>
+                            <p className="text-sm text-muted-foreground">
+                              {program.category}
+                            </p>
+                          </div>
+                        </Card>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className={cn("md:col-span-1 relative pt-10")}>
               <div className="sticky top-24">
-                <BookingForm
+                <EnrollmentForm
                   step={bookingStep}
-                  onBook={handleBookClick}
+                  loading={isBooking}
+                  selectedDate={date}
+                  selectedTime={selectedTime}
+                  localSelectedTime={selectedTime}
+                  onEnroll={handleBookClick}
                   onCancel={handleCancelBooking}
                   onDateSelect={handleDateSelect}
                   onTimeSelect={handleTimeSelect}
+                  onLocalTimeSelect={handleTimeSelect}
+                  title="Book a session"
+                  subtitle="Find a time that works for you."
+                  enrollButtonText="Book now"
+                  dateSelectTitle="Select a date"
+                  timeSelectTitle="Select a time"
+                  successTitle="Session Booked!"
+                  successMessage="Your session has been confirmed. You can view your booking details on your dashboard."
+                  dashboardLink="/dashboard"
+                  showMessageButton={true}
                   onMessageClick={handleMessageClick}
                 />
               </div>
@@ -199,33 +444,39 @@ export default function CoachDetailPage() {
 
         <section className="container py-20">
           <h2 className="mb-8 font-headline text-3xl font-bold">
-            Reviews ({coach.reviewsCount})
+            Reviews ({coach.totalReviews || coach.reviews?.length || 0})
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {coach.reviews.map((review, i) => (
-              <Card key={i} className="rounded-xl border shadow-sm">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-1 mb-4">
-                    {[...Array(review.rating)].map((_, i) => (
-                      <Star
-                        key={i}
-                        className="h-5 w-5 fill-yellow-400 text-yellow-400"
-                      />
-                    ))}
-                  </div>
-                  <p className="font-serif text-base text-muted-foreground">
-                    &quot;{review.text}&quot;
-                  </p>
-                  <p className="mt-4 text-sm font-semibold">
-                    {review.author},{" "}
-                    <span className="font-normal text-muted-foreground">
-                      {review.role}
-                    </span>
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          {coach.reviews && coach.reviews.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {coach.reviews.slice(0, 4).map((review, i) => (
+                <Card
+                  key={review.id || i}
+                  className="rounded-xl border shadow-sm"
+                >
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-1 mb-4">
+                      {[...Array(review.rating)].map((_, i) => (
+                        <Star
+                          key={i}
+                          className="h-5 w-5 fill-yellow-400 text-yellow-400"
+                        />
+                      ))}
+                    </div>
+                    <p className="font-serif text-base text-muted-foreground">
+                      &quot;{review.content}&quot;
+                    </p>
+                    <p className="mt-4 text-sm font-semibold">
+                      {review.reviewer?.fullName || "Anonymous"}{" "}
+                    </p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">No reviews yet.</p>
+            </div>
+          )}
           <Button variant="link" className="mt-6 px-0" asChild>
             <Link href={`/coaches/${params.slug}/reviews`}>
               View all reviews <ArrowRight className="ml-2 h-4 w-4" />
@@ -238,45 +489,94 @@ export default function CoachDetailPage() {
   );
 }
 
-function BookingForm({
+function EnrollmentForm({
   step,
-  onBook,
+  loading = false,
+  isEnrolled = false,
+  selectedDate,
+  selectedTime,
+  localSelectedTime,
+  onEnroll,
   onCancel,
   onDateSelect,
   onTimeSelect,
+  onLocalTimeSelect,
+  title = "Ready to start?",
+  subtitle = "Enroll in this program to get personalized coaching.",
+  enrollButtonText = "Enroll now",
+  dateSelectTitle = "Select a start date",
+  timeSelectTitle = "Select a time",
+  successTitle = "You're In!",
+  successMessage = "Welcome to the program. You can view your enrollment details on your dashboard.",
+  dashboardLink = "/dashboard",
+  showMessageButton = false,
   onMessageClick,
 }: {
   step: number;
-  onBook: () => void;
+  loading?: boolean;
+  isEnrolled?: boolean;
+  selectedDate?: Date;
+  selectedTime?: string;
+  localSelectedTime?: string;
+  onEnroll: () => void;
   onCancel: () => void;
-  onDateSelect: () => void;
-  onTimeSelect: () => void;
-  onMessageClick: () => void;
+  onDateSelect: (date: Date | undefined) => void;
+  onTimeSelect: (time: string) => void;
+  onLocalTimeSelect: (time: string) => void;
+  title?: string;
+  subtitle?: string;
+  enrollButtonText?: string;
+  dateSelectTitle?: string;
+  timeSelectTitle?: string;
+  successTitle?: string;
+  successMessage?: string;
+  dashboardLink?: string;
+  showMessageButton?: boolean;
+  onMessageClick?: () => void;
 }) {
-  const [date, setDate] = useState<Date | undefined>();
-  const [selectedTime, setSelectedTime] = useState<string | null>(null);
-
   const timeSlots = ["09:00", "11:00", "14:00", "16:00"];
 
   if (step === 0) {
+    if (isEnrolled) {
+      return (
+        <Card className="rounded-xl border shadow-lg">
+          <CardContent className="p-6 text-center">
+            <CheckCircle className="h-12 w-12 mx-auto mb-4 text-green-500" />
+            <h3 className="font-headline text-xl font-bold text-green-700">
+              Already Enrolled!
+            </h3>
+            <p className="text-muted-foreground mt-2 mb-6">
+              You're already part of this program. Access it from your
+              dashboard.
+            </p>
+            <div className="space-y-2">
+              <Button size="lg" className="w-full" asChild>
+                <Link href={dashboardLink}>Go to Dashboard</Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      );
+    }
+
     return (
       <Card className="rounded-xl border shadow-lg">
         <CardContent className="p-6 text-center">
-          <h3 className="font-headline text-2xl font-bold">Book a session</h3>
-          <p className="text-muted-foreground mt-2 mb-6">
-            Find a time that works for you.
-          </p>
-          <Button size="lg" className="w-full" onClick={onBook}>
-            <PlusCircle className="mr-2 h-5 w-5" /> Book now
+          <h3 className="font-headline text-2xl font-bold">{title}</h3>
+          <p className="text-muted-foreground mt-2 mb-6">{subtitle}</p>
+          <Button size="lg" className="w-full" onClick={onEnroll}>
+            <PlusCircle className="mr-2 h-5 w-5" /> {enrollButtonText}
           </Button>
-          <Button
-            size="lg"
-            variant="outline"
-            className="w-full mt-2"
-            onClick={onMessageClick}
-          >
-            <MessageCircle className="mr-2 h-5 w-5" /> Message
-          </Button>
+          {showMessageButton && onMessageClick && (
+            <Button
+              size="lg"
+              variant="outline"
+              className="w-full mt-2"
+              onClick={onMessageClick}
+            >
+              <MessageCircle className="mr-2 h-5 w-5" /> Message
+            </Button>
+          )}
         </CardContent>
       </Card>
     );
@@ -287,7 +587,9 @@ function BookingForm({
       <Card className="rounded-xl border shadow-lg p-0">
         <CardContent className="p-0">
           <div className="flex justify-between items-center mb-4 px-4 pt-4">
-            <h3 className="font-headline text-lg font-bold">Select a date</h3>
+            <h3 className="font-headline text-lg font-bold">
+              {dateSelectTitle}
+            </h3>
             <Button
               variant="ghost"
               size="icon"
@@ -297,19 +599,22 @@ function BookingForm({
               <X className="h-4 w-4" />
             </Button>
           </div>
-          <Calendar
-            mode="single"
-            selected={date}
-            onSelect={setDate}
-            className="p-0 w-full"
-          />
+          <div className="flex justify-center">
+            <Calendar
+              mode="single"
+              selected={selectedDate}
+              onSelect={onDateSelect}
+              className="p-0"
+              disabled={(date) => date < new Date()}
+            />
+          </div>
           <div className="px-4 pb-4">
             <Button
               className="w-full mt-4"
-              disabled={!date}
-              onClick={onDateSelect}
+              disabled={!selectedDate}
+              onClick={() => onDateSelect(selectedDate)}
             >
-              Continue
+              Continue <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
         </CardContent>
@@ -322,11 +627,13 @@ function BookingForm({
       <Card className="rounded-xl border shadow-lg p-4">
         <CardContent className="p-0">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="font-headline text-lg font-bold">Select a time</h3>
+            <h3 className="font-headline text-lg font-bold">
+              {timeSelectTitle}
+            </h3>
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => onCancel()}
+              onClick={onCancel}
               className="-mr-2 -mt-2"
             >
               <X className="h-4 w-4" />
@@ -340,22 +647,31 @@ function BookingForm({
                   key={time}
                   variant="outline"
                   className={cn(
-                    selectedTime === time &&
+                    localSelectedTime === time &&
                       "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
                   )}
-                  onClick={() => setSelectedTime(time)}
+                  onClick={() => onLocalTimeSelect(time)}
                 >
                   {time}
                 </Button>
               ))}
             </div>
           </div>
+          {selectedDate && (
+            <div className="mt-4 p-3 bg-muted rounded-lg">
+              <p className="text-sm text-muted-foreground">
+                Selected date: {selectedDate.toLocaleDateString()}
+              </p>
+            </div>
+          )}
           <Button
             className="w-full mt-6"
-            disabled={!selectedTime}
-            onClick={onTimeSelect}
+            disabled={!localSelectedTime || loading}
+            onClick={() => {
+              onTimeSelect(localSelectedTime || "");
+            }}
           >
-            Confirm Booking
+            {loading ? "Processing..." : "Confirm Booking"}
           </Button>
         </CardContent>
       </Card>
@@ -367,11 +683,19 @@ function BookingForm({
       <Card className="rounded-xl border-none bg-green-50 text-green-900">
         <CardContent className="p-6 text-center">
           <CheckCircle className="h-12 w-12 mx-auto mb-4" />
-          <h3 className="font-headline text-xl font-bold">Session Booked!</h3>
-          <p className="text-sm mt-2">
-            Your session has been confirmed. You can view your booking details
-            on your dashboard.
-          </p>
+          <h3 className="font-headline text-xl font-bold">{successTitle}</h3>
+          <p className="text-sm mt-2">{successMessage}</p>
+          {selectedDate && selectedTime && (
+            <div className="mt-4 p-3 bg-white/50 rounded-lg">
+              <p className="text-sm font-medium">Details:</p>
+              <p className="text-xs text-muted-foreground">
+                Date: {selectedDate.toLocaleDateString()}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Time: {selectedTime}
+              </p>
+            </div>
+          )}
           <div className="flex gap-2 mt-6">
             <Button
               variant="outline"
@@ -381,7 +705,7 @@ function BookingForm({
               Close
             </Button>
             <Button className="w-full bg-green-700 hover:bg-green-800" asChild>
-              <Link href="/dashboard">Go to Dashboard</Link>
+              <Link href={dashboardLink}>Go to Dashboard</Link>
             </Button>
           </div>
         </CardContent>
@@ -393,7 +717,7 @@ function BookingForm({
 }
 
 function Header() {
-  const { user, profile } = useUser();
+  const { user, profile } = useAuth();
   const auth = getAuth();
 
   const handleLogout = async () => {
@@ -401,7 +725,7 @@ function Header() {
   };
 
   const dashboardUrl =
-    profile?.role === "coach" ? "/coach-dashboard" : "/dashboard";
+    profile?.role === "COACH" ? "/coach-dashboard" : "/dashboard";
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">

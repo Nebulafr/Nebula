@@ -10,9 +10,9 @@ import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { useSearchParams, useRouter } from "next/navigation";
 import React from "react";
-import { useUser } from "@/hooks/use-user";
-import { createStudentProfile } from "@/firebase/firestore/student";
-import { useToast } from "@/hooks/use-toast";
+import { createStudent } from "@/actions/student";
+import { toast } from "react-toastify";
+import { useAuth } from "@/contexts/AuthContext";
 
 const availabilities = [
   {
@@ -43,47 +43,44 @@ function OnboardingStep3Content() {
   const image = PlaceHolderImages.find((img) => img.id === "benefit-schedule");
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { user } = useUser();
-  const { toast } = useToast();
+  const { user, profile } = useAuth();
 
   const program = searchParams.get("program");
   const skillLevel = searchParams.get("skillLevel");
 
   const handleFinish = async () => {
+    console.log({ user, profile, program, skillLevel, selectedAvailability });
     if (!user || !program || !skillLevel || !selectedAvailability) {
-      toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong.",
-        description:
-          "Some information is missing. Please go back and complete all steps.",
-      });
+      toast.error(
+        "Some information is missing. Please go back and complete all steps."
+      );
       return;
     }
 
     setIsLoading(true);
 
-    const studentData = {
-      userId: user.uid,
-      interestedProgram: program,
-      skillLevel: skillLevel,
-      commitment: selectedAvailability,
-    };
-
     try {
-      await createStudentProfile(
-        user.uid,
-        studentData,
-        user.displayName as string,
-        user.email as string
-      );
-      router.push("/dashboard");
-    } catch (error) {
-      console.error("Error creating student profile:", error);
-      toast({
-        variant: "destructive",
-        title: "Error creating profile.",
-        description: "Could not save your profile. Please try again.",
+      const result = await createStudent({
+        uid: user.uid,
+        email: user.email as string,
+        fullName: user.displayName as string,
+        interestedProgram: program,
+        skillLevel: skillLevel,
+        commitment: selectedAvailability,
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       });
+
+      if (!result.success) {
+        throw new Error(result.message || "Failed to create student profile");
+      }
+
+      toast.success("Profile created successfully!");
+      router.replace("/dashboard");
+    } catch (error: any) {
+      console.error("Error creating student profile:", error);
+      toast.error(
+        error.message || "Could not save your profile. Please try again."
+      );
     } finally {
       setIsLoading(false);
     }

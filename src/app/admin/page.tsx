@@ -140,7 +140,7 @@ export default function AdminDashboardPage() {
                       </div>
                     </TableCell>
                     <TableCell>
-                        <Badge variant={user.role === 'Coach' ? 'secondary' : 'outline'}>{user.role}</Badge>
+                        <Badge variant={user.role === 'coach' ? 'secondary' : 'outline'}>{user.role}</Badge>
                     </TableCell>
                     <TableCell className="text-right">
                       <Button variant="ghost" size="icon">

@@ -25,44 +25,69 @@ import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { Footer } from "@/components/layout/footer";
-import { useUser } from "@/hooks/use-user";
-import { getAuth, signOut } from "firebase/auth";
-import { getProgramBySlug, updateProgram } from "@/firebase/firestore/program";
-import { getCoach } from "@/firebase/firestore/coach";
-import {
-  createEnrollment,
-  getEnrollmentsByStudent,
-} from "@/firebase/firestore/enrollment";
-import {
-  getStudentProfile,
-  updateStudentProfile,
-} from "@/firebase/firestore/student";
-import type { IProgram, ICoach, IReview } from "@/models";
-import { getReviewsByReviewee } from "@/firebase/firestore/review";
-import { useToast } from "@/hooks/use-toast";
+import { getProgramBySlug } from "@/actions/programs";
+import { enrollInProgram } from "@/actions/enrollment";
+import { toast } from "react-toastify";
+import { Program, Review } from "@/generated/prisma";
+import { useAuth } from "@/contexts/AuthContext";
+import { Header } from "@/components/layout/header";
 
-type ProgramWithCoach = IProgram & {
-  coach?: ICoach;
+type ProgramWithRelations = Program & {
+  category: {
+    id: string;
+    name: string;
+  };
+  coach: {
+    id: string;
+    title?: string;
+    bio?: string;
+    style?: string;
+    specialties?: string[];
+    pastCompanies?: string[];
+    rating?: number;
+    user: {
+      id: string;
+      fullName?: string;
+      avatarUrl?: string;
+    };
+  };
+  modules: {
+    id: string;
+    title: string;
+    week: number;
+    description?: string;
+  }[];
+  reviews: Array<{
+    id: string;
+    content: string;
+    rating: number;
+    reviewer: {
+      id: string;
+      fullName?: string;
+    };
+  }>;
+  enrollments: Array<{
+    student: {
+      id: string;
+    };
+  }>;
 };
-
 export default function ProgramDetailPage({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = use(params);
-  const { user } = useUser();
-  const { toast } = useToast();
-  const [enrollmentStep, setEnrollmentStep] = useState(0); // 0: default, 1: calendar, 2: time, 3: success
-  const [program, setProgram] = useState<
-    (ProgramWithCoach & { reviews: IReview[] }) | null
-  >(null);
+  const { user, studentProfile } = useAuth();
+  const [enrollmentStep, setEnrollmentStep] = useState(0);
+  const [program, setProgram] = useState<ProgramWithRelations | null>(null);
   const [loading, setLoading] = useState(true);
   const [enrolling, setEnrolling] = useState(false);
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [localSelectedTime, setLocalSelectedTime] = useState<string>("");
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -71,23 +96,21 @@ export default function ProgramDetailPage({
         setLoading(true);
         const programData = await getProgramBySlug(slug);
 
-        if (programData) {
-          let coachData = null;
-          let reviews: IReview[] = [] as IReview[];
-          coachData = await getCoach(programData.coachRef);
-          reviews = await getReviewsByReviewee(coachData?.id as string);
+        console.log({ programData });
 
-          setProgram({
-            ...programData,
-            coach: coachData || undefined,
-            reviews,
-          });
+        if (programData && programData.success) {
+          setProgram(programData.data);
+        } else if (programData && !programData.success) {
+          setFetchError(programData.message || "Failed to fetch program.");
+          setProgram({} as any);
         } else {
-          setProgram(mockProgramData as any);
+          setFetchError("Failed to fetch program.");
+          setProgram({} as any);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error fetching program:", error);
-        setProgram(mockProgramData as any);
+        setFetchError(error.message || "Failed to fetch program.");
+        setProgram(null);
       } finally {
         setLoading(false);
       }
@@ -98,64 +121,19 @@ export default function ProgramDetailPage({
 
   useEffect(() => {
     const checkEnrollmentStatus = async () => {
-      if (!user?.uid || !program?.id) return;
+      if (!user || !program?.id) return;
 
       try {
-        const enrollments = await getEnrollmentsByStudent(user.uid);
-        const isAlreadyEnrolled = enrollments.some(
-          (enrollment) =>
-            enrollment.programRef.id === program.id &&
-            enrollment.status === "active"
-        );
-        setIsEnrolled(isAlreadyEnrolled);
+        // For now, we'll use a simple check based on user's profile
+        // In a real implementation, this would be an API call to check enrollments
+        setIsEnrolled(false); // Placeholder - will be replaced with proper enrollment API
       } catch (error) {
         console.error("Error checking enrollment status:", error);
       }
     };
 
     checkEnrollmentStatus();
-  }, [user?.uid, program?.id]);
-
-  const mockProgramData: ProgramWithCoach = {
-    id: "mock-1",
-    title: "Consulting, Associate Level",
-    category: "Career Prep",
-    slug: slug,
-    description:
-      "Here's a short text that describes the program. Here's a short text that describes the program. Here's a short text that describes the program.",
-    objectives: [
-      "Clearly outline the objectives of this program",
-      "Clearly outline the objectives of this program",
-      "Clearly outline the objectives of this program",
-    ],
-    coachRef: {} as any,
-    rating: 4.8,
-    currentEnrollments: 300,
-    isActive: true,
-    price: 299,
-    duration: "8 weeks",
-    difficultyLevel: "intermediate",
-    createdAt: new Date(),
-    coach: {
-      id: "mock-coach",
-      userRef: {} as any,
-      title: "Partner, BCG",
-      bio: "With over five years of experience at a leading global consulting firm, Adrian brings deep expertise in strategy and operations. Now a Consultant at BCG, they help Fortune 500 clients tackle complex business challenges. Their work spans multiple industries, with a focus on digital transformation and growth strategy. Passionate about talent development, they coach emerging professionals on a job immersion platform. Adrian holds a Master's degree in Business and thrives at the intersection of impact and innovation.",
-      style: "Professional",
-      specialties: ["Consulting", "Strategy"],
-      pastCompanies: ["BCG", "PALIN"],
-      linkedinUrl: "",
-      availability: "Weekends",
-      hourlyRate: 100,
-      rating: 4.9,
-      totalSessions: 150,
-      isActive: true,
-      isVerified: true,
-      fullName: "Adrian Cucurella",
-      avatarUrl: "https://i.pravatar.cc/150?u=adrian-cucurella",
-      createdAt: new Date(),
-    },
-  };
+  }, [user, program]);
 
   if (loading) {
     return (
@@ -172,6 +150,23 @@ export default function ProgramDetailPage({
                 <div className="h-12 bg-gray-200 rounded w-32"></div>
               </div>
             </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (fetchError) {
+    return (
+      <div className="flex min-h-screen flex-col bg-background">
+        <Header />
+        <main className="flex-1">
+          <div className="container py-12 md:py-20 text-center">
+            <h1 className="text-4xl font-bold mb-4">Error</h1>
+            <p className="text-muted-foreground mb-8">{fetchError}</p>
+            <Button asChild>
+              <Link href="/programs">Browse all programs</Link>
+            </Button>
           </div>
         </main>
       </div>
@@ -199,12 +194,8 @@ export default function ProgramDetailPage({
 
   const handleEnrollClick = () => {
     if (!user) {
-      toast({
-        variant: "destructive",
-        title: "Authentication Required",
-        description: "Please log in to enroll in this program.",
-      });
-      router.push("/login");
+      toast.error("Please log in to enroll in this program.");
+      router.replace("/login");
       return;
     }
     setEnrollmentStep(1);
@@ -223,11 +214,7 @@ export default function ProgramDetailPage({
       setSelectedDate(date);
       setEnrollmentStep(2);
     } else {
-      toast({
-        variant: "destructive",
-        title: "Invalid Date",
-        description: "Please select a valid date to continue.",
-      });
+      toast.error("Please select a valid date to continue.");
     }
   };
 
@@ -238,20 +225,12 @@ export default function ProgramDetailPage({
   const handleTimeSelect = async (time: string) => {
     console.log({ time });
     if (!user?.uid || !program) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Please log in to complete enrollment.",
-      });
+      toast.error("Please log in to complete enrollment.");
       return;
     }
 
     if (!selectedDate || !time) {
-      toast({
-        variant: "destructive",
-        title: "Missing Information",
-        description: "Please select both date and time for your enrollment.",
-      });
+      toast.error("Please select both date and time for your enrollment.");
       return;
     }
 
@@ -259,62 +238,48 @@ export default function ProgramDetailPage({
 
     try {
       setEnrolling(true);
-      const studentProfile = await getStudentProfile(user.uid);
-      console.log({ studentProfile });
       if (!studentProfile) {
-        toast({
-          variant: "destructive",
-          title: "Student Profile Required",
-          description:
-            "Please complete your student profile to enroll in programs.",
-        });
-        router.push("/dashboard/profile");
+        toast.error(
+          "Please complete your student profile to enroll in programs."
+        );
+        router.replace("/dashboard/profile");
         return;
       }
 
-      await Promise.all([
-        createEnrollment({
-          studentId: user.uid,
-          programId: program.id,
-          coachId: program.coach?.id || "",
-          amountPaid: program.price || 0,
-          time,
-        }),
-        updateProgram(program.id, {
-          currentEnrollments: (program.currentEnrollments || 0) + 1,
-        }),
-      ]);
-
-      const enrollments = studentProfile.enrolledPrograms || [];
-      enrollments.push(program.id);
-
-      await updateStudentProfile(user.uid, {
-        enrolledPrograms: enrollments,
+      const enrollmentResult = await enrollInProgram({
+        programSlug: program.slug,
+        coachId: program.coachId,
+        amountPaid: program.price || 0,
+        time,
+        date: selectedDate?.toISOString().split("T")[0],
       });
 
-      toast({
-        title: "Enrollment Successful!",
-        description:
-          "Welcome to the program! You can access it from your dashboard.",
-      });
+      if (!enrollmentResult.success) {
+        throw new Error(
+          enrollmentResult.error || "Failed to enroll in program"
+        );
+      }
+
+      toast.success(
+        "Welcome to the program! You can access it from your dashboard."
+      );
 
       setEnrollmentStep(3);
       setIsEnrolled(true);
     } catch (error) {
       console.error("Enrollment error:", error);
-      toast({
-        variant: "destructive",
-        title: "Enrollment Failed",
-        description:
-          "There was an error processing your enrollment. Please try again.",
-      });
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "There was an error processing your enrollment. Please try again."
+      );
     } finally {
       setEnrolling(false);
     }
   };
 
   const handleMessageClick = () => {
-    router.push("/dashboard/messaging?conversationId=1");
+    router.replace("/dashboard/messaging?conversationId=1");
   };
 
   return (
@@ -328,7 +293,7 @@ export default function ProgramDetailPage({
                 Programs
               </Link>
               <ChevronRight className="h-4 w-4" />
-              <span>{program.category}</span>
+              <span>{program.category.name!}</span>
             </div>
             <h1 className="font-headline text-5xl font-bold tracking-tighter text-primary md:text-6xl">
               {program.title}
@@ -392,7 +357,6 @@ export default function ProgramDetailPage({
               <div className="sticky top-24">
                 <EnrollmentForm
                   step={enrollmentStep}
-                  program={program}
                   loading={enrolling}
                   isEnrolled={isEnrolled}
                   selectedDate={selectedDate}
@@ -403,6 +367,14 @@ export default function ProgramDetailPage({
                   onDateSelect={handleDateSelect}
                   onTimeSelect={handleTimeSelect}
                   onLocalTimeSelect={handleLocalTimeSelect}
+                  title="Ready to start?"
+                  subtitle="Enroll in this program to get personalized coaching."
+                  enrollButtonText="Enroll now"
+                  dateSelectTitle="Select a start date"
+                  timeSelectTitle="Select a time"
+                  successTitle="You're In!"
+                  successMessage="Welcome to the program. You can view your enrollment details on your dashboard."
+                  dashboardLink="/dashboard"
                 />
               </div>
             </div>
@@ -410,7 +382,6 @@ export default function ProgramDetailPage({
             <div className="md:hidden mt-8">
               <EnrollmentForm
                 step={enrollmentStep}
-                program={program}
                 loading={enrolling}
                 isEnrolled={isEnrolled}
                 selectedDate={selectedDate}
@@ -421,6 +392,14 @@ export default function ProgramDetailPage({
                 onDateSelect={handleDateSelect}
                 onTimeSelect={handleTimeSelect}
                 onLocalTimeSelect={handleLocalTimeSelect}
+                title="Ready to start?"
+                subtitle="Enroll in this program to get personalized coaching."
+                enrollButtonText="Enroll now"
+                dateSelectTitle="Select a start date"
+                timeSelectTitle="Select a time"
+                successTitle="You're In!"
+                successMessage="Welcome to the program. You can view your enrollment details on your dashboard."
+                dashboardLink="/dashboard"
               />
             </div>
           </div>
@@ -435,17 +414,19 @@ export default function ProgramDetailPage({
                 </h2>
                 <div className="flex items-center gap-4">
                   <Avatar className="h-20 w-20">
-                    <AvatarImage src={program.coach?.avatarUrl} />
+                    <AvatarImage
+                      src={program.coach.user.avatarUrl || undefined}
+                    />
                     <AvatarFallback>
-                      {program.coach?.fullName?.charAt(0) || "C"}
+                      {program.coach.user.fullName?.charAt(0) || "C"}
                     </AvatarFallback>
                   </Avatar>
                   <div>
                     <h3 className="font-headline text-2xl font-semibold">
-                      {program.coach?.fullName || "Unknown Coach"}
+                      {program.coach.user.fullName || "Unknown Coach"}
                     </h3>
                     <p className="text-muted-foreground">
-                      {program.coach?.title || "Coach"}
+                      {program.coach.title || "Coach"}
                     </p>
                   </div>
                   <Badge
@@ -454,12 +435,12 @@ export default function ProgramDetailPage({
                   >
                     <Star className="h-4 w-4 fill-current text-yellow-500" />
                     <span className="font-semibold">
-                      {program.coach?.rating || 0}
+                      {program.coach.rating || 0}
                     </span>
                   </Badge>
                 </div>
                 <p className="mt-6 text-base text-muted-foreground">
-                  {program.coach?.bio || "No bio available"}
+                  {program.coach.bio || "No bio available"}
                 </p>
                 <Button
                   variant="outline"
@@ -467,15 +448,16 @@ export default function ProgramDetailPage({
                   onClick={handleMessageClick}
                 >
                   <MessageCircle className="mr-2 h-4 w-4" />
-                  Message {program.coach?.fullName?.split(" ")[0] || "Coach"}
+                  Message{" "}
+                  {program.coach.user.fullName?.split(" ")[0] || "Coach"}
                 </Button>
 
-                {program.coach?.pastCompanies &&
+                {program.coach.pastCompanies &&
                   program.coach.pastCompanies.length > 0 && (
                     <div className="mt-12">
                       <h4 className="text-sm font-semibold text-muted-foreground">
-                        {program.coach?.fullName?.split(" ")[0] || "Coach"} has
-                        worked at:
+                        {program.coach.user.fullName?.split(" ")[0] || "Coach"}{" "}
+                        has worked at:
                       </h4>
                       <div className="mt-4 flex items-center gap-6">
                         {program.coach.pastCompanies
@@ -506,15 +488,23 @@ export default function ProgramDetailPage({
                         />
                       ))}
                     </div>
-                    <p className="font-serif mt-4 text-sm text-muted-foreground">
-                      &quot;{program?.reviews[0]?.content}&quot;
-                    </p>
-                    <p className="mt-4 text-sm font-semibold">
-                      {program?.reviews[0]?.content},{" "}
-                      <span className="font-normal text-muted-foreground">
-                        {program?.reviews[0]?.content}
-                      </span>
-                    </p>
+                    {program.reviews.length > 0 ? (
+                      <>
+                        <p className="font-serif mt-4 text-sm text-muted-foreground">
+                          &quot;{program.reviews[0].content}&quot;
+                        </p>
+                        <p className="mt-4 text-sm font-semibold">
+                          {program.reviews[0].reviewer.fullName || "Anonymous"},{" "}
+                          <span className="font-normal text-muted-foreground">
+                            Verified Student
+                          </span>
+                        </p>
+                      </>
+                    ) : (
+                      <p className="font-serif mt-4 text-sm text-muted-foreground">
+                        No reviews yet. Be the first to share your experience!
+                      </p>
+                    )}
 
                     <Button variant="link" className="mt-4 px-0" asChild>
                       <Link href={`/programs/${slug}/reviews`}>
@@ -532,8 +522,8 @@ export default function ProgramDetailPage({
         <section id="modules" className="container py-20">
           <h2 className="mb-8 font-headline text-3xl font-bold">Modules</h2>
           <Accordion type="single" collapsible className="w-full">
-            {(program.modules || []).map((mod, i) => (
-              <AccordionItem key={i} value={`item-${i}`}>
+            {program.modules.map((mod, i) => (
+              <AccordionItem key={mod.id} value={`item-${i}`}>
                 <AccordionTrigger className="text-lg font-semibold hover:no-underline">
                   <div className="flex items-center gap-4">
                     <span>{mod.title}</span>
@@ -541,7 +531,7 @@ export default function ProgramDetailPage({
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="text-base text-muted-foreground pl-4 pb-4">
-                  {mod.description}
+                  {mod.description || "No description available"}
                 </AccordionContent>
               </AccordionItem>
             ))}
@@ -563,9 +553,8 @@ export default function ProgramDetailPage({
 
 function EnrollmentForm({
   step,
-  program,
   loading = false,
-  isEnrolled,
+  isEnrolled = false,
   selectedDate,
   selectedTime,
   localSelectedTime,
@@ -574,11 +563,20 @@ function EnrollmentForm({
   onDateSelect,
   onTimeSelect,
   onLocalTimeSelect,
+  title = "Ready to start?",
+  subtitle = "Enroll in this program to get personalized coaching.",
+  enrollButtonText = "Enroll now",
+  dateSelectTitle = "Select a start date",
+  timeSelectTitle = "Select a time",
+  successTitle = "You're In!",
+  successMessage = "Welcome to the program. You can view your enrollment details on your dashboard.",
+  dashboardLink = "/dashboard",
+  showMessageButton = false,
+  onMessageClick,
 }: {
   step: number;
-  program: ProgramWithCoach | null;
   loading?: boolean;
-  isEnrolled: boolean;
+  isEnrolled?: boolean;
   selectedDate?: Date;
   selectedTime?: string;
   localSelectedTime?: string;
@@ -587,6 +585,16 @@ function EnrollmentForm({
   onDateSelect: (date: Date | undefined) => void;
   onTimeSelect: (time: string) => void;
   onLocalTimeSelect: (time: string) => void;
+  title?: string;
+  subtitle?: string;
+  enrollButtonText?: string;
+  dateSelectTitle?: string;
+  timeSelectTitle?: string;
+  successTitle?: string;
+  successMessage?: string;
+  dashboardLink?: string;
+  showMessageButton?: boolean;
+  onMessageClick?: () => void;
 }) {
   const timeSlots = ["09:00", "11:00", "14:00", "16:00"];
 
@@ -605,11 +613,8 @@ function EnrollmentForm({
             </p>
             <div className="space-y-2">
               <Button size="lg" className="w-full" asChild>
-                <Link href="/dashboard">Go to Dashboard</Link>
+                <Link href={dashboardLink}>Go to Dashboard</Link>
               </Button>
-              <p className="text-xs text-muted-foreground">
-                Program Price: ${program?.price || 0}
-              </p>
             </div>
           </CardContent>
         </Card>
@@ -619,21 +624,21 @@ function EnrollmentForm({
     return (
       <Card className="rounded-xl border shadow-lg">
         <CardContent className="p-6 text-center">
-          <h3 className="font-headline text-2xl font-bold">Ready to start?</h3>
-          <p className="text-muted-foreground mt-2 mb-2">
-            Enroll in this program to get personalized coaching.
-          </p>
-          <p className="text-sm text-muted-foreground mb-6">
-            {program?.currentEnrollments || 0}+ students enrolled
-          </p>
-          <div className="space-y-3">
-            <Button size="lg" className="w-full" onClick={onEnroll}>
-              <PlusCircle className="mr-2 h-5 w-5" /> Enroll now
+          <h3 className="font-headline text-2xl font-bold">{title}</h3>
+          <p className="text-muted-foreground mt-2 mb-6">{subtitle}</p>
+          <Button size="lg" className="w-full" onClick={onEnroll}>
+            <PlusCircle className="mr-2 h-5 w-5" /> {enrollButtonText}
+          </Button>
+          {showMessageButton && onMessageClick && (
+            <Button
+              size="lg"
+              variant="outline"
+              className="w-full mt-2"
+              onClick={onMessageClick}
+            >
+              <MessageCircle className="mr-2 h-5 w-5" /> Message
             </Button>
-            {program?.price && (
-              <p className="text-lg font-semibold">${program.price}</p>
-            )}
-          </div>
+          )}
         </CardContent>
       </Card>
     );
@@ -645,7 +650,7 @@ function EnrollmentForm({
         <CardContent className="p-0">
           <div className="flex justify-between items-center mb-4 px-4 pt-4">
             <h3 className="font-headline text-lg font-bold">
-              Select a start date
+              {dateSelectTitle}
             </h3>
             <Button
               variant="ghost"
@@ -656,13 +661,15 @@ function EnrollmentForm({
               <X className="h-4 w-4" />
             </Button>
           </div>
-          <Calendar
-            mode="single"
-            selected={selectedDate}
-            onSelect={onDateSelect}
-            className="p-0 w-full"
-            disabled={(date) => date < new Date()}
-          />
+          <div className="flex justify-center">
+            <Calendar
+              mode="single"
+              selected={selectedDate}
+              onSelect={onDateSelect}
+              className="p-0"
+              disabled={(date) => date < new Date()}
+            />
+          </div>
           <div className="px-4 pb-4">
             <Button
               className="w-full mt-4"
@@ -682,7 +689,9 @@ function EnrollmentForm({
       <Card className="rounded-xl border shadow-lg p-4">
         <CardContent className="p-0">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="font-headline text-lg font-bold">Select a time</h3>
+            <h3 className="font-headline text-lg font-bold">
+              {timeSelectTitle}
+            </h3>
             <Button
               variant="ghost"
               size="icon"
@@ -710,19 +719,12 @@ function EnrollmentForm({
               ))}
             </div>
           </div>
-          {selectedDate && (
-            <div className="mt-4 p-3 bg-muted rounded-lg">
-              <p className="text-sm text-muted-foreground">
-                Selected date: {selectedDate.toLocaleDateString()}
-              </p>
-            </div>
-          )}
+
           <Button
             className="w-full mt-6"
             disabled={!localSelectedTime || loading}
             onClick={() => {
               onTimeSelect(localSelectedTime || "");
-              console.log({ localSelectedTime });
             }}
           >
             {loading ? "Processing..." : "Confirm Enrollment"}
@@ -737,16 +739,13 @@ function EnrollmentForm({
       <Card className="rounded-xl border-none bg-green-50 text-green-900">
         <CardContent className="p-6 text-center">
           <CheckCircle className="h-12 w-12 mx-auto mb-4" />
-          <h3 className="font-headline text-xl font-bold">You're In!</h3>
-          <p className="text-sm mt-2">
-            Welcome to the program. You can view your enrollment details on your
-            dashboard.
-          </p>
+          <h3 className="font-headline text-xl font-bold">{successTitle}</h3>
+          <p className="text-sm mt-2">{successMessage}</p>
           {selectedDate && selectedTime && (
             <div className="mt-4 p-3 bg-white/50 rounded-lg">
-              <p className="text-sm font-medium">Enrollment Details:</p>
+              <p className="text-sm font-medium">Details:</p>
               <p className="text-xs text-muted-foreground">
-                Start Date: {selectedDate.toLocaleDateString()}
+                Date: {selectedDate.toLocaleDateString()}
               </p>
               <p className="text-xs text-muted-foreground">
                 Time: {selectedTime}
@@ -762,7 +761,7 @@ function EnrollmentForm({
               Close
             </Button>
             <Button className="w-full bg-green-700 hover:bg-green-800" asChild>
-              <Link href="/dashboard">Go to Dashboard</Link>
+              <Link href={dashboardLink}>Go to Dashboard</Link>
             </Button>
           </div>
         </CardContent>
@@ -771,78 +770,4 @@ function EnrollmentForm({
   }
 
   return null;
-}
-
-function Header() {
-  const { user, profile } = useUser();
-  const auth = getAuth();
-
-  const handleLogout = async () => {
-    await signOut(auth);
-  };
-
-  const dashboardUrl =
-    profile?.role === "coach" ? "/coach-dashboard" : "/dashboard";
-
-  return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="flex h-14 max-w-screen-2xl items-center px-header mx-auto">
-        <div className="flex flex-1 items-center gap-10">
-          <Link href="/" className="flex items-center gap-2">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              className="h-6 w-6 text-primary"
-              fill="currentColor"
-            >
-              <path d="M12 0a12 12 0 1 0 12 12A12 12 0 0 0 12 0zm0 22a10 10 0 1 1 10-10 10 10 0 0 1-10 10zm0-18a8 8 0 1 0 8 8 8 8 0 0 0-8-8zm0 14a6 6 0 1 1 6-6 6 6 0 0 1-6 6zm0-10a4 4 0 1 0 4 4 4 4 0 0 0-4-4z" />
-            </svg>
-            <span className="font-headline text-xl font-bold">Nebula</span>
-          </Link>
-          <nav className="hidden items-center gap-4 md:flex">
-            <Link
-              href="/programs"
-              className="font-menu text-sm font-medium text-foreground"
-            >
-              Programs
-            </Link>
-            <Link
-              href="/events"
-              className="font-menu text-sm font-medium text-foreground/60 transition-colors hover:text-foreground/80"
-            >
-              Events
-            </Link>
-            <Link
-              href="/become-a-coach"
-              className="font-menu text-sm font-medium text-foreground/60 transition-colors hover:text-foreground/80"
-            >
-              Become a coach
-            </Link>
-          </nav>
-        </div>
-        <div className="flex flex-1 items-center justify-end gap-2">
-          {user ? (
-            <>
-              <Button variant="ghost" onClick={handleLogout}>
-                <LogOut className="mr-2 h-4 w-4" />
-                Log Out
-              </Button>
-              <Button asChild>
-                <Link href={dashboardUrl}>Dashboard</Link>
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button variant="ghost" asChild>
-                <Link href="/login">Log In</Link>
-              </Button>
-              <Button asChild>
-                <Link href="/signup">Sign Up</Link>
-              </Button>
-            </>
-          )}
-        </div>
-      </div>
-    </header>
-  );
 }

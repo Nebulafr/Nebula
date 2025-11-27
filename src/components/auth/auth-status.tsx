@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { User, Settings, LogOut } from "lucide-react";
 import Link from "next/link";
-import { useAuth } from "@/context/auth-context";
+import { useAuth } from "@/contexts/AuthContext";
 import { LogoutButton } from "./logout-button";
 
 export function AuthStatus() {
@@ -49,9 +49,9 @@ export function AuthStatus() {
     "U";
 
   const dashboardPath =
-    profile?.role === "coach"
+    profile?.role === "COACH"
       ? "/coach-dashboard"
-      : profile?.role === "admin"
+      : profile?.role === "ADMIN"
       ? "/admin"
       : "/dashboard";
 
