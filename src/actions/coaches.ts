@@ -155,11 +155,6 @@ export async function getCoaches(filters?: {
 
     const url = `/coaches${params.toString() ? `?${params.toString()}` : ""}`;
     const response = await apiGet(url);
-
-    if (!response.success) {
-      throw new Error(response.message || "Failed to fetch coaches");
-    }
-
     return {
       success: true,
       data: response.data,

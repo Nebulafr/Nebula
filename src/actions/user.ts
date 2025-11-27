@@ -7,12 +7,8 @@ export const getUserProfile = async () => {
       user: User & { coach?: Coach; student?: Student };
     }>("/users/profile");
 
-    if (!response.success) {
-      throw new Error(response.message || "Failed to fetch user");
-    }
-
     return {
-      success: true,
+      success: response.success,
       data: response.data,
       message: response.message,
     };

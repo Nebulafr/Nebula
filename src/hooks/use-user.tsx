@@ -59,16 +59,13 @@ export function useUser(): UseUserReturn {
 
       const response = await getUserProfile();
 
-      if (!response.success) {
-        throw new Error(response.error || "Failed to fetch profile");
-      }
-
       const userData = response.data?.user;
 
       console.log({ userData });
 
       if (!userData) {
-        throw new Error("No user data received");
+        console.log("No user data received", { userData });
+        return;
       }
 
       setUser(userData);

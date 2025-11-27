@@ -34,12 +34,8 @@ async function getAuthToken(): Promise<string | null> {
   if (typeof window === "undefined") {
     return null;
   }
-  const accessToken = localStorage.getItem("accessToken");
-  if (!accessToken) {
-    throw new Error("User not authenticated");
-  }
 
-  return accessToken;
+  return localStorage.getItem("accessToken");
 }
 
 async function makeRequest<T = any>(
@@ -66,7 +62,12 @@ async function makeRequest<T = any>(
       const token = await getAuthToken();
 
       if (!token) {
-        throw new Error("Authentication required");
+        return {
+          success: false,
+          data: null,
+          message: "Authentication required",
+          error: "No authentication token available",
+        } as ApiResponse<T>;
       }
 
       requestHeaders = {

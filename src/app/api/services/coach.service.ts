@@ -12,12 +12,10 @@ export class CoachService {
   static async getCoaches(params: CoachQueryData) {
     const { category, search, limit = 50 } = params;
 
-    // Build Prisma where clause
     const whereClause: any = {
       isActive: true,
     };
 
-    // Filter by category if provided
     if (category && category !== "All") {
       whereClause.specialties = {
         has: category,
@@ -42,9 +40,7 @@ export class CoachService {
       },
     });
 
-    // Use exact Prisma model structure
     let transformedCoaches = coaches.map((coach) => ({
-      // Exact Prisma Coach model fields
       id: coach.id,
       userId: coach.userId,
       email: coach.user?.email || coach.email,
@@ -74,7 +70,6 @@ export class CoachService {
       updatedAt: coach.updatedAt.toISOString(),
     }));
 
-    // Apply search filter if provided
     if (search) {
       const searchLower = search.toLowerCase();
       transformedCoaches = transformedCoaches.filter(
@@ -87,7 +82,6 @@ export class CoachService {
       );
     }
 
-    // Group coaches by specialty
     const groupedCoaches = transformedCoaches.reduce(
       (acc: Record<string, any[]>, coach) => {
         let groupKey = "General";
