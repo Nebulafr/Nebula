@@ -10,30 +10,36 @@ import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { useSearchParams } from "next/navigation";
 import React from "react";
+import { SkillLevel } from "@/generated/prisma";
 
-const skillLevels = [
-  {
+const skillLevelConfig = {
+  [SkillLevel.BEGINNER]: {
     icon: <Leaf className="h-5 w-5 text-green-500" />,
     title: "Beginner",
     description: "Just starting out, 0-2 years of experience.",
     color: "bg-green-500/10",
   },
-  {
+  [SkillLevel.INTERMEDIATE]: {
     icon: <BarChart3 className="h-5 w-5 text-blue-500" />,
-    title: "Intermediate",
+    title: "Intermediate", 
     description: "Have some experience, 2-5 years.",
     color: "bg-blue-500/10",
   },
-  {
+  [SkillLevel.ADVANCED]: {
     icon: <Bot className="h-5 w-5 text-purple-500" />,
     title: "Advanced",
     description: "Expert in the field, 5+ years of experience.",
     color: "bg-purple-500/10",
   },
-];
+};
+
+const skillLevels = Object.values(SkillLevel).map(level => ({
+  value: level,
+  ...skillLevelConfig[level]
+}));
 
 function OnboardingStep2Content() {
-  const [selectedLevel, setSelectedLevel] = useState<string | null>(null);
+  const [selectedLevel, setSelectedLevel] = useState<SkillLevel | null>(null);
   const image = PlaceHolderImages.find((img) => img.id === "about-hero");
   const searchParams = useSearchParams();
   const program = searchParams.get("program");
@@ -73,13 +79,13 @@ function OnboardingStep2Content() {
           <div className="mt-6 grid grid-cols-1 gap-6">
             {skillLevels.map((level) => (
               <Card
-                key={level.title}
+                key={level.value}
                 className={`cursor-pointer rounded-xl border p-6 text-left transition-all hover:shadow-lg ${
-                  selectedLevel === level.title
+                  selectedLevel === level.value
                     ? "border-primary shadow-lg"
                     : "border-border"
                 }`}
-                onClick={() => setSelectedLevel(level.title)}
+                onClick={() => setSelectedLevel(level.value)}
               >
                 <CardContent className="flex items-center gap-6 p-0">
                   <div

@@ -12,6 +12,12 @@ export class CoachService {
   static async getCoaches(params: CoachQueryData) {
     const { category, search, limit = 50 } = params;
 
+    // Fetch categories for grouping logic
+    const categories = await prisma.category.findMany({
+      where: { isActive: true },
+      orderBy: { name: "asc" },
+    });
+
     const whereClause: any = {
       isActive: true,
     };
@@ -43,9 +49,9 @@ export class CoachService {
     let transformedCoaches = coaches.map((coach) => ({
       id: coach.id,
       userId: coach.userId,
-      email: coach.user?.email || coach.email,
-      fullName: coach.user?.fullName || coach.fullName,
-      avatarUrl: coach.user?.avatarUrl || coach.avatarUrl,
+      email: coach.user?.email || "",
+      fullName: coach.user?.fullName || "",
+      avatarUrl: coach.user?.avatarUrl || null,
       title: coach.title,
       bio: coach.bio,
       style: coach.style,
@@ -86,32 +92,16 @@ export class CoachService {
       (acc: Record<string, any[]>, coach) => {
         let groupKey = "General";
 
-        if (
-          coach.specialties.includes("Career Prep") ||
-          coach.specialties.includes("Product Management") ||
-          coach.specialties.includes("Consulting") ||
-          coach.specialties.includes("Strategy")
-        ) {
-          groupKey = "Career Prep";
-        } else if (
-          coach.specialties.includes("School Admission") ||
-          coach.specialties.includes("Essay Writing") ||
-          coach.specialties.includes("College Apps") ||
-          coach.specialties.includes("MBA Applications")
-        ) {
-          groupKey = "School Admissions";
-        } else if (
-          coach.specialties.includes("Comedy") ||
-          coach.specialties.includes("Acting") ||
-          coach.specialties.includes("Entertainment")
-        ) {
-          groupKey = "Entertainment";
-        } else if (
-          coach.specialties.includes("Technology") ||
-          coach.specialties.includes("Software Development") ||
-          coach.specialties.includes("Data Science")
-        ) {
-          groupKey = "Technology";
+        const matchingCategory = categories.find((category) =>
+          coach.specialties.some(
+            (specialty) =>
+              specialty.toLowerCase().includes(category.name.toLowerCase()) ||
+              category.name.toLowerCase().includes(specialty.toLowerCase())
+          )
+        );
+
+        if (matchingCategory) {
+          groupKey = matchingCategory.name;
         }
 
         if (!acc[groupKey]) {
@@ -130,10 +120,13 @@ export class CoachService {
       })
     );
 
-    return {
-      coaches: transformedCoaches,
-      groupedCoaches: formattedGroups,
-    };
+    return sendResponse.success(
+      {
+        coaches: transformedCoaches,
+        groupedCoaches: formattedGroups,
+      },
+      "Coaches retrieved successfully"
+    );
   }
 
   static async updateCoach(userId: string, data: CoachUpdateData) {
@@ -186,5 +179,189 @@ export class CoachService {
     }
 
     return sendResponse.success(coach, "Coach profile fetched successfully");
+  }
+
+  static async findCoachIdBySlug(slug: string) {
+    const coach = await prisma.coach.findFirst({
+      where: {
+        slug: slug,
+        isActive: true,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!coach) {
+      throw new NotFoundException("Coach not found");
+    }
+
+    return coach.id;
+  }
+
+  static async getCoachById(coachId: string) {
+    const coach = await prisma.coach.findFirst({
+      where: {
+        id: coachId,
+        isActive: true,
+      },
+      include: {
+        user: {
+          select: {
+            fullName: true,
+            email: true,
+            avatarUrl: true,
+          },
+        },
+      },
+    });
+
+    if (!coach) {
+      throw new NotFoundException("Coach not found");
+    }
+
+    // Fetch related data in parallel
+    const [programs, reviews] = await Promise.all([
+      this.fetchCoachPrograms(coachId),
+      this.fetchCoachReviews(coachId),
+    ]);
+
+    const transformedCoach = this.transformCoachData(coach, programs, reviews);
+
+    return sendResponse.success(
+      { coach: transformedCoach },
+      "Coach fetched successfully"
+    );
+  }
+
+  static async fetchCoachPrograms(coachId: string) {
+    try {
+      const programs = await prisma.program.findMany({
+        where: {
+          coachId: coachId,
+          isActive: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        take: 10,
+        include: {
+          category: {
+            select: {
+              name: true,
+            },
+          },
+          _count: {
+            select: {
+              enrollments: true,
+            },
+          },
+        },
+      });
+
+      return programs.map((program) => ({
+        id: program.id,
+        title: program.title,
+        category: program.category?.name || "General",
+        slug: program.slug,
+        description: program.description,
+        price: program.price,
+        duration: program.duration,
+        rating: program.rating || 0,
+        currentEnrollments: program._count.enrollments,
+        createdAt: program.createdAt.toISOString(),
+      }));
+    } catch (error) {
+      console.error("Error fetching coach programs:", error);
+      return [];
+    }
+  }
+
+  static async fetchCoachReviews(coachId: string) {
+    try {
+      const reviews = await prisma.review.findMany({
+        where: {
+          targetId: coachId,
+          targetType: "COACH",
+          isPublic: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        take: 20,
+        include: {
+          reviewer: {
+            select: {
+              id: true,
+              fullName: true,
+              avatarUrl: true,
+            },
+          },
+          reviewee: {
+            select: {
+              id: true,
+              fullName: true,
+              avatarUrl: true,
+            },
+          },
+        },
+      });
+
+      return reviews.map((review) => ({
+        id: review.id,
+        reviewerId: review.reviewerId,
+        revieweeId: review.revieweeId,
+        targetId: review.targetId,
+        targetType: review.targetType,
+        rating: review.rating,
+        title: review.title,
+        content: review.content,
+        isVerified: review.isVerified,
+        isPublic: review.isPublic,
+        helpfulCount: review.helpfulCount,
+        tags: review.tags,
+        createdAt: review.createdAt.toISOString(),
+        updatedAt: review.updatedAt.toISOString(),
+        reviewer: review.reviewer,
+        reviewee: review.reviewee,
+      }));
+    } catch (error) {
+      console.error("Error fetching coach reviews:", error);
+      return [];
+    }
+  }
+
+  static transformCoachData(coach: any, programs: any[], reviews: any[]) {
+    return {
+      id: coach.id,
+      userId: coach.userId,
+      email: coach.user?.email || "",
+      fullName: coach.user?.fullName || "",
+      avatarUrl: coach.user?.avatarUrl || null,
+      title: coach.title,
+      bio: coach.bio,
+      style: coach.style,
+      specialties: coach.specialties,
+      pastCompanies: coach.pastCompanies,
+      linkedinUrl: coach.linkedinUrl,
+      availability: coach.availability,
+      hourlyRate: coach.hourlyRate,
+      rating: coach.rating,
+      totalReviews: coach.totalReviews,
+      totalSessions: coach.totalSessions,
+      studentsCoached: coach.studentsCoached,
+      isActive: coach.isActive,
+      isVerified: coach.isVerified,
+      slug: coach.slug,
+      category: coach.category,
+      qualifications: coach.qualifications,
+      experience: coach.experience,
+      timezone: coach.timezone,
+      languages: coach.languages,
+      createdAt: coach.createdAt.toISOString(),
+      updatedAt: coach.updatedAt.toISOString(),
+      programs,
+      reviews,
+    };
   }
 }

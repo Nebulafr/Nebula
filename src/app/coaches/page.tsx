@@ -14,33 +14,53 @@ import React from "react";
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
 import { getCoaches, type CoachGroup } from "@/actions/coaches";
-import type { Coach } from "@/generated/prisma";
+import { useCategories } from "@/contexts/CategoryContext";
 
-// Simple fallback data structure
-const mockCoachesData = [
-  {
-    group: "Loading...",
-    items: [],
-  },
-];
+// API response coach structure
+interface ApiCoach {
+  id: string;
+  userId: string;
+  email: string;
+  fullName: string;
+  avatarUrl?: string;
+  title: string;
+  bio: string;
+  style: string;
+  specialties: string[];
+  pastCompanies: string[];
+  linkedinUrl?: string;
+  availability: string;
+  hourlyRate: number;
+  rating: number;
+  totalReviews: number;
+  totalSessions: number;
+  studentsCoached: number;
+  isActive: boolean;
+  isVerified: boolean;
+  slug: string;
+  category: string;
+  qualifications: string[];
+  experience?: string;
+  timezone?: string;
+  languages: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface ApiCoachGroup {
+  group: string;
+  items: ApiCoach[];
+}
 
 function CoachesPageContent() {
   const searchParams = useSearchParams();
   const initialSearch = searchParams.get("search") || "";
   const [activeCategory, setActiveCategory] = useState("All");
   const [searchTerm, setSearchTerm] = useState(initialSearch);
-  const [coaches, setCoaches] = useState<Coach[]>([]);
-  const [groupedCoaches, setGroupedCoaches] = useState<CoachGroup[]>([]);
+  const [coaches, setCoaches] = useState<ApiCoach[]>([]);
+  const [groupedCoaches, setGroupedCoaches] = useState<ApiCoachGroup[]>([]);
   const [loading, setLoading] = useState(true);
-
-  const categories = [
-    { name: "All", slug: "all" },
-    { name: "Career Prep", slug: "career-prep" },
-    { name: "Product Management", slug: "product-management" },
-    { name: "Technology", slug: "technology" },
-    { name: "Design", slug: "design" },
-    { name: "Marketing", slug: "marketing" },
-  ];
+  const { categories } = useCategories();
 
   useEffect(() => {
     const fetchCoaches = async () => {
@@ -54,9 +74,8 @@ function CoachesPageContent() {
 
         if (response.success && response.data?.groupedCoaches) {
           setGroupedCoaches(response.data.groupedCoaches);
-          setCoaches(response.data!.coaches! || []);
+          setCoaches(response.data?.coaches! || []);
         } else {
-          // No real coaches found, use empty structure
           console.log("No coaches found in API");
           setCoaches([]);
           setGroupedCoaches([]);
@@ -78,16 +97,16 @@ function CoachesPageContent() {
     return group.group === activeCategory && group.items.length > 0;
   });
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p className="text-lg">Loading coaches...</p>
-        </div>
-      </div>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <div className="min-h-screen flex items-center justify-center">
+  //       <div className="text-center">
+  //         <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+  //         <p className="text-lg">Loading coaches...</p>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -120,6 +139,16 @@ function CoachesPageContent() {
           </div>
 
           <div className="mx-auto mt-8 flex max-w-lg flex-wrap justify-center gap-4">
+            <Button
+              variant="outline"
+              className={cn(
+                "rounded-full",
+                activeCategory === "All" && "bg-muted font-bold"
+              )}
+              onClick={() => setActiveCategory("All")}
+            >
+              All
+            </Button>
             {categories.map((category) => (
               <Button
                 key={category.slug}
@@ -143,73 +172,68 @@ function CoachesPageContent() {
                 <h2 className="font-headline text-3xl font-bold text-left mb-8">
                   {group}
                 </h2>
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
                   {items.map((coach) => (
-                    <Link key={coach.id} href={`/coaches/${coach.slug}`}>
-                      <Card className="transition-all hover:shadow-lg hover:-translate-y-1">
-                        <CardContent className="p-6">
-                          <div className="mb-4 flex items-center gap-4">
-                            <Avatar className="h-12 w-12">
+                    <Link key={coach.id} href={`/coaches/${coach.id}`}>
+                      <Card className="flex w-full flex-col rounded-xl border transition-all hover:shadow-lg">
+                        <CardContent className="flex flex-1 flex-col p-4">
+                          <div className="flex flex-col items-center text-center">
+                            <Avatar className="h-24 w-24">
                               <AvatarImage
                                 src={
                                   coach.avatarUrl ||
-                                  `https://i.pravatar.cc/48?u=${coach.id}`
+                                  `https://i.pravatar.cc/96?u=${coach.fullName}`
                                 }
-                                alt={coach!.fullName!}
+                                alt={coach.fullName}
                               />
                               <AvatarFallback>
-                                {coach
-                                  .fullName!.split(" ")
+                                {coach.fullName
+                                  .split(" ")
                                   .map((n) => n[0])
                                   .join("")}
                               </AvatarFallback>
                             </Avatar>
-                            <div className="flex-1 min-w-0">
-                              <h3 className="font-headline text-lg font-semibold truncate">
+                            <div className="mt-4">
+                              <h3 className="font-headline text-lg font-semibold">
                                 {coach.fullName}
                               </h3>
-                              <p className="text-sm text-muted-foreground truncate">
+                              <p className="text-sm text-muted-foreground">
                                 {coach.title}
                               </p>
+                              <div className="mt-2 flex items-center justify-center gap-1">
+                                <Star className="h-2 w-2 text-yellow-500 fill-yellow-500" />
+                                <span className="text-[10px] font-semibold">
+                                  {coach.rating}
+                                </span>
+                              </div>
                             </div>
                           </div>
-
-                          <div className="mb-4">
-                            <div className="flex flex-wrap gap-1">
+                          <div className="mt-4 text-center">
+                            <div className="flex flex-wrap justify-center gap-2">
                               {coach.specialties
-                                ?.slice(0, 2)
-                                .map((specialty, i) => (
-                                  <Badge
-                                    key={i}
-                                    variant="outline"
-                                    className="text-xs"
-                                  >
+                                .slice(0, 3)
+                                .map((specialty) => (
+                                  <Badge key={specialty} variant="secondary">
                                     {specialty}
                                   </Badge>
                                 ))}
-                              {coach.specialties &&
-                                coach.specialties.length > 2 && (
-                                  <Badge variant="outline" className="text-xs">
-                                    +{coach.specialties.length - 2}
-                                  </Badge>
-                                )}
+                              {coach.specialties.length > 3 && (
+                                <Badge variant="secondary">
+                                  +{coach.specialties.length - 3}
+                                </Badge>
+                              )}
                             </div>
                           </div>
-
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-1">
-                              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                              <span className="text-sm font-medium">
-                                {coach.rating || 4.5}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-1 text-muted-foreground">
-                              <Users className="h-4 w-4" />
-                              <span className="text-sm">
-                                {coach.studentsCoached || 0}
-                              </span>
-                            </div>
+                          <div className="flex-grow" />
+                          <div className="mt-4 flex items-center justify-center gap-1">
+                            <Users className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm text-muted-foreground">
+                              {coach.studentsCoached}+ students
+                            </span>
                           </div>
+                          <Button variant="outline" className="mt-4 w-full">
+                            View Profile
+                          </Button>
                         </CardContent>
                       </Card>
                     </Link>

@@ -117,7 +117,7 @@ const suggestedCoaches = [
     rating: 4.9,
     studentsCoached: 120,
     specialties: ["Career Prep", "Interview Skills"],
-    slug: "adrian-cucurella",
+    id: "coach-1",
   },
   {
     name: "Sarah Chen",
@@ -126,7 +126,7 @@ const suggestedCoaches = [
     rating: 4.8,
     studentsCoached: 95,
     specialties: ["Product Management", "Resume Review"],
-    slug: "sarah-chen",
+    id: "coach-2",
   },
   {
     name: "Michael B. Jordan",
@@ -135,7 +135,7 @@ const suggestedCoaches = [
     rating: 4.9,
     studentsCoached: 150,
     specialties: ["Acting", "Film Direction"],
-    slug: "michael-b-jordan",
+    id: "coach-3",
   },
   {
     name: "Lisa Kudrow",
@@ -144,7 +144,7 @@ const suggestedCoaches = [
     rating: 4.7,
     studentsCoached: 80,
     specialties: ["Comedy", "Improvisation"],
-    slug: "lisa-kudrow",
+    id: "coach-4",
   },
 ];
 
@@ -361,7 +361,7 @@ export function SuggestedCoaches({ user }: { user: User }) {
         {suggestedCoaches.map((coach) => (
           <Link
             key={coach.name}
-            href={`/coaches/${coach.slug}`}
+            href={`/coaches/${coach.id}`}
             className="flex"
           >
             <Card className="flex w-full flex-col rounded-xl border transition-all hover:shadow-lg">

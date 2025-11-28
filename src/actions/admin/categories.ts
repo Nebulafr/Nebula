@@ -30,17 +30,12 @@ export interface UpdateCategoryData {
   isActive?: boolean;
 }
 
-// Get all categories for admin
 export async function getAdminCategories(): Promise<CategoriesResponse> {
   try {
     const response = await apiGet("/admin/categories");
 
-    if (!response.success) {
-      throw new Error(response.message || "Failed to fetch categories");
-    }
-
     return {
-      success: true,
+      success: response.success!,
       data: response.data,
       message: response.message,
     };
@@ -54,7 +49,6 @@ export async function getAdminCategories(): Promise<CategoriesResponse> {
   }
 }
 
-// Create new category
 export async function createCategory(
   categoryData: CreateCategoryData
 ): Promise<CategoryActionResponse> {
@@ -80,7 +74,6 @@ export async function createCategory(
   }
 }
 
-// Update category
 export async function updateCategory(
   categoryId: string,
   updateData: UpdateCategoryData
@@ -110,7 +103,6 @@ export async function updateCategory(
   }
 }
 
-// Delete category
 export async function deleteCategory(
   categoryId: string
 ): Promise<CategoryActionResponse> {

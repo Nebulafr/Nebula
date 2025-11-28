@@ -1,13 +1,13 @@
 import { apiPost } from "@/lib/utils";
 
 export async function bookCoachSession({
-  coachSlug,
+  coachId,
   date,
   time,
   duration = 60, // default 60 minutes
   notes = "",
 }: {
-  coachSlug: string;
+  coachId: string;
   date: Date;
   time: string;
   duration?: number;
@@ -25,7 +25,7 @@ export async function bookCoachSession({
       notes,
     };
 
-    const response = await apiPost(`/coaches/${coachSlug}/book`, sessionData);
+    const response = await apiPost(`/coaches/${coachId}/book`, sessionData);
 
     if (!response.success) {
       throw new Error(

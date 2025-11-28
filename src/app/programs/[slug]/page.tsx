@@ -29,7 +29,7 @@ import { getProgramBySlug } from "@/actions/programs";
 import { enrollInProgram } from "@/actions/enrollment";
 import { toast } from "react-toastify";
 import { Program, Review } from "@/generated/prisma";
-import { useAuth } from "@/contexts/AuthContext";
+import { useUser } from "@/hooks/use-user";
 import { Header } from "@/components/layout/header";
 
 type ProgramWithRelations = Program & {
@@ -78,7 +78,7 @@ export default function ProgramDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = use(params);
-  const { user, studentProfile } = useAuth();
+  const { user, studentProfile } = useUser();
   const [enrollmentStep, setEnrollmentStep] = useState(0);
   const [program, setProgram] = useState<ProgramWithRelations | null>(null);
   const [loading, setLoading] = useState(true);

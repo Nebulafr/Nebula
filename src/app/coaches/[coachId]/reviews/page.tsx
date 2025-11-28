@@ -8,7 +8,7 @@ import Link from "next/link";
 import { Footer } from "@/components/layout/footer";
 import { useParams } from "next/navigation";
 import { getAuth, signOut } from "firebase/auth";
-import { useAuth } from "@/contexts/AuthContext";
+import { useUser } from "@/hooks/use-user";
 
 const reviews = [
   {
@@ -50,7 +50,7 @@ const reviews = [
 ];
 
 export default function CoachReviewsPage() {
-  const params = useParams<{ slug: string }>();
+  const params = useParams<{ coachId: string }>();
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -59,7 +59,7 @@ export default function CoachReviewsPage() {
         <section className="container py-12 md:py-20">
           <div className="mb-8">
             <Button variant="ghost" asChild>
-              <Link href={`/coaches/${params.slug}`}>
+              <Link href={`/coaches/${params.coachId}`}>
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to Coach Profile
               </Link>
@@ -108,7 +108,7 @@ export default function CoachReviewsPage() {
 }
 
 function Header() {
-  const { user, profile } = useAuth();
+  const { user, profile } = useUser();
   const auth = getAuth();
 
   const handleLogout = async () => {

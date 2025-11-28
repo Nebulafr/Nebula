@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/contexts/AuthContext";
+import { useUser } from "@/hooks/use-user";
 import { UserRole } from "@/generated/prisma";
 
 interface ProtectedRouteProps {
@@ -18,7 +18,7 @@ export function ProtectedRoute({
   requireProfile = true,
   fallbackPath = "/login",
 }: ProtectedRouteProps) {
-  const { loading, isAuthenticated, profile, authState } = useAuth();
+  const { loading, isAuthenticated, profile, authState } = useUser();
   const router = useRouter();
 
   useEffect(() => {

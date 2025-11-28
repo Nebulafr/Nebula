@@ -19,14 +19,14 @@ import { Input } from "@/components/ui/input";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useState } from "react";
 import { toast } from "react-toastify";
-import { createCoach } from "@/actions/coach";
-import { useAuth } from "@/contexts/AuthContext";
+import { useUser } from "@/hooks/use-user";
+import { createCoach } from "@/actions/coaches";
 
 function CoachOnboardingStep5Content() {
   const image = PlaceHolderImages.find((img) => img.id === "benefit-schedule");
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user } = useAuth();
+  const { user } = useUser();
   const [isLoading, setIsLoading] = useState(false);
   const [availability, setAvailability] = useState("1-3");
   const [rate, setRate] = useState("");

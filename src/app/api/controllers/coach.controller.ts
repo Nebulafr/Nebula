@@ -1,7 +1,6 @@
 import { NextRequest } from "next/server";
 import { CoachService } from "../services/coach.service";
 import { coachQuerySchema, updateCoachProfileSchema } from "../utils/schemas";
-import { userInfo } from "os";
 
 export class CoachController {
   async getAll(request: NextRequest) {
@@ -10,7 +9,7 @@ export class CoachController {
     const queryParams = {
       category: searchParams.get("category") || undefined,
       search: searchParams.get("search") || undefined,
-      limit: searchParams.get("limit") || "50",
+      limit: searchParams.get("limit") || undefined,
     };
 
     const payload = coachQuerySchema.parse(queryParams);
@@ -29,5 +28,13 @@ export class CoachController {
     console.log({ body, user });
     const payload = updateCoachProfileSchema.parse(body);
     return await CoachService.updateCoach(user.id, payload);
+  }
+
+  async getById(request: NextRequest, context?: any) {
+    const { coachId } = context?.params || {};
+    if (!coachId) {
+      throw new Error("Coach ID is required");
+    }
+    return await CoachService.getCoachById(coachId);
   }
 }

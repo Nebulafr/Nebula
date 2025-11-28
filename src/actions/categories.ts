@@ -17,13 +17,8 @@ export interface CategoriesResponse {
 export async function getCategories(): Promise<CategoriesResponse> {
   try {
     const response = await apiGet("/categories", { requireAuth: false });
-
-    if (!response.success) {
-      throw new Error(response.message || "Failed to fetch categories");
-    }
-
     return {
-      success: true,
+      success: response.success!,
       data: response.data,
       message: response.message,
     };

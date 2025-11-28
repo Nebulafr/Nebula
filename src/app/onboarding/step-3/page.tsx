@@ -12,7 +12,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import React from "react";
 import { createStudent } from "@/actions/student";
 import { toast } from "react-toastify";
-import { useAuth } from "@/contexts/AuthContext";
+import { useUser } from "@/hooks/use-user";
 
 const availabilities = [
   {
@@ -43,7 +43,7 @@ function OnboardingStep3Content() {
   const image = PlaceHolderImages.find((img) => img.id === "benefit-schedule");
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { user, profile } = useAuth();
+  const { user, profile } = useUser();
 
   const program = searchParams.get("program");
   const skillLevel = searchParams.get("skillLevel");

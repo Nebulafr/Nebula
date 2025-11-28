@@ -1,5 +1,5 @@
 import { Coach } from "@/generated/prisma";
-import { apiGet } from "@/lib/utils";
+import { apiGet, apiPut } from "@/lib/utils";
 
 export interface CoachProgram {
   id: string;
@@ -113,13 +113,43 @@ export interface CoachWithRelations {
 
 export interface CoachGroup {
   group: string;
-  items: Coach[];
+  items: ApiCoach[];
+}
+
+interface ApiCoach {
+  id: string;
+  userId: string;
+  email: string;
+  fullName: string;
+  avatarUrl?: string;
+  title: string;
+  bio: string;
+  style: string;
+  specialties: string[];
+  pastCompanies: string[];
+  linkedinUrl?: string;
+  availability: string;
+  hourlyRate: number;
+  rating: number;
+  totalReviews: number;
+  totalSessions: number;
+  studentsCoached: number;
+  isActive: boolean;
+  isVerified: boolean;
+  slug: string;
+  category: string;
+  qualifications: string[];
+  experience?: string;
+  timezone?: string;
+  languages: string[];
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface CoachesResponse {
   success: boolean;
   data?: {
-    coaches: Coach[];
+    coaches: ApiCoach[];
     groupedCoaches: CoachGroup[];
   };
   error?: string;
@@ -156,7 +186,7 @@ export async function getCoaches(filters?: {
     const url = `/coaches${params.toString() ? `?${params.toString()}` : ""}`;
     const response = await apiGet(url);
     return {
-      success: true,
+      success: response.success!,
       data: response.data,
       message: response.message,
     };
@@ -177,12 +207,8 @@ export async function getCoachBySlug(
     const url = `/coaches/${slug}`;
     const response = await apiGet(url, { requireAuth: false });
 
-    if (!response.success) {
-      throw new Error(response.message || "Failed to fetch coach");
-    }
-
     return {
-      success: true,
+      success: response.success!,
       data: response.data,
       message: response.message,
     };
@@ -191,6 +217,126 @@ export async function getCoachBySlug(
     return {
       success: false,
       error: error.message || "Failed to fetch coach",
+      message: error.message || "An unexpected error occurred",
+    };
+  }
+}
+
+export async function getCoachById(
+  coachId: string
+): Promise<CoachDetailResponse> {
+  try {
+    const url = `/coaches/${coachId}`;
+    const response = await apiGet(url, { requireAuth: false });
+
+    return {
+      success: response.success!,
+      data: response.data,
+      message: response.message,
+    };
+  } catch (error: any) {
+    console.error("Error fetching coach by ID:", error);
+    return {
+      success: false,
+      error: error.message || "Failed to fetch coach",
+      message: error.message || "An unexpected error occurred",
+    };
+  }
+}
+
+export interface CreateCoachData {
+  title: string;
+  bio: string;
+  style: string;
+  specialties: string[];
+  pastCompanies: string[];
+  linkedinUrl?: string;
+  availability: string;
+  hourlyRate: number;
+  qualifications: string[];
+  experience?: string;
+  timezone?: string;
+  languages: string[];
+}
+
+export interface UpdateCoachData {
+  title: string;
+  bio: string;
+  style: string;
+  specialties: string[];
+  pastCompanies?: string[];
+  linkedinUrl?: string;
+  availability: string;
+  hourlyRate: number;
+  qualifications?: string[];
+  experience?: string;
+  timezone?: string;
+  languages?: string[];
+}
+
+export interface CreateCoachResponse {
+  success: boolean;
+  data?: {
+    coach: any;
+  };
+  error?: string;
+  message?: string;
+}
+
+export interface UpdateCoachResponse {
+  success: boolean;
+  data?: {
+    coach: any;
+  };
+  error?: string;
+  message?: string;
+}
+
+export async function createCoach(
+  coachData: CreateCoachData
+): Promise<CreateCoachResponse> {
+  try {
+    const response = await apiPut("/coaches/profile", coachData);
+
+    if (!response.success) {
+      throw new Error(response.message || "Failed to create coach profile");
+    }
+
+    return {
+      success: true,
+      data: response.data,
+      message: response.message,
+    };
+  } catch (error: any) {
+    console.error("Error creating coach profile:", error);
+    return {
+      success: false,
+      error: error.message || "Failed to create coach profile",
+      message: error.message || "An unexpected error occurred",
+    };
+  }
+}
+
+export async function updateCoachProfile(
+  coachData: UpdateCoachData
+): Promise<UpdateCoachResponse> {
+  try {
+    const response = await apiPut("/coaches/profile", coachData);
+
+    if (!response.success) {
+      throw new Error(response.message || "Failed to update coach profile");
+    }
+
+    return {
+      success: true,
+      data: response.data,
+      message: response.message,
+    };
+  } catch (error: any) {
+    console.error("Error updating coach profile:", error);
+    return {
+      success: false,
+      error: error.message || "Failed to update coach profile",
       message: error.message || "An unexpected error occurred",
     };
   }

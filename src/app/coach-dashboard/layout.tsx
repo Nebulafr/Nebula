@@ -34,7 +34,7 @@ import { usePathname } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/contexts/AuthContext";
+import { useUser } from "@/hooks/use-user";
 
 function TopBar() {
   const pathname = usePathname();
@@ -96,7 +96,7 @@ export default function CoachDashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const { user, profile } = useAuth();
+  const { user, profile } = useUser();
 
   return (
     <div className="coach-theme">

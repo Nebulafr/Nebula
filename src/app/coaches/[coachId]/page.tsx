@@ -29,17 +29,17 @@ import { Footer } from "@/components/layout/footer";
 import { getAuth, signOut } from "firebase/auth";
 import { bookCoachSession } from "@/actions/session";
 import { toast } from "react-toastify";
-import { getCoachBySlug, CoachWithRelations } from "@/actions/coaches";
-import { useAuth } from "@/contexts/AuthContext";
+import { getCoachById, CoachWithRelations } from "@/actions/coaches";
+import { useUser } from "@/hooks/use-user";
 
 export default function CoachDetailPage() {
   const [bookingStep, setBookingStep] = useState(0);
   const [isBooking, setIsBooking] = useState(false);
   const [coach, setCoach] = useState<CoachWithRelations | null>(null);
   const [loading, setLoading] = useState(true);
-  const params = useParams<{ slug: string }>();
+  const params = useParams<{ coachId: string }>();
   const router = useRouter();
-  const { user } = useAuth();
+  const { user } = useUser();
   const [date, setDate] = useState<Date | undefined>();
   const [selectedTime, setSelectedTime] = useState("");
 
@@ -47,11 +47,11 @@ export default function CoachDetailPage() {
 
   useEffect(() => {
     const fetchCoach = async () => {
-      if (!params.slug) return;
+      if (!params.coachId) return;
 
       try {
         setLoading(true);
-        const response = await getCoachBySlug(params.slug);
+        const response = await getCoachById(params.coachId);
 
         if (response.success && response.data?.coach) {
           setCoach(response.data?.coach!);
@@ -67,7 +67,7 @@ export default function CoachDetailPage() {
             studentsCoached: 150,
             totalSessions: 150,
             specialties: ["Consulting", "Strategy"],
-            slug: params.slug,
+            slug: params.coachId,
             category: "Career Prep",
             bio: "With over five years of experience at a leading global consulting firm, Adrian brings deep expertise in strategy and operations. Now a Consultant at BCG, they help Fortune 500 clients tackle complex business challenges. Their work spans multiple industries, with a focus on digital transformation and growth strategy. Passionate about talent development, they coach emerging professionals on a job immersion platform. Adrian holds a Master's degree in Business and thrives at the intersection of impact and innovation.",
             style: "Professional",
@@ -181,7 +181,7 @@ export default function CoachDetailPage() {
           studentsCoached: 150,
           totalSessions: 150,
           specialties: ["Consulting", "Strategy"],
-          slug: params.slug,
+          slug: params.coachId,
           category: "Career Prep",
           bio: "With over five years of experience at a leading global consulting firm, Adrian brings deep expertise in strategy and operations.",
           style: "Professional",
@@ -207,7 +207,7 @@ export default function CoachDetailPage() {
     };
 
     fetchCoach();
-  }, [params.slug]);
+  }, [params.coachId]);
 
   const handleBookClick = () => {
     console.log("Start Booking...");
@@ -240,7 +240,7 @@ export default function CoachDetailPage() {
       setSelectedTime(time);
 
       const result = await bookCoachSession({
-        coachSlug: params.slug,
+        coachId: params.coachId,
         date,
         time,
         duration: 60,
@@ -478,7 +478,7 @@ export default function CoachDetailPage() {
             </div>
           )}
           <Button variant="link" className="mt-6 px-0" asChild>
-            <Link href={`/coaches/${params.slug}/reviews`}>
+            <Link href={`/coaches/${params.coachId}/reviews`}>
               View all reviews <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
@@ -717,7 +717,7 @@ function EnrollmentForm({
 }
 
 function Header() {
-  const { user, profile } = useAuth();
+  const { user, profile } = useUser();
   const auth = getAuth();
 
   const handleLogout = async () => {

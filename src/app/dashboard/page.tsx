@@ -5,10 +5,10 @@ import {
   SuggestedCoaches,
 } from "./components";
 import { StudentRoute } from "@/components/auth/protected-route";
-import { useAuth } from "@/contexts/AuthContext";
+import { useUser } from "@/hooks/use-user";
 
 export default function DashboardPage() {
-  const { profile, user } = useAuth();
+  const { profile, user } = useUser();
 
   return (
     <StudentRoute>

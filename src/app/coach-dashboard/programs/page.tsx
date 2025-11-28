@@ -39,7 +39,7 @@ import { ModuleFormData } from "@/types";
 import ModulesForm from "@/components/ModuleForm";
 import { createProgramSchema } from "@/lib/validations";
 import { z } from "zod";
-import { useAuth } from "@/contexts/AuthContext";
+import { useUser } from "@/hooks/use-user";
 import { Program, User } from "@/generated/prisma";
 
 interface IProgram extends Program {
@@ -196,7 +196,7 @@ const mockPrograms: IProgram[] = [
 ];
 
 export default function CoachProgramsPage() {
-  const { user } = useAuth();
+  const { user } = useUser();
   const [programs, setPrograms] = useState<IProgram[]>([]);
   const [loading, setLoading] = useState(true);
 

@@ -15,13 +15,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { useEffect, useState } from "react";
-import { updateCoachProfile } from "@/actions/coach";
+import { updateCoachProfile } from "@/actions/coaches";
 import { toast } from "react-toastify";
 import { X, Plus } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useUser } from "@/hooks/use-user";
 
 export default function CoachProfilePage() {
-  const { user, profile: userProfile, coachProfile } = useAuth();
+  const { user, profile: userProfile, coachProfile } = useUser();
   const [isLoading, setIsLoading] = useState(false);
 
   // Form fields

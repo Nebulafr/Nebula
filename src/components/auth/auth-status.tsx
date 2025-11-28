@@ -12,11 +12,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { User, Settings, LogOut } from "lucide-react";
 import Link from "next/link";
-import { useAuth } from "@/contexts/AuthContext";
+import { useUser } from "@/hooks/use-user";
 import { LogoutButton } from "./logout-button";
 
 export function AuthStatus() {
-  const { isAuthenticated, loading, user, profile } = useAuth();
+  const { isAuthenticated, loading, user, profile } = useUser();
 
   if (loading) {
     return (

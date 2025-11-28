@@ -1,4 +1,4 @@
-import { Student } from "@/generated/prisma";
+import { Student, SkillLevel } from "@/generated/prisma";
 import { apiPost, apiPut, apiGet } from "@/lib/utils";
 
 export interface CreateStudentData {
@@ -6,7 +6,7 @@ export interface CreateStudentData {
   email: string;
   fullName: string;
   interestedProgram: string;
-  skillLevel: string;
+  skillLevel: SkillLevel | string;
   commitment: string;
   timeZone?: string;
   learningGoals?: string[];
@@ -14,7 +14,7 @@ export interface CreateStudentData {
 
 export interface UpdateStudentProfileData {
   interestedProgram: string;
-  skillLevel: string;
+  skillLevel: SkillLevel | string;
   commitment: string;
   timeZone?: string;
   learningGoals?: string[];
@@ -56,12 +56,8 @@ export async function getStudentProfile(): Promise<StudentProfileResponse> {
   try {
     const response = await apiGet("/students/profile");
 
-    if (!response.success) {
-      throw new Error(response.message || "Failed to fetch profile");
-    }
-
     return {
-      success: true,
+      success: response?.success!,
       data: response.data,
       message: response.message,
     };

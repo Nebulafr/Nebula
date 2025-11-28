@@ -83,6 +83,28 @@ export const programActionSchema = z.object({
   reason: z.string().optional(),
 });
 
+export const createCoachSchema = z.object({
+  uid: z.string().min(1, "User ID is required"),
+  email: z.string().email("Valid email is required"),
+  fullName: z.string().min(1, "Full name is required"),
+  title: z.string().min(1, "Title is required").max(100),
+  bio: z.string().min(10, "Bio must be at least 10 characters").max(1000),
+  style: z.string().min(1, "Coaching style is required"),
+  specialties: z.array(z.string()).min(1, "At least one specialty is required"),
+  pastCompanies: z.array(z.string()).optional(),
+  linkedinUrl: z
+    .string()
+    .url("Invalid LinkedIn URL")
+    .optional()
+    .or(z.literal("")),
+  availability: z.string().min(1, "Availability is required"),
+  hourlyRate: z.number().min(0, "Hourly rate must be positive"),
+  qualifications: z.array(z.string()).optional(),
+  experience: z.string().optional(),
+  timezone: z.string().optional(),
+  languages: z.array(z.string()).optional(),
+});
+
 export const updateCoachProfileSchema = z.object({
   title: z.string().min(1, "Title is required").max(100),
   bio: z.string().min(10, "Bio must be at least 10 characters").max(1000),
