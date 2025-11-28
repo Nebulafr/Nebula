@@ -5,7 +5,7 @@ import {
   GoogleAuthProvider,
 } from "firebase/auth";
 import { auth } from "@/firebase/client";
-import { UserRole } from "@/generated/prisma";
+import { UserRole } from "../generated/prisma";
 import { SignInData } from "@/firebase/auth";
 import { toast } from "react-toastify";
 

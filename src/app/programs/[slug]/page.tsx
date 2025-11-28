@@ -28,7 +28,7 @@ import { Footer } from "@/components/layout/footer";
 import { getProgramBySlug } from "@/actions/programs";
 import { enrollInProgram } from "@/actions/enrollment";
 import { toast } from "react-toastify";
-import { Program, Review } from "@/generated/prisma";
+import { Program, Review } from "../../../generated/prisma";
 import { useUser } from "@/hooks/use-user";
 import { Header } from "@/components/layout/header";
 

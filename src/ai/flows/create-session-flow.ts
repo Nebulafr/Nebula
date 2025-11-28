@@ -11,7 +11,7 @@ import { ai } from "@/ai/genkit";
 import { createCalendarEvent } from "@/services/google-api";
 import { z } from "genkit";
 import { prisma } from "@/lib/prisma";
-import { SessionStatus } from "@/generated/prisma";
+import { SessionStatus } from "../../generated/prisma";
 
 const CreateSessionInputSchema = z.object({
   programId: z.string().describe("The ID of the program for this session."),
@@ -22,7 +22,10 @@ const CreateSessionInputSchema = z.object({
   scheduledTime: z
     .string()
     .describe("The scheduled start time of the session in ISO 8601 format."),
-  duration: z.number().default(60).describe("The duration of the session in minutes."),
+  duration: z
+    .number()
+    .default(60)
+    .describe("The duration of the session in minutes."),
   title: z.string().describe("The title of the session."),
   description: z.string().describe("A brief description of the session."),
   attendeeEmails: z
@@ -104,7 +107,7 @@ export const createSessionFlow = ai.defineFlow(
     // Create session attendance records for each student
     if (input.studentIds.length > 0) {
       await prisma.sessionAttendance.createMany({
-        data: input.studentIds.map(studentId => ({
+        data: input.studentIds.map((studentId) => ({
           sessionId: session.id,
           studentId: studentId,
           attended: false,

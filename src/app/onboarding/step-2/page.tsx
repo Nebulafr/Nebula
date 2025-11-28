@@ -10,7 +10,7 @@ import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { useSearchParams } from "next/navigation";
 import React from "react";
-import { SkillLevel } from "@/generated/prisma";
+import { SkillLevel } from "../../../generated/prisma";
 
 const skillLevelConfig = {
   [SkillLevel.BEGINNER]: {
@@ -21,7 +21,7 @@ const skillLevelConfig = {
   },
   [SkillLevel.INTERMEDIATE]: {
     icon: <BarChart3 className="h-5 w-5 text-blue-500" />,
-    title: "Intermediate", 
+    title: "Intermediate",
     description: "Have some experience, 2-5 years.",
     color: "bg-blue-500/10",
   },
@@ -33,9 +33,9 @@ const skillLevelConfig = {
   },
 };
 
-const skillLevels = Object.values(SkillLevel).map(level => ({
+const skillLevels = Object.values(SkillLevel).map((level) => ({
   value: level,
-  ...skillLevelConfig[level]
+  ...skillLevelConfig[level],
 }));
 
 function OnboardingStep2Content() {

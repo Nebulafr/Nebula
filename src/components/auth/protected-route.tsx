@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/hooks/use-user";
-import { UserRole } from "@/generated/prisma";
+import { UserRole } from "../../generated/prisma";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;

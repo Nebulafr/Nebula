@@ -15,7 +15,7 @@ import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { UserRole } from "@/generated/prisma";
+import { UserRole } from "../../generated/prisma";
 import { useUser } from "@/hooks/use-user";
 import { signInWithEmail, signInWithGoogle } from "@/firebase/auth";
 import { toast } from "react-toastify";
@@ -59,7 +59,6 @@ export default function CoachLoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (loading) return;
@@ -70,7 +69,7 @@ export default function CoachLoginPage() {
       const result = await signInWithEmail({ email, password });
       console.log("Coach login result:", result);
       setAccessToken(result.accessToken, result.user);
-      
+
       // Centralized redirect logic will handle navigation
     } catch (error: any) {
       console.error("Coach login error:", error);
@@ -89,7 +88,7 @@ export default function CoachLoginPage() {
       const result = await signInWithGoogle(UserRole.COACH);
       console.log("Coach Google login result:", result);
       setAccessToken(result.accessToken, result.user);
-      
+
       // Centralized redirect logic will handle navigation
     } catch (error: any) {
       console.error("Coach Google login error:", error);

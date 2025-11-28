@@ -1,4 +1,4 @@
-import { DifficultyLevel } from "@/generated/prisma";
+import { DifficultyLevel } from "../generated/prisma";
 import { z } from "zod";
 
 export const moduleSchema = z.object({

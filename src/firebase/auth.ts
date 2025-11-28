@@ -13,7 +13,7 @@ import {
 } from "firebase/auth";
 import { auth } from "./client";
 import { toast } from "react-toastify";
-import { UserRole } from "@/generated/prisma";
+import { UserRole } from "../generated/prisma";
 
 export interface SignUpData {
   email: string;

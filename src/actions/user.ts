@@ -1,4 +1,4 @@
-import { Coach, Student, User } from "@/generated/prisma";
+import { Coach, Student, User } from "../generated/prisma";
 import { apiGet, apiPut } from "@/lib/utils";
 
 export const getUserProfile = async () => {

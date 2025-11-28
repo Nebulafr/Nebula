@@ -17,7 +17,7 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import Link from "next/link";
-import { User } from "@/generated/prisma";
+import { User } from "../../generated/prisma";
 
 const recommendedPrograms = [
   {
@@ -359,11 +359,7 @@ export function SuggestedCoaches({ user }: { user: User }) {
       </div>
       <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
         {suggestedCoaches.map((coach) => (
-          <Link
-            key={coach.name}
-            href={`/coaches/${coach.id}`}
-            className="flex"
-          >
+          <Link key={coach.name} href={`/coaches/${coach.id}`} className="flex">
             <Card className="flex w-full flex-col rounded-xl border transition-all hover:shadow-lg">
               <CardContent className="flex flex-1 flex-col p-4">
                 <div className="flex flex-col items-center text-center">

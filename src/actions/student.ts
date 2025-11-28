@@ -1,4 +1,4 @@
-import { Student, SkillLevel } from "@/generated/prisma";
+import { Student, SkillLevel } from "../generated/prisma";
 import { apiPost, apiPut, apiGet } from "@/lib/utils";
 
 export interface CreateStudentData {

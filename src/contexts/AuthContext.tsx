@@ -11,7 +11,7 @@ import {
   signInWithEmail,
   resetPassword,
 } from "../actions/auth";
-import { UserRole } from "@/generated/prisma";
+import { UserRole } from "../generated/prisma";
 import { SignInData, signInWithGoogle } from "@/firebase/auth";
 
 export interface AuthContextValue extends UseUserReturn {
@@ -68,7 +68,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       handleAuthAction(() => signInWithGoogle(role)),
     signUpWithGoogle: (role?: UserRole) =>
       handleAuthAction(() => signUpWithGoogle(role)),
-    resetPassword: (email: string) => handleAuthAction(() => resetPassword(email)),
+    resetPassword: (email: string) =>
+      handleAuthAction(() => resetPassword(email)),
   };
 
   const value: AuthContextValue = {
@@ -100,8 +101,15 @@ export function useAuthState() {
 }
 
 export function useAuthActions() {
-  const { signUp, signIn, signInWithGoogle, resetPassword, logout, error, clearError } =
-    useAuth();
+  const {
+    signUp,
+    signIn,
+    signInWithGoogle,
+    resetPassword,
+    logout,
+    error,
+    clearError,
+  } = useAuth();
 
   return {
     signUp,

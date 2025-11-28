@@ -4,7 +4,7 @@ import {
   SkillLevel,
   DifficultyLevel,
   ProgramStatus,
-} from "@/generated/prisma";
+} from "../../../generated/prisma";
 
 export const registerSchema = z.object({
   email: z.string().email(),

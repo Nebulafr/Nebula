@@ -56,7 +56,7 @@ import {
   updateProgramStatus,
   type AdminProgram,
 } from "@/actions/admin/programs";
-import { ProgramStatus } from "@/generated/prisma";
+import { ProgramStatus } from "../../../generated/prisma";
 import { createCategory } from "@/actions/admin/categories";
 import { useCategories } from "@/contexts/CategoryContext";
 import { Label } from "@radix-ui/react-label";
@@ -234,7 +234,9 @@ const mockPrograms: AdminProgram[] = [
 export default function AdminProgramsPage() {
   const [programs, setPrograms] = useState<AdminProgram[]>([]);
   const [filteredPrograms, setFilteredPrograms] = useState<AdminProgram[]>([]);
-  const [selectedProgram, setSelectedProgram] = useState<AdminProgram | null>(null);
+  const [selectedProgram, setSelectedProgram] = useState<AdminProgram | null>(
+    null
+  );
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
@@ -392,14 +394,14 @@ export default function AdminProgramsPage() {
     if (selectedProgram) {
       setPrograms(
         programs.map((p) =>
-          p.id === selectedProgram.id 
-            ? { 
-                ...p, 
+          p.id === selectedProgram.id
+            ? {
+                ...p,
                 category: {
                   ...p.category,
-                  name: dialogCategory
-                }
-              } 
+                  name: dialogCategory,
+                },
+              }
             : p
         )
       );
@@ -554,12 +556,18 @@ export default function AdminProgramsPage() {
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <Avatar className="h-8 w-8">
-                            <AvatarImage src={program.coach.user.avatarUrl || undefined} />
+                            <AvatarImage
+                              src={program.coach.user.avatarUrl || undefined}
+                            />
                             <AvatarFallback>
-                              {(program.coach.user.fullName || "Unknown").charAt(0)}
+                              {(
+                                program.coach.user.fullName || "Unknown"
+                              ).charAt(0)}
                             </AvatarFallback>
                           </Avatar>
-                          <span>{program.coach.user.fullName || "Unknown"}</span>
+                          <span>
+                            {program.coach.user.fullName || "Unknown"}
+                          </span>
                         </div>
                       </TableCell>
                       <TableCell>{program.category.name}</TableCell>
@@ -689,12 +697,18 @@ export default function AdminProgramsPage() {
                 <DialogDescription>
                   <div className="flex items-center gap-2 mt-2">
                     <Avatar className="h-6 w-6">
-                      <AvatarImage src={selectedProgram.coach.user.avatarUrl || undefined} />
+                      <AvatarImage
+                        src={selectedProgram.coach.user.avatarUrl || undefined}
+                      />
                       <AvatarFallback>
-                        {(selectedProgram.coach.user.fullName || "Unknown").charAt(0)}
+                        {(
+                          selectedProgram.coach.user.fullName || "Unknown"
+                        ).charAt(0)}
                       </AvatarFallback>
                     </Avatar>
-                    <span>{selectedProgram.coach.user.fullName || "Unknown"}</span>
+                    <span>
+                      {selectedProgram.coach.user.fullName || "Unknown"}
+                    </span>
                   </div>
                 </DialogDescription>
               </DialogHeader>

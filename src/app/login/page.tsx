@@ -15,7 +15,7 @@ import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { UserRole } from "@/generated/prisma";
+import { UserRole } from "../../generated/prisma";
 import { useUser } from "@/hooks/use-user";
 import { signInWithEmail, signInWithGoogle } from "@/firebase/auth";
 import { toast } from "react-toastify";
@@ -56,7 +56,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

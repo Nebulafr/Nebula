@@ -1,4 +1,4 @@
-import { Program } from "@/generated/prisma";
+import { Program } from "../../generated/prisma";
 import { apiGet, apiPost } from "@/lib/utils";
 
 // AdminProgram with exact Prisma relationships

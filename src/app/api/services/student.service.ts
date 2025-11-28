@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { SkillLevel } from "@/generated/prisma";
+import { SkillLevel } from "../../../generated/prisma";
 import { type UpdateStudentData } from "../utils/schemas";
 import { NotFoundException } from "../utils/http-exception";
 import sendResponse from "../utils/send-response";

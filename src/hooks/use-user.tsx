@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { Coach, Student, User } from "@/generated/prisma";
+import { Coach, Student, User } from "../generated/prisma";
 import { getUserProfile } from "@/actions/user";
 import { signOut } from "@/firebase/auth";
 import { publicRoutes } from "@/lib/utils";

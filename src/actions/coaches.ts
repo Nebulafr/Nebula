@@ -1,4 +1,4 @@
-import { Coach } from "@/generated/prisma";
+import { Coach } from "../generated/prisma";
 import { apiGet, apiPut } from "@/lib/utils";
 
 export interface CoachProgram {

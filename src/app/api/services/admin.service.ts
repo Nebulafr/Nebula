@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { AdminProgramQueryData, ProgramActionData } from "../utils/schemas";
-import { ProgramStatus } from "@/generated/prisma";
+import { ProgramStatus } from "../../../generated/prisma";
 
 export class AdminService {
   static async getPrograms(params: AdminProgramQueryData) {
