@@ -11,7 +11,7 @@ import {
   signInWithEmail,
   resetPassword,
 } from "../actions/auth";
-import { UserRole } from "../generated/prisma";
+import { UserRole } from "@/generated/prisma";
 import { SignInData, signInWithGoogle } from "@/firebase/auth";
 
 export interface AuthContextValue extends UseUserReturn {

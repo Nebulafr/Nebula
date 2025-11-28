@@ -15,7 +15,7 @@ import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { UserRole } from "../../generated/prisma";
+import { UserRole } from "@/generated/prisma";
 import { useUser } from "@/hooks/use-user";
 import { signUpWithEmail, signInWithGoogle } from "@/firebase/auth";
 import { toast } from "react-toastify";

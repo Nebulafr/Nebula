@@ -12,7 +12,7 @@ import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
 import { getPrograms, getGroupedPrograms } from "@/actions/programs";
 import { useCategories } from "@/contexts/CategoryContext";
-import { Program } from "../../generated/prisma";
+import { Program } from "@/generated/prisma";
 
 // Define the exact structure returned by the API
 type ProgramWithRelations = Program & {

@@ -17,7 +17,7 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import Link from "next/link";
-import { User } from "../../generated/prisma";
+import { User } from "@/generated/prisma";
 
 const recommendedPrograms = [
   {

@@ -40,7 +40,7 @@ import ModulesForm from "@/components/ModuleForm";
 import { createProgramSchema } from "@/lib/validations";
 import { z } from "zod";
 import { useUser } from "@/hooks/use-user";
-import { Program, User } from "../../../generated/prisma";
+import { Program, User } from "@/generated/prisma";
 
 interface IProgram extends Program {
   category: any;

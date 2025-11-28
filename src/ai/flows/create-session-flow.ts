@@ -11,7 +11,7 @@ import { ai } from "@/ai/genkit";
 import { createCalendarEvent } from "@/services/google-api";
 import { z } from "genkit";
 import { prisma } from "@/lib/prisma";
-import { SessionStatus } from "../../generated/prisma";
+import { SessionStatus } from "@/generated/prisma";
 
 const CreateSessionInputSchema = z.object({
   programId: z.string().describe("The ID of the program for this session."),

@@ -1,4 +1,4 @@
-import { Category } from "../../generated/prisma";
+import { Category } from "@/generated/prisma";
 import { apiGet, apiPost, apiPut, apiDelete } from "@/lib/utils";
 
 export interface CategoriesResponse {

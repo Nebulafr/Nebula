@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { UserRole } from "../../../generated/prisma";
+import { UserRole } from "@/generated/prisma";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import {

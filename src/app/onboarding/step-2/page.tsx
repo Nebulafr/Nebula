@@ -10,7 +10,7 @@ import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { useSearchParams } from "next/navigation";
 import React from "react";
-import { SkillLevel } from "../../../generated/prisma";
+import { SkillLevel } from "@/generated/prisma";
 
 const skillLevelConfig = {
   [SkillLevel.BEGINNER]: {

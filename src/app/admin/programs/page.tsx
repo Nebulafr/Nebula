@@ -56,7 +56,7 @@ import {
   updateProgramStatus,
   type AdminProgram,
 } from "@/actions/admin/programs";
-import { ProgramStatus } from "../../../generated/prisma";
+import { ProgramStatus } from "@/generated/prisma";
 import { createCategory } from "@/actions/admin/categories";
 import { useCategories } from "@/contexts/CategoryContext";
 import { Label } from "@radix-ui/react-label";
