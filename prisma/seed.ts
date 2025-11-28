@@ -14,7 +14,9 @@ const prisma = new PrismaClient({
 
 // Load categories data for seeding
 const dataDir = join(process.cwd(), "data");
-const categories = JSON.parse(readFileSync(join(dataDir, "categories.json"), "utf-8"));
+const categories = JSON.parse(
+  readFileSync(join(dataDir, "categories.json"), "utf-8")
+);
 
 async function seedCategories() {
   console.log("🌱 Seeding categories...");
@@ -46,7 +48,9 @@ async function main() {
     await seedCategories();
 
     console.log("✨ Database seed completed successfully!");
-    console.log("📝 Note: Mock data for coaches, students, programs, etc. is available in the /data directory for development use.");
+    console.log(
+      "📝 Note: Mock data for coaches, students, programs, etc. is available in the /data directory for development use."
+    );
   } catch (error) {
     console.error("❌ Error during seed:", error);
     throw error;
