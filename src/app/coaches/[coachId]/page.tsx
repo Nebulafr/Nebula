@@ -224,11 +224,11 @@ export default function CoachDetailPage() {
     setSelectedTime("");
   };
 
-  const handleDateSelect = (date: Date | undefined) => {
-    setDate(date);
+  const handleDateSelect = () => {
+    setBookingStep(2);
   };
 
-  const handleTimeSelect = async (time: string) => {
+  const handleTimeSelect = async () => {
     if (!date || !profile) {
       toast.error("Please select a date and ensure you're logged in.");
       return;
@@ -236,12 +236,10 @@ export default function CoachDetailPage() {
 
     try {
       setIsBooking(true);
-      setSelectedTime(time);
-
       const result = await bookCoachSession({
         coachId: params.coachId,
         date,
-        time,
+        time: selectedTime,
         duration: 60,
       });
 
@@ -418,7 +416,9 @@ export default function CoachDetailPage() {
                   step={bookingStep}
                   loading={isBooking}
                   selectedDate={date}
+                  setSelectedDate={setDate}
                   selectedTime={selectedTime}
+                  setSelectedTime={setSelectedTime}
                   localSelectedTime={selectedTime}
                   onEnroll={handleBookClick}
                   onCancel={handleCancelBooking}
@@ -498,6 +498,8 @@ function EnrollmentForm({
   onEnroll,
   onCancel,
   onDateSelect,
+  setSelectedDate,
+  setSelectedTime,
   onTimeSelect,
   onLocalTimeSelect,
   title = "Ready to start?",
@@ -519,8 +521,10 @@ function EnrollmentForm({
   localSelectedTime?: string;
   onEnroll: () => void;
   onCancel: () => void;
-  onDateSelect: (date: Date | undefined) => void;
-  onTimeSelect: (time: string) => void;
+  onDateSelect: () => void;
+  setSelectedDate: (date: Date | undefined) => void;
+  setSelectedTime: (time: string) => void;
+  onTimeSelect: () => void;
   onLocalTimeSelect: (time: string) => void;
   title?: string;
   subtitle?: string;
@@ -533,6 +537,7 @@ function EnrollmentForm({
   showMessageButton?: boolean;
   onMessageClick?: () => void;
 }) {
+  console.log({ step });
   const timeSlots = ["09:00", "11:00", "14:00", "16:00"];
 
   if (step === 0) {
@@ -602,7 +607,7 @@ function EnrollmentForm({
             <Calendar
               mode="single"
               selected={selectedDate}
-              onSelect={onDateSelect}
+              onSelect={setSelectedDate}
               className="p-0"
               disabled={(date) => date < new Date()}
             />
@@ -611,7 +616,7 @@ function EnrollmentForm({
             <Button
               className="w-full mt-4"
               disabled={!selectedDate}
-              onClick={() => onDateSelect(selectedDate)}
+              onClick={onDateSelect}
             >
               Continue <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
@@ -649,26 +654,18 @@ function EnrollmentForm({
                     localSelectedTime === time &&
                       "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
                   )}
-                  onClick={() => onLocalTimeSelect(time)}
+                  onClick={() => setSelectedTime(time)}
                 >
                   {time}
                 </Button>
               ))}
             </div>
           </div>
-          {selectedDate && (
-            <div className="mt-4 p-3 bg-muted rounded-lg">
-              <p className="text-sm text-muted-foreground">
-                Selected date: {selectedDate.toLocaleDateString()}
-              </p>
-            </div>
-          )}
+
           <Button
             className="w-full mt-6"
             disabled={!localSelectedTime || loading}
-            onClick={() => {
-              onTimeSelect(localSelectedTime || "");
-            }}
+            onClick={onTimeSelect}
           >
             {loading ? "Processing..." : "Confirm Booking"}
           </Button>

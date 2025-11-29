@@ -12,7 +12,6 @@ export class CoachService {
   static async getCoaches(params: CoachQueryData) {
     const { category, search, limit = 50 } = params;
 
-    // Fetch categories for grouping logic
     const categories = await prisma.category.findMany({
       where: { isActive: true },
       orderBy: { name: "asc" },
@@ -94,9 +93,8 @@ export class CoachService {
 
         const matchingCategory = categories.find((category) =>
           coach.specialties.some(
-            (specialty) =>
-              specialty.toLowerCase().includes(category.name.toLowerCase()) ||
-              category.name.toLowerCase().includes(specialty.toLowerCase())
+            (specialty: string) =>
+              specialty.toLowerCase() === category.name.toLowerCase()
           )
         );
 
