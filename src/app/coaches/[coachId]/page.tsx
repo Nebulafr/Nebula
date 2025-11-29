@@ -501,7 +501,6 @@ function EnrollmentForm({
   setSelectedDate,
   setSelectedTime,
   onTimeSelect,
-  onLocalTimeSelect,
   title = "Ready to start?",
   subtitle = "Enroll in this program to get personalized coaching.",
   enrollButtonText = "Enroll now",
@@ -537,7 +536,6 @@ function EnrollmentForm({
   showMessageButton?: boolean;
   onMessageClick?: () => void;
 }) {
-  console.log({ step });
   const timeSlots = ["09:00", "11:00", "14:00", "16:00"];
 
   if (step === 0) {

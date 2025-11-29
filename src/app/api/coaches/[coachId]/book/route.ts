@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { isAuthenticated } from "../../../middleware/auth";
 import { bookSessionSchema } from "../../../utils/schemas";
 import CatchError from "../../../utils/catch-error";
@@ -9,27 +9,32 @@ import {
 } from "../../../utils/http-exception";
 import { prisma } from "@/lib/prisma";
 import sendResponse from "../../../utils/send-response";
+import moment from "moment-timezone";
 
 export const POST = CatchError(
   isAuthenticated(
     async (
       request: NextRequest,
-      context: { params: Promise<{ slug: string }> }
+      context: { params: Promise<{ coachId: string }> }
     ) => {
       const body = await request.json();
-      const { slug } = await context.params;
+      const { coachId } = await context.params;
       const user = (request as any).user;
+      console.log({ body, coachId });
 
       if (user.role !== "STUDENT") {
         throw new UnauthorizedException("Student access required");
       }
 
-      const payload = bookSessionSchema.parse({ ...body, slug });
+      const payload = bookSessionSchema.parse({
+        ...body,
+        coachId,
+      });
       const { date, startTime, duration = 60 } = payload;
 
       const coach = await prisma.coach.findUnique({
         where: {
-          slug: slug,
+          id: coachId,
           isActive: true,
         },
       });
@@ -48,10 +53,23 @@ export const POST = CatchError(
         );
       }
 
-      const sessionDateTime = new Date(`${date}T${startTime}`);
-      const sessionEndTime = new Date(
-        sessionDateTime.getTime() + duration * 60000
+      const timezone = student.timeZone || "UTC";
+
+      const sessionDateTime = moment.tz(
+        `${date.split("T")[0]} ${startTime}`,
+        "YYYY-MM-DD HH:mm",
+        timezone
       );
+
+      if (!sessionDateTime.isValid()) {
+        throw new BadRequestException("Invalid session date or time format");
+      }
+
+      const sessionEndTime = sessionDateTime.clone().add(duration, "minutes");
+      const sessionStartDate = sessionDateTime.toDate();
+      const sessionEndDate = sessionEndTime.toDate();
+
+      console.log({ sessionStartDate, sessionEndDate });
 
       const conflictingSessions = await prisma.session.findMany({
         where: {
@@ -60,18 +78,20 @@ export const POST = CatchError(
           OR: [
             {
               AND: [
-                { scheduledTime: { lte: sessionDateTime } },
+                { scheduledTime: { lte: sessionStartDate } },
                 {
                   scheduledTime: {
-                    gte: new Date(sessionDateTime.getTime() - 60000 * duration),
+                    gte: new Date(
+                      sessionStartDate.getTime() - 60000 * duration
+                    ),
                   },
                 },
               ],
             },
             {
               AND: [
-                { scheduledTime: { gte: sessionDateTime } },
-                { scheduledTime: { lt: sessionEndTime } },
+                { scheduledTime: { gte: sessionStartDate } },
+                { scheduledTime: { lt: sessionEndDate } },
               ],
             },
           ],
@@ -88,8 +108,7 @@ export const POST = CatchError(
         const session = await prisma.session.create({
           data: {
             coachId: coach.id,
-            programId: "",
-            scheduledTime: sessionDateTime,
+            scheduledTime: sessionStartDate,
             duration: duration,
             status: "SCHEDULED",
             title: `Session with ${coach.fullName || "Coach"}`,

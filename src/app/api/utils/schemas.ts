@@ -125,9 +125,9 @@ export const updateCoachProfileSchema = z.object({
 });
 
 export const bookSessionSchema = z.object({
-  slug: z.string().min(1),
-  date: z.string().min(1),
-  startTime: z.string().min(1),
+  coachId: z.string(),
+  date: z.string(),
+  startTime: z.string(),
   duration: z.number().default(60),
 });
 
