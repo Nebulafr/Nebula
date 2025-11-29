@@ -1,9 +1,8 @@
 // hooks/use-user.tsx
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useAuth } from "./use-auth";
 import { Coach, Student, User } from "@/generated/prisma";
-import { getStoredUserData, storeAuthData } from "@/lib/auth-storage";
 
 export type AuthState =
   | "LOADING"
@@ -25,70 +24,31 @@ export interface UseUserReturn {
   isCoach: boolean;
   isStudent: boolean;
   isAdmin: boolean;
-  refreshUser: () => Promise<void>;
+  refreshUser: () => void;
 }
 
 export function useUser(): UseUserReturn {
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [coachProfile, setCoachProfile] = useState<Coach | null>(null);
-  const [studentProfile, setStudentProfile] = useState<Student | null>(null);
-  const [authState, setAuthState] = useState<AuthState>("LOADING");
-
-  const fetchUserProfile = useCallback(async () => {
-    try {
-      const userData = getStoredUserData();
-
-      console.log({ userData });
-
-      if (!userData) {
-        setProfile(null);
-        setCoachProfile(null);
-        setStudentProfile(null);
-        setAuthState("UNAUTHENTICATED");
-        return;
-      }
-
-      setProfile(userData);
-      setCoachProfile(userData.coach || null);
-      setStudentProfile(userData.student || null);
-
-      const hasProfile =
-        userData.role === "ADMIN" || userData.coach || userData.student;
-
-      setAuthState(
-        hasProfile ? "AUTHENTICATED_WITH_PROFILE" : "AUTHENTICATED_NO_PROFILE"
-      );
-    } catch (error) {
-      console.error("Error fetching user profile:", error);
-      setProfile(null);
-      setCoachProfile(null);
-      setStudentProfile(null);
-      setAuthState("UNAUTHENTICATED");
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchUserProfile();
-  }, [fetchUserProfile]);
-
-  const isAuthenticated =
-    authState === "AUTHENTICATED_WITH_PROFILE" ||
-    authState === "AUTHENTICATED_NO_PROFILE";
-
-  const isCoach = profile?.role === "COACH";
-  const isStudent = profile?.role === "STUDENT";
-  const isAdmin = profile?.role === "ADMIN";
+  const {
+    profile,
+    authState,
+    isAuthenticated,
+    loading,
+    isCoach,
+    isStudent,
+    isAdmin,
+    refreshUser,
+  } = useAuth();
 
   return {
     profile,
-    coachProfile,
-    studentProfile,
-    loading: authState === "LOADING",
+    coachProfile: profile?.coach || null,
+    studentProfile: profile?.student || null,
+    loading,
     authState,
     isAuthenticated,
     isCoach,
     isStudent,
     isAdmin,
-    refreshUser: fetchUserProfile,
+    refreshUser,
   };
 }

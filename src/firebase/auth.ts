@@ -254,13 +254,11 @@ export async function handleGoogleRedirectResult(): Promise<{
 
 export async function signOut(): Promise<void> {
   try {
-    // Clear local storage/session storage if needed
     if (typeof window !== "undefined") {
       localStorage.removeItem("accessToken");
       sessionStorage.removeItem("pendingGoogleSignInRole");
     }
 
-    // Sign out from Firebase (for Google auth)
     await auth.signOut();
   } catch (error: any) {
     if (error instanceof AuthError) {

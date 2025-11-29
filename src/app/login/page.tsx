@@ -16,9 +16,8 @@ import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { UserRole } from "@/generated/prisma";
-import { signInWithEmail, signInWithGoogle } from "@/firebase/auth";
+import { useAuth } from "@/hooks/use-auth";
 import { toast } from "react-toastify";
-import { storeAuthData } from "@/lib/auth-storage";
 
 function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -55,6 +54,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { signIn, signInWithGoogle } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,9 +63,8 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const result = await signInWithEmail({ email, password });
-      console.log("Login result:", result);
-      storeAuthData(result);
+      await signIn({ email, password });
+      // Redirect is handled by AuthProvider
     } catch (error: any) {
       console.error("Login error:", error);
       toast.error(error.message || "Failed to sign in");
@@ -80,12 +79,8 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const result = await signInWithGoogle(UserRole.STUDENT);
-      console.log("Google login result:", result);
-      storeAuthData(result);
-
-      // Centralized redirect logic will handle navigation
-      // Toast message is handled in the signInWithGoogle function
+      await signInWithGoogle(UserRole.STUDENT);
+      // Redirect is handled by AuthProvider
     } catch (error: any) {
       console.error("Google login error:", error);
       if (error?.message !== "Redirecting to Google sign-in...") {

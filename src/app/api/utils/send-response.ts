@@ -2,7 +2,11 @@ import { NextResponse } from "next/server";
 import { RESPONSE_CODE } from "@/types";
 
 class SendResponse {
-  success<T = any>(data: T, message: string = "Success", statusCode: number = 200) {
+  success<T = any>(
+    data: T,
+    message: string = "Success",
+    statusCode: number = 200
+  ) {
     return NextResponse.json(
       {
         success: true,

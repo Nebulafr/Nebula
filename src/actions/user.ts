@@ -1,10 +1,10 @@
-import { Coach, Student, User } from "@/generated/prisma";
+import { UserProfile } from "@/hooks/use-user";
 import { apiGet, apiPut } from "@/lib/utils";
 
 export const getUserProfile = async () => {
   try {
     const response = await apiGet<{
-      user: User & { coach?: Coach; student?: Student };
+      user: UserProfile;
     }>("/users/profile");
 
     return {
