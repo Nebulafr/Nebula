@@ -1,28 +1,23 @@
+import { BookSessionData } from "@/app/api/utils/schemas";
 import { apiPost } from "@/lib/utils";
 
 export async function bookCoachSession({
   coachId,
   date,
   time,
-  duration = 60, // default 60 minutes
-  notes = "",
+  duration = 60,
 }: {
   coachId: string;
   date: Date;
   time: string;
   duration?: number;
-  notes?: string;
 }) {
   try {
-    // Combine date and time into a scheduledAt timestamp
-    const [hours, minutes] = time.split(":").map(Number);
-    const scheduledAt = new Date(date);
-    scheduledAt.setHours(hours, minutes, 0, 0);
-
-    const sessionData = {
-      scheduledAt: scheduledAt.toISOString(),
+    const sessionData: BookSessionData = {
+      coachId,
+      date: date.toISOString(),
+      startTime: time,
       duration,
-      notes,
     };
 
     const response = await apiPost(`/coaches/${coachId}/book`, sessionData);

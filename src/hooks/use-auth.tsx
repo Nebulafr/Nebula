@@ -10,15 +10,12 @@ export function useAuth() {
 }
 
 export function useAuthActions() {
-  const { signUp, signIn, signInWithGoogle, resetPassword, error, clearError } =
-    useAuth();
+  const { signUp, signIn, signInWithGoogle, resetPassword } = useAuth();
 
   return {
     signUp,
     signIn,
     signInWithGoogle,
     resetPassword,
-    error,
-    clearError,
   };
 }

@@ -13,10 +13,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, Mail } from "lucide-react";
 import Link from "next/link";
-import { useAuthActions } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function ForgotPasswordPage() {
-  const { resetPassword, error, clearError } = useAuthActions();
+  const { resetPassword } = useAuth();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
@@ -26,7 +26,6 @@ export default function ForgotPasswordPage() {
     if (loading) return;
 
     setLoading(true);
-    clearError();
 
     try {
       await resetPassword(email);
@@ -102,11 +101,7 @@ export default function ForgotPasswordPage() {
               your password.
             </CardDescription>
           </CardHeader>
-          {error && (
-            <div className="mt-4 p-3 bg-destructive/10 border border-destructive/20 rounded-md">
-              <p className="text-destructive text-sm">{error.message}</p>
-            </div>
-          )}
+
           <form onSubmit={handleResetPassword}>
             <CardContent className="grid gap-4 p-0 mt-6">
               <div className="grid gap-2">

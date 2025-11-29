@@ -32,6 +32,17 @@ import { Program, Review } from "@/generated/prisma";
 import { useUser } from "@/hooks/use-user";
 import { Header } from "@/components/layout/header";
 import { useAuth } from "@/hooks/use-auth";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 type ProgramWithRelations = Program & {
   category: {
@@ -89,6 +100,11 @@ export default function ProgramDetailPage({
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [localSelectedTime, setLocalSelectedTime] = useState<string>("");
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
+  const [reviewSubmitted, setReviewSubmitted] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [reviewText, setReviewText] = useState("");
   const router = useRouter();
 
   useEffect(() => {
@@ -281,6 +297,24 @@ export default function ProgramDetailPage({
 
   const handleMessageClick = () => {
     router.replace("/dashboard/messaging?conversationId=1");
+  };
+
+  const handleReviewSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Here you would typically send the review data to your backend
+    console.log({ rating, reviewText });
+    setReviewSubmitted(true);
+  };
+
+  const resetReviewForm = () => {
+    setIsReviewDialogOpen(false);
+    // Use a timeout to reset the form after the dialog has closed
+    setTimeout(() => {
+      setReviewSubmitted(false);
+      setRating(0);
+      setHoverRating(0);
+      setReviewText("");
+    }, 300);
   };
 
   return (
@@ -476,9 +510,106 @@ export default function ProgramDetailPage({
                   )}
               </div>
               <div className="md:col-span-1">
-                <h2 className="mb-4 font-headline text-xl font-bold">
-                  Reviews ({program.totalReviews || 0})
-                </h2>
+                <div className="flex items-center justify-between mb-8">
+                  <h2 className="mb-4 font-headline text-xl font-bold">
+                    Reviews ({program.totalReviews || 0})
+                  </h2>
+                  <Dialog
+                    open={isReviewDialogOpen}
+                    onOpenChange={setIsReviewDialogOpen}
+                  >
+                    <DialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="rounded-full"
+                      >
+                        <PlusCircle className="h-5 w-5" />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent
+                      className="sm:max-w-[625px]"
+                      onInteractOutside={(e) => {
+                        if (reviewSubmitted) {
+                          e.preventDefault();
+                        }
+                      }}
+                    >
+                      {!reviewSubmitted ? (
+                        <>
+                          <DialogHeader>
+                            <DialogTitle>Share your review</DialogTitle>
+                            <DialogDescription>
+                              Let others know about your experience with{" "}
+                              {program.title}.
+                            </DialogDescription>
+                          </DialogHeader>
+                          <form
+                            onSubmit={handleReviewSubmit}
+                            className="grid gap-6 py-4"
+                          >
+                            <div className="grid gap-2">
+                              <Label>Your Rating</Label>
+                              <div className="flex items-center gap-1">
+                                {[...Array(5)].map((_, i) => {
+                                  const starValue = i + 1;
+                                  return (
+                                    <Star
+                                      key={i}
+                                      className={cn(
+                                        "h-6 w-6 cursor-pointer",
+                                        starValue <= (hoverRating || rating)
+                                          ? "text-yellow-400 fill-yellow-400"
+                                          : "text-gray-300"
+                                      )}
+                                      onClick={() => setRating(starValue)}
+                                      onMouseEnter={() =>
+                                        setHoverRating(starValue)
+                                      }
+                                      onMouseLeave={() => setHoverRating(0)}
+                                    />
+                                  );
+                                })}
+                              </div>
+                            </div>
+                            <div className="grid gap-2">
+                              <Label htmlFor="review-text">
+                                Share your thoughts
+                              </Label>
+                              <Textarea
+                                id="review-text"
+                                placeholder="What did you like or dislike? What should other students know?"
+                                rows={4}
+                                value={reviewText}
+                                onChange={(e) => setReviewText(e.target.value)}
+                                required
+                              />
+                            </div>
+                            <DialogFooter>
+                              <Button
+                                type="submit"
+                                disabled={rating === 0 || !reviewText.trim()}
+                              >
+                                Submit Review
+                              </Button>
+                            </DialogFooter>
+                          </form>
+                        </>
+                      ) : (
+                        <div className="text-center py-8">
+                          <CheckCircle className="h-16 w-16 mx-auto mb-4 text-green-500" />
+                          <h3 className="text-xl font-semibold">Thank You!</h3>
+                          <p className="text-muted-foreground mt-2">
+                            Your review has been submitted successfully.
+                          </p>
+                          <Button onClick={resetReviewForm} className="mt-6">
+                            Close
+                          </Button>
+                        </div>
+                      )}
+                    </DialogContent>
+                  </Dialog>
+                </div>
                 <Card className="rounded-xl border shadow-sm">
                   <CardContent className="p-6">
                     <div className="flex items-center gap-1">

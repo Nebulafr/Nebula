@@ -20,10 +20,10 @@ export const POST = CatchError(
   isAuthenticated(
     async (
       request: NextRequest,
-      context: { params: Promise<{ slug: string }> }
+      context: { params: Promise<{ coachId: string }> }
     ) => {
       const body = await request.json();
-      const { slug } = await context.params;
+      const { coachId } = await context.params;
       const user = (request as any).user;
 
       if (user.role !== "STUDENT") {
@@ -34,7 +34,7 @@ export const POST = CatchError(
 
       const coach = await prisma.coach.findUnique({
         where: {
-          slug: slug,
+          id: coachId,
           isActive: true,
         },
       });
@@ -98,7 +98,7 @@ export const POST = CatchError(
         const review = await prisma.review.create({
           data: {
             reviewerId: user.id,
-            revieweeId: coach.userId, // This should be the coach's user ID
+            revieweeId: coach.userId,
             targetId: coach.id,
             targetType: "COACH",
             rating: rating,

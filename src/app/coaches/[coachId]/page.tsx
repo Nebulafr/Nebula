@@ -12,13 +12,10 @@ import {
   MessageCircle,
   PlusCircle,
   Star,
-  Twitter,
-  Youtube,
   X,
   CheckCircle,
   Briefcase,
   GraduationCap,
-  LogOut,
 } from "lucide-react";
 import Link from "next/link";
 import { Calendar } from "@/components/ui/calendar";
@@ -30,6 +27,17 @@ import { toast } from "react-toastify";
 import { getCoachById, CoachWithRelations } from "@/actions/coaches";
 import { useAuth } from "@/hooks/use-auth";
 import { Header } from "@/components/layout/header";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function CoachDetailPage() {
   const [bookingStep, setBookingStep] = useState(0);
@@ -41,6 +49,11 @@ export default function CoachDetailPage() {
   const { profile } = useAuth();
   const [date, setDate] = useState<Date | undefined>();
   const [selectedTime, setSelectedTime] = useState("");
+  const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
+  const [reviewSubmitted, setReviewSubmitted] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [reviewText, setReviewText] = useState("");
 
   console.log("CoachDetailsPage===", { date, selectedTime });
 
@@ -266,6 +279,24 @@ export default function CoachDetailPage() {
     router.replace("/dashboard/messaging?conversationId=1");
   };
 
+  const handleReviewSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Here you would typically send the review data to your backend
+    console.log({ rating, reviewText });
+    setReviewSubmitted(true);
+  };
+
+  const resetReviewForm = () => {
+    setIsReviewDialogOpen(false);
+    // Use a timeout to reset the form after the dialog has closed
+    setTimeout(() => {
+      setReviewSubmitted(false);
+      setRating(0);
+      setHoverRating(0);
+      setReviewText("");
+    }, 300);
+  };
+
   if (loading) {
     return (
       <div className="flex min-h-screen flex-col bg-background">
@@ -442,9 +473,98 @@ export default function CoachDetailPage() {
         </section>
 
         <section className="container py-20">
-          <h2 className="mb-8 font-headline text-3xl font-bold">
-            Reviews ({coach.totalReviews || coach.reviews?.length || 0})
-          </h2>
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="mb-8 font-headline text-3xl font-bold">
+              Reviews ({coach.totalReviews || coach.reviews?.length || 0})
+            </h2>
+            <Dialog
+              open={isReviewDialogOpen}
+              onOpenChange={setIsReviewDialogOpen}
+            >
+              <DialogTrigger asChild>
+                <Button variant="outline" size="icon" className="rounded-full">
+                  <PlusCircle className="h-5 w-5" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent
+                className="sm:max-w-[625px]"
+                onInteractOutside={(e) => {
+                  if (reviewSubmitted) {
+                    e.preventDefault();
+                  }
+                }}
+              >
+                {!reviewSubmitted ? (
+                  <>
+                    <DialogHeader>
+                      <DialogTitle>Share your review</DialogTitle>
+                      <DialogDescription>
+                        Let others know about your experience with{" "}
+                        {coach.fullName!}
+                      </DialogDescription>
+                    </DialogHeader>
+                    <form
+                      onSubmit={handleReviewSubmit}
+                      className="grid gap-6 py-4"
+                    >
+                      <div className="grid gap-2">
+                        <Label>Your Rating</Label>
+                        <div className="flex items-center gap-1">
+                          {[...Array(5)].map((_, i) => {
+                            const starValue = i + 1;
+                            return (
+                              <Star
+                                key={i}
+                                className={cn(
+                                  "h-6 w-6 cursor-pointer",
+                                  starValue <= (hoverRating || rating)
+                                    ? "text-yellow-400 fill-yellow-400"
+                                    : "text-gray-300"
+                                )}
+                                onClick={() => setRating(starValue)}
+                                onMouseEnter={() => setHoverRating(starValue)}
+                                onMouseLeave={() => setHoverRating(0)}
+                              />
+                            );
+                          })}
+                        </div>
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="review-text">Share your thoughts</Label>
+                        <Textarea
+                          id="review-text"
+                          placeholder="What did you like or dislike? What should other students know?"
+                          rows={4}
+                          value={reviewText}
+                          onChange={(e) => setReviewText(e.target.value)}
+                          required
+                        />
+                      </div>
+                      <DialogFooter>
+                        <Button
+                          type="submit"
+                          disabled={rating === 0 || !reviewText.trim()}
+                        >
+                          Submit Review
+                        </Button>
+                      </DialogFooter>
+                    </form>
+                  </>
+                ) : (
+                  <div className="text-center py-8">
+                    <CheckCircle className="h-16 w-16 mx-auto mb-4 text-green-500" />
+                    <h3 className="text-xl font-semibold">Thank You!</h3>
+                    <p className="text-muted-foreground mt-2">
+                      Your review has been submitted successfully.
+                    </p>
+                    <Button onClick={resetReviewForm} className="mt-6">
+                      Close
+                    </Button>
+                  </div>
+                )}
+              </DialogContent>
+            </Dialog>
+          </div>
           {coach.reviews && coach.reviews.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {coach.reviews.slice(0, 4).map((review, i) => (
@@ -501,7 +621,6 @@ function EnrollmentForm({
   setSelectedDate,
   setSelectedTime,
   onTimeSelect,
-  onLocalTimeSelect,
   title = "Ready to start?",
   subtitle = "Enroll in this program to get personalized coaching.",
   enrollButtonText = "Enroll now",
@@ -537,7 +656,6 @@ function EnrollmentForm({
   showMessageButton?: boolean;
   onMessageClick?: () => void;
 }) {
-  console.log({ step });
   const timeSlots = ["09:00", "11:00", "14:00", "16:00"];
 
   if (step === 0) {

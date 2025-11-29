@@ -14,7 +14,6 @@ import { prisma } from "@/lib/prisma";
 import { SessionStatus } from "@/generated/prisma";
 
 const CreateSessionInputSchema = z.object({
-  programId: z.string().describe("The ID of the program for this session."),
   coachId: z.string().describe("The ID of the coach hosting the session."),
   studentIds: z
     .array(z.string())
@@ -92,7 +91,6 @@ export const createSessionFlow = ai.defineFlow(
     // Create session in Prisma database
     const session = await prisma.session.create({
       data: {
-        programId: input.programId,
         coachId: input.coachId,
         scheduledTime: new Date(input.scheduledTime),
         duration: input.duration,

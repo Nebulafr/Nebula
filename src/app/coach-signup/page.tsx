@@ -16,9 +16,8 @@ import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { UserRole } from "@/generated/prisma";
-import { signUpWithEmail, signInWithGoogle } from "@/firebase/auth";
 import { toast } from "react-toastify";
-import { storeAuthData } from "@/lib/auth-storage";
+import { useAuth } from "@/hooks/use-auth";
 
 function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -51,6 +50,7 @@ function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
 
 export default function CoachSignupPage() {
   const signupImage = PlaceHolderImages.find((img) => img.id === "about-story");
+  const { signUp, signInWithGoogle } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -64,14 +64,13 @@ export default function CoachSignupPage() {
     setLoading(true);
 
     try {
-      const result = await signUpWithEmail({
+      const result = await signUp({
         email,
         password,
         fullName,
         role: UserRole.COACH,
       });
       console.log("Coach signup result:", result);
-      storeAuthData(result);
       toast.success("Account created successfully!");
     } catch (error: any) {
       console.error("Coach signup error:", error);
@@ -89,7 +88,6 @@ export default function CoachSignupPage() {
     try {
       const result = await signInWithGoogle(UserRole.COACH);
       console.log("Coach Google signup result:", result);
-      storeAuthData(result);
     } catch (error: any) {
       console.error("Coach Google signup error:", error);
       if (error?.message !== "Redirecting to Google sign-in...") {
