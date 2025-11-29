@@ -21,12 +21,13 @@ import React, { useState } from "react";
 import { toast } from "react-toastify";
 import { useUser } from "@/hooks/use-user";
 import { createCoach } from "@/actions/coaches";
+import { useAuth } from "@/hooks/use-auth";
 
 function CoachOnboardingStep5Content() {
   const image = PlaceHolderImages.find((img) => img.id === "benefit-schedule");
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user } = useUser();
+  const { profile } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [availability, setAvailability] = useState("1-3");
   const [rate, setRate] = useState("");
@@ -49,7 +50,7 @@ function CoachOnboardingStep5Content() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!user) {
+    if (!profile) {
       toast.error("You must be logged in to submit an application.");
       return;
     }
@@ -60,9 +61,9 @@ function CoachOnboardingStep5Content() {
       const specialties = specialtiesParam ? JSON.parse(specialtiesParam) : [];
 
       const coachData = {
-        email: user.email as string,
-        userId: user.id,
-        fullName: user.displayName as string,
+        email: profile.email as string,
+        userId: profile.id,
+        fullName: profile.fullName as string,
         title: role || "",
         bio: motivation || "",
         style: style || "",

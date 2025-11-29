@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Star } from "lucide-react";
+import { Star, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
@@ -40,9 +40,7 @@ export default function ProgramsPage() {
   const [activeCategory, setActiveCategory] = useState("All");
   const [programsData, setProgramsData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const { categories: _categories, refetch } = useCategories();
-
-  const categories = [{ name: "All", slug: "all" }, ..._categories];
+  const { categories, refetch } = useCategories();
 
   useEffect(() => {
     const fetchPrograms = async () => {
@@ -62,22 +60,9 @@ export default function ProgramsPage() {
     };
 
     fetchPrograms();
-    refetch();
-  }, [activeCategory]); // Refetch when category changes
+  }, [activeCategory]);
 
-  // API already handles filtering, so we can use the data directly
   const filteredGroups = programsData;
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-          <p className="mt-4 text-lg">Loading programs...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -92,7 +77,22 @@ export default function ProgramsPage() {
             Nebula platform. This text is intentionally long because we want
             more characters to fill this space.
           </p>
+
           <div className="mx-auto mt-8 flex max-w-lg flex-wrap justify-center gap-4">
+            <Button
+              variant="outline"
+              className={cn(
+                "rounded-full",
+                activeCategory === "All" && "bg-muted font-bold"
+              )}
+              onClick={() => setActiveCategory("All")}
+              disabled={loading}
+            >
+              {loading && activeCategory === "All" && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              All
+            </Button>
             {categories.map((category) => (
               <Button
                 key={category.slug}
@@ -102,7 +102,11 @@ export default function ProgramsPage() {
                   activeCategory === category.name && "bg-muted font-bold"
                 )}
                 onClick={() => setActiveCategory(category.name)}
+                disabled={loading}
               >
+                {loading && activeCategory === category.name && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
                 {category.name}
               </Button>
             ))}

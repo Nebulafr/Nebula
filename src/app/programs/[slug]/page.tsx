@@ -31,6 +31,7 @@ import { toast } from "react-toastify";
 import { Program, Review } from "@/generated/prisma";
 import { useUser } from "@/hooks/use-user";
 import { Header } from "@/components/layout/header";
+import { useAuth } from "@/hooks/use-auth";
 
 type ProgramWithRelations = Program & {
   category: {
@@ -78,7 +79,7 @@ export default function ProgramDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = use(params);
-  const { user, studentProfile } = useUser();
+  const { profile, studentProfile } = useAuth();
   const [enrollmentStep, setEnrollmentStep] = useState(0);
   const [program, setProgram] = useState<ProgramWithRelations | null>(null);
   const [loading, setLoading] = useState(true);
@@ -121,7 +122,7 @@ export default function ProgramDetailPage({
 
   useEffect(() => {
     const checkEnrollmentStatus = async () => {
-      if (!user || !program?.id) return;
+      if (!profile || !program?.id) return;
 
       try {
         // For now, we'll use a simple check based on user's profile
@@ -133,7 +134,7 @@ export default function ProgramDetailPage({
     };
 
     checkEnrollmentStatus();
-  }, [user, program]);
+  }, [profile, program]);
 
   if (loading) {
     return (
@@ -193,7 +194,7 @@ export default function ProgramDetailPage({
   }
 
   const handleEnrollClick = () => {
-    if (!user) {
+    if (!profile) {
       toast.error("Please log in to enroll in this program.");
       router.replace("/login");
       return;
@@ -224,7 +225,7 @@ export default function ProgramDetailPage({
 
   const handleTimeSelect = async (time: string) => {
     console.log({ time });
-    if (!user?.uid || !program) {
+    if (!profile || !program) {
       toast.error("Please log in to complete enrollment.");
       return;
     }

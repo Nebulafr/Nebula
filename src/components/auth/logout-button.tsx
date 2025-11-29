@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
-import { useAuthActions } from "@/contexts/AuthContext";
+import { useAuthActions } from "@/hooks/use-auth";
 import { useState } from "react";
 
 interface LogoutButtonProps {
@@ -18,7 +18,7 @@ export function LogoutButton({
   showIcon = true,
   children,
 }: LogoutButtonProps) {
-  const { logout } = useAuthActions();
+  const {} = useAuthActions();
   const [loading, setLoading] = useState(false);
 
   const handleLogout = async () => {
@@ -26,7 +26,7 @@ export function LogoutButton({
 
     setLoading(true);
     try {
-      await logout();
+      // await logout();
     } catch (error) {
       console.error("Logout error:", error);
     } finally {

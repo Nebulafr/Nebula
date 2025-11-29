@@ -16,9 +16,9 @@ import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { UserRole } from "@/generated/prisma";
-import { useUser } from "@/hooks/use-user";
 import { signUpWithEmail, signInWithGoogle } from "@/firebase/auth";
 import { toast } from "react-toastify";
+import { storeAuthData } from "@/lib/auth-storage";
 
 function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -51,7 +51,6 @@ function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
 
 export default function CoachSignupPage() {
   const signupImage = PlaceHolderImages.find((img) => img.id === "about-story");
-  const { setAccessToken } = useUser();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -72,10 +71,8 @@ export default function CoachSignupPage() {
         role: UserRole.COACH,
       });
       console.log("Coach signup result:", result);
-      setAccessToken(result.accessToken, result.user);
+      storeAuthData(result);
       toast.success("Account created successfully!");
-
-      // Centralized redirect logic will handle navigation
     } catch (error: any) {
       console.error("Coach signup error:", error);
       toast.error(error.message || "Failed to create account");
@@ -92,9 +89,7 @@ export default function CoachSignupPage() {
     try {
       const result = await signInWithGoogle(UserRole.COACH);
       console.log("Coach Google signup result:", result);
-      setAccessToken(result.accessToken, result.user);
-
-      // Centralized redirect logic will handle navigation
+      storeAuthData(result);
     } catch (error: any) {
       console.error("Coach Google signup error:", error);
       if (error?.message !== "Redirecting to Google sign-in...") {

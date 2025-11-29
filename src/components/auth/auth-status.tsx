@@ -12,11 +12,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { User, Settings, LogOut } from "lucide-react";
 import Link from "next/link";
-import { useUser } from "@/hooks/use-user";
 import { LogoutButton } from "./logout-button";
+import { useAuth } from "@/hooks/use-auth";
 
 export function AuthStatus() {
-  const { isAuthenticated, loading, user, profile } = useUser();
+  const { isAuthenticated, loading, profile } = useAuth();
 
   if (loading) {
     return (
@@ -45,7 +45,7 @@ export function AuthStatus() {
       .map((n) => n[0])
       .join("")
       .toUpperCase() ||
-    user?.email?.[0].toUpperCase() ||
+    profile?.email?.[0].toUpperCase() ||
     "U";
 
   const dashboardPath =
@@ -61,7 +61,7 @@ export function AuthStatus() {
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-8 w-8">
             <AvatarImage
-              src={user?.photoURL || ""}
+              src={profile?.avatarUrl || ""}
               alt={profile?.fullName || ""}
             />
             <AvatarFallback>{initials}</AvatarFallback>
@@ -75,7 +75,7 @@ export function AuthStatus() {
               {profile?.fullName || "User"}
             </p>
             <p className="text-xs leading-none text-muted-foreground">
-              {user?.email}
+              {profile?.email}
             </p>
             {profile?.role && (
               <p className="text-xs leading-none text-muted-foreground capitalize">

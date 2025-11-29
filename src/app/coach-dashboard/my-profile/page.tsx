@@ -18,10 +18,10 @@ import { useEffect, useState } from "react";
 import { updateCoachProfile } from "@/actions/coaches";
 import { toast } from "react-toastify";
 import { X, Plus } from "lucide-react";
-import { useUser } from "@/hooks/use-user";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function CoachProfilePage() {
-  const { user, profile: userProfile, coachProfile } = useUser();
+  const { profile: userProfile, coachProfile } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
   // Form fields
@@ -113,7 +113,7 @@ export default function CoachProfilePage() {
     }
   };
 
-  if (!user) {
+  if (!userProfile) {
     return <div>Loading...</div>;
   }
 

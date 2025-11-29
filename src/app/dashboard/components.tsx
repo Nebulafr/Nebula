@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/carousel";
 import Link from "next/link";
 import { User } from "@/generated/prisma";
+import { UserProfile } from "@/hooks/use-user";
 
 const recommendedPrograms = [
   {
@@ -148,7 +149,7 @@ const suggestedCoaches = [
   },
 ];
 
-export function RecommendedPrograms({ user }: { user: User }) {
+export function RecommendedPrograms({ user }: { user: UserProfile }) {
   return (
     <div>
       <div className="flex items-center justify-between">
@@ -264,7 +265,7 @@ export function RecommendedPrograms({ user }: { user: User }) {
   );
 }
 
-export function UpcomingSessions({ user }: { user: User }) {
+export function UpcomingSessions({ user }: { user: UserProfile }) {
   return (
     <div>
       <div className="flex items-center justify-between">
@@ -346,7 +347,7 @@ export function UpcomingSessions({ user }: { user: User }) {
   );
 }
 
-export function SuggestedCoaches({ user }: { user: User }) {
+export function SuggestedCoaches({ user }: { user: UserProfile }) {
   return (
     <div>
       <div className="flex items-center justify-between">

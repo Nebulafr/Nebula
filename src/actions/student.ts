@@ -2,7 +2,7 @@ import { Student, SkillLevel } from "@/generated/prisma";
 import { apiPost, apiPut, apiGet } from "@/lib/utils";
 
 export interface CreateStudentData {
-  uid: string;
+  userId: string;
   email: string;
   fullName: string;
   interestedProgram: string;

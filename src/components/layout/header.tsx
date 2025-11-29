@@ -3,19 +3,22 @@
 import Link from "next/link";
 import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useUser } from "@/hooks/use-user";
 import { useState } from "react";
+import { clearAuthData } from "@/lib/auth-storage";
+import { useAuth } from "@/hooks/use-auth";
 
 export function Header() {
-  const { user, profile, logout } = useUser();
+  const { profile } = useAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  console.log({ profile });
 
   const handleLogout = async () => {
     if (isLoggingOut) return;
 
     setIsLoggingOut(true);
     try {
-      await logout();
+      clearAuthData();
     } catch (error) {
       console.error("Logout error:", error);
     } finally {
@@ -67,7 +70,7 @@ export function Header() {
           </nav>
         </div>
         <div className="flex flex-1 items-center justify-end gap-2">
-          {user ? (
+          {profile ? (
             <>
               <Button
                 variant="ghost"

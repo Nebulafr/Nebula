@@ -13,6 +13,7 @@ import React from "react";
 import { createStudent } from "@/actions/student";
 import { toast } from "react-toastify";
 import { useUser } from "@/hooks/use-user";
+import { useAuth } from "@/hooks/use-auth";
 
 const availabilities = [
   {
@@ -43,14 +44,14 @@ function OnboardingStep3Content() {
   const image = PlaceHolderImages.find((img) => img.id === "benefit-schedule");
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { user, profile } = useUser();
+  const { profile } = useAuth();
 
   const program = searchParams.get("program");
   const skillLevel = searchParams.get("skillLevel");
 
   const handleFinish = async () => {
-    console.log({ user, profile, program, skillLevel, selectedAvailability });
-    if (!user || !program || !skillLevel || !selectedAvailability) {
+    console.log({ profile, program, skillLevel, selectedAvailability });
+    if (!profile || !program || !skillLevel || !selectedAvailability) {
       toast.error(
         "Some information is missing. Please go back and complete all steps."
       );
@@ -61,9 +62,9 @@ function OnboardingStep3Content() {
 
     try {
       const result = await createStudent({
-        uid: user.uid,
-        email: user.email as string,
-        fullName: user.displayName as string,
+        userId: profile.id,
+        email: profile.email as string,
+        fullName: profile.fullName as string,
         interestedProgram: program,
         skillLevel: skillLevel,
         commitment: selectedAvailability,

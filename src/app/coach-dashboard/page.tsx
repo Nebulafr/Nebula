@@ -27,7 +27,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { CoachRoute } from "@/components/auth/protected-route";
-import { useUser } from "@/hooks/use-user";
+import { useAuth } from "@/hooks/use-auth";
 
 const upcomingSessions = [
   {
@@ -45,7 +45,7 @@ const upcomingSessions = [
 ];
 
 export default function CoachDashboardPage() {
-  const { profile } = useUser();
+  const { profile } = useAuth();
 
   return (
     <CoachRoute>

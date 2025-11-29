@@ -57,7 +57,6 @@ function CoachesPageContent() {
   const initialSearch = searchParams.get("search") || "";
   const [activeCategory, setActiveCategory] = useState("All");
   const [searchTerm, setSearchTerm] = useState(initialSearch);
-  const [coaches, setCoaches] = useState<ApiCoach[]>([]);
   const [groupedCoaches, setGroupedCoaches] = useState<ApiCoachGroup[]>([]);
   const [loading, setLoading] = useState(true);
   const { categories } = useCategories();
@@ -74,15 +73,12 @@ function CoachesPageContent() {
 
         if (response.success && response.data?.groupedCoaches) {
           setGroupedCoaches(response.data.groupedCoaches);
-          setCoaches(response.data?.coaches! || []);
         } else {
           console.log("No coaches found in API");
-          setCoaches([]);
           setGroupedCoaches([]);
         }
       } catch (err) {
         console.error("Error fetching coaches:", err);
-        setCoaches([]);
         setGroupedCoaches([]);
       } finally {
         setLoading(false);
@@ -96,17 +92,6 @@ function CoachesPageContent() {
     if (activeCategory === "All") return group.items.length > 0;
     return group.group === activeCategory && group.items.length > 0;
   });
-
-  // if (loading) {
-  //   return (
-  //     <div className="min-h-screen flex items-center justify-center">
-  //       <div className="text-center">
-  //         <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-  //         <p className="text-lg">Loading coaches...</p>
-  //       </div>
-  //     </div>
-  //   );
-  // }
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -146,7 +131,11 @@ function CoachesPageContent() {
                 activeCategory === "All" && "bg-muted font-bold"
               )}
               onClick={() => setActiveCategory("All")}
+              disabled={loading}
             >
+              {loading && activeCategory === "All" && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
               All
             </Button>
             {categories.map((category) => (
@@ -158,7 +147,11 @@ function CoachesPageContent() {
                   activeCategory === category.name && "bg-muted font-bold"
                 )}
                 onClick={() => setActiveCategory(category.name)}
+                disabled={loading}
               >
+                {loading && activeCategory === category.name && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
                 {category.name}
               </Button>
             ))}

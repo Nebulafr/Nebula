@@ -39,8 +39,9 @@ import { ModuleFormData } from "@/types";
 import ModulesForm from "@/components/ModuleForm";
 import { createProgramSchema } from "@/lib/validations";
 import { z } from "zod";
-import { useUser } from "@/hooks/use-user";
-import { Program, User } from "@/generated/prisma";
+import { useAuth } from "@/hooks/use-auth";
+import { Program } from "@/generated/prisma";
+import { UserProfile } from "@/hooks/use-user";
 
 interface IProgram extends Program {
   category: any;
@@ -196,17 +197,17 @@ const mockPrograms: IProgram[] = [
 ];
 
 export default function CoachProgramsPage() {
-  const { user } = useUser();
+  const { profile } = useAuth();
   const [programs, setPrograms] = useState<IProgram[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) return;
+    if (!profile) return;
 
     const fetchPrograms = async () => {
       try {
         setLoading(true);
-        const result = await getPrograms({ coachId: user.coach.id });
+        const result = await getPrograms({ coachId: profile?.coach!.id });
         if (result.success) {
           setPrograms(
             result.programs.length > 0 ? result.programs : mockPrograms
@@ -224,12 +225,12 @@ export default function CoachProgramsPage() {
     };
 
     fetchPrograms();
-  }, [user]);
+  }, [profile]);
 
   const refreshPrograms = async () => {
-    if (!user) return;
+    if (!profile) return;
     try {
-      const result = await getPrograms({ coachId: user.coach.id });
+      const result = await getPrograms({ coachId: profile?.coach!.id });
       if (result.success) {
         setPrograms(
           result.programs.length > 0 ? result.programs : mockPrograms
@@ -278,7 +279,10 @@ export default function CoachProgramsPage() {
     <div className="flex-1 space-y-4 p-4 md:p-8">
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold tracking-tight">My Programs</h2>
-        <CreateProgramDialog user={user} onProgramCreated={refreshPrograms} />
+        <CreateProgramDialog
+          user={profile!}
+          onProgramCreated={refreshPrograms}
+        />
       </div>
 
       {programs.length === 0 ? (
@@ -295,7 +299,7 @@ export default function CoachProgramsPage() {
                 </p>
               </div>
               <CreateProgramDialog
-                user={user}
+                user={profile!}
                 onProgramCreated={refreshPrograms}
               />
             </div>
@@ -358,10 +362,10 @@ export default function CoachProgramsPage() {
 
 function CreateProgramDialog({
   onProgramCreated,
-  user,
+  user: profile,
 }: {
   onProgramCreated?: () => void;
-  user: User;
+  user: UserProfile;
 }) {
   const { categories, loading: categoriesLoading } = useCategories();
   const [open, setOpen] = useState(false);
@@ -428,7 +432,7 @@ function CreateProgramDialog({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) {
+    if (!profile) {
       toast.error("You must be logged in.");
       return;
     }

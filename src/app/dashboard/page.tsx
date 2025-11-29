@@ -5,10 +5,10 @@ import {
   SuggestedCoaches,
 } from "./components";
 import { StudentRoute } from "@/components/auth/protected-route";
-import { useUser } from "@/hooks/use-user";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function DashboardPage() {
-  const { profile, user } = useUser();
+  const { profile } = useAuth();
 
   return (
     <StudentRoute>
@@ -19,9 +19,9 @@ export default function DashboardPage() {
           </h3>
         </div>
         <div className="flex flex-col gap-[90px] mt-6">
-          <RecommendedPrograms user={user} />
-          <UpcomingSessions user={user} />
-          <SuggestedCoaches user={user} />
+          <RecommendedPrograms user={profile!} />
+          <UpcomingSessions user={profile!} />
+          <SuggestedCoaches user={profile!} />
         </div>
       </div>
     </StudentRoute>

@@ -19,6 +19,8 @@ export function CategoryProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  console.log({ categories });
+
   const fetchCategories = async () => {
     try {
       setLoading(true);

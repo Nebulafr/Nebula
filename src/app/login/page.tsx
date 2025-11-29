@@ -16,9 +16,9 @@ import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { UserRole } from "@/generated/prisma";
-import { useUser } from "@/hooks/use-user";
 import { signInWithEmail, signInWithGoogle } from "@/firebase/auth";
 import { toast } from "react-toastify";
+import { storeAuthData } from "@/lib/auth-storage";
 
 function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -51,7 +51,6 @@ function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
 
 export default function LoginPage() {
   const loginImage = PlaceHolderImages.find((img) => img.id === "coach-hero");
-  const { setAccessToken } = useUser();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -66,10 +65,7 @@ export default function LoginPage() {
     try {
       const result = await signInWithEmail({ email, password });
       console.log("Login result:", result);
-      setAccessToken(result.accessToken, result.user);
-
-      // The useEffect above will handle redirect based on auth state
-      // Toast message is handled in the signInWithEmail function
+      storeAuthData(result);
     } catch (error: any) {
       console.error("Login error:", error);
       toast.error(error.message || "Failed to sign in");
@@ -86,7 +82,7 @@ export default function LoginPage() {
     try {
       const result = await signInWithGoogle(UserRole.STUDENT);
       console.log("Google login result:", result);
-      setAccessToken(result.accessToken, result.user);
+      storeAuthData(result);
 
       // Centralized redirect logic will handle navigation
       // Toast message is handled in the signInWithGoogle function

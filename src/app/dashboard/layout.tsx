@@ -30,8 +30,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { usePathname } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { useUser } from "@/hooks/use-user";
+import { useAuth } from "@/hooks/use-auth";
 
 function TopBar() {
   const pathname = usePathname();
@@ -86,7 +85,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const { user, profile } = useUser();
+  const { profile } = useAuth();
 
   return (
     <SidebarProvider>
@@ -97,19 +96,15 @@ export default function DashboardLayout({
               <Avatar className="h-8 w-8">
                 <AvatarImage
                   src={
-                    profile?.avatarUrl ||
-                    user?.photoURL ||
-                    "https://i.pravatar.cc/150?u=student"
+                    profile?.avatarUrl || "https://i.pravatar.cc/150?u=student"
                   }
                 />
                 <AvatarFallback>
-                  {profile?.fullName?.charAt(0) ||
-                    user?.displayName?.charAt(0) ||
-                    "S"}
+                  {profile?.fullName?.charAt(0) || "S"}
                 </AvatarFallback>
               </Avatar>
               <span className="font-headline text-lg font-bold">
-                {profile?.fullName || user?.displayName || "Student"}
+                {profile?.fullName || "Student"}
               </span>
             </div>
           </div>

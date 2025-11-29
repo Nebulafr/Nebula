@@ -35,6 +35,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useUser } from "@/hooks/use-user";
+import { useAuth } from "@/hooks/use-auth";
 
 function TopBar() {
   const pathname = usePathname();
@@ -96,7 +97,7 @@ export default function CoachDashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const { user, profile } = useUser();
+  const { profile } = useAuth();
 
   return (
     <div className="coach-theme">
@@ -108,19 +109,15 @@ export default function CoachDashboardLayout({
                 <Avatar className="h-8 w-8">
                   <AvatarImage
                     src={
-                      profile?.avatarUrl ||
-                      user?.photoURL ||
-                      "https://i.pravatar.cc/150?u=coach"
+                      profile?.avatarUrl || "https://i.pravatar.cc/150?u=coach"
                     }
                   />
                   <AvatarFallback>
-                    {profile?.fullName?.charAt(0) ||
-                      user?.displayName?.charAt(0) ||
-                      "C"}
+                    {profile?.fullName?.charAt(0) || "C"}
                   </AvatarFallback>
                 </Avatar>
                 <span className="font-headline text-lg font-bold">
-                  {profile?.fullName || user?.displayName || "Coach"}
+                  {profile?.fullName || "Coach"}
                 </span>
               </div>
             </div>
