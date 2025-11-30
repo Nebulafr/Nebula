@@ -113,8 +113,8 @@ async function makeRequest<T = any>(
         }
       }
 
-      // Server error with response
       const responseData = error.response.data;
+      console.log({ responseData });
       throw new Error(
         responseData?.error ||
           responseData?.message ||
@@ -176,3 +176,6 @@ export async function apiRequest<T = any>(
   const { method = "GET", body, headers, requireAuth } = options;
   return makeRequest<T>(endpoint, method, { body, headers, requireAuth });
 }
+
+export const capitalize = (str: string) =>
+  str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();

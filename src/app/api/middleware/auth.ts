@@ -7,7 +7,7 @@ import jwt from "jsonwebtoken";
 
 function verifyJWT(token: string): { userId: string } | null {
   try {
-    const secret = process.env.JWT_SECRET || "your-secret-key";
+    const secret = process.env.ACCESS_TOKEN_SECRET || "ACCESS_TOKEN_SECRET";
     const decoded = jwt.verify(token, secret) as any;
 
     if (decoded.type === "access" && decoded.userId) {

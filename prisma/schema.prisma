@@ -161,6 +161,7 @@ model Coach {
   programs    Program[]
   sessions    Session[]
   enrollments Enrollment[]
+  reviews     Review[]     @relation("ReviewCoach")
 
   @@map("coaches")
 }
@@ -234,7 +235,7 @@ model Program {
   coach       Coach        @relation(fields: [coachId], references: [id])
   modules     Module[]
   enrollments Enrollment[]
-  reviews     Review[]     @relation("ReviewTarget")
+  reviews     Review[]     @relation("ReviewProgram")
 
   @@map("programs")
 }
@@ -332,7 +333,8 @@ model Review {
   id           String           @id @default(cuid())
   reviewerId   String
   revieweeId   String?
-  targetId     String
+  programId    String?
+  coachId      String?
   targetType   ReviewTargetType
   rating       Int
   title        String?
@@ -347,7 +349,8 @@ model Review {
   // Relationships
   reviewer User     @relation("ReviewerUser", fields: [reviewerId], references: [id])
   reviewee User?    @relation("RevieweeUser", fields: [revieweeId], references: [id])
-  program  Program? @relation("ReviewTarget", fields: [targetId], references: [id])
+  program  Program? @relation("ReviewProgram", fields: [programId], references: [id])
+  coach    Coach?   @relation("ReviewCoach", fields: [coachId], references: [id])
 
   @@map("reviews")
 }
@@ -435,3 +438,4 @@ model MessageReaction {
   @@unique([messageId, userId, emoji])
   @@map("message_reactions")
 }
+

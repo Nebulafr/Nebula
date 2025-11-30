@@ -16,7 +16,7 @@ import sendResponse from "../utils/send-response";
 
 export class AuthService {
   static generateAccessToken(userId: string): string {
-    const secret = process.env.JWT_SECRET || "your-secret-key";
+    const secret = process.env.ACCESS_TOKEN_SECRET || "ACCESS_TOKEN_SECRET";
     return jwt.sign({ userId, type: "access" }, secret, { expiresIn: "7d" });
   }
 

@@ -279,7 +279,7 @@ export class CoachService {
     try {
       const reviews = await prisma.review.findMany({
         where: {
-          targetId: coachId,
+          coachId,
           targetType: "COACH",
           isPublic: true,
         },
@@ -309,7 +309,7 @@ export class CoachService {
         id: review.id,
         reviewerId: review.reviewerId,
         revieweeId: review.revieweeId,
-        targetId: review.targetId,
+        targetId: review.coachId || review.programId,
         targetType: review.targetType,
         rating: review.rating,
         title: review.title,

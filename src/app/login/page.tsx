@@ -17,7 +17,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { UserRole } from "@/generated/prisma";
 import { useAuth } from "@/hooks/use-auth";
-import { toast } from "react-toastify";
+import { handleAndToastError } from "@/lib/error-handler";
+import { AuthPageGuard } from "@/components/auth/protected-route";
 
 function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -64,10 +65,8 @@ export default function LoginPage() {
 
     try {
       await signIn({ email, password });
-      // Redirect is handled by AuthProvider
-    } catch (error: any) {
-      console.error("Login error:", error);
-      toast.error(error.message || "Failed to sign in");
+    } catch (error) {
+      handleAndToastError(error, "Failed to sign in");
     } finally {
       setLoading(false);
     }
@@ -80,19 +79,22 @@ export default function LoginPage() {
 
     try {
       await signInWithGoogle(UserRole.STUDENT);
-      // Redirect is handled by AuthProvider
-    } catch (error: any) {
-      console.error("Google login error:", error);
-      if (error?.message !== "Redirecting to Google sign-in...") {
-        toast.error(error.message || "Failed to sign in with Google");
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message === "Redirecting to Google sign-in..."
+      ) {
+        return;
       }
+      handleAndToastError(error, "Failed to sign in with Google");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="w-full min-h-screen lg:grid lg:grid-cols-5">
+    <AuthPageGuard>
+      <div className="w-full min-h-screen lg:grid lg:grid-cols-5">
       <div className="relative hidden h-full bg-muted lg:col-span-3 lg:block">
         {loginImage && (
           <Image
@@ -216,5 +218,6 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+    </AuthPageGuard>
   );
 }

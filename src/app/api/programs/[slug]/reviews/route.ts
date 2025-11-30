@@ -5,8 +5,8 @@ import { ReviewController } from "../../../controllers/review.controller";
 const reviewController = new ReviewController();
 
 export const GET = CatchError(
-  async (request: NextRequest, context: { params: Promise<{ coachId: string }> }) => {
-    const { coachId } = await context.params;
-    return await reviewController.getReviews(request, "COACH", coachId);
+  async (request: NextRequest, context: { params: Promise<{ slug: string }> }) => {
+    const { slug } = await context.params;
+    return await reviewController.getReviews(request, "PROGRAM", slug);
   }
 );

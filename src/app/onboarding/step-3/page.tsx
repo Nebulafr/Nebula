@@ -12,7 +12,6 @@ import { useSearchParams, useRouter } from "next/navigation";
 import React from "react";
 import { createStudent } from "@/actions/student";
 import { toast } from "react-toastify";
-import { useUser } from "@/hooks/use-user";
 import { useAuth } from "@/hooks/use-auth";
 
 const availabilities = [
@@ -44,7 +43,7 @@ function OnboardingStep3Content() {
   const image = PlaceHolderImages.find((img) => img.id === "benefit-schedule");
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { profile } = useAuth();
+  const { profile, refreshUser } = useAuth();
 
   const program = searchParams.get("program");
   const skillLevel = searchParams.get("skillLevel");
@@ -76,7 +75,10 @@ function OnboardingStep3Content() {
       }
 
       toast.success("Profile created successfully!");
-      router.replace("/dashboard");
+      await refreshUser();
+      setTimeout(() => {
+        router.replace("/dashboard");
+      }, 100);
     } catch (error: any) {
       console.error("Error creating student profile:", error);
       toast.error(

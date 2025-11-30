@@ -18,6 +18,7 @@ import Link from "next/link";
 import { UserRole } from "@/generated/prisma";
 import { toast } from "react-toastify";
 import { useAuth } from "@/hooks/use-auth";
+import { AuthPageGuard } from "@/components/auth/protected-route";
 
 function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -99,7 +100,8 @@ export default function CoachSignupPage() {
   };
 
   return (
-    <div className="w-full min-h-screen lg:grid lg:grid-cols-5">
+    <AuthPageGuard>
+      <div className="w-full min-h-screen lg:grid lg:grid-cols-5">
       <div className="relative hidden h-full bg-muted lg:col-span-3 lg:block">
         {signupImage && (
           <Image
@@ -216,5 +218,6 @@ export default function CoachSignupPage() {
         </div>
       </div>
     </div>
+    </AuthPageGuard>
   );
 }

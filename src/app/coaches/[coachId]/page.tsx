@@ -38,6 +38,8 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { reviewCoach, type ReviewResponse } from "@/actions/reviews";
+import { createConversation, type CreateConversationResponse } from "@/actions/messaging";
 
 export default function CoachDetailPage() {
   const [bookingStep, setBookingStep] = useState(0);
@@ -51,6 +53,7 @@ export default function CoachDetailPage() {
   const [selectedTime, setSelectedTime] = useState("");
   const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
@@ -275,15 +278,78 @@ export default function CoachDetailPage() {
     }
   };
 
-  const handleMessageClick = () => {
-    router.replace("/dashboard/messaging?conversationId=1");
+  const handleMessageClick = async () => {
+    if (!profile) {
+      toast.error("Please log in to send a message.");
+      router.replace("/login");
+      return;
+    }
+
+    if (!coach) {
+      toast.error("Coach information not available.");
+      return;
+    }
+
+    try {
+      // Create or find conversation between current user and coach
+      const conversationResult: CreateConversationResponse = await createConversation({
+        participants: [profile.id, coach.userId],
+        type: "DIRECT"
+      });
+
+      if (conversationResult.success && conversationResult.data) {
+        // Redirect to messaging with the conversation
+        router.push(`/dashboard/messaging?conversationId=${conversationResult.data.id}`);
+        toast.success("Opening conversation...");
+      } else {
+        throw new Error(conversationResult.error || "Failed to create conversation");
+      }
+    } catch (error: any) {
+      console.error("Error creating conversation:", error);
+      toast.error("Failed to start conversation. Please try again.");
+    }
   };
 
-  const handleReviewSubmit = (e: React.FormEvent) => {
+  const handleReviewSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Here you would typically send the review data to your backend
-    console.log({ rating, reviewText });
-    setReviewSubmitted(true);
+    
+    if (!coach) {
+      toast.error("Coach information not available.");
+      return;
+    }
+
+    if (rating === 0) {
+      toast.error("Please select a rating.");
+      return;
+    }
+
+    if (!reviewText.trim()) {
+      toast.error("Please write a review.");
+      return;
+    }
+
+    setIsSubmittingReview(true);
+    
+    try {
+      const response: ReviewResponse = await reviewCoach({
+        coachId: coach.id,
+        rating,
+        content: reviewText,
+      });
+
+      if (response.success) {
+        toast.success(response.message || "Review submitted successfully!");
+        setReviewSubmitted(true);
+        setIsReviewDialogOpen(false);
+      } else {
+        toast.error(response.error || "Failed to submit review.");
+      }
+    } catch (error: any) {
+      console.error("Error submitting review:", error);
+      toast.error("Failed to submit review. Please try again.");
+    } finally {
+      setIsSubmittingReview(false);
+    }
   };
 
   const resetReviewForm = () => {
@@ -543,9 +609,9 @@ export default function CoachDetailPage() {
                       <DialogFooter>
                         <Button
                           type="submit"
-                          disabled={rating === 0 || !reviewText.trim()}
+                          disabled={rating === 0 || !reviewText.trim() || isSubmittingReview}
                         >
-                          Submit Review
+                          {isSubmittingReview ? "Submitting..." : "Submit Review"}
                         </Button>
                       </DialogFooter>
                     </form>

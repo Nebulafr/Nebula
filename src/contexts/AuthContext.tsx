@@ -4,15 +4,10 @@ import {
   createContext,
   useContext,
   useEffect,
-  useRef,
   useState,
   useCallback,
 } from "react";
-import {
-  getStoredUserData,
-  storeAuthData,
-  clearAuthData,
-} from "@/lib/auth-storage";
+import { storeAuthData, clearAuthData } from "@/lib/auth-storage";
 import {
   signUpWithEmail as apiSignUpWithEmail,
   signInWithEmail as apiSignInWithEmail,
@@ -25,8 +20,7 @@ import {
   SignInData,
 } from "@/firebase/auth";
 import { UserRole } from "@/generated/prisma";
-import { usePathname, useRouter } from "next/navigation";
-import { publicRoutes } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 import { UserProfile, AuthState, UseUserReturn } from "@/hooks/use-user";
 import { getUserProfile } from "@/actions/user";
 
@@ -52,10 +46,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [authState, setAuthState] = useState<AuthState>("LOADING");
   const router = useRouter();
-  const pathname = usePathname();
-  const isRedirecting = useRef(false);
 
   const updateUserState = useCallback((userData: UserProfile | null) => {
+    console.log({ userData });
+
     if (!userData) {
       setProfile(null);
       setAuthState("UNAUTHENTICATED");
@@ -74,7 +68,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       const response = await getUserProfile();
       const userData = response.data?.user!;
-      updateUserState(userData!);
+      updateUserState(userData);
     } catch (error) {
       console.error("Error refreshing user profile:", error);
       updateUserState(null);
@@ -84,67 +78,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     refreshUser();
   }, [refreshUser]);
-
-  useEffect(() => {
-    if (authState === "LOADING" || isRedirecting.current) return;
-
-    const isAuthPage = [
-      "/login",
-      "/signup",
-      "/coach-login",
-      "/coach-signup",
-    ].some((p) => pathname.startsWith(p));
-
-    const isOnboardingPage =
-      pathname.startsWith("/onboarding") ||
-      pathname.startsWith("/coach-onboarding");
-
-    const isPublicRoute = publicRoutes.includes(pathname);
-
-    if (authState === "UNAUTHENTICATED" && !isAuthPage && !isPublicRoute) {
-      isRedirecting.current = true;
-      router.replace("/login");
-      setTimeout(() => (isRedirecting.current = false), 100);
-      return;
-    }
-
-    if (
-      authState === "AUTHENTICATED_NO_PROFILE" &&
-      !isOnboardingPage &&
-      !isAuthPage
-    ) {
-      isRedirecting.current = true;
-      const target =
-        profile?.role === "COACH"
-          ? "/coach-onboarding/step-1"
-          : "/onboarding/step-1";
-      router.replace(target);
-      setTimeout(() => (isRedirecting.current = false), 100);
-      return;
-    }
-
-    if (
-      authState === "AUTHENTICATED_WITH_PROFILE" &&
-      (isAuthPage || isOnboardingPage)
-    ) {
-      isRedirecting.current = true;
-      const target = getDashboardUrl(profile?.role);
-      router.replace(target);
-      setTimeout(() => (isRedirecting.current = false), 100);
-    }
-  }, [authState, profile, pathname, router]);
-
-  function getDashboardUrl(role?: string): string {
-    switch (role) {
-      case "COACH":
-        return "/coach-dashboard";
-      case "ADMIN":
-        return "/admin";
-      case "STUDENT":
-      default:
-        return "/dashboard";
-    }
-  }
 
   const handleAuthAction = async <T extends { accessToken: string; user: any }>(
     action: () => Promise<T>

@@ -17,7 +17,13 @@ export const POST = CatchError(
       request: NextRequest,
       context: { params: Promise<{ coachId: string }> }
     ) => {
-      const body = await request.json();
+      let body;
+      try {
+        body = await request.json();
+      } catch (error) {
+        throw new BadRequestException("Invalid JSON body");
+      }
+      
       const { coachId } = await context.params;
       const user = (request as any).user;
       console.log({ body, coachId });

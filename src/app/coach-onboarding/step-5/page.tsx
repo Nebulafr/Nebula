@@ -19,7 +19,6 @@ import { Input } from "@/components/ui/input";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useState } from "react";
 import { toast } from "react-toastify";
-import { useUser } from "@/hooks/use-user";
 import { createCoach } from "@/actions/coaches";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -27,7 +26,7 @@ function CoachOnboardingStep5Content() {
   const image = PlaceHolderImages.find((img) => img.id === "benefit-schedule");
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { profile } = useAuth();
+  const { profile, refreshUser } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [availability, setAvailability] = useState("1-3");
   const [rate, setRate] = useState("");
@@ -87,7 +86,10 @@ function CoachOnboardingStep5Content() {
       toast.success(
         `We've received your application and will be in touch soon.`
       );
-      router.replace("/coach-dashboard");
+      await refreshUser();
+      setTimeout(() => {
+        router.replace("/coach-dashboard");
+      }, 100);
     } catch (error) {
       console.error("Error submitting coach application:", error);
       toast.error("Could not submit your application. Please try again.");

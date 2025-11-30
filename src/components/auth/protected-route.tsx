@@ -4,7 +4,6 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { UserRole } from "@/generated/prisma";
 import { useAuth } from "@/hooks/use-auth";
-
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requiredRole?: UserRole;
@@ -106,4 +105,53 @@ export function AdminRoute({
       {children}
     </ProtectedRoute>
   );
+}
+
+// Component to redirect authenticated users away from auth pages
+export function AuthPageGuard({ children }: { children: React.ReactNode }) {
+  const { loading, isAuthenticated, profile, authState } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (loading) return;
+
+    if (isAuthenticated) {
+      // If user has profile, redirect to appropriate dashboard
+      if (authState === "AUTHENTICATED_WITH_PROFILE") {
+        const dashboardPath =
+          profile?.role === UserRole.COACH
+            ? "/coach-dashboard"
+            : profile?.role === UserRole.ADMIN
+            ? "/admin"
+            : "/dashboard";
+        router.replace(dashboardPath);
+        return;
+      }
+
+      // If user has no profile, redirect to onboarding
+      if (authState === "AUTHENTICATED_NO_PROFILE") {
+        const onboardingPath =
+          profile?.role === "COACH"
+            ? "/coach-onboarding/step-1"
+            : "/onboarding/step-1";
+        router.replace(onboardingPath);
+        return;
+      }
+    }
+  }, [loading, isAuthenticated, profile, authState, router]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  // Only show auth pages if user is not authenticated
+  if (isAuthenticated) {
+    return null;
+  }
+
+  return <>{children}</>;
 }

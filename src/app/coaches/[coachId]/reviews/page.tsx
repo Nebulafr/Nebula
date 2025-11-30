@@ -8,48 +8,66 @@ import Link from "next/link";
 import { Footer } from "@/components/layout/footer";
 import { useParams } from "next/navigation";
 import { Header } from "@/components/layout/header";
+import { useEffect, useState } from "react";
+import { getCoachReviews } from "@/actions/reviews";
+import { capitalize } from "@/lib/utils";
 
-const reviews = [
-  {
-    text: "Adrian was incredibly insightful and supportive. His real-world examples from BCG made complex concepts easy to understand. I left the session feeling more confident and inspired.",
-    author: "Carlos Pavol",
-    role: "Student",
-    rating: 5,
-  },
-  {
-    text: "A fantastic mentor. Adrian helped me navigate the complexities of a case interview and provided actionable feedback.",
-    author: "Sarah K.",
-    role: "UX Designer",
-    rating: 5,
-  },
-  {
-    text: "The sessions were practical and directly applicable to what I was facing at work. Adrian is a great listener and gives advice that you can actually use.",
-    author: "Maria G.",
-    role: "Product Manager",
-    rating: 5,
-  },
-  {
-    text: "I was hesitant about online coaching, but Adrian made it a very personal and engaging experience. I learned a lot in just a few sessions.",
-    author: "James F.",
-    role: "Student",
-    rating: 4,
-  },
-  {
-    text: "Highly recommend Adrian for anyone looking to break into consulting. His knowledge of the industry is immense.",
-    author: "Li W.",
-    role: "Graduate",
-    rating: 5,
-  },
-  {
-    text: "Good insights, but I was hoping for more materials to review after the sessions. The live coaching was great, though.",
-    author: "Tom B.",
-    role: "Analyst",
-    rating: 4,
-  },
-];
+// const reviews = [
+//   {
+//     text: "Adrian was incredibly insightful and supportive. His real-world examples from BCG made complex concepts easy to understand. I left the session feeling more confident and inspired.",
+//     author: "Carlos Pavol",
+//     role: "Student",
+//     rating: 5,
+//   },
+//   {
+//     text: "A fantastic mentor. Adrian helped me navigate the complexities of a case interview and provided actionable feedback.",
+//     author: "Sarah K.",
+//     role: "UX Designer",
+//     rating: 5,
+//   },
+//   {
+//     text: "The sessions were practical and directly applicable to what I was facing at work. Adrian is a great listener and gives advice that you can actually use.",
+//     author: "Maria G.",
+//     role: "Product Manager",
+//     rating: 5,
+//   },
+//   {
+//     text: "I was hesitant about online coaching, but Adrian made it a very personal and engaging experience. I learned a lot in just a few sessions.",
+//     author: "James F.",
+//     role: "Student",
+//     rating: 4,
+//   },
+//   {
+//     text: "Highly recommend Adrian for anyone looking to break into consulting. His knowledge of the industry is immense.",
+//     author: "Li W.",
+//     role: "Graduate",
+//     rating: 5,
+//   },
+//   {
+//     text: "Good insights, but I was hoping for more materials to review after the sessions. The live coaching was great, though.",
+//     author: "Tom B.",
+//     role: "Analyst",
+//     rating: 4,
+//   },
+// ];
 
 export default function CoachReviewsPage() {
   const params = useParams<{ coachId: string }>();
+  const [reviews, setReviews] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!params.coachId) return;
+
+    async function fetchReviews() {
+      const response = await getCoachReviews({
+        coachId: params.coachId,
+      });
+      const reposnseData = response.data;
+      console.log({ reposnseData, reviews: reposnseData.reviews });
+      setReviews(reposnseData?.reviews || []);
+    }
+    fetchReviews();
+  }, [params.coachId]);
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -87,12 +105,12 @@ export default function CoachReviewsPage() {
                     ))}
                   </div>
                   <p className="font-serif text-base text-muted-foreground">
-                    &quot;{review.text}&quot;
+                    &quot;{review.content}&quot;
                   </p>
                   <p className="mt-4 text-sm font-semibold">
-                    {review.author},{" "}
+                    {review.reviewer.fullName},{" "}
                     <span className="font-normal text-muted-foreground">
-                      {review.role}
+                      {capitalize(review.reviewer.role)}
                     </span>
                   </p>
                 </CardContent>
