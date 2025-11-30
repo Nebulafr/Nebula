@@ -18,7 +18,7 @@ export function LogoutButton({
   showIcon = true,
   children,
 }: LogoutButtonProps) {
-  const {} = useAuthActions();
+  const { signOut } = useAuthActions();
   const [loading, setLoading] = useState(false);
 
   const handleLogout = async () => {
@@ -26,7 +26,7 @@ export function LogoutButton({
 
     setLoading(true);
     try {
-      // await logout();
+      await signOut();
     } catch (error) {
       console.error("Logout error:", error);
     } finally {

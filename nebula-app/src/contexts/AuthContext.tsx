@@ -16,7 +16,6 @@ import {
 } from "@/actions/auth";
 import {
   signInWithGoogle as firebaseSignInWithGoogle,
-  signOut as firebaseSignOut,
   SignInData,
 } from "@/firebase/auth";
 import { UserRole } from "@/generated/prisma";
@@ -97,10 +96,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const signOut = async () => {
     try {
-      await firebaseSignOut();
+      // Make API call to logout endpoint for server-side cleanup
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
     } catch (error) {
-      console.error("Error signing out from Firebase:", error);
+      console.warn("API logout failed, continuing with local cleanup:", error);
     } finally {
+      // Always clear local auth data and redirect
       clearAuthData();
       updateUserState(null);
       router.push("/login");

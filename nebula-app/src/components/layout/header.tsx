@@ -4,11 +4,10 @@ import Link from "next/link";
 import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { clearAuthData } from "@/lib/auth-storage";
 import { useAuth } from "@/hooks/use-auth";
 
 export function Header() {
-  const { profile } = useAuth();
+  const { profile, signOut } = useAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   console.log({ profile });
@@ -18,7 +17,7 @@ export function Header() {
 
     setIsLoggingOut(true);
     try {
-      clearAuthData();
+      await signOut();
     } catch (error) {
       console.error("Logout error:", error);
     } finally {

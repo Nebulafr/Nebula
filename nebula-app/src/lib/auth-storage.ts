@@ -1,23 +1,30 @@
-// Utility functions for managing authentication tokens
+import Cookies from "universal-cookie";
 
+// Utility functions for managing authentication tokens with cookies
 export const AUTH_TOKEN_KEY = "accessToken";
+export const USER_DATA_KEY = "userData";
+
+const cookies = new Cookies();
+
+const cookieOptions = {
+  httpOnly: false, // Needs to be false for client-side access
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "lax" as const,
+  maxAge: 60 * 60 * 24 * 7, // 7 days
+  path: "/",
+};
 
 export function storeAccessToken(token: string): void {
-  if (typeof window !== "undefined") {
-    localStorage.setItem(AUTH_TOKEN_KEY, token);
-  }
+  cookies.set(AUTH_TOKEN_KEY, token, cookieOptions);
 }
 
 export function getAccessToken(): string | null {
-  if (typeof window !== "undefined") {
-    return localStorage.getItem(AUTH_TOKEN_KEY);
-  }
-  return null;
+  return cookies.get(AUTH_TOKEN_KEY) || null;
 }
 
 export function removeAccessToken(): void {
+  cookies.remove(AUTH_TOKEN_KEY, { path: "/" });
   if (typeof window !== "undefined") {
-    localStorage.removeItem(AUTH_TOKEN_KEY);
     sessionStorage.removeItem("pendingGoogleSignInRole");
   }
 }
@@ -32,24 +39,22 @@ export function storeAuthData(authResponse: {
   user: any;
 }): void {
   storeAccessToken(authResponse.accessToken);
-
-  // You could also store user data in localStorage if needed
-  if (typeof window !== "undefined") {
-    localStorage.setItem("userData", JSON.stringify(authResponse.user));
-  }
+  cookies.set(USER_DATA_KEY, JSON.stringify(authResponse.user), cookieOptions);
 }
 
 export function getStoredUserData(): any | null {
-  if (typeof window !== "undefined") {
-    const userData = localStorage.getItem("userData");
-    return userData ? JSON.parse(userData) : null;
-  }
-  return null;
+  const userData = cookies.get(USER_DATA_KEY);
+  return userData
+    ? typeof userData === "string"
+      ? JSON.parse(userData)
+      : userData
+    : null;
 }
 
 export function clearAuthData(): void {
-  removeAccessToken();
+  cookies.remove(AUTH_TOKEN_KEY, { path: "/" });
+  cookies.remove(USER_DATA_KEY, { path: "/" });
   if (typeof window !== "undefined") {
-    localStorage.removeItem("userData");
+    sessionStorage.removeItem("pendingGoogleSignInRole");
   }
 }

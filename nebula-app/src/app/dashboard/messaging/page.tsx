@@ -34,7 +34,6 @@ function MessagingPageContent() {
     token: accessToken || "",
   };
 
-  // Debug current user state
   React.useEffect(() => {
     console.log("Current user state:", {
       id: currentUser.id,
@@ -52,12 +51,10 @@ function MessagingPageContent() {
   const [sending, setSending] = useState(false);
   const [socket, setSocket] = useState<any>(null);
 
-  // Load conversations on mount
   useEffect(() => {
     loadConversations();
   }, []);
 
-  // Handle conversation selection from URL parameter
   useEffect(() => {
     if (conversationId && conversations.length > 0) {
       const convo = conversations.find((c) => c.id === conversationId);
@@ -112,7 +109,6 @@ function MessagingPageContent() {
     }
   }, [currentUser.token, currentUser.id]);
 
-  // Join conversation room when conversation is selected
   useEffect(() => {
     if (selectedConversation && socket.connected) {
       socket.emit("join_conversation", selectedConversation.id);
@@ -167,6 +163,12 @@ function MessagingPageContent() {
   const handleSelectConversation = async (conversation: Conversation) => {
     setSelectedConversation(conversation);
     await loadMessages(conversation.id);
+
+    // Join the conversation room for real-time updates
+    if (socket && socket.connected) {
+      console.log("Joining conversation room:", conversation.id);
+      socket.emit("join_conversation", conversation.id);
+    }
   };
 
   const handleSendMessage = async (e: React.FormEvent) => {
@@ -175,6 +177,20 @@ function MessagingPageContent() {
 
     try {
       setSending(true);
+
+      if (!socket || !socket.connected) {
+        console.error("Socket not connected");
+        return;
+      }
+
+      console.log("Sending message:", {
+        conversationId: selectedConversation.id,
+        content: newMessage,
+        type: "TEXT",
+      });
+
+      // Join conversation room if not already joined
+      socket.emit("join_conversation", selectedConversation.id);
 
       socket.emit("send_message", {
         conversationId: selectedConversation.id,
