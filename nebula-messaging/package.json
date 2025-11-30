@@ -1,0 +1,43 @@
+{
+  "name": "nebula-socket-server",
+  "version": "1.0.0",
+  "description": "Socket.IO server for Nebula messaging",
+  "main": "dist/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node dist/server.js",
+    "dev": "tsx watch src/server.ts",
+    "prebuild": "npm run db:generate",
+    "build": "tsc",
+    "db:generate": "npx prisma generate",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf dist node_modules/.cache"
+  },
+  "dependencies": {
+    "@prisma/client": "^7.0.0",
+    "@prisma/adapter-pg": "^7.0.0",
+    "socket.io": "^4.8.1",
+    "jsonwebtoken": "^9.0.0",
+    "dotenv": "^16.6.1",
+    "pg": "^8.13.1"
+  },
+  "devDependencies": {
+    "prisma": "^7.0.0",
+    "typescript": "^5.6.3",
+    "tsx": "^4.19.2",
+    "@types/node": "^22.10.1",
+    "@types/jsonwebtoken": "^9.0.7",
+    "@types/pg": "^8.11.10"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "socket.io",
+    "websocket",
+    "messaging",
+    "real-time"
+  ],
+  "author": "Nebula Team",
+  "license": "MIT"
+}
