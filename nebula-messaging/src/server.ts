@@ -1,9 +1,9 @@
 import { createServer } from "node:http";
 import { Server, Socket } from "socket.io";
-import { User } from "./generated/prisma";
+import { User } from "@prisma/client";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
-import { prisma } from "./lib/prisma";
+import { prisma } from "./lib/prisma.js";
 
 dotenv.config();
 
