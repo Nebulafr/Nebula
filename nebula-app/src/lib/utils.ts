@@ -2,6 +2,7 @@ import { ApiResponse } from "@/types";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import axios, { AxiosError, AxiosRequestConfig } from "axios";
+import { getAccessToken } from "./auth-storage";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -30,14 +31,6 @@ export const publicRoutes = [
   "/become-a-coach",
 ];
 
-async function getAuthToken(): Promise<string | null> {
-  if (typeof window === "undefined") {
-    return null;
-  }
-
-  return localStorage.getItem("accessToken");
-}
-
 async function makeRequest<T = any>(
   endpoint: string,
   method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH",
@@ -59,7 +52,7 @@ async function makeRequest<T = any>(
     }
 
     if (requireAuth) {
-      const token = await getAuthToken();
+      const token = getAccessToken();
 
       if (!token) {
         return {
