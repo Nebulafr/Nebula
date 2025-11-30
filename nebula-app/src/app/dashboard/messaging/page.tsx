@@ -76,6 +76,19 @@ function MessagingPageContent() {
         console.log("Socket connected:", newSocket.id);
       });
 
+      newSocket.on("conversations_loaded", (conversations: any[]) => {
+        console.log("📋 Conversations loaded via socket:", conversations);
+        setConversations(conversations);
+        setLoading(false);
+      });
+
+      newSocket.on("messages_loaded", (data: any) => {
+        console.log("📨 Messages loaded via socket:", data);
+        if (data.conversationId === selectedConversation?.id) {
+          setCurrentMessages(data.messages);
+        }
+      });
+
       newSocket.on("new_message", (message: any) => {
         setCurrentMessages((prev) => [
           ...prev,
@@ -101,6 +114,8 @@ function MessagingPageContent() {
 
       return () => {
         newSocket.off("connect");
+        newSocket.off("conversations_loaded");
+        newSocket.off("messages_loaded");
         newSocket.off("new_message");
         newSocket.off("error");
         newSocket.disconnect();
@@ -149,14 +164,21 @@ function MessagingPageContent() {
       return;
     }
 
-    try {
-      const { messages } = await getConversationMessages(
-        conversationId,
-        currentUser.id
-      );
-      setCurrentMessages(messages);
-    } catch (error) {
-      console.error("Error loading messages:", error);
+    // Use socket to load messages if connected, fallback to API
+    if (socket && socket.connected) {
+      console.log("Loading messages via socket for conversation:", conversationId);
+      socket.emit("load_messages", { conversationId });
+    } else {
+      console.log("Loading messages via API (fallback)");
+      try {
+        const { messages } = await getConversationMessages(
+          conversationId,
+          currentUser.id
+        );
+        setCurrentMessages(messages);
+      } catch (error) {
+        console.error("Error loading messages:", error);
+      }
     }
   };
 

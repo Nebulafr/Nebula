@@ -1,348 +1,420 @@
+"use client";
 
-'use client';
-
-import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import React, { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Search, Send, MoreVertical, Paperclip } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { createAuthenticatedSocket } from "@/lib/socket";
 import {
-  Search,
-  Send,
-  MoreVertical,
-  Paperclip,
-  ArrowLeft,
-} from 'lucide-react';
-import {
-  Card,
-  CardContent,
-} from '@/components/ui/card';
-import { cn } from '@/lib/utils';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
+  getUserConversations,
+  getConversationMessages,
+  type Conversation,
+  type Message,
+} from "@/actions/messaging";
+import { useAuth } from "@/hooks/use-auth";
+import { getAccessToken } from "@/lib/auth-storage";
 
-const conversations = [
-  {
-    id: 1,
-    name: 'Alex Thompson',
-    avatar: 'https://i.pravatar.cc/150?u=alex',
-    lastMessage: 'Perfect, thank you!',
-    time: '2m ago',
-    unread: 2,
-    role: 'Student',
-  },
-  {
-    id: 2,
-    name: 'Sarah K.',
-    avatar: 'https://i.pravatar.cc/150?u=sarah',
-    lastMessage: 'Sure, I can help with that.',
-    time: '1h ago',
-    unread: 0,
-    role: 'Student',
-  },
-  {
-    id: 3,
-    name: 'Michael T.',
-    avatar: 'https://i.pravatar.cc/150?u=michael',
-    lastMessage: 'Do you have time for a quick chat tomorrow?',
-    time: '3h ago',
-    unread: 0,
-    role: 'Student',
-  },
-];
-
-const messages = {
-  1: [
-    {
-      id: 1,
-      sender: 'Adrian Cucurella',
-      text: 'Hi Alex, thanks for reaching out. How can I help you prepare for your case interview?',
-      timestamp: '10:30 AM',
-      isMe: true,
-    },
-    {
-      id: 2,
-      sender: 'Alex Thompson',
-      text: "Hi Adrian, I'm looking for guidance on structuring my responses and managing time effectively.",
-      timestamp: '10:32 AM',
-      isMe: false,
-    },
-    {
-      id: 3,
-      sender: 'Adrian Cucurella',
-      text: 'Great. We can start by running through a mock case. Does that sound good?',
-      timestamp: '10:35 AM',
-      isMe: true,
-    },
-     {
-      id: 4,
-      sender: 'Alex Thompson',
-      text: 'Perfect, thank you!',
-      timestamp: '10:36 AM',
-      isMe: false,
-    },
-  ],
-  2: [
-     {
-      id: 1,
-      sender: 'Adrian Cucurella',
-      text: 'Hi Sarah, I saw you enrolled in the Consulting program. Do you have any questions?',
-      timestamp: '9:00 AM',
-      isMe: true,
-    },
-    {
-      id: 2,
-      sender: 'Sarah K.',
-      text: "Hi Adrian! Yes, I was wondering if you could recommend any resources for a beginner.",
-      timestamp: '9:02 AM',
-      isMe: false,
-    },
-    {
-      id: 3,
-      sender: 'Adrian Cucurella',
-      text: 'Sure, I can help with that.',
-      timestamp: '9:05 AM',
-      isMe: true,
-    },
-  ],
-  3: [
-    {
-      id: 1,
-      sender: 'Michael T.',
-      text: 'Hi Adrian, I have a few questions about the upcoming session.',
-      timestamp: '7:00 AM',
-      isMe: false,
-    },
-    {
-      id: 2,
-      sender: 'Adrian Cucurella',
-      text: 'Hi Michael, of course. Ask away.',
-      timestamp: '7:01 AM',
-      isMe: true,
-    },
-     {
-      id: 3,
-      sender: 'Michael T.',
-      text: 'Do you have time for a quick chat tomorrow?',
-      timestamp: '7:05 AM',
-      isMe: false,
-    },
-  ],
-};
-
-const currentUser = {
-    name: 'Adrian Cucurella',
-    avatar: 'https://i.pravatar.cc/150?u=adrian-cucurella'
-}
-
-function MessagingPageContent() {
+function CoachMessagingPageContent() {
   const searchParams = useSearchParams();
-  const conversationId = searchParams.get('conversationId');
+  const conversationId = searchParams.get("conversationId");
+  const { profile } = useAuth();
 
-  const [selectedConversation, setSelectedConversation] = useState(() => {
-    if (conversationId) {
-      const convo = conversations.find(c => c.id.toString() === conversationId);
-      return convo || conversations[0];
-    }
-    return null;
-  });
-  
-  const [newMessage, setNewMessage] = useState('');
-  const [currentMessages, setCurrentMessages] = useState<any[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
+  // Get current user from auth
+  const accessToken = getAccessToken();
+  const currentUser = {
+    id: profile?.id || "",
+    name: profile?.fullName || "Coach",
+    avatar: profile?.avatarUrl || "https://i.pravatar.cc/150?u=coach",
+    token: accessToken || "",
+  };
+
+  // Debug current user state
+  React.useEffect(() => {
+    console.log("Coach user state:", {
+      id: currentUser.id,
+      hasToken: !!currentUser.token,
+      profileLoaded: !!profile,
+      role: profile?.role,
+    });
+  }, [currentUser.id, currentUser.token, profile]);
+
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
+  const [newMessage, setNewMessage] = useState("");
+  const [currentMessages, setCurrentMessages] = useState<Message[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
+  const [socket, setSocket] = useState<any>(null);
 
   useEffect(() => {
-    const initialConvo = conversationId
-      ? conversations.find(c => c.id.toString() === conversationId)
-      : conversations[0];
+    loadConversations();
+  }, []);
 
-    if (initialConvo) {
-      setSelectedConversation(initialConvo);
-      setCurrentMessages(messages[initialConvo.id as keyof typeof messages] || []);
+  useEffect(() => {
+    if (conversationId && conversations.length > 0) {
+      const convo = conversations.find((c) => c.id === conversationId);
+      if (convo) {
+        setSelectedConversation(convo);
+        loadMessages(convo.id);
+      }
     }
-  }, [conversationId]);
+  }, [conversationId, conversations]);
 
+  useEffect(() => {
+    if (currentUser.token && currentUser.id) {
+      console.log("Creating authenticated socket connection for coach");
+      const newSocket = createAuthenticatedSocket(currentUser.token);
+      newSocket.connect();
+      setSocket(newSocket);
 
-  const handleSelectConversation = (conversation: any) => {
+      newSocket.on("connect", () => {
+        console.log("Coach socket connected:", newSocket.id);
+      });
+
+      newSocket.on("conversations_loaded", (conversations: any[]) => {
+        console.log("📋 Coach conversations loaded via socket:", conversations);
+        setConversations(conversations);
+        setLoading(false);
+      });
+
+      newSocket.on("messages_loaded", (data: any) => {
+        console.log("📨 Coach messages loaded via socket:", data);
+        if (data.conversationId === selectedConversation?.id) {
+          setCurrentMessages(data.messages);
+        }
+      });
+
+      newSocket.on("new_message", (message: any) => {
+        setCurrentMessages((prev) => [
+          ...prev,
+          {
+            id: message.id,
+            sender: message.sender.fullName || "Unknown",
+            text: message.content,
+            timestamp: new Date(message.createdAt).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+            isMe: message.senderId === currentUser.id,
+            type: message.type,
+            isRead: false,
+            isEdited: false,
+          },
+        ]);
+      });
+
+      newSocket.on("error", (error: any) => {
+        console.error("Coach socket error:", error);
+      });
+
+      return () => {
+        newSocket.off("connect");
+        newSocket.off("conversations_loaded");
+        newSocket.off("messages_loaded");
+        newSocket.off("new_message");
+        newSocket.off("error");
+        newSocket.disconnect();
+        setSocket(null);
+      };
+    }
+  }, [currentUser.token, currentUser.id]);
+
+  useEffect(() => {
+    if (selectedConversation && socket?.connected) {
+      socket.emit("join_conversation", selectedConversation.id);
+
+      return () => {
+        socket.emit("leave_conversation", selectedConversation.id);
+      };
+    }
+  }, [selectedConversation, socket]);
+
+  const loadConversations = async () => {
+    if (!currentUser.id) {
+      console.warn("No coach ID available, skipping conversation load");
+      setLoading(false);
+      return;
+    }
+
+    // Use socket to load conversations if connected, fallback to API
+    if (socket && socket.connected) {
+      console.log("Coach loading conversations via socket");
+      socket.emit("load_conversations");
+    } else {
+      console.log("Coach loading conversations via API (fallback)");
+      try {
+        const conversations = await getUserConversations(currentUser.id);
+        setConversations(conversations);
+      } catch (error) {
+        console.error("Error loading conversations:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  const loadMessages = async (conversationId: string) => {
+    if (!currentUser.id) {
+      console.warn("No coach ID available, skipping message load");
+      return;
+    }
+
+    // Use socket to load messages if connected, fallback to API
+    if (socket && socket.connected) {
+      console.log("Coach loading messages via socket for conversation:", conversationId);
+      socket.emit("load_messages", { conversationId });
+    } else {
+      console.log("Coach loading messages via API (fallback)");
+      try {
+        const { messages } = await getConversationMessages(
+          conversationId,
+          currentUser.id
+        );
+        setCurrentMessages(messages);
+      } catch (error) {
+        console.error("Error loading messages:", error);
+      }
+    }
+  };
+
+  const handleSelectConversation = async (conversation: Conversation) => {
     setSelectedConversation(conversation);
-    setCurrentMessages(messages[conversation.id as keyof typeof messages] || []);
-  };
+    await loadMessages(conversation.id);
 
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault();
-    if(newMessage.trim() === '') return;
-    
-    const newMsg = {
-        id: currentMessages.length + 1,
-        sender: currentUser.name,
-        text: newMessage,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        isMe: true,
+    // Join the conversation room for real-time updates
+    if (socket && socket.connected) {
+      console.log("Coach joining conversation room:", conversation.id);
+      socket.emit("join_conversation", conversation.id);
     }
-    setCurrentMessages([...currentMessages, newMsg]);
-    setNewMessage('');
   };
 
-  const filteredConversations = conversations.filter(convo => 
-    convo.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    convo.lastMessage.toLowerCase().includes(searchTerm.toLowerCase())
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newMessage.trim() === "" || !selectedConversation || sending) return;
+
+    try {
+      setSending(true);
+
+      if (!socket || !socket.connected) {
+        console.error("Socket not connected");
+        return;
+      }
+
+      console.log("Coach sending message:", {
+        conversationId: selectedConversation.id,
+        content: newMessage,
+        type: "TEXT",
+      });
+
+      // Join conversation room if not already joined
+      socket.emit("join_conversation", selectedConversation.id);
+
+      socket.emit("send_message", {
+        conversationId: selectedConversation.id,
+        content: newMessage,
+        type: "TEXT",
+      });
+
+      setNewMessage("");
+    } catch (error) {
+      console.error("Error sending message:", error);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const filteredConversations = conversations.filter(
+    (convo) =>
+      convo.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      convo.lastMessage.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="text-lg">Loading conversations...</div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex h-[calc(100vh-3.5rem)] flex-col">
-      <div className="grid md:grid-cols-4 flex-1">
-        {/* Conversation List */}
-        <div className={cn("flex flex-col border-r", selectedConversation && "hidden md:flex")}>
+    <div className="flex h-screen bg-gray-50">
+      {/* Conversations Sidebar */}
+      <div className="w-80 border-r bg-white">
+        <div className="flex h-full flex-col">
           <div className="border-b p-4">
+            <h1 className="mb-4 text-xl font-semibold">Coach Messages</h1>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
-              <Input 
-                placeholder="Search" 
-                className="pl-10" 
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              <Input
+                placeholder="Search conversations..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
               />
             </div>
           </div>
           <ScrollArea className="flex-1">
-            {filteredConversations.map((convo) => (
-              <div
-                key={convo.id}
-                className={cn(
-                  'flex cursor-pointer items-start gap-4 p-4 hover:bg-muted/50',
-                  selectedConversation?.id === convo.id && 'bg-muted'
-                )}
-                onClick={() => handleSelectConversation(convo)}
-              >
-                <Avatar>
-                  <AvatarImage src={convo.avatar} />
-                  <AvatarFallback>{convo.name.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <h4 className="truncate font-semibold">{convo.name}</h4>
-                    <p className="text-xs text-muted-foreground flex-shrink-0">{convo.time}</p>
-                  </div>
-                  <div className="flex items-start justify-between">
-                    <p className="truncate text-sm text-muted-foreground">{convo.lastMessage}</p>
-                    {convo.unread > 0 && (
-                        <div className="mt-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground flex-shrink-0">
-                            {convo.unread}
-                        </div>
-                    )}
-                  </div>
+            <div className="space-y-2 p-2">
+              {filteredConversations.length === 0 ? (
+                <div className="p-4 text-center text-gray-500">
+                  No conversations yet
                 </div>
-              </div>
-            ))}
+              ) : (
+                filteredConversations.map((conversation) => (
+                  <Card
+                    key={conversation.id}
+                    className={cn(
+                      "cursor-pointer transition-colors hover:bg-gray-50",
+                      selectedConversation?.id === conversation.id &&
+                        "border-blue-500 bg-blue-50"
+                    )}
+                    onClick={() => handleSelectConversation(conversation)}
+                  >
+                    <CardContent className="p-3">
+                      <div className="flex items-start space-x-3">
+                        <Avatar>
+                          <AvatarImage src={conversation.avatar} />
+                          <AvatarFallback>
+                            {conversation.name.substring(0, 2).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 overflow-hidden">
+                          <div className="flex items-center justify-between">
+                            <h3 className="truncate font-medium">
+                              {conversation.name}
+                            </h3>
+                            <span className="text-xs text-gray-500">
+                              {conversation.time}
+                            </span>
+                          </div>
+                          <p className="truncate text-sm text-gray-600">
+                            {conversation.lastMessage}
+                          </p>
+                          {conversation.unread > 0 && (
+                            <div className="mt-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-xs font-medium text-white">
+                              {conversation.unread}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
           </ScrollArea>
         </div>
+      </div>
 
-        {/* Chat Window */}
-        <div className={cn("md:col-span-3 flex flex-col h-full", !selectedConversation && "hidden md:flex")}>
-          {selectedConversation ? (
-            <>
-              {/* Chat Header */}
-              <div className="flex items-center gap-4 border-b p-4">
-                 <Button
-                    variant="ghost"
-                    size="icon"
-                    className="md:hidden"
-                    onClick={() => setSelectedConversation(null)}
-                  >
-                    <ArrowLeft className="h-5 w-5" />
-                  </Button>
+      {/* Chat Area */}
+      <div className="flex flex-1 flex-col">
+        {selectedConversation ? (
+          <>
+            {/* Chat Header */}
+            <div className="flex items-center justify-between border-b bg-white p-4">
+              <div className="flex items-center space-x-3">
                 <Avatar>
                   <AvatarImage src={selectedConversation.avatar} />
                   <AvatarFallback>
-                    {selectedConversation.name.charAt(0)}
+                    {selectedConversation.name.substring(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <h4 className="font-semibold">{selectedConversation.name}</h4>
-                  <p className="text-xs text-muted-foreground">{selectedConversation.role}</p>
+                  <h2 className="font-semibold">{selectedConversation.name}</h2>
+                  <p className="text-sm text-gray-500">Student</p>
                 </div>
-                <Button variant="ghost" size="icon" className="ml-auto">
-                    <MoreVertical className="h-5 w-5" />
-                </Button>
               </div>
+              <Button variant="ghost" size="sm">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </div>
 
-              {/* Messages */}
-              <ScrollArea className="flex-1">
-                  <div className="space-y-6 p-6">
-                    {currentMessages.map((msg) => (
-                      <div
-                        key={msg.id}
+            {/* Messages */}
+            <ScrollArea className="flex-1 p-4">
+              <div className="space-y-4">
+                {currentMessages.map((message, index) => (
+                  <div
+                    key={index}
+                    className={cn(
+                      "flex",
+                      message.isMe ? "justify-end" : "justify-start"
+                    )}
+                  >
+                    <div
+                      className={cn(
+                        "max-w-xs rounded-lg p-3 lg:max-w-md",
+                        message.isMe
+                          ? "bg-blue-600 text-white"
+                          : "bg-white text-gray-900"
+                      )}
+                    >
+                      {!message.isMe && (
+                        <p className="mb-1 text-xs font-medium text-gray-500">
+                          {message.sender}
+                        </p>
+                      )}
+                      <p className="text-sm">{message.text}</p>
+                      <p
                         className={cn(
-                          'flex items-end gap-3',
-                          msg.isMe ? 'justify-end' : 'justify-start'
+                          "mt-1 text-xs",
+                          message.isMe ? "text-blue-100" : "text-gray-500"
                         )}
                       >
-                          {!msg.isMe && (
-                              <Avatar className="h-8 w-8">
-                                  <AvatarImage src={selectedConversation.avatar} />
-                                  <AvatarFallback>{selectedConversation.name.charAt(0)}</AvatarFallback>
-                              </Avatar>
-                          )}
-                          <Card
-                          className={cn(
-                              'max-w-xs md:max-w-md p-3 rounded-2xl',
-                              msg.isMe
-                              ? 'bg-primary text-primary-foreground rounded-br-none'
-                              : 'bg-muted rounded-bl-none'
-                          )}
-                          >
-                              <p className="text-sm">{msg.text}</p>
-                              <p className={cn("text-xs mt-2", msg.isMe ? "text-primary-foreground/70 text-right" : "text-muted-foreground/70 text-left")}>{msg.timestamp}</p>
-                          </Card>
-                          {msg.isMe && (
-                              <Avatar className="h-8 w-8">
-                                  <AvatarImage src={currentUser.avatar} />
-                                  <AvatarFallback>{currentUser.name.charAt(0)}</AvatarFallback>
-                              </Avatar>
-                          )}
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-             
-              {/* Message Input */}
-              <div className="border-t bg-background p-4 z-10">
-                <form onSubmit={handleSendMessage}>
-                  <div className="relative">
-                    <Input
-                      placeholder="Type a message..."
-                      className="pr-24"
-                      value={newMessage}
-                      onChange={(e) => setNewMessage(e.target.value)}
-                    />
-                    <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center">
-                        <Button variant="ghost" size="icon" type="button">
-                            <Paperclip className="h-5 w-5 text-muted-foreground"/>
-                        </Button>
-                        <Separator orientation="vertical" className="mx-1 h-6" />
-                        <Button type="submit" variant="ghost" size="icon">
-                            <Send className="h-5 w-5 text-primary" />
-                        </Button>
+                        {message.timestamp}
+                      </p>
                     </div>
                   </div>
-                </form>
+                ))}
               </div>
-            </>
-          ) : (
-            <div className="flex flex-1 items-center justify-center text-muted-foreground">
-              <p>Select a conversation to start messaging</p>
+            </ScrollArea>
+
+            {/* Message Input */}
+            <div className="border-t bg-white p-4">
+              <form onSubmit={handleSendMessage} className="flex space-x-2">
+                <Button type="button" variant="ghost" size="sm">
+                  <Paperclip className="h-4 w-4" />
+                </Button>
+                <Input
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  placeholder="Type a message..."
+                  className="flex-1"
+                  disabled={sending}
+                />
+                <Button type="submit" disabled={sending || !newMessage.trim()}>
+                  <Send className="h-4 w-4" />
+                </Button>
+              </form>
             </div>
-          )}
-        </div>
+          </>
+        ) : (
+          <div className="flex flex-1 items-center justify-center bg-gray-50">
+            <div className="text-center">
+              <h3 className="text-lg font-medium text-gray-900">
+                Welcome Coach!
+              </h3>
+              <p className="text-gray-500">
+                Select a conversation to start messaging with your students
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-export default function MessagingPage() {
-    return (
-        <React.Suspense fallback={<div>Loading...</div>}>
-            <MessagingPageContent />
-        </React.Suspense>
-    )
+export default function CoachMessagingPage() {
+  return (
+    <div className="h-screen">
+      <CoachMessagingPageContent />
+    </div>
+  );
 }
