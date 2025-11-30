@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -44,7 +44,8 @@ function CoachMessagingPageContent() {
   }, [currentUser.id, currentUser.token, profile]);
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
+  const [selectedConversation, setSelectedConversation] =
+    useState<Conversation | null>(null);
   const [newMessage, setNewMessage] = useState("");
   const [currentMessages, setCurrentMessages] = useState<Message[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -167,7 +168,10 @@ function CoachMessagingPageContent() {
 
     // Use socket to load messages if connected, fallback to API
     if (socket && socket.connected) {
-      console.log("Coach loading messages via socket for conversation:", conversationId);
+      console.log(
+        "Coach loading messages via socket for conversation:",
+        conversationId
+      );
       socket.emit("load_messages", { conversationId });
     } else {
       console.log("Coach loading messages via API (fallback)");
@@ -413,8 +417,14 @@ function CoachMessagingPageContent() {
 
 export default function CoachMessagingPage() {
   return (
-    <div className="h-screen">
+    <Suspense
+      fallback={
+        <div className="flex h-screen items-center justify-center">
+          <div className="text-lg">Loading coach messaging...</div>
+        </div>
+      }
+    >
       <CoachMessagingPageContent />
-    </div>
+    </Suspense>
   );
 }
