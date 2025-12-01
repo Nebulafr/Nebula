@@ -45,7 +45,7 @@ export default function CoachProfilePage() {
   }, [coachProfile]);
 
   const handleFormDataChange = (data: Partial<ProfileFormData>) => {
-    setFormData(prev => ({ ...prev, ...data }));
+    setFormData((prev) => ({ ...prev, ...data }));
   };
 
   const handleChangePhoto = () => {
