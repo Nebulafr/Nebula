@@ -1,109 +1,166 @@
-'use client';
+"use client";
 
-import {
-  Table,
-  TableHeader,
-  TableRow,
-  TableHead,
-  TableBody,
-  TableCell,
-} from '@/components/ui/table';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Search } from 'lucide-react';
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-} from '@/components/ui/card';
+import { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
 
-const students = [
-  {
-    name: 'Alex Thompson',
-    avatar: 'https://i.pravatar.cc/40?u=alex',
-    program: 'Consulting, Associate Level',
-    status: 'Active',
-    lastContact: '2 days ago',
-  },
-  {
-    name: 'Sarah K.',
-    avatar: 'https://i.pravatar.cc/40?u=sarah',
-    program: 'MBA Admissions Coaching',
-    status: 'Active',
-    lastContact: '5 days ago',
-  },
-  {
-    name: 'Michael T.',
-    avatar: 'https://i.pravatar.cc/40?u=michael',
-    program: 'Consulting, Associate Level',
-    status: 'Completed',
-    lastContact: '1 month ago',
-  },
-  {
-    name: 'Jessica L.',
-    avatar: 'https://i.pravatar.cc/40?u=jessica',
-    program: 'Consulting, Associate Level',
-    status: 'Paused',
-    lastContact: '3 weeks ago',
-  },
-];
+// Micro Components
+import { StudentsTable, type Student } from "./components/students-table";
+import { StudentsFilters } from "./components/students-filters";
+import { StudentsStatsCards } from "./components/students-stats";
+import { AddStudentDialog, type StudentFormData } from "./components/add-student-dialog";
 
 export default function StudentsPage() {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [programFilter, setProgramFilter] = useState("all");
+  const [showAddDialog, setShowAddDialog] = useState(false);
+
+  // Mock data - replace with real API data
+  const students: Student[] = [
+    {
+      id: "1",
+      name: "Alex Thompson",
+      email: "alex.thompson@example.com",
+      avatar: "https://i.pravatar.cc/40?u=alex",
+      program: "Consulting, Associate Level",
+      status: "active",
+      progress: 75,
+      lastSession: "2 days ago",
+      nextSession: "Tomorrow, 2:00 PM",
+      totalSessions: 12,
+    },
+    {
+      id: "2", 
+      name: "Sarah K.",
+      email: "sarah.k@example.com",
+      avatar: "https://i.pravatar.cc/40?u=sarah",
+      program: "MBA Admissions Coaching",
+      status: "active",
+      progress: 60,
+      lastSession: "5 days ago",
+      nextSession: "Monday, 4:00 PM",
+      totalSessions: 8,
+    },
+    {
+      id: "3",
+      name: "Michael T.",
+      email: "michael.t@example.com", 
+      avatar: "https://i.pravatar.cc/40?u=michael",
+      program: "Consulting, Associate Level",
+      status: "completed",
+      progress: 100,
+      lastSession: "1 month ago",
+      totalSessions: 20,
+    },
+    {
+      id: "4",
+      name: "Jessica L.",
+      email: "jessica.l@example.com",
+      avatar: "https://i.pravatar.cc/40?u=jessica",
+      program: "Consulting, Associate Level", 
+      status: "paused",
+      progress: 45,
+      lastSession: "3 weeks ago",
+      totalSessions: 6,
+    },
+  ];
+
+  const programs = ["Consulting, Associate Level", "MBA Admissions Coaching", "Leadership Development"];
+
+  const stats = {
+    total: students.length,
+    active: students.filter(s => s.status === 'active').length,
+    completed: students.filter(s => s.status === 'completed').length,
+    paused: students.filter(s => s.status === 'paused').length,
+  };
+
+  // Filter students based on search and filters
+  const filteredStudents = students.filter((student) => {
+    const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         student.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === "all" || student.status === statusFilter;
+    const matchesProgram = programFilter === "all" || student.program === programFilter;
+    
+    return matchesSearch && matchesStatus && matchesProgram;
+  });
+
+  const handleMessageStudent = (studentId: string) => {
+    console.log("Message student:", studentId);
+    // Navigate to messaging with student
+  };
+
+  const handleScheduleSession = (studentId: string) => {
+    console.log("Schedule session with:", studentId);
+    // Navigate to scheduling 
+  };
+
+  const handleViewProfile = (studentId: string) => {
+    console.log("View profile:", studentId);
+    // Navigate to student profile
+  };
+
+  const handleRemoveStudent = (studentId: string) => {
+    console.log("Remove student:", studentId);
+    // Show confirmation dialog and remove
+  };
+
+  const handleAddStudent = (studentData: StudentFormData) => {
+    console.log("Add student:", studentData);
+    // API call to add student
+    setShowAddDialog(false);
+  };
+
+  const handleExportStudents = () => {
+    console.log("Export students");
+    // Export functionality
+  };
+
   return (
-    <div className="flex-1 space-y-4 p-4 md:p-8">
-       <Card>
-        <CardHeader>
-          <CardTitle>My Students</CardTitle>
-           <div className="relative mt-4">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input placeholder="Search students..." className="pl-9" />
-            </div>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Program</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Last Contact</TableHead>
-                <TableHead></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {students.map((student) => (
-                <TableRow key={student.name}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Avatar>
-                        <AvatarImage src={student.avatar} />
-                        <AvatarFallback>{student.name.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                      <span className="font-medium">{student.name}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>{student.program}</TableCell>
-                  <TableCell>
-                    <Badge variant={
-                        student.status === 'Active' ? 'default' : 
-                        student.status === 'Completed' ? 'secondary' : 'outline'
-                    }>
-                        {student.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{student.lastContact}</TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="outline" size="sm">View Profile</Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+    <div className="flex-1 space-y-6 p-4 md:p-8">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Students</h1>
+        <p className="text-muted-foreground">
+          Manage your students and track their progress
+        </p>
+      </div>
+
+      {/* Stats */}
+      <StudentsStatsCards stats={stats} />
+
+      {/* Filters and Actions */}
+      <StudentsFilters
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        statusFilter={statusFilter}
+        onStatusFilterChange={setStatusFilter}
+        programFilter={programFilter}
+        onProgramFilterChange={setProgramFilter}
+        programs={programs}
+        onAddStudent={() => setShowAddDialog(true)}
+        onExportStudents={handleExportStudents}
+      />
+
+      {/* Students Table */}
+      <Card>
+        <CardContent className="p-0">
+          <StudentsTable
+            students={filteredStudents}
+            onMessageStudent={handleMessageStudent}
+            onScheduleSession={handleScheduleSession}
+            onViewProfile={handleViewProfile}
+            onRemoveStudent={handleRemoveStudent}
+          />
         </CardContent>
       </Card>
+
+      {/* Add Student Dialog */}
+      <AddStudentDialog
+        open={showAddDialog}
+        onOpenChange={setShowAddDialog}
+        programs={programs}
+        onAddStudent={handleAddStudent}
+      />
     </div>
   );
 }

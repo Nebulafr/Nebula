@@ -1,30 +1,11 @@
-'use client';
+"use client";
 
-import {
-  Table,
-  TableHeader,
-  TableRow,
-  TableHead,
-  TableBody,
-  TableCell,
-} from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-  CardDescription,
-} from '@/components/ui/card';
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-  ChartLegend,
-  ChartLegendContent,
-} from "@/components/ui/chart";
-import { Bar, BarChart, XAxis, YAxis } from "recharts";
+import { useState } from "react";
+import { EarningsChart, EarningsData } from "./components/earnings-chart";
+import { AccountBalance } from "./components/account-balance";
+import { PayoutHistory } from "./components/payout-history";
+import { Payout } from "./components/payout-item";
+import { toast } from "react-toastify";
 
 const payouts = [
   { id: 'POUT-001', date: '2024-08-15', amount: 1999.00, status: 'Paid' },

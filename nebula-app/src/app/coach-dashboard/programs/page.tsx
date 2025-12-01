@@ -40,16 +40,8 @@ import ModulesForm from "@/components/ModuleForm";
 import { createProgramSchema } from "@/lib/validations";
 import { z } from "zod";
 import { useAuth } from "@/hooks/use-auth";
-import { Program } from "@/generated/prisma";
 import { UserProfile } from "@/hooks/use-user";
-
-interface IProgram extends Program {
-  category: any;
-  coach: any;
-  modules: any[];
-  attendees: string[];
-  otherAttendees?: number;
-}
+import { IProgram, ProgramCard } from "./components/program-card";
 
 const mockPrograms: IProgram[] = [
   {
@@ -308,51 +300,7 @@ export default function CoachProgramsPage() {
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {programs.map((program) => (
-            <Card key={program.id} className="flex flex-col">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div
-                    className={`flex h-12 w-12 items-center justify-center rounded-lg ${
-                      program.category.name === "Career Prep"
-                        ? "bg-primary/10"
-                        : "bg-blue-500/10"
-                    }`}
-                  >
-                    {program.category.name === "Career Prep" ? (
-                      <Briefcase className="h-5 w-5 text-primary" />
-                    ) : (
-                      <GraduationCap className="h-5 w-5 text-blue-500" />
-                    )}
-                  </div>
-                  <Button variant="ghost" size="icon">
-                    <MoreHorizontal className="h-5 w-5" />
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="flex-grow">
-                <h3 className="font-headline text-xl font-semibold">
-                  {program.title}
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  {program.category.name}
-                </p>
-                <div className="flex items-center gap-4 mt-4 text-sm text-muted-foreground">
-                  <div className="flex items-center gap-1">
-                    <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
-                    <span>{program.rating || 0}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Users className="h-4 w-4" />
-                    <span>{program.currentEnrollments || 0} students</span>
-                  </div>
-                </div>
-              </CardContent>
-              <div className="p-6 pt-0">
-                <Button variant="outline" className="w-full" asChild>
-                  <Link href={`/programs/${program.slug}`}>View Details</Link>
-                </Button>
-              </div>
-            </Card>
+            <ProgramCard key={program.id} program={program} />
           ))}
         </div>
       )}
