@@ -228,7 +228,7 @@ function CoachMessagingPageContent() {
   };
 
   return (
-    <div className="flex h-[calc(100vh-3.5rem)] max-h-screen bg-gray-50">
+    <div className="flex max-h-[calc(100vh-2.5rem)] min-h-0 bg-gray-50">
       <ConversationList
         conversations={conversations}
         selectedConversation={selectedConversation}

@@ -33,8 +33,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { usePathname } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { useUser } from "@/hooks/use-user";
 import { useAuth } from "@/hooks/use-auth";
 
 function TopBar() {
