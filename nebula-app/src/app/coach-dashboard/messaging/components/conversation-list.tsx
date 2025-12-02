@@ -6,6 +6,13 @@ import { Badge } from "@/components/ui/badge";
 import { Search } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { type Conversation } from "@/actions/messaging";
+import { 
+  formatUserName, 
+  getUserInitials, 
+  formatChatTime, 
+  formatMessagePreview, 
+  formatUnreadCount 
+} from "@/lib/chat-utils";
 
 interface ConversationListProps {
   conversations: Conversation[];
@@ -69,7 +76,7 @@ export function ConversationList({
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input
             placeholder="Search conversations..."
-            value={searchTerm}
+            value={searchTerm || ""}
             onChange={(e) => onSearchChange(e.target.value)}
             className="pl-10 pr-4 py-2 rounded-lg border border-gray-200 bg-gray-50 shadow-sm focus:bg-white focus:ring-2 focus:ring-primary/20 transition-all"
           />
@@ -106,6 +113,12 @@ interface ConversationItemProps {
 }
 
 function ConversationItem({ conversation, isSelected, onClick }: ConversationItemProps) {
+  const displayName = formatUserName(conversation.name);
+  const initials = getUserInitials(conversation.name);
+  const timeDisplay = formatChatTime(conversation.time);
+  const messagePreview = formatMessagePreview(conversation.lastMessage);
+  const unreadDisplay = formatUnreadCount(conversation.unread);
+
   return (
     <button
       onClick={onClick}
@@ -120,7 +133,7 @@ function ConversationItem({ conversation, isSelected, onClick }: ConversationIte
         <Avatar className="h-12 w-12 border-2 border-gray-100">
           <AvatarImage src={conversation.avatar} />
           <AvatarFallback className="font-medium text-gray-600 bg-gray-100">
-            {conversation.name?.charAt(0)?.toUpperCase() || "U"}
+            {initials}
           </AvatarFallback>
         </Avatar>
 
@@ -128,15 +141,15 @@ function ConversationItem({ conversation, isSelected, onClick }: ConversationIte
           {/* Name and Timestamp Row */}
           <div className="flex items-start justify-between mb-1">
             <h3 className="font-bold text-sm text-gray-900 truncate">
-              {conversation.name}
+              {displayName}
             </h3>
             <div className="flex items-center gap-2 ml-2">
               <span className="text-xs text-gray-500 whitespace-nowrap">
-                {conversation.time}
+                {timeDisplay}
               </span>
-              {conversation.unread > 0 && (
+              {unreadDisplay && (
                 <Badge className="h-5 w-5 p-0 bg-primary text-white text-xs rounded-full flex items-center justify-center min-w-[20px]">
-                  {conversation.unread > 99 ? "99+" : conversation.unread}
+                  {unreadDisplay}
                 </Badge>
               )}
             </div>
@@ -144,7 +157,7 @@ function ConversationItem({ conversation, isSelected, onClick }: ConversationIte
           
           {/* Last Message */}
           <p className="text-sm text-muted-foreground truncate leading-relaxed">
-            {conversation.lastMessage}
+            {messagePreview}
           </p>
         </div>
       </div>

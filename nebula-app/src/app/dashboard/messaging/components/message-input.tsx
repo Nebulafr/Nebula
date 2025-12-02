@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
 import { Paperclip, Send } from "lucide-react";
 
 interface MessageInputProps {
@@ -28,28 +27,27 @@ export function MessageInput({
   };
 
   return (
-    <div className="border-t bg-background p-4 z-10">
-      <form onSubmit={handleSubmit}>
-        <div className="relative">
+    <div className="border-t border-gray-200 bg-white p-6">
+      <form onSubmit={handleSubmit} className="flex items-center w-full">
+        <div className="flex-1 relative">
           <Input
-            placeholder={placeholder}
-            className="pr-24"
-            value={message}
+            value={message || ""}
             onChange={(e) => setMessage(e.target.value)}
+            placeholder={placeholder}
+            className="w-full pr-24 py-3 px-4 rounded-xl border border-gray-200 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
             disabled={disabled}
           />
-          <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center">
-            <Button variant="ghost" size="icon" type="button" disabled={disabled}>
-              <Paperclip className="h-5 w-5 text-muted-foreground" />
+          <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
+            <Button type="button" variant="ghost" size="sm" disabled={disabled}>
+              <Paperclip className="h-4 w-4 text-gray-500" />
             </Button>
-            <Separator orientation="vertical" className="mx-1 h-6" />
-            <Button
-              type="submit"
-              variant="ghost"
-              size="icon"
+            <div className="w-px h-4 bg-gray-300" />
+            <Button 
+              type="submit" 
+              size="sm"
               disabled={disabled || !message.trim()}
             >
-              <Send className="h-5 w-5 text-primary" />
+              <Send className="h-4 w-4" />
             </Button>
           </div>
         </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { type Message } from "@/actions/messaging";
@@ -9,17 +10,35 @@ interface MessageListProps {
   currentUserId?: string;
 }
 
-export function MessageList({ messages, currentUserId }: MessageListProps) {
+export function MessageList({ messages }: MessageListProps) {
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
+
   return (
-    <ScrollArea className="h-full w-full">
+    <ScrollArea ref={scrollAreaRef} className="h-full w-full">
       <div className="space-y-6 p-6">
-        {messages.map((message, index) => (
-          <MessageBubble
-            key={message.id || index}
-            message={message}
-            isOwnMessage={message.isMe}
-          />
-        ))}
+        {messages.length === 0 ? (
+          <div className="flex items-center justify-center h-32 text-muted-foreground">
+            <p>No messages yet. Start a conversation!</p>
+          </div>
+        ) : (
+          messages.map((message, index) => (
+            <MessageBubble
+              key={message.id || index}
+              message={message}
+              isOwnMessage={message.isMe}
+            />
+          ))
+        )}
+        {/* Invisible element to scroll to */}
+        <div ref={messagesEndRef} className="h-0" />
       </div>
     </ScrollArea>
   );

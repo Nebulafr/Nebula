@@ -1,7 +1,6 @@
 "use client";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Card } from "@/components/ui/card";
+import { useEffect, useRef } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { type Message, type Conversation } from "@/actions/messaging";
@@ -13,21 +12,111 @@ interface MessageListProps {
   loading?: boolean;
 }
 
-export function MessageList({ 
-  messages, 
-  conversation, 
-  currentUserId, 
-  loading = false 
+interface MessageBubbleProps {
+  message: Message;
+  isOwnMessage: boolean;
+}
+
+function MessageBubble({ message, isOwnMessage }: MessageBubbleProps) {
+  return (
+    <div
+      className={cn(
+        "flex items-end gap-3",
+        isOwnMessage ? "justify-end" : "justify-start"
+      )}
+    >
+      {/* Avatar for other messages (left side) */}
+      {!isOwnMessage && (
+        <div className="flex-shrink-0">
+          <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+            <span className="text-xs font-medium text-gray-600">
+              {message.sender?.charAt(0) || "U"}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Message Content */}
+      <div
+        className={cn(
+          "flex flex-col",
+          isOwnMessage ? "items-end" : "items-start"
+        )}
+      >
+        <div
+          className={cn(
+            "max-w-xs md:max-w-md px-4 py-3 rounded-2xl shadow-sm",
+            isOwnMessage
+              ? "bg-primary text-white rounded-br-md"
+              : "bg-muted text-gray-900 rounded-bl-md"
+          )}
+        >
+          <p className="text-sm leading-relaxed">{message.text}</p>
+        </div>
+
+        {/* Timestamp */}
+        <p
+          className={cn(
+            "mt-1 text-xs text-muted-foreground",
+            isOwnMessage ? "text-right" : "text-left"
+          )}
+        >
+          {message.timestamp}
+        </p>
+      </div>
+
+      {/* Avatar for own messages (right side) */}
+      {isOwnMessage && (
+        <div className="flex-shrink-0">
+          <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+            <span className="text-xs font-medium text-primary">S</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function MessageList({
+  messages,
+  conversation,
+  currentUserId,
+  loading = false,
 }: MessageListProps) {
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
+
   if (loading) {
     return (
       <ScrollArea className="flex-1">
         <div className="space-y-6 p-6">
           {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className={cn("flex items-end gap-3", i % 2 === 0 ? "justify-end" : "justify-start")}>
-              {i % 2 !== 0 && <div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse" />}
-              <div className={cn("max-w-xs md:max-w-md p-3 rounded-2xl bg-gray-200 animate-pulse", i % 2 === 0 ? "h-16" : "h-12")} />
-              {i % 2 === 0 && <div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse" />}
+            <div
+              key={i}
+              className={cn(
+                "flex items-end gap-3",
+                i % 2 === 0 ? "justify-end" : "justify-start"
+              )}
+            >
+              {i % 2 !== 0 && (
+                <div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse" />
+              )}
+              <div
+                className={cn(
+                  "max-w-xs md:max-w-md p-3 rounded-2xl bg-gray-200 animate-pulse",
+                  i % 2 === 0 ? "h-16" : "h-12"
+                )}
+              />
+              {i % 2 === 0 && (
+                <div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse" />
+              )}
             </div>
           ))}
         </div>
@@ -36,54 +125,23 @@ export function MessageList({
   }
 
   return (
-    <ScrollArea className="flex-1">
+    <ScrollArea ref={scrollAreaRef} className="flex-1">
       <div className="space-y-6 p-6">
-        {messages.map((msg) => (
-          <div
-            key={msg.id}
-            className={cn(
-              "flex items-end gap-3",
-              msg.isMe ? "justify-end" : "justify-start"
-            )}
-          >
-            {!msg.isMe && (
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={conversation.avatar || undefined} />
-                <AvatarFallback>
-                  {conversation.name.charAt(0)}
-                </AvatarFallback>
-              </Avatar>
-            )}
-            <Card
-              className={cn(
-                "max-w-xs md:max-w-md p-3 rounded-2xl",
-                msg.isMe
-                  ? "bg-primary text-primary-foreground rounded-br-none"
-                  : "bg-muted rounded-bl-none"
-              )}
-            >
-              <p className="text-sm">{msg.text}</p>
-              <p
-                className={cn(
-                  "text-xs mt-2",
-                  msg.isMe
-                    ? "text-primary-foreground/70 text-right"
-                    : "text-muted-foreground/70 text-left"
-                )}
-              >
-                {msg.timestamp}
-              </p>
-            </Card>
-            {msg.isMe && (
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={`https://i.pravatar.cc/150?u=${currentUserId}`} />
-                <AvatarFallback>
-                  U
-                </AvatarFallback>
-              </Avatar>
-            )}
+        {messages.length === 0 ? (
+          <div className="flex items-center justify-center h-32 text-muted-foreground">
+            <p>No messages yet. Start a conversation!</p>
           </div>
-        ))}
+        ) : (
+          messages.map((message, index) => (
+            <MessageBubble
+              key={message.id || index}
+              message={message}
+              isOwnMessage={message.isMe}
+            />
+          ))
+        )}
+        {/* Invisible element to scroll to */}
+        <div ref={messagesEndRef} className="h-0" />
       </div>
     </ScrollArea>
   );

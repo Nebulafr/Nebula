@@ -36,7 +36,7 @@ export function MessageInput({
       <form onSubmit={handleSubmit} className="flex items-center w-full">
         <div className="flex-1 relative">
           <Input
-            value={message}
+            value={message || ""}
             onChange={(e) => setMessage(e.target.value)}
             placeholder={placeholder}
             className="w-full pr-24 py-3 px-4 rounded-xl border border-gray-200 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
