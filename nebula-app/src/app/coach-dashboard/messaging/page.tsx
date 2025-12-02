@@ -220,6 +220,7 @@ function CoachMessagingPageContent() {
         type: "TEXT",
       });
       socket.emit("load_messages", { conversationId: selectedConversation.id });
+      socket.emit("load_conversations");
     } catch (error) {
       console.error("Error sending message:", error);
     } finally {
