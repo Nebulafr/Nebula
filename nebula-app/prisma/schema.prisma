@@ -370,6 +370,9 @@ model Conversation {
   participants ConversationParticipant[]
   messages     Message[]
 
+  @@index([createdAt])
+  @@index([lastMessageTime])
+  @@index([type])
   @@map("conversations")
 }
 
@@ -384,6 +387,8 @@ model ConversationParticipant {
   user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([conversationId, userId])
+  @@index([userId])
+  @@index([conversationId])
   @@map("conversation_participants")
 }
 
@@ -407,6 +412,9 @@ model Message {
   attachments  MessageAttachment[]
   reactions    MessageReaction[]
 
+  @@index([conversationId, createdAt])
+  @@index([conversationId, isRead])
+  @@index([senderId])
   @@map("messages")
 }
 
@@ -422,6 +430,7 @@ model MessageAttachment {
   // Relationships
   message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
 
+  @@index([messageId])
   @@map("message_attachments")
 }
 
@@ -436,6 +445,27 @@ model MessageReaction {
   message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
 
   @@unique([messageId, userId, emoji])
+  @@index([messageId])
+  @@index([userId])
   @@map("message_reactions")
 }
 
+
+model Event {
+  id           String   @id @default(cuid())
+  title        String
+  description  String
+  eventType    String   @map("event_type")
+  date         DateTime
+  location     String?
+  organizer    String?
+  isPublic     Boolean  @default(true) @map("is_public")
+  maxAttendees Int?     @map("max_attendees")
+  attendees    Int?     @default(0)
+  status       String?
+  tags         String[]
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("events")
+}

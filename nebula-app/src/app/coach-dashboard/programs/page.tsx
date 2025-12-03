@@ -189,51 +189,47 @@ const mockPrograms: IProgram[] = [
 ];
 
 export default function CoachProgramsPage() {
-  const { profile } = useAuth();
+  const { profile, coachProfile } = useAuth();
   const [programs, setPrograms] = useState<IProgram[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!profile) return;
+    if (!coachProfile) return;
 
     const fetchPrograms = async () => {
       try {
         setLoading(true);
-        const result = await getPrograms({ coachId: profile?.coach!.id });
+        const result = await getPrograms({ coachId: coachProfile!.id });
         if (result.success) {
-          setPrograms(
-            result.programs.length > 0 ? result.programs : mockPrograms
-          );
+          setPrograms(result.programs);
         } else {
           console.error("Error fetching programs:", result.error);
-          setPrograms(mockPrograms);
+          setPrograms([]);
         }
       } catch (error) {
         console.error("Error fetching programs:", error);
-        setPrograms(mockPrograms);
+        setPrograms([]);
       } finally {
         setLoading(false);
       }
     };
 
     fetchPrograms();
-  }, [profile]);
+  }, [coachProfile]);
 
   const refreshPrograms = async () => {
-    if (!profile) return;
+    if (!coachProfile) return;
     try {
-      const result = await getPrograms({ coachId: profile?.coach!.id });
+      const result = await getPrograms({ coachId: coachProfile.id });
       if (result.success) {
-        setPrograms(
-          result.programs.length > 0 ? result.programs : mockPrograms
-        );
+        setPrograms(result.programs);
       } else {
         console.error("Error refreshing programs:", result.error);
-        setPrograms(mockPrograms);
+        setPrograms([]);
       }
     } catch (error) {
       console.error("Error refreshing programs:", error);
-      setPrograms(mockPrograms);
+      setPrograms([]);
     }
   };
 

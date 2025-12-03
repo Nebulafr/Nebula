@@ -39,7 +39,10 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { reviewCoach, type ReviewResponse } from "@/actions/reviews";
-import { createConversation, type CreateConversationResponse } from "@/actions/messaging";
+import {
+  createConversation,
+  type CreateConversationResponse,
+} from "@/actions/messaging";
 
 export default function CoachDetailPage() {
   const [bookingStep, setBookingStep] = useState(0);
@@ -48,7 +51,7 @@ export default function CoachDetailPage() {
   const [loading, setLoading] = useState(true);
   const params = useParams<{ coachId: string }>();
   const router = useRouter();
-  const { profile } = useAuth();
+  const { profile, isStudent } = useAuth();
   const [date, setDate] = useState<Date | undefined>();
   const [selectedTime, setSelectedTime] = useState("");
   const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
@@ -292,17 +295,22 @@ export default function CoachDetailPage() {
 
     try {
       // Create or find conversation between current user and coach
-      const conversationResult: CreateConversationResponse = await createConversation({
-        participants: [profile.id, coach.userId],
-        type: "DIRECT"
-      });
+      const conversationResult: CreateConversationResponse =
+        await createConversation({
+          participants: [profile.id, coach.userId],
+          type: "DIRECT",
+        });
 
       if (conversationResult.success && conversationResult.data) {
         // Redirect to messaging with the conversation
-        router.push(`/dashboard/messaging?conversationId=${conversationResult.data.id}`);
+        router.push(
+          `/dashboard/messaging?conversationId=${conversationResult.data.id}`
+        );
         toast.success("Opening conversation...");
       } else {
-        throw new Error(conversationResult.error || "Failed to create conversation");
+        throw new Error(
+          conversationResult.error || "Failed to create conversation"
+        );
       }
     } catch (error: any) {
       console.error("Error creating conversation:", error);
@@ -312,7 +320,7 @@ export default function CoachDetailPage() {
 
   const handleReviewSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!coach) {
       toast.error("Coach information not available.");
       return;
@@ -329,7 +337,7 @@ export default function CoachDetailPage() {
     }
 
     setIsSubmittingReview(true);
-    
+
     try {
       const response: ReviewResponse = await reviewCoach({
         coachId: coach.id,
@@ -530,7 +538,7 @@ export default function CoachDetailPage() {
                   successTitle="Session Booked!"
                   successMessage="Your session has been confirmed. You can view your booking details on your dashboard."
                   dashboardLink="/dashboard"
-                  showMessageButton={true}
+                  showMessageButton={isStudent}
                   onMessageClick={handleMessageClick}
                 />
               </div>
@@ -609,9 +617,15 @@ export default function CoachDetailPage() {
                       <DialogFooter>
                         <Button
                           type="submit"
-                          disabled={rating === 0 || !reviewText.trim() || isSubmittingReview}
+                          disabled={
+                            rating === 0 ||
+                            !reviewText.trim() ||
+                            isSubmittingReview
+                          }
                         >
-                          {isSubmittingReview ? "Submitting..." : "Submit Review"}
+                          {isSubmittingReview
+                            ? "Submitting..."
+                            : "Submit Review"}
                         </Button>
                       </DialogFooter>
                     </form>
@@ -722,6 +736,7 @@ function EnrollmentForm({
   showMessageButton?: boolean;
   onMessageClick?: () => void;
 }) {
+  const { isStudent } = useAuth();
   const timeSlots = ["09:00", "11:00", "14:00", "16:00"];
 
   if (step === 0) {
@@ -752,9 +767,11 @@ function EnrollmentForm({
         <CardContent className="p-6 text-center">
           <h3 className="font-headline text-2xl font-bold">{title}</h3>
           <p className="text-muted-foreground mt-2 mb-6">{subtitle}</p>
-          <Button size="lg" className="w-full" onClick={onEnroll}>
-            <PlusCircle className="mr-2 h-5 w-5" /> {enrollButtonText}
-          </Button>
+          {isStudent && (
+            <Button size="lg" className="w-full" onClick={onEnroll}>
+              <PlusCircle className="mr-2 h-5 w-5" /> {enrollButtonText}
+            </Button>
+          )}
           {showMessageButton && onMessageClick && (
             <Button
               size="lg"

@@ -55,6 +55,34 @@ export const updateCategorySchema = z.object({
   isActive: z.boolean().optional(),
 });
 
+export const createEventSchema = z.object({
+  title: z.string(),
+  description: z.string(),
+  eventType: z.string(),
+  date: z.date(),
+  location: z.string().optional(),
+  organizer: z.string().optional(),
+  isPublic: z.boolean().default(true),
+  maxAttendees: z.number().optional(),
+  attendees: z.number().optional(),
+  status: z.string().optional(),
+  tags: z.array(z.string()).optional(),
+});
+
+export const updateEventSchema = z.object({
+  title: z.string().optional(),
+  description: z.string().optional(),
+  eventType: z.string().optional(),
+  date: z.date().optional(),
+  location: z.string().optional(),
+  organizer: z.string().optional(),
+  isPublic: z.boolean().optional(),
+  maxAttendees: z.number().optional(),
+  attendees: z.number().optional(),
+  status: z.string().optional(),
+  tags: z.array(z.string()).optional(),
+});
+
 export type RegisterData = z.infer<typeof registerSchema>;
 export type SigninData = z.infer<typeof signinSchema>;
 export type GoogleAuthData = z.infer<typeof googleAuthSchema>;
@@ -69,7 +97,8 @@ export const coachQuerySchema = z.object({
     .transform((val) => parseInt(val) || 50)
     .optional(),
 });
-
+export type CreateEventData = z.infer<typeof createEventSchema>;
+export type UpdateEventData = z.infer<typeof updateEventSchema>;
 export type CreateCategoryData = z.infer<typeof createCategorySchema>;
 export type UpdateCategoryData = z.infer<typeof updateCategorySchema>;
 export const adminProgramQuerySchema = z.object({

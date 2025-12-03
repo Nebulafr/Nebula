@@ -90,7 +90,7 @@ export default function ProgramDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = use(params);
-  const { profile, studentProfile } = useAuth();
+  const { profile, studentProfile, isStudent } = useAuth();
   const [enrollmentStep, setEnrollmentStep] = useState(0);
   const [program, setProgram] = useState<ProgramWithRelations | null>(null);
   const [loading, setLoading] = useState(true);
@@ -296,7 +296,7 @@ export default function ProgramDetailPage({
   };
 
   const handleMessageClick = () => {
-    router.replace("/dashboard/messaging?conversationId=1");
+    router.replace(`/dashboard/messaging?conversationId=${profile?.id}`);
   };
 
   const handleReviewSubmit = (e: React.FormEvent) => {
@@ -337,13 +337,15 @@ export default function ProgramDetailPage({
               {program.description}
             </p>
             <div className="mt-8 flex items-center gap-4">
-              <Button
-                size="lg"
-                onClick={handleEnrollClick}
-                variant={enrollmentStep > 0 ? "outline" : "default"}
-              >
-                <PlusCircle className="mr-2 h-5 w-5" /> Enroll now
-              </Button>
+              {isStudent && (
+                <Button
+                  size="lg"
+                  onClick={handleEnrollClick}
+                  variant={enrollmentStep > 0 ? "outline" : "default"}
+                >
+                  <PlusCircle className="mr-2 h-5 w-5" /> Enroll now
+                </Button>
+              )}
               <Button
                 variant="link"
                 size="lg"
@@ -373,13 +375,6 @@ export default function ProgramDetailPage({
                     </li>
                   ))}
                 </ul>
-                <Button
-                  className="mt-8"
-                  onClick={handleEnrollClick}
-                  variant={enrollmentStep > 0 ? "outline" : "default"}
-                >
-                  <PlusCircle className="mr-2 h-5 w-5" /> Enroll
-                </Button>
               </div>
             </div>
 
@@ -477,16 +472,17 @@ export default function ProgramDetailPage({
                 <p className="mt-6 text-base text-muted-foreground">
                   {program.coach.bio || "No bio available"}
                 </p>
-                <Button
-                  variant="outline"
-                  className="mt-6"
-                  onClick={handleMessageClick}
-                >
-                  <MessageCircle className="mr-2 h-4 w-4" />
-                  Message{" "}
-                  {program.coach.user.fullName?.split(" ")[0] || "Coach"}
-                </Button>
-
+                {isStudent && (
+                  <Button
+                    variant="outline"
+                    className="mt-6"
+                    onClick={handleMessageClick}
+                  >
+                    <MessageCircle className="mr-2 h-4 w-4" />
+                    Message{" "}
+                    {program.coach.user.fullName?.split(" ")[0] || "Coach"}
+                  </Button>
+                )}
                 {program.coach.pastCompanies &&
                   program.coach.pastCompanies.length > 0 && (
                     <div className="mt-12">
@@ -668,14 +664,6 @@ export default function ProgramDetailPage({
               </AccordionItem>
             ))}
           </Accordion>
-          <Button
-            size="lg"
-            className="mt-8"
-            onClick={handleEnrollClick}
-            variant={enrollmentStep > 0 ? "outline" : "default"}
-          >
-            <PlusCircle className="mr-2 h-5 w-5" /> Enroll
-          </Button>
         </section>
       </main>
       <Footer />
@@ -728,6 +716,7 @@ function EnrollmentForm({
   showMessageButton?: boolean;
   onMessageClick?: () => void;
 }) {
+  const { isStudent } = useAuth();
   const timeSlots = ["09:00", "11:00", "14:00", "16:00"];
 
   if (step === 0) {
@@ -758,9 +747,11 @@ function EnrollmentForm({
         <CardContent className="p-6 text-center">
           <h3 className="font-headline text-2xl font-bold">{title}</h3>
           <p className="text-muted-foreground mt-2 mb-6">{subtitle}</p>
-          <Button size="lg" className="w-full" onClick={onEnroll}>
-            <PlusCircle className="mr-2 h-5 w-5" /> {enrollButtonText}
-          </Button>
+          {isStudent && (
+            <Button size="lg" className="w-full" onClick={onEnroll}>
+              <PlusCircle className="mr-2 h-5 w-5" /> {enrollButtonText}
+            </Button>
+          )}
           {showMessageButton && onMessageClick && (
             <Button
               size="lg"
