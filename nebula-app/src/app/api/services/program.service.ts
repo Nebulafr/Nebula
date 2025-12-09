@@ -7,6 +7,7 @@ import {
 import { createProgramSchema, updateProgramSchema } from "../utils/schemas";
 import { prisma } from "@/lib/prisma";
 import sendResponse from "../utils/send-response";
+import { generateSlug } from "@/lib/utils/slug";
 
 export class ProgramService {
   async createProgram(request: NextRequest) {
@@ -32,10 +33,15 @@ export class ProgramService {
     } = createProgramSchema.parse(body);
 
     const coachId = user.coach.id;
-    const slug = title
-      .toLowerCase()
-      .replace(/\s+/g, "-")
-      .replace(/[^\w-]/g, "");
+    
+    let baseSlug = generateSlug(title);
+    let finalSlug = baseSlug;
+    let counter = 1;
+
+    while (await prisma.program.findUnique({ where: { slug: finalSlug } })) {
+      finalSlug = `${baseSlug}-${counter}`;
+      counter++;
+    }
 
     const categoryRecord = await prisma.category.findUnique({
       where: { name: category },
@@ -52,7 +58,7 @@ export class ProgramService {
         description,
         objectives,
         coachId: coachId,
-        slug,
+        slug: finalSlug,
         rating: 0,
         totalReviews: 0,
         price: price || 0,
@@ -286,6 +292,20 @@ export class ProgramService {
       }
     }
 
+    let newSlug = slug;
+    if (title && title !== program.title) {
+      let baseSlug = generateSlug(title);
+      let finalSlug = baseSlug;
+      let counter = 1;
+
+      while (await prisma.program.findUnique({ where: { slug: finalSlug } })) {
+        finalSlug = `${baseSlug}-${counter}`;
+        counter++;
+      }
+
+      newSlug = finalSlug;
+    }
+
     const updatedProgram = await prisma.program.update({
       where: { slug },
       data: {
@@ -301,12 +321,7 @@ export class ProgramService {
         prerequisites,
         isActive,
         status,
-        slug: title
-          ? title
-              .toLowerCase()
-              .replace(/\s+/g, "-")
-              .replace(/[^\w-]/g, "")
-          : undefined,
+        slug: newSlug,
       },
     });
 

@@ -40,4 +40,29 @@ export class AdminController {
       { status: 200 }
     );
   }
+
+  async getUsers(request: NextRequest) {
+    const { searchParams } = new URL(request.url);
+
+    const queryParams = {
+      search: searchParams.get("search") || undefined,
+      role: searchParams.get("role") || undefined,
+      status: searchParams.get("status") || undefined,
+    };
+
+    return await AdminService.getUsers(queryParams);
+  }
+
+  async getReviews(request: NextRequest) {
+    const { searchParams } = new URL(request.url);
+
+    const queryParams = {
+      search: searchParams.get("search") || undefined,
+      targetType: searchParams.get("targetType") || undefined,
+      status: searchParams.get("status") || undefined,
+      rating: searchParams.get("rating") || undefined,
+    };
+
+    return await AdminService.getReviews(queryParams);
+  }
 }

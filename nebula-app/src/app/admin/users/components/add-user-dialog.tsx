@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/select";
 
 interface AddUserDialogProps {
-  onAddUser?: (userData: NewUserData) => void;
+  onAddUser?: (userData: NewUserData) => Promise<void>;
   loading?: boolean;
 }
 
@@ -37,6 +37,7 @@ interface NewUserData {
 
 export function AddUserDialog({ onAddUser, loading = false }: AddUserDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<NewUserData>({
     name: '',
     email: '',
@@ -44,21 +45,37 @@ export function AddUserDialog({ onAddUser, loading = false }: AddUserDialogProps
     password: '',
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.name && formData.email && formData.role && formData.password) {
-      onAddUser?.(formData);
-      setFormData({ name: '', email: '', role: '', password: '' });
-      setIsOpen(false);
+      setIsSubmitting(true);
+      try {
+        await onAddUser?.(formData);
+        setFormData({ name: '', email: '', role: '', password: '' });
+        setIsOpen(false);
+      } catch (error) {
+        console.error("Error submitting form:", error);
+        // Form will remain open so user can try again
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
   const isFormValid = formData.name && formData.email && formData.role && formData.password;
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={(open) => {
+      if (!isSubmitting) {
+        setIsOpen(open);
+        if (!open) {
+          // Reset form when closing
+          setFormData({ name: '', email: '', role: '', password: '' });
+        }
+      }
+    }}>
       <DialogTrigger asChild>
-        <Button disabled={loading}>
+        <Button disabled={loading || isSubmitting}>
           <PlusCircle className="mr-2 h-4 w-4" />
           Add User
         </Button>
@@ -82,6 +99,7 @@ export function AddUserDialog({ onAddUser, loading = false }: AddUserDialogProps
                 className="col-span-3"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                disabled={isSubmitting}
                 required
               />
             </div>
@@ -96,6 +114,7 @@ export function AddUserDialog({ onAddUser, loading = false }: AddUserDialogProps
                 className="col-span-3"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                disabled={isSubmitting}
                 required
               />
             </div>
@@ -106,6 +125,7 @@ export function AddUserDialog({ onAddUser, loading = false }: AddUserDialogProps
               <Select 
                 value={formData.role} 
                 onValueChange={(value) => setFormData({ ...formData, role: value })}
+                disabled={isSubmitting}
               >
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Select a role" />
@@ -128,6 +148,7 @@ export function AddUserDialog({ onAddUser, loading = false }: AddUserDialogProps
                 className="col-span-3"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                disabled={isSubmitting}
                 required
               />
             </div>
@@ -138,8 +159,8 @@ export function AddUserDialog({ onAddUser, loading = false }: AddUserDialogProps
                 Cancel
               </Button>
             </DialogClose>
-            <Button type="submit" disabled={!isFormValid || loading}>
-              {loading ? 'Creating...' : 'Create User'}
+            <Button type="submit" disabled={!isFormValid || loading || isSubmitting}>
+              {isSubmitting ? 'Creating...' : 'Create User'}
             </Button>
           </DialogFooter>
         </form>

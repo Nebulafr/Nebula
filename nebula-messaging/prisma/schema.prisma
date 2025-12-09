@@ -5,7 +5,9 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  output          = "../generated/prisma"
+  previewFeatures = ["relationJoins"]
 }
 
 datasource db {
@@ -82,6 +84,14 @@ enum ReviewTargetType {
   SESSION
 }
 
+enum EventAttendeeStatus {
+  REGISTERED
+  CONFIRMED
+  ATTENDED
+  CANCELLED
+  NO_SHOW
+}
+
 // Base model for timestamps
 model User {
   id             String     @id @default(cuid())
@@ -108,6 +118,9 @@ model User {
 
   // Conversation participants
   conversations ConversationParticipant[]
+
+  // Events organized
+  organizedEvents Event[] @relation("EventOrganizer")
 
   @@map("users")
 }
@@ -189,6 +202,9 @@ model Student {
   sessions    SessionAttendance[]
   preferences StudentPreferences?
 
+  // Event attendance
+  eventAttendances EventAttendee[]
+
   @@map("students")
 }
 
@@ -210,24 +226,24 @@ model StudentPreferences {
 model Program {
   id                 String          @id @default(cuid())
   title              String
-  categoryId         String
+  categoryId         String          @map("category_id")
   description        String
   objectives         String[]
-  coachId            String
+  coachId            String          @map("coach_id")
   slug               String          @unique
   rating             Float           @default(0)
-  totalReviews       Int?            @default(0)
+  totalReviews       Int?            @default(0) @map("total_reviews")
   price              Int?            @default(0)
   duration           String?
-  difficultyLevel    DifficultyLevel @default(BEGINNER)
+  difficultyLevel    DifficultyLevel @default(BEGINNER) @map("difficulty_level")
   maxStudents        Int?            @default(100)
-  currentEnrollments Int?            @default(0)
-  isActive           Boolean         @default(false)
+  currentEnrollments Int?            @default(0) @map("current_enrollments")
+  isActive           Boolean         @default(false) @map("is_active")
   status             ProgramStatus   @default(INACTIVE)
   tags               String[]
   prerequisites      String[]
-  createdAt          DateTime        @default(now())
-  updatedAt          DateTime        @updatedAt
+  createdAt          DateTime        @default(now()) @map("created_at")
+  updatedAt          DateTime        @updatedAt @map("updated_at")
 
   // Relationships
   category    Category     @relation(fields: [categoryId], references: [id])
@@ -241,7 +257,7 @@ model Program {
 
 model Module {
   id          String  @id @default(cuid())
-  programId   String
+  programId   String  @map("program_id")
   title       String
   week        Int
   description String?
@@ -254,17 +270,17 @@ model Module {
 
 model Enrollment {
   id             String           @id @default(cuid())
-  studentId      String
-  programId      String
-  coachId        String
+  studentId      String           @map("student_id")
+  programId      String           @map("program_id")
+  coachId        String           @map("coach_id")
   status         EnrollmentStatus @default(ACTIVE)
-  enrollmentDate DateTime         @default(now())
-  completionDate DateTime?
+  enrollmentDate DateTime         @default(now()) @map("enrollment_date")
+  completionDate DateTime?        @map("completion_date")
   progress       Float            @default(0)
-  paymentStatus  PaymentStatus    @default(PENDING)
+  paymentStatus  PaymentStatus    @default(PENDING) @map("payment_status")
   time           String
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
 
   // Relationships
   student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
@@ -276,17 +292,17 @@ model Enrollment {
 
 model Session {
   id            String        @id @default(cuid())
-  coachId       String
+  coachId       String        @map("coach_id")
   title         String?
   description   String?
-  scheduledTime DateTime
+  scheduledTime DateTime      @map("scheduled_time")
   duration      Int
   status        SessionStatus @default(SCHEDULED)
-  meetLink      String?
-  googleEventId String?
+  meetLink      String?       @map("meet_link")
+  googleEventId String?       @map("google_event_id")
   notes         String?
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
 
   // Relationships
   coach      Coach               @relation(fields: [coachId], references: [id])
@@ -298,12 +314,12 @@ model Session {
 
 model SessionAttendance {
   id                 String    @id @default(cuid())
-  sessionId          String
-  studentId          String
-  joinTime           DateTime?
-  leaveTime          DateTime?
+  sessionId          String    @map("session_id")
+  studentId          String    @map("student_id")
+  joinTime           DateTime? @map("join_time")
+  leaveTime          DateTime? @map("leave_time")
   attended           Boolean   @default(false)
-  participationScore Int?
+  participationScore Int?      @map("participation_score")
 
   // Relationships
   session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
@@ -315,12 +331,12 @@ model SessionAttendance {
 
 model SessionRecording {
   id         String   @id @default(cuid())
-  sessionId  String
+  sessionId  String   @map("session_id")
   title      String
   url        String
   duration   Int
-  uploadedAt DateTime @default(now())
-  isPublic   Boolean  @default(false)
+  uploadedAt DateTime @default(now()) @map("uploaded_at")
+  isPublic   Boolean  @default(false) @map("is_public")
 
   // Relationships
   session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
@@ -330,20 +346,20 @@ model SessionRecording {
 
 model Review {
   id           String           @id @default(cuid())
-  reviewerId   String
-  revieweeId   String?
-  programId    String?
-  coachId      String?
-  targetType   ReviewTargetType
+  reviewerId   String           @map("reviewer_id")
+  revieweeId   String?          @map("reviewee_id")
+  programId    String?          @map("program_id")
+  coachId      String?          @map("coach_id")
+  targetType   ReviewTargetType @map("target_type")
   rating       Int
   title        String?
   content      String
-  isVerified   Boolean          @default(false)
-  isPublic     Boolean          @default(true)
-  helpfulCount Int?             @default(0)
+  isVerified   Boolean          @default(false) @map("is_verified")
+  isPublic     Boolean          @default(true) @map("is_public")
+  helpfulCount Int?             @default(0) @map("helpful_count")
   tags         String[]
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
+  createdAt    DateTime         @default(now()) @map("created_at")
+  updatedAt    DateTime         @updatedAt @map("updated_at")
 
   // Relationships
   reviewer User     @relation("ReviewerUser", fields: [reviewerId], references: [id])
@@ -358,47 +374,52 @@ model Conversation {
   id              String           @id @default(cuid())
   type            ConversationType @default(DIRECT)
   title           String?
-  lastMessage     String?
-  lastMessageTime DateTime?
-  isActive        Boolean          @default(true)
-  isArchived      Boolean          @default(false)
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
+  lastMessage     String?          @map("last_message")
+  lastMessageTime DateTime?        @map("last_message_time")
+  isActive        Boolean          @default(true) @map("is_active")
+  isArchived      Boolean          @default(false) @map("is_archived")
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
 
   // Relationships
   participants ConversationParticipant[]
   messages     Message[]
 
+  @@index([createdAt])
+  @@index([lastMessageTime])
+  @@index([type])
   @@map("conversations")
 }
 
 model ConversationParticipant {
   id             String @id @default(cuid())
-  conversationId String
-  userId         String
-  unreadCount    Int    @default(0)
+  conversationId String @map("conversation_id")
+  userId         String @map("user_id")
+  unreadCount    Int    @default(0) @map("unread_count")
 
   // Relationships
   conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([conversationId, userId])
+  @@index([userId])
+  @@index([conversationId])
   @@map("conversation_participants")
 }
 
 model Message {
   id             String      @id @default(cuid())
-  conversationId String
-  senderId       String
+  conversationId String      @map("conversation_id")
+  senderId       String      @map("sender_id")
   content        String
   type           MessageType @default(TEXT)
-  isRead         Boolean     @default(false)
-  readAt         DateTime?
-  editedAt       DateTime?
-  isEdited       Boolean     @default(false)
-  isDeleted      Boolean     @default(false)
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
+  isRead         Boolean     @default(false) @map("is_read")
+  readAt         DateTime?   @map("read_at")
+  editedAt       DateTime?   @map("edited_at")
+  isEdited       Boolean     @default(false) @map("is_edited")
+  isDeleted      Boolean     @default(false) @map("is_deleted")
+  createdAt      DateTime    @default(now()) @map("created_at")
+  updatedAt      DateTime    @updatedAt @map("updated_at")
 
   // Relationships
   conversation Conversation        @relation(fields: [conversationId], references: [id], onDelete: Cascade)
@@ -406,34 +427,109 @@ model Message {
   attachments  MessageAttachment[]
   reactions    MessageReaction[]
 
+  @@index([conversationId, createdAt])
+  @@index([conversationId, isRead])
+  @@index([senderId])
   @@map("messages")
 }
 
 model MessageAttachment {
   id         String   @id @default(cuid())
-  messageId  String
-  fileName   String
-  fileUrl    String
-  fileSize   Int
-  mimeType   String
-  uploadedAt DateTime @default(now())
+  messageId  String   @map("message_id")
+  fileName   String   @map("file_name")
+  fileUrl    String   @map("file_url")
+  fileSize   Int      @map("file_size")
+  mimeType   String   @map("mime_type")
+  uploadedAt DateTime @default(now()) @map("uploaded_at")
 
   // Relationships
   message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
 
+  @@index([messageId])
   @@map("message_attachments")
 }
 
 model MessageReaction {
   id        String   @id @default(cuid())
-  messageId String
-  userId    String
+  messageId String   @map("message_id")
+  userId    String   @map("user_id")
   emoji     String
-  createdAt DateTime @default(now())
+  createdAt DateTime @default(now()) @map("created_at")
 
   // Relationships
   message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
 
   @@unique([messageId, userId, emoji])
+  @@index([messageId])
+  @@index([userId])
   @@map("message_reactions")
+}
+
+model Event {
+  id             String   @id @default(cuid())
+  title          String
+  description    String
+  eventType      String   @map("event_type")
+  date           DateTime
+  location       String?
+  images         String[] // Array of image URLs
+  slug           String   @unique
+  organizerId    String?  @map("organizer_id")
+  isPublic       Boolean  @default(true) @map("is_public")
+  maxAttendees   Int?     @map("max_attendees")
+  status         String?
+  tags           String[]
+  whatToBring    String?  @map("what_to_bring")
+  additionalInfo String?  @map("additional_info")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  organizer User?           @relation("EventOrganizer", fields: [organizerId], references: [id])
+  attendees EventAttendee[]
+  sessions  EventSession[]
+
+  @@index([organizerId])
+  @@map("events")
+}
+
+model EventSession {
+  id          String   @id @default(cuid())
+  eventId     String   @map("event_id")
+  date        DateTime
+  time        String
+  price       Float?   @default(0)
+  currency    String?  @default("EUR")
+  spotsLeft   Int?     @map("spots_left")
+  isActive    Boolean  @default(true) @map("is_active")
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+  @@index([date])
+  @@map("event_sessions")
+}
+
+model EventAttendee {
+  id           String              @id @default(cuid())
+  eventId      String              @map("event_id")
+  studentId    String              @map("student_id")
+  status       EventAttendeeStatus @default(REGISTERED)
+  registeredAt DateTime            @default(now()) @map("registered_at")
+  attendedAt   DateTime?           @map("attended_at")
+  cancelledAt  DateTime?           @map("cancelled_at")
+  notes        String?
+  createdAt    DateTime            @default(now()) @map("created_at")
+  updatedAt    DateTime            @updatedAt @map("updated_at")
+
+  event   Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, studentId])
+  @@index([eventId])
+  @@index([studentId])
+  @@index([status])
+  @@map("event_attendees")
 }

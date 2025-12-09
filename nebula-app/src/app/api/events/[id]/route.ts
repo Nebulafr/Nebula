@@ -4,23 +4,26 @@ import CatchError from "../../utils/catch-error";
 import { isAuthenticated } from "../../middleware/auth";
 
 export const GET = CatchError(
-  async (req: NextRequest, { params }: { params: { id: string } }) => {
-    return await eventController.getEvent(params.id);
+  async (req: NextRequest, context: { params: Promise<{ id: string }> }) => {
+    const { id } = await context.params;
+    return await eventController.getEvent(id);
   }
 );
 
 export const PUT = CatchError(
   isAuthenticated(
-    async (req: NextRequest, { params }: { params: { id: string } }) => {
-      return await eventController.updateEvent(req, params.id);
+    async (req: NextRequest, context: { params: Promise<{ id: string }> }) => {
+      const { id } = await context.params;
+      return await eventController.updateEvent(req, id);
     }
   )
 );
 
 export const DELETE = CatchError(
   isAuthenticated(
-    async (req: NextRequest, { params }: { params: { id: string } }) => {
-      return await eventController.deleteEvent(params.id);
+    async (req: NextRequest, context: { params: Promise<{ id: string }> }) => {
+      const { id } = await context.params;
+      return await eventController.deleteEvent(req, id);
     }
   )
 );

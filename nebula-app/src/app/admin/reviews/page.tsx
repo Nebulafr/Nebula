@@ -1,6 +1,19 @@
 "use client";
 
 import React, { useState } from "react";
+import { useAdminReviews } from "@/hooks/use-admin-reviews";
+
+// Simple debounce function
+function debounce<T extends (...args: any[]) => any>(
+  func: T,
+  delay: number
+): (...args: Parameters<T>) => void {
+  let timeoutId: NodeJS.Timeout;
+  return (...args: Parameters<T>) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => func(...args), delay);
+  };
+}
 import {
   Table,
   TableHeader,
@@ -29,68 +42,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const reviews = [
-  {
-    author: {
-      name: "Carlos Pavol",
-      avatar: "https://i.pravatar.cc/40?u=carlos-pavol",
-    },
-    review:
-      "Adrian was incredibly insightful and supportive. His real-world examples from BCG made complex concepts easy to understand. I left the session feeling more confident and inspired.",
-    rating: 5,
-    target: {
-      type: "Coach",
-      name: "Adrian Cucurella",
-    },
-    date: "2024-08-01",
-    status: "Visible",
-  },
-  {
-    author: {
-      name: "Sarah K.",
-      avatar: "https://i.pravatar.cc/40?u=sarah-k",
-    },
-    review:
-      "A fantastic mentor. Adrian helped me navigate the complexities of a case interview and provided actionable feedback.",
-    rating: 5,
-    target: {
-      type: "Program",
-      name: "Consulting, Associate Level",
-    },
-    date: "2024-07-28",
-    status: "Visible",
-  },
-  {
-    author: {
-      name: "Tom B.",
-      avatar: "https://i.pravatar.cc/40?u=tom-b",
-    },
-    review:
-      "Good insights, but I was hoping for more materials to review after the sessions. The live coaching was great, though.",
-    rating: 4,
-    target: {
-      type: "Coach",
-      name: "Adrian Cucurella",
-    },
-    date: "2024-07-15",
-    status: "Pending",
-  },
-  {
-    author: {
-      name: "Li W.",
-      avatar: "https://i.pravatar.cc/40?u=li-w",
-    },
-    review:
-      "Highly recommend Adrian for anyone looking to break into consulting. His knowledge of the industry is immense.",
-    rating: 5,
-    target: {
-      type: "Coach",
-      name: "Adrian Cucurella",
-    },
-    date: "2024-06-20",
-    status: "Hidden",
-  },
-];
 
 const StarRating = ({ rating }: { rating: number }) => (
   <div className="flex items-center">
@@ -107,13 +58,48 @@ const StarRating = ({ rating }: { rating: number }) => (
 
 export default function AdminReviewsPage() {
   const [searchTerm, setSearchTerm] = useState("");
+  const { reviews, loading, fetchReviews } = useAdminReviews();
 
-  const filteredReviews = reviews.filter(
-    (review) =>
-      review.author.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      review.review.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      review.target.name.toLowerCase().includes(searchTerm.toLowerCase())
+  // Debounced search function
+  const debouncedFetch = React.useCallback(
+    debounce((search: string) => {
+      fetchReviews({
+        search: search || undefined,
+      });
+    }, 300),
+    [fetchReviews]
   );
+
+  // Initial fetch on mount
+  React.useEffect(() => {
+    fetchReviews();
+  }, [fetchReviews]);
+
+  // Effect to trigger API call when search changes
+  React.useEffect(() => {
+    if (searchTerm) {
+      debouncedFetch(searchTerm);
+    } else {
+      fetchReviews();
+    }
+  }, [searchTerm, debouncedFetch, fetchReviews]);
+
+  // Transform reviews to match the table interface
+  const transformedReviews = reviews.map((review) => ({
+    id: review.id,
+    author: {
+      name: review.reviewer.fullName || review.reviewer.email,
+      avatar: review.reviewer.avatarUrl,
+    },
+    review: review.content,
+    rating: review.rating,
+    target: {
+      type: review.targetType === "PROGRAM" ? "Program" : review.targetType === "COACH" ? "Coach" : "Session",
+      name: review.program?.title || review.reviewee?.fullName || "Unknown",
+    },
+    date: new Date(review.createdAt).toLocaleDateString(),
+    status: review.isPublic ? "Visible" : "Hidden",
+  }));
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8">
@@ -143,7 +129,50 @@ export default function AdminReviewsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredReviews.map((review, index) => (
+              {loading ? (
+                // Loading skeleton rows
+                [1, 2, 3, 4, 5].map((i) => (
+                  <TableRow key={i}>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse" />
+                        <div className="h-4 w-24 bg-gray-200 rounded animate-pulse" />
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="space-y-2">
+                        <div className="h-3 w-full bg-gray-200 rounded animate-pulse" />
+                        <div className="h-3 w-3/4 bg-gray-200 rounded animate-pulse" />
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="h-4 w-20 bg-gray-200 rounded animate-pulse" />
+                    </TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <div className="h-4 w-20 bg-gray-200 rounded animate-pulse" />
+                        <div className="h-3 w-16 bg-gray-200 rounded animate-pulse" />
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="h-4 w-16 bg-gray-200 rounded animate-pulse" />
+                    </TableCell>
+                    <TableCell>
+                      <div className="h-6 w-16 bg-gray-200 rounded animate-pulse" />
+                    </TableCell>
+                    <TableCell>
+                      <div className="h-8 w-8 bg-gray-200 rounded animate-pulse" />
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : transformedReviews.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                    No reviews found matching your criteria.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                transformedReviews.map((review, index) => (
                 <TableRow key={index}>
                   <TableCell>
                     <div className="flex items-center gap-3">
@@ -212,7 +241,8 @@ export default function AdminReviewsPage() {
                     </DropdownMenu>
                   </TableCell>
                 </TableRow>
-              ))}
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>

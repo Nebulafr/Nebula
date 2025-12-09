@@ -3,7 +3,7 @@ import {
   PrismaClient,
   UserRole,
   UserStatus,
-} from "../src/generated/prisma/index.js";
+} from "../generated/prisma";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 import bcrypt from "bcryptjs";

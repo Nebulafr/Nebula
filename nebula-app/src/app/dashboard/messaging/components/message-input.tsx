@@ -11,10 +11,10 @@ interface MessageInputProps {
   placeholder?: string;
 }
 
-export function MessageInput({ 
-  onSendMessage, 
+export function MessageInput({
+  onSendMessage,
   disabled = false,
-  placeholder = "Type a message..." 
+  placeholder = "Type a message...",
 }: MessageInputProps) {
   const [message, setMessage] = useState("");
 
@@ -31,6 +31,7 @@ export function MessageInput({
       <form onSubmit={handleSubmit} className="flex items-center w-full">
         <div className="flex-1 relative">
           <Input
+            type="text"
             value={message || ""}
             onChange={(e) => setMessage(e.target.value)}
             placeholder={placeholder}
@@ -42,8 +43,8 @@ export function MessageInput({
               <Paperclip className="h-4 w-4 text-gray-500" />
             </Button>
             <div className="w-px h-4 bg-gray-300" />
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               size="sm"
               disabled={disabled || !message.trim()}
             >

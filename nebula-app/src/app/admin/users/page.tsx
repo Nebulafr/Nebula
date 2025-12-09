@@ -1,77 +1,100 @@
+"use client";
 
-'use client';
+import React, { useState } from "react";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { UserFilters } from "./components/user-filters";
+import { UsersTable } from "./components/users-table";
+import { AddUserDialog } from "./components/add-user-dialog";
+import { useAdminUsers } from "@/hooks/use-admin-users";
 
-import React, { useState } from 'react';
-import { Tabs, TabsContent } from '@/components/ui/tabs';
-import { UserFilters } from './components/user-filters';
-import { UsersTable } from './components/users-table';
-import { AddUserDialog } from './components/add-user-dialog';
-
-const users = [
-  {
-    name: 'Alex Thompson',
-    email: 'alex.thompson@example.com',
-    avatar: 'https://i.pravatar.cc/40?u=alex',
-    role: 'Student',
-    status: 'Active',
-    joined: '2024-07-15',
-  },
-  {
-    name: 'Adrian Cucurella',
-    email: 'adrian.cucurella@example.com',
-    avatar: 'https://i.pravatar.cc/40?u=adrian-cucurella',
-    role: 'Coach',
-    status: 'Active',
-    joined: '2024-06-20',
-  },
-  {
-    name: 'Sarah K.',
-    email: 'sarah.k@example.com',
-    avatar: 'https://i.pravatar.cc/40?u=sarah',
-    role: 'Student',
-    status: 'Suspended',
-    joined: '2024-05-10',
-  },
-  {
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    avatar: 'https://i.pravatar.cc/40?u=john-doe',
-    role: 'Admin',
-    status: 'Active',
-    joined: '2024-01-01',
-  },
-   {
-    name: 'Michael B. Jordan',
-    email: 'michael.jordan@example.com',
-    avatar: 'https://i.pravatar.cc/40?u=michael-b-jordan',
-    role: 'Coach',
-    status: 'Active',
-    joined: '2024-07-01',
-  },
-  {
-    name: 'Jessica L.',
-    email: 'jessica.l@example.com',
-    avatar: 'https://i.pravatar.cc/40?u=jessica',
-    role: 'Student',
-    status: 'Active',
-    joined: '2024-07-22',
-  },
-];
+// Simple debounce function
+function debounce<T extends (...args: any[]) => any>(
+  func: T,
+  delay: number
+): (...args: Parameters<T>) => void {
+  let timeoutId: NodeJS.Timeout;
+  return (...args: Parameters<T>) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => func(...args), delay);
+  };
+}
 
 export default function UserManagementPage() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState('all');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [activeTab, setActiveTab] = useState("all");
+  const { users, loading, fetchUsers } = useAdminUsers();
 
-  const filteredUsers = users.filter(user => {
-    const roleMatch = activeTab === 'all' || user.role.toLowerCase() === activeTab;
-    const searchMatch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        user.email.toLowerCase().includes(searchTerm.toLowerCase());
-    return roleMatch && searchMatch;
-  });
+  // Debounced search function
+  const debouncedFetch = React.useCallback(
+    debounce((search: string, role: string) => {
+      fetchUsers({
+        search: search || undefined,
+        role: role === "all" ? undefined : role,
+      });
+    }, 300),
+    [fetchUsers]
+  );
 
-  const handleAddUser = (userData: any) => {
-    console.log('Adding new user:', userData);
-    // TODO: Implement user creation logic
+  // Initial fetch on mount
+  React.useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
+
+  // Effect to trigger API call when search or tab changes
+  React.useEffect(() => {
+    if (searchTerm || activeTab !== "all") {
+      debouncedFetch(searchTerm, activeTab);
+    } else {
+      fetchUsers();
+    }
+  }, [searchTerm, activeTab, debouncedFetch, fetchUsers]);
+
+  // Transform users to match the table interface
+  const transformedUsers = users.map((user) => ({
+    name: user.fullName || user.email,
+    email: user.email,
+    avatar: user.avatarUrl,
+    role: user.role,
+    status:
+      user.status === "ACTIVE"
+        ? "Active"
+        : user.status === "SUSPENDED"
+        ? "Suspended"
+        : "Inactive",
+    joined: user.createdAt
+      ? new Date(user.createdAt).toLocaleDateString()
+      : "Unknown",
+  }));
+
+  const handleAddUser = async (userData: { name: string; email: string; role: string; password: string }) => {
+    try {
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: userData.email,
+          password: userData.password,
+          fullName: userData.name,
+          role: userData.role.toUpperCase(),
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        // Refresh the users list after successful creation
+        fetchUsers();
+        console.log("User created successfully:", result.data);
+      } else {
+        console.error("Failed to create user:", result.message);
+        // You could show a toast notification here
+      }
+    } catch (error) {
+      console.error("Error creating user:", error);
+      // You could show a toast notification here
+    }
   };
 
   const handleUserAction = (user: any, action: string) => {
@@ -87,14 +110,16 @@ export default function UserManagementPage() {
           onSearchChange={setSearchTerm}
           activeTab={activeTab}
           onTabChange={setActiveTab}
+          loading={loading}
         />
         <div className="flex justify-end mb-4">
-          <AddUserDialog onAddUser={handleAddUser} />
+          <AddUserDialog onAddUser={handleAddUser} loading={loading} />
         </div>
-        
+
         <TabsContent value={activeTab} className="mt-6">
           <UsersTable
-            users={filteredUsers}
+            users={transformedUsers}
+            loading={loading}
             onUserAction={handleUserAction}
           />
         </TabsContent>

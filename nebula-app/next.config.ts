@@ -1,28 +1,36 @@
 import type { NextConfig } from "next";
+import path from "path";
 
 const nextConfig: NextConfig = {
+  webpack: (config) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      "@/generated/prisma": path.resolve(__dirname, "./generated/prisma"),
+    };
+    return config;
+  },
   turbopack: {
     rules: {
-      '*.svg': {
-        loaders: ['@svgr/webpack'],
-        as: '*.js',
+      "*.svg": {
+        loaders: ["@svgr/webpack"],
+        as: "*.js",
       },
     },
   },
   images: {
-    domains: ['firebasestorage.googleapis.com', 'lh3.googleusercontent.com'],
+    domains: ["firebasestorage.googleapis.com", "lh3.googleusercontent.com"],
     remotePatterns: [
       {
-        protocol: 'https',
-        hostname: 'firebasestorage.googleapis.com',
-        port: '',
-        pathname: '/v0/b/**',
+        protocol: "https",
+        hostname: "firebasestorage.googleapis.com",
+        port: "",
+        pathname: "/v0/b/**",
       },
       {
-        protocol: 'https',
-        hostname: 'lh3.googleusercontent.com',
-        port: '',
-        pathname: '/**',
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
+        port: "",
+        pathname: "/**",
       },
       {
         protocol: "https",
@@ -47,6 +55,10 @@ const nextConfig: NextConfig = {
         hostname: "i.pravatar.cc",
         port: "",
         pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "via.placeholder.com",
       },
     ],
   },

@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { AdminProgramQueryData, ProgramActionData } from "../utils/schemas";
 import { ProgramStatus } from "@/generated/prisma";
+import sendResponse from "../utils/send-response";
 
 export class AdminService {
   static async getPrograms(params: AdminProgramQueryData) {
@@ -178,5 +179,164 @@ export class AdminService {
       program: updatedProgram,
       message: `Program ${action}ed successfully`,
     };
+  }
+
+  static async getUsers(params?: { search?: string; role?: string; status?: string }) {
+    const { search, role, status } = params || {};
+
+    // Build where clause for Prisma query
+    const whereClause: any = {
+      role: {
+        in: ["COACH", "STUDENT", "ADMIN"]
+      }
+    };
+
+    // Apply role filter at database level
+    if (role && role !== "all") {
+      whereClause.role = role.toUpperCase();
+    }
+
+    // Apply status filter at database level
+    if (status && status !== "all") {
+      whereClause.status = status.toUpperCase();
+    }
+
+    // Apply search filter at database level
+    if (search) {
+      whereClause.OR = [
+        {
+          fullName: {
+            contains: search,
+            mode: "insensitive",
+          },
+        },
+        {
+          email: {
+            contains: search,
+            mode: "insensitive",
+          },
+        },
+      ];
+    }
+
+    const users = await prisma.user.findMany({
+      where: whereClause,
+      select: {
+        id: true,
+        email: true,
+        fullName: true,
+        role: true,
+        status: true,
+        avatarUrl: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+      orderBy: [
+        { role: "asc" },
+        { fullName: "asc" }
+      ]
+    });
+
+    return sendResponse.success({ users }, "Users fetched successfully");
+  }
+
+  static async getReviews(params?: { search?: string; targetType?: string; status?: string; rating?: string }) {
+    const { search, targetType, status, rating } = params || {};
+
+    // Build where clause for Prisma query
+    const whereClause: any = {};
+
+    // Apply target type filter at database level
+    if (targetType && targetType !== "all") {
+      whereClause.targetType = targetType.toUpperCase();
+    }
+
+    // Apply visibility status filter at database level
+    if (status && status !== "all") {
+      if (status === "visible") {
+        whereClause.isPublic = true;
+      } else if (status === "hidden") {
+        whereClause.isPublic = false;
+      }
+    }
+
+    // Apply rating filter at database level
+    if (rating && rating !== "all") {
+      whereClause.rating = parseInt(rating);
+    }
+
+    // Apply search filter at database level
+    if (search) {
+      whereClause.OR = [
+        {
+          content: {
+            contains: search,
+            mode: "insensitive",
+          },
+        },
+        {
+          title: {
+            contains: search,
+            mode: "insensitive",
+          },
+        },
+        {
+          reviewer: {
+            fullName: {
+              contains: search,
+              mode: "insensitive",
+            },
+          },
+        },
+        {
+          reviewer: {
+            email: {
+              contains: search,
+              mode: "insensitive",
+            },
+          },
+        },
+        {
+          program: {
+            title: {
+              contains: search,
+              mode: "insensitive",
+            },
+          },
+        },
+      ];
+    }
+
+    const reviews = await prisma.review.findMany({
+      where: whereClause,
+      include: {
+        reviewer: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+            avatarUrl: true,
+          },
+        },
+        reviewee: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+          },
+        },
+        program: {
+          select: {
+            id: true,
+            title: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    return sendResponse.success({ reviews }, "Reviews fetched successfully");
   }
 }

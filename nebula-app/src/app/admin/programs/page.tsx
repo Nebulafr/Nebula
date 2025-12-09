@@ -178,17 +178,22 @@ const mockPrograms: AdminProgram[] = [
 export default function AdminProgramsPage() {
   const [programs, setPrograms] = useState<AdminProgram[]>([]);
   const [filteredPrograms, setFilteredPrograms] = useState<AdminProgram[]>([]);
-  const [selectedProgram, setSelectedProgram] = useState<AdminProgram | null>(null);
+  const [selectedProgram, setSelectedProgram] = useState<AdminProgram | null>(
+    null
+  );
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [isLoading, setIsLoading] = useState(true);
-  const [loadingActions, setLoadingActions] = useState<Record<string, string>>({});
+  const [loadingActions, setLoadingActions] = useState<Record<string, string>>(
+    {}
+  );
   const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
-  
-  const { categories: publicCategories, refetch: refetchCategories } = useCategories();
+
+  const { categories: publicCategories, refetch: refetchCategories } =
+    useCategories();
 
   useEffect(() => {
     const fetchPrograms = async () => {
@@ -240,7 +245,6 @@ export default function AdminProgramsPage() {
       }));
 
       if (action === "delete") {
-        // Handle delete action - for now just show a message
         toast.error("Delete functionality not yet implemented.");
         return;
       }
@@ -280,13 +284,17 @@ export default function AdminProgramsPage() {
   };
 
   const handleAddCategory = async (categoryName: string) => {
-    if (categoryName && !publicCategories.some((cat) => cat.name === categoryName)) {
+    if (
+      categoryName &&
+      !publicCategories.some((cat) => cat.name === categoryName)
+    ) {
       try {
         const response = await createCategory({ name: categoryName });
 
         if (response.success && response.data?.category) {
           toast.success(
-            response.message || `Category "${categoryName}" has been added successfully.`
+            response.message ||
+              `Category "${categoryName}" has been added successfully.`
           );
           await refetchCategories();
         } else {

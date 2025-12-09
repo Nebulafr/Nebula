@@ -133,6 +133,11 @@ exports.Prisma.UserScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.RelationLoadStrategy = {
+  query: 'query',
+  join: 'join'
+};
+
 exports.Prisma.CategoryScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -352,6 +357,37 @@ exports.Prisma.MessageReactionScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.EventScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  description: 'description',
+  eventType: 'eventType',
+  date: 'date',
+  location: 'location',
+  imageUrl: 'imageUrl',
+  slug: 'slug',
+  organizerId: 'organizerId',
+  isPublic: 'isPublic',
+  maxAttendees: 'maxAttendees',
+  status: 'status',
+  tags: 'tags',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.EventAttendeeScalarFieldEnum = {
+  id: 'id',
+  eventId: 'eventId',
+  studentId: 'studentId',
+  status: 'status',
+  registeredAt: 'registeredAt',
+  attendedAt: 'attendedAt',
+  cancelledAt: 'cancelledAt',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -435,6 +471,14 @@ exports.MessageType = exports.$Enums.MessageType = {
   LINK: 'LINK'
 };
 
+exports.EventAttendeeStatus = exports.$Enums.EventAttendeeStatus = {
+  REGISTERED: 'REGISTERED',
+  CONFIRMED: 'CONFIRMED',
+  ATTENDED: 'ATTENDED',
+  CANCELLED: 'CANCELLED',
+  NO_SHOW: 'NO_SHOW'
+};
+
 exports.Prisma.ModelName = {
   User: 'User',
   Category: 'Category',
@@ -452,7 +496,9 @@ exports.Prisma.ModelName = {
   ConversationParticipant: 'ConversationParticipant',
   Message: 'Message',
   MessageAttachment: 'MessageAttachment',
-  MessageReaction: 'MessageReaction'
+  MessageReaction: 'MessageReaction',
+  Event: 'Event',
+  EventAttendee: 'EventAttendee'
 };
 
 /**

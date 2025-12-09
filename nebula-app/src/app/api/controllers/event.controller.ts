@@ -5,39 +5,10 @@ import { createEventSchema, updateEventSchema } from "../utils/schemas";
 
 class EventController {
   async createEvent(request: NextRequest) {
-    const payload = await request.json();
-    const body = createEventSchema.parse(payload);
-    return await EventService.create(body);
-  }
-
-  async getEvents() {
-    return await EventService.find();
-  }
-
-  async getEvent(id: string) {
-    try {
-      const event = await EventService.findById(id);
-      if (!event) {
-        return NextResponse.json(
-          { message: "Event not found" },
-          { status: 404 }
-        );
-      }
-      return NextResponse.json(event);
-    } catch (error) {
-      return NextResponse.json(
-        { message: "Something went wrong" },
-        { status: 500 }
-      );
-    }
-  }
-
-  async updateEvent(request: NextRequest, id: string) {
     try {
       const payload = await request.json();
-      const body = updateEventSchema.parse(payload);
-      const event = await EventService.update(id, body);
-      return NextResponse.json(event);
+      const body = createEventSchema.parse(payload);
+      return await EventService.create(request, body);
     } catch (error) {
       if (error instanceof z.ZodError) {
         return NextResponse.json(
@@ -45,23 +16,40 @@ class EventController {
           { status: 400 }
         );
       }
-      return NextResponse.json(
-        { message: "Something went wrong" },
-        { status: 500 }
-      );
+      throw error;
     }
   }
 
-  async deleteEvent(id: string) {
+  async getEvents(request: NextRequest) {
+    return await EventService.find(request);
+  }
+
+  async getEvent(id: string) {
+    return await EventService.findById(id);
+  }
+
+  async getEventBySlug(request: NextRequest, slug: string) {
+    return await EventService.findBySlug(slug);
+  }
+
+  async updateEvent(request: NextRequest, id: string) {
     try {
-      await EventService.remove(id);
-      return new Response(null, { status: 204 });
+      const payload = await request.json();
+      const body = updateEventSchema.parse(payload);
+      return await EventService.update(request, id, body);
     } catch (error) {
-      return NextResponse.json(
-        { message: "Something went wrong" },
-        { status: 500 }
-      );
+      if (error instanceof z.ZodError) {
+        return NextResponse.json(
+          { message: "Invalid request body", errors: error.errors },
+          { status: 400 }
+        );
+      }
+      throw error;
     }
+  }
+
+  async deleteEvent(request: NextRequest, id: string) {
+    return await EventService.remove(request, id);
   }
 }
 

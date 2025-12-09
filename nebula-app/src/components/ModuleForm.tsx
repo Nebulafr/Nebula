@@ -1,6 +1,5 @@
 import { ModuleFormData } from "@/types";
-import { useFieldArray, useForm } from "react-hook-form";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,44 +8,37 @@ import { Badge } from "@/components/ui/badge";
 import { Trash2, Plus } from "lucide-react";
 
 export default function ModulesForm({
+  value = [],
   onChange,
 }: {
+  value?: ModuleFormData[];
   onChange: (modules: ModuleFormData[]) => void;
 }) {
   const [title, setTitle] = useState("");
   const [week, setWeek] = useState(1);
   const [description, setDescription] = useState("");
 
-  const { control, watch } = useForm<{ modules: ModuleFormData[] }>({
-    defaultValues: {
-      modules: [],
-    },
-  });
-
-  const { fields, append, remove } = useFieldArray({
-    name: "modules",
-    control,
-  });
-
-  const watchedModules = watch("modules");
-
-  useEffect(() => {
-    onChange(watchedModules);
-  }, [watchedModules, onChange]);
+  const modules = value || [];
 
   const handleAddModule = () => {
     if (title.trim()) {
-      append({ title: title.trim(), week, description: description.trim() });
+      const newModule = { title: title.trim(), week, description: description.trim() };
+      onChange([...modules, newModule]);
       setTitle("");
-      setWeek(fields.length + 2);
+      setWeek(modules.length + 2);
       setDescription("");
     }
   };
 
+  const removeModule = (index: number) => {
+    const updatedModules = modules.filter((_, i) => i !== index);
+    onChange(updatedModules);
+  };
+
   return (
     <div className="space-y-6">
-      {fields.map((module, index) => (
-        <Card key={module.id}>
+      {modules.map((module, index) => (
+        <Card key={`${module.title}-${index}`}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -57,7 +49,7 @@ export default function ModulesForm({
                 type="button"
                 variant="ghost"
                 size="sm"
-                onClick={() => remove(index)}
+                onClick={() => removeModule(index)}
                 aria-label={`Remove module ${index + 1}`}
               >
                 <Trash2 className="h-4 w-4" />

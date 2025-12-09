@@ -5,13 +5,14 @@ import { Search } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { type Conversation } from "@/actions/messaging";
-import { 
-  formatUserName, 
-  getUserInitials, 
-  formatChatTime, 
-  formatMessagePreview, 
-  formatUnreadCount 
+import {
+  formatUserName,
+  getUserInitials,
+  formatChatTime,
+  formatMessagePreview,
+  formatUnreadCount,
 } from "@/lib/chat-utils";
+import { useEffect } from "react";
 
 interface ConversationListProps {
   conversations: Conversation[];
@@ -28,7 +29,11 @@ interface ConversationItemProps {
   onClick: () => void;
 }
 
-function ConversationItem({ conversation, isSelected, onClick }: ConversationItemProps) {
+function ConversationItem({
+  conversation,
+  isSelected,
+  onClick,
+}: ConversationItemProps) {
   const displayName = formatUserName(conversation.name);
   const initials = getUserInitials(conversation.name);
   const timeDisplay = formatChatTime(conversation.time);
@@ -47,8 +52,8 @@ function ConversationItem({ conversation, isSelected, onClick }: ConversationIte
       <div className="relative">
         <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden">
           {conversation.avatar ? (
-            <img 
-              src={conversation.avatar} 
+            <img
+              src={conversation.avatar}
               alt={displayName}
               className="w-full h-full object-cover"
             />
@@ -75,9 +80,7 @@ function ConversationItem({ conversation, isSelected, onClick }: ConversationIte
             {timeDisplay}
           </span>
         </div>
-        <p className="text-sm text-gray-600 truncate">
-          {messagePreview}
-        </p>
+        <p className="text-sm text-gray-600 truncate">{messagePreview}</p>
       </div>
     </div>
   );
@@ -97,6 +100,10 @@ export function ConversationList({
       convo.lastMessage.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  useEffect(() => {
+    onConversationSelect(selectedConversation!);
+  }, [selectedConversation]);
+
   if (loading) {
     return (
       <div className="w-80 bg-white border-r border-gray-200">
@@ -105,13 +112,14 @@ export function ConversationList({
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
+              type="text"
               placeholder="Search conversations..."
               className="pl-10 pr-4 py-2 rounded-lg border border-gray-200 bg-gray-50 shadow-sm"
               disabled
             />
           </div>
         </div>
-        
+
         {/* Loading skeleton */}
         <ScrollArea className="h-[calc(100vh-5rem)]">
           <div className="p-4 space-y-4">

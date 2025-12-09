@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -21,12 +21,14 @@ import {
   Star,
   Sun,
   Users,
+  Loader2,
 } from "lucide-react";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { Separator } from "@/components/ui/separator";
 import { useParams } from "next/navigation";
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
+import { getEventBySlug, Event as ApiEvent } from "@/actions/events";
 
 const eventData: Record<string, any> = {
   "hiking-adventure": {
@@ -80,12 +82,35 @@ const eventData: Record<string, any> = {
 export default function SocialEventPage() {
   const params = useParams<{ slug: string }>();
   const slug = params.slug;
-  const event = eventData[slug] || eventData["hiking-adventure"];
+  const [event, setEvent] = useState<ApiEvent | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showPayment, setShowPayment] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
   const [selectedSession, setSelectedSession] = useState<any>(null);
 
-  const images = event.images.filter(Boolean);
+  console.log({ event });
+
+  useEffect(() => {
+    async function fetchEvent() {
+      setLoading(true);
+      setError(null);
+
+      const response = await getEventBySlug(slug);
+
+      if (response.success && response.data) {
+        setEvent(response.data.event);
+      } else {
+        setError(response.message || "Event not found");
+      }
+
+      setLoading(false);
+    }
+
+    if (slug) {
+      fetchEvent();
+    }
+  }, [slug]);
 
   const handlePaymentSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -108,6 +133,48 @@ export default function SocialEventPage() {
     setSelectedSession(null);
   };
 
+  if (loading) {
+    return (
+      <div className="flex min-h-screen flex-col bg-background">
+        <Header />
+        <main className="flex-1">
+          <div className="flex items-center justify-center h-64">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Loader2 className="h-6 w-6 animate-spin" />
+              Loading event...
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (error || !event) {
+    return (
+      <div className="flex min-h-screen flex-col bg-background">
+        <Header />
+        <main className="flex-1">
+          <div className="container py-12">
+            <div className="mb-8">
+              <Button variant="ghost" asChild>
+                <Link href="/events">
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back to Events
+                </Link>
+              </Button>
+            </div>
+            <div className="text-center">
+              <h1 className="text-2xl font-bold mb-4">Event Not Found</h1>
+              <p className="text-muted-foreground">{error}</p>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <Header />
@@ -123,42 +190,48 @@ export default function SocialEventPage() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:items-start">
-            {/* Left side: Image Collage */}
+            {/* Left side: Event Images */}
             <div className="relative h-[500px] rounded-xl overflow-hidden">
-              {images.length > 0 && images[0] && (
+              {event.images && event.images.length > 0 ? (
                 <div className="w-full h-full">
                   <Image
-                    src={images[0].imageUrl}
-                    alt={images[0].description}
+                    src={event.images[0]}
+                    alt={event.title}
                     width={800}
                     height={600}
                     className="object-cover w-full h-full"
-                    data-ai-hint={images[0].imageHint}
                   />
+                  {event.images.length > 1 && (
+                    <div className="absolute bottom-4 right-4 w-32 h-32 rounded-xl overflow-hidden border-4 border-white shadow-lg">
+                      <Image
+                        src={event.images[1]}
+                        alt={`${event.title} - Image 2`}
+                        width={128}
+                        height={128}
+                        className="object-cover w-full h-full"
+                      />
+                    </div>
+                  )}
+                  {event.images.length > 2 && (
+                    <div className="absolute bottom-4 right-40 w-32 h-32 rounded-xl overflow-hidden border-4 border-white shadow-lg">
+                      <Image
+                        src={event.images[2]}
+                        alt={`${event.title} - Image 3`}
+                        width={128}
+                        height={128}
+                        className="object-cover w-full h-full"
+                      />
+                    </div>
+                  )}
                 </div>
-              )}
-              {images.length > 1 && images[1] && (
-                <div className="absolute bottom-4 right-4 w-32 h-32 rounded-xl overflow-hidden border-4 border-white shadow-lg">
-                  <Image
-                    src={images[1].imageUrl}
-                    alt={images[1].description}
-                    width={128}
-                    height={128}
-                    className="object-cover w-full h-full"
-                    data-ai-hint={images[1].imageHint}
-                  />
-                </div>
-              )}
-              {images.length > 2 && images[2] && (
-                <div className="absolute bottom-4 right-40 w-32 h-32 rounded-xl overflow-hidden border-4 border-white shadow-lg">
-                  <Image
-                    src={images[2].imageUrl}
-                    alt={images[2].description}
-                    width={128}
-                    height={128}
-                    className="object-cover w-full h-full"
-                    data-ai-hint={images[2].imageHint}
-                  />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="text-6xl mb-4">🎉</div>
+                    <p className="text-lg font-medium text-blue-800">
+                      {event.eventType.toLowerCase()} event
+                    </p>
+                  </div>
                 </div>
               )}
             </div>
@@ -193,20 +266,20 @@ export default function SocialEventPage() {
                     </h1>
                     <div className="flex items-center gap-2 mt-4">
                       <Avatar className="h-8 w-8">
-                        <AvatarImage src={event.organizer.avatar} />
+                        <AvatarImage src={event.organizer?.avatarUrl} />
                         <AvatarFallback>
-                          {event.organizer.name.charAt(0)}
+                          {event.organizer?.fullName?.charAt(0) || "O"}
                         </AvatarFallback>
                       </Avatar>
-                      <p className="font-semibold">{event.organizer.name}</p>
+                      <p className="font-semibold">
+                        {event.organizer?.fullName || "Unknown Organizer"}
+                      </p>
                       <Badge
                         variant="outline"
                         className="flex items-center gap-1 border-yellow-400 bg-yellow-50/50 px-2 py-0.5 text-[10px] text-yellow-700 ml-2"
                       >
                         <Star className="h-3 w-3 fill-current text-yellow-500" />
-                        <span className="font-semibold">
-                          {event.organizer.rating}
-                        </span>
+                        <span className="font-semibold">5.0</span>
                       </Badge>
                     </div>
                     <p className="mt-4 text-muted-foreground">
@@ -215,34 +288,112 @@ export default function SocialEventPage() {
 
                     {!showPayment && (
                       <div className="mt-6 space-y-3">
-                        {event.sessions.map((session: any, index: number) => (
+                        {event.sessions && event.sessions.length > 0 ? (
+                          event.sessions.map((session, index) => (
+                            <Card
+                              key={session.id}
+                              className="cursor-pointer border hover:shadow-lg transition-shadow"
+                              onClick={() =>
+                                handleSessionSelect({
+                                  date: new Date(session.date).toLocaleDateString("en-US", {
+                                    weekday: "long",
+                                    month: "long",
+                                    day: "numeric",
+                                  }),
+                                  time: session.time,
+                                  price: session.price || 0,
+                                  currency: session.currency || "EUR",
+                                  spotsLeft: session.spotsLeft || 10,
+                                })
+                              }
+                            >
+                              <CardContent className="p-4 flex justify-between items-center">
+                                <div>
+                                  <p className="font-semibold">
+                                    {new Date(session.date).toLocaleDateString("en-US", {
+                                      weekday: "long",
+                                      month: "long",
+                                      day: "numeric",
+                                    })}
+                                  </p>
+                                  <p className="text-sm text-muted-foreground">
+                                    {session.time}
+                                  </p>
+                                  {session.description && (
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                      {session.description}
+                                    </p>
+                                  )}
+                                </div>
+                                <div className="text-right">
+                                  <p className="text-sm font-semibold">
+                                    {session.price === 0 ? "Free" : 
+                                     `${new Intl.NumberFormat("en-US", {
+                                       style: "currency",
+                                       currency: session.currency || "EUR",
+                                     }).format(session.price || 0)} / guest`}
+                                  </p>
+                                  <Badge variant="outline" className="mt-1">
+                                    {session.spotsLeft || 0} spots left
+                                  </Badge>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ))
+                        ) : (
                           <Card
-                            key={index}
                             className="cursor-pointer border hover:shadow-lg transition-shadow"
-                            onClick={() => handleSessionSelect(session)}
+                            onClick={() =>
+                              handleSessionSelect({
+                                date: new Date(event.date).toLocaleDateString("en-US", {
+                                  weekday: "long",
+                                  month: "long",
+                                  day: "numeric",
+                                }),
+                                time: new Date(event.date).toLocaleTimeString("en-US", {
+                                  hour: "numeric",
+                                  minute: "2-digit",
+                                  hour12: true,
+                                }),
+                                price: event.isPublic ? 0 : 25,
+                                currency: "EUR",
+                                spotsLeft: event.maxAttendees
+                                  ? event.maxAttendees - event.attendees
+                                  : 10,
+                              })
+                            }
                           >
                             <CardContent className="p-4 flex justify-between items-center">
                               <div>
-                                <p className="font-semibold">{session.date}</p>
+                                <p className="font-semibold">
+                                  {new Date(event.date).toLocaleDateString("en-US", {
+                                    weekday: "long",
+                                    month: "long",
+                                    day: "numeric",
+                                  })}
+                                </p>
                                 <p className="text-sm text-muted-foreground">
-                                  {session.time}
+                                  {new Date(event.date).toLocaleTimeString("en-US", {
+                                    hour: "numeric",
+                                    minute: "2-digit",
+                                    hour12: true,
+                                  })}
                                 </p>
                               </div>
                               <div className="text-right">
                                 <p className="text-sm font-semibold">
-                                  {new Intl.NumberFormat("en-US", {
-                                    style: "currency",
-                                    currency: session.currency,
-                                  }).format(session.price)}{" "}
-                                  / guest
+                                  {event.isPublic ? "Free" : "€25 / guest"}
                                 </p>
                                 <Badge variant="outline" className="mt-1">
-                                  {session.spotsLeft} spots left
+                                  {event.maxAttendees
+                                    ? event.maxAttendees - event.attendees
+                                    : 10}{" "}
+                                  spots left
                                 </Badge>
                               </div>
                             </CardContent>
                           </Card>
-                        ))}
+                        )}
                       </div>
                     )}
 
@@ -354,30 +505,81 @@ export default function SocialEventPage() {
                         <p className="font-semibold">Capacity</p>
                         <p className="text-sm text-muted-foreground">
                           This event has a maximum capacity of{" "}
-                          {event.totalSlots} participants.
+                          {event.maxAttendees || "unlimited"} participants.
                         </p>
                       </div>
                     </div>
                     <Separator />
                     <div className="flex items-start gap-4">
-                      <Sun className="h-5 w-5 text-muted-foreground mt-1" />
+                      <Clock className="h-5 w-5 text-muted-foreground mt-1" />
                       <div>
-                        <p className="font-semibold">What to bring</p>
+                        <p className="font-semibold">Date & Time</p>
                         <p className="text-sm text-muted-foreground">
-                          {event.whatToBring}
+                          {new Date(event.date).toLocaleDateString("en-US", {
+                            weekday: "long",
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                          })}{" "}
+                          at{" "}
+                          {new Date(event.date).toLocaleTimeString("en-US", {
+                            hour: "numeric",
+                            minute: "2-digit",
+                            hour12: true,
+                          })}
                         </p>
                       </div>
                     </div>
-                    <Separator />
-                    <div className="flex items-start gap-4">
-                      <Sparkles className="h-5 w-5 text-muted-foreground mt-1" />
-                      <div>
-                        <p className="font-semibold">Good to know</p>
-                        <p className="text-sm text-muted-foreground">
-                          {event.additionalInfo}
-                        </p>
-                      </div>
-                    </div>
+                    {event.whatToBring && (
+                      <>
+                        <Separator />
+                        <div className="flex items-start gap-4">
+                          <Sun className="h-5 w-5 text-muted-foreground mt-1" />
+                          <div>
+                            <p className="font-semibold">What to bring</p>
+                            <p className="text-sm text-muted-foreground">
+                              {event.whatToBring}
+                            </p>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    {event.additionalInfo && (
+                      <>
+                        <Separator />
+                        <div className="flex items-start gap-4">
+                          <Sparkles className="h-5 w-5 text-muted-foreground mt-1" />
+                          <div>
+                            <p className="font-semibold">Good to know</p>
+                            <p className="text-sm text-muted-foreground">
+                              {event.additionalInfo}
+                            </p>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    {event.tags && event.tags.length > 0 && (
+                      <>
+                        <Separator />
+                        <div className="flex items-start gap-4">
+                          <Sparkles className="h-5 w-5 text-muted-foreground mt-1" />
+                          <div>
+                            <p className="font-semibold">Tags</p>
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {event.tags.map((tag, index) => (
+                                <Badge
+                                  key={index}
+                                  variant="secondary"
+                                  className="text-xs"
+                                >
+                                  {tag}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -389,4 +591,3 @@ export default function SocialEventPage() {
     </div>
   );
 }
-

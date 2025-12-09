@@ -1,16 +1,12 @@
+"use client";
 
-'use client';
-
-import { useState } from 'react';
-import Link from 'next/link';
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { useState } from "react";
+import { usePublicEvents } from "@/hooks/use-events";
+import Link from "next/link";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   ArrowRight,
   ExternalLink,
@@ -25,245 +21,90 @@ import {
   Users,
   Video,
   Youtube,
-} from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import Image from 'next/image';
-import { cn } from '@/lib/utils';
+  Loader2,
+} from "lucide-react";
+import { Input } from "@/components/ui/input";
+import Image from "next/image";
+import { cn } from "@/lib/utils";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { Footer } from '@/components/layout/footer';
-import { Header } from '@/components/layout/header';
-
-const webinarEvents = [
-  {
-    title: 'Problem-Solving & Structured Thinking',
-    coach: {
-      name: 'Adrian Cucurella',
-      firstName: 'Adrian',
-      role: 'Partner, BCG',
-      avatar: `https://i.pravatar.cc/400?u=adrian`,
-    },
-    tag: 'Free',
-    date: 'Thursday, August 4',
-    time: '6:00 PM - 7:00 PM GMT+2',
-    rating: 4.9,
-    attendees: [
-      `https://i.pravatar.cc/40?u=1`,
-      `https://i.pravatar.cc/40?u=2`,
-      `https://i.pravatar.cc/40?u=3`,
-    ],
-    otherAttendees: 32,
-    color: 'bg-yellow-50',
-    textColor: 'text-gray-800',
-  },
-  {
-    title: 'LinkedIn & Personal Branding',
-    coach: {
-      name: 'Adrian Cucurella',
-      firstName: 'Adrian',
-      role: 'Partner, BCG',
-      avatar: `https://i.pravatar.cc/400?u=adrian-2`,
-    },
-    tag: 'Premium',
-    date: 'Friday, August 12',
-    time: '5:00 PM - 6:00 PM GMT+2',
-    rating: 4.9,
-    attendees: [
-      `https://i.pravatar.cc/40?u=4`,
-      `https://i.pravatar.cc/40?u=5`,
-      `https://i.pravatar.cc/40?u=6`,
-    ],
-    otherAttendees: 32,
-    color: 'bg-blue-50',
-    textColor: 'text-gray-800',
-  },
-  {
-    title: 'Mastering behavioral and case interviews',
-    coach: {
-      name: 'Adrian Cucurella',
-      firstName: 'Adrian',
-      role: 'Partner, BCG',
-      avatar: `https://i.pravatar.cc/400?u=adrian-3`,
-    },
-    tag: 'Premium',
-    date: 'Monday, August 22',
-    time: '7:00 PM - 8:00 PM GMT+2',
-    rating: 4.9,
-    attendees: [
-      `https://i.pravatar.cc/40?u=7`,
-      `https://i.pravatar.cc/40?u=8`,
-      `https://i.pravatar.cc/40?u=9`,
-    ],
-    otherAttendees: 32,
-    color: 'bg-purple-50',
-    textColor: 'text-gray-800',
-  },
-  {
-    title: 'LinkedIn & Personal Branding',
-    coach: {
-      name: 'Adrian Cucurella',
-      firstName: 'Adrian',
-      role: 'Partner, BCG',
-      avatar: `https://i.pravatar.cc/400?u=adrian-4`,
-    },
-    tag: 'Free',
-    date: 'Tuesday, August 30',
-    time: '6:30 PM - 7:30 PM GMT+2',
-    rating: 4.9,
-    attendees: [
-      `https://i.pravatar.cc/40?u=10`,
-      `https://i.pravatar.cc/40?u=11`,
-      `https://i.pravatar.cc/40?u=12`,
-    ],
-    otherAttendees: 32,
-    color: 'bg-blue-50',
-    textColor: 'text-gray-800',
-  },
-  {
-    title: 'Mastering behavioral and case interviews',
-    coach: {
-      name: 'Adrian Cucurella',
-      firstName: 'Adrian',
-      role: 'Partner, BCG',
-      avatar: `https://i.pravatar.cc/400?u=adrian-5`,
-    },
-    tag: 'Premium',
-    date: 'Wednesday, September 7',
-    time: '6:00 PM - 7:00 PM GMT+2',
-    rating: 4.9,
-    attendees: [
-      `https://i.pravatar.cc/40?u=13`,
-      `https://i.pravatar.cc/40?u=14`,
-      `https://i.pravatar.cc/40?u=15`,
-    ],
-    otherAttendees: 32,
-    color: 'bg-purple-50',
-    textColor: 'text-gray-800',
-  },
-  {
-    title: 'Problem-Solving & Structured Thinking',
-    coach: {
-      name: 'Adrian Cucurella',
-      firstName: 'Adrian',
-      role: 'Partner, BCG',
-      avatar: `https://i.pravatar.cc/400?u=adrian-6`,
-    },
-    tag: 'Free',
-    date: 'Thursday, September 15',
-    time: '8:00 PM - 9:00 PM GMT+2',
-    rating: 4.9,
-    attendees: [
-      `https://i.pravatar.cc/40?u=16`,
-      `https://i.pravatar.cc/40?u=17`,
-      `https://i.pravatar.cc/40?u=18`,
-    ],
-    otherAttendees: 32,
-    color: 'bg-yellow-50',
-    textColor: 'text-gray-800',
-  },
-];
-
-const socialEvents = [
-  {
-    slug: 'hiking-adventure',
-    title: 'Hiking',
-    image: 'https://picsum.photos/seed/hike/600/400',
-    imageHint: 'people hiking',
-    coach: {
-      name: 'Maxwell Boyt',
-      role: 'Student',
-      avatar: 'https://i.pravatar.cc/40?u=maxwell',
-    },
-    tag: 'Premium',
-    date: 'July 14, 6:30 PM GMT+2',
-    rating: 4.9,
-    attendees: [
-      `https://i.pravatar.cc/40?u=19`,
-      `https://i.pravatar.cc/40?u=20`,
-      `https://i.pravatar.cc/40?u=21`,
-    ],
-    otherAttendees: 32,
-  },
-  {
-    slug: 'picnic-hangout',
-    title: 'Hang out',
-    image: 'https://picsum.photos/seed/hangout/600/400',
-    imageHint: 'friends picnic',
-    coach: {
-      name: 'Keziah L.',
-      role: 'Student',
-      avatar: 'https://i.pravatar.cc/40?u=keziah',
-    },
-    tag: 'Free',
-    date: 'July 14, 6:30 PM GMT+2',
-    rating: 4.9,
-    attendees: [
-      `https://i.pravatar.cc/40?u=22`,
-      `https://i.pravatar.cc/40?u=23`,
-      `https://i.pravatar.cc/40?u=24`,
-    ],
-    otherAttendees: 32,
-  },
-  {
-    slug: 'museum-visit',
-    title: 'Museum Visit | Montmartre, Paris',
-    image: 'https://picsum.photos/seed/museum/600/400',
-    imageHint: 'Paris museum',
-    coach: {
-      name: 'Juliana Sorowitz',
-      role: 'Student',
-      avatar: 'https://i.pravatar.cc/40?u=juliana',
-    },
-    tag: 'Premium',
-    date: 'July 14, 6:30 PM GMT+2',
-    rating: 4.9,
-    attendees: [
-      `https://i.pravatar.cc/40?u=25`,
-      `https://i.pravatar.cc/40?u=26`,
-      `https://i.pravatar.cc/40?u=27`,
-    ],
-    otherAttendees: 32,
-  },
-];
+} from "@/components/ui/tooltip";
+import { Footer } from "@/components/layout/footer";
+import { Header } from "@/components/layout/header";
+import { Event as ApiEvent } from "@/actions/events";
 
 export default function EventsPage() {
-  const [activePriceFilter, setActivePriceFilter] = useState('All');
+  const [activePriceFilter, setActivePriceFilter] = useState("All");
   const [activeTypeFilter, setActiveTypeFilter] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
 
+  const { events, loading } = usePublicEvents({
+    search: searchTerm,
+    eventType: activeTypeFilter?.toUpperCase(),
+  });
 
-  const priceFilters = ['All', 'Free', 'Premium'];
+  const priceFilters = ["All", "Free", "Premium"];
   const typeFilters = [
-    { name: 'Webinar', icon: <Video className="mr-2 h-4 w-4" />, tooltip: 'Show only webinars. Click again to clear.' },
-    { name: 'Social', icon: <PartyPopper className="mr-2 h-4 w-4" />, tooltip: 'Show only social events. Click again to clear.' },
+    {
+      name: "Webinar",
+      icon: <Video className="mr-2 h-4 w-4" />,
+      tooltip: "Show only webinars. Click again to clear.",
+    },
+    {
+      name: "Social",
+      icon: <PartyPopper className="mr-2 h-4 w-4" />,
+      tooltip: "Show only social events. Click again to clear.",
+    },
+    {
+      name: "Workshop",
+      icon: <Users className="mr-2 h-4 w-4" />,
+      tooltip: "Show only workshops. Click again to clear.",
+    },
+    {
+      name: "Networking",
+      icon: <Star className="mr-2 h-4 w-4" />,
+      tooltip: "Show only networking events. Click again to clear.",
+    },
   ];
 
   const handleTypeFilterClick = (filterName: string) => {
-    setActiveTypeFilter(prevFilter => prevFilter === filterName ? null : filterName);
-  }
+    setActiveTypeFilter((prevFilter) =>
+      prevFilter === filterName ? null : filterName
+    );
+  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-  }
+  };
 
-  const filteredWebinarEvents = webinarEvents.filter(event => {
-    const priceMatch = activePriceFilter === 'All' || event.tag === activePriceFilter;
-    const searchMatch = searchTerm === '' || event.title.toLowerCase().includes(searchTerm.toLowerCase()) || event.coach.name.toLowerCase().includes(searchTerm.toLowerCase());
-    return priceMatch && searchMatch;
+  const filteredEvents = events.filter((event) => {
+    const priceMatch =
+      activePriceFilter === "All" ||
+      (activePriceFilter === "Free" && event.isPublic) ||
+      (activePriceFilter === "Premium" && !event.isPublic);
+    return priceMatch;
   });
 
-  const filteredSocialEvents = socialEvents.filter(event => {
-    const priceMatch = activePriceFilter === 'All' || event.tag === activePriceFilter;
-    const searchMatch = searchTerm === '' || event.title.toLowerCase().includes(searchTerm.toLowerCase()) || event.coach.name.toLowerCase().includes(searchTerm.toLowerCase());
-    return priceMatch && searchMatch;
-  });
-  
-  const showWebinars = !activeTypeFilter || activeTypeFilter === 'Webinar';
-  const showSocial = !activeTypeFilter || activeTypeFilter === 'Social';
+  const webinarEvents = filteredEvents.filter(
+    (event) => event.eventType === "WEBINAR"
+  );
+  const socialEvents = filteredEvents.filter(
+    (event) => event.eventType === "SOCIAL"
+  );
+  const workshopEvents = filteredEvents.filter(
+    (event) => event.eventType === "WORKSHOP"
+  );
+  const networkingEvents = filteredEvents.filter(
+    (event) => event.eventType === "NETWORKING"
+  );
+
+  const showWebinars = !activeTypeFilter || activeTypeFilter === "Webinar";
+  const showSocial = !activeTypeFilter || activeTypeFilter === "Social";
+  const showWorkshops = !activeTypeFilter || activeTypeFilter === "Workshop";
+  const showNetworking = !activeTypeFilter || activeTypeFilter === "Networking";
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -274,13 +115,13 @@ export default function EventsPage() {
             Events
           </h1>
           <div className="mx-auto mt-8 flex max-w-lg justify-center gap-2">
-            {priceFilters.map(filter => (
+            {priceFilters.map((filter) => (
               <Button
                 key={filter}
                 variant="outline"
                 className={cn(
-                  'rounded-full',
-                  activePriceFilter === filter && 'bg-muted font-bold'
+                  "rounded-full",
+                  activePriceFilter === filter && "bg-muted font-bold"
                 )}
                 onClick={() => setActivePriceFilter(filter)}
               >
@@ -291,7 +132,10 @@ export default function EventsPage() {
         </section>
 
         <section className="container pb-12">
-          <form onSubmit={handleSearch} className="mx-auto flex max-w-3xl items-center">
+          <form
+            onSubmit={handleSearch}
+            className="mx-auto flex max-w-3xl items-center"
+          >
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input
@@ -311,19 +155,29 @@ export default function EventsPage() {
             </Button>
           </form>
           <div className="mx-auto mt-4 flex max-w-3xl justify-center gap-4">
-             <TooltipProvider>
-              {typeFilters.map(filter => (
+            <TooltipProvider>
+              {typeFilters.map((filter) => (
                 <Tooltip key={filter.name}>
                   <TooltipTrigger asChild>
                     <Button
                       variant="outline"
                       className={cn(
-                        activeTypeFilter === filter.name && 'bg-muted'
+                        activeTypeFilter === filter.name && "bg-muted"
                       )}
                       onClick={() => handleTypeFilterClick(filter.name)}
+                      disabled={loading && activeTypeFilter === filter.name}
                     >
-                      {filter.icon}
-                      {filter.name}
+                      {loading && activeTypeFilter === filter.name ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          {filter.name}
+                        </>
+                      ) : (
+                        <>
+                          {filter.icon}
+                          {filter.name}
+                        </>
+                      )}
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
@@ -335,22 +189,22 @@ export default function EventsPage() {
           </div>
         </section>
 
-        {showWebinars && filteredWebinarEvents.length > 0 && (
+        {showWebinars && webinarEvents.length > 0 && (
           <section className="container pb-12">
             <div className="mb-8 flex items-center gap-2">
               <h2 className="font-headline text-2xl font-bold">Webinar</h2>
               <Info className="h-4 w-4 text-muted-foreground" />
             </div>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {filteredWebinarEvents.map((event, index) => (
-                <WebinarCard key={index} event={event} />
+              {webinarEvents.map((event) => (
+                <ApiEventCard key={event.id} event={event} />
               ))}
             </div>
           </section>
         )}
 
-        {showSocial && filteredSocialEvents.length > 0 && (
-          <section className="container pb-20">
+        {showSocial && socialEvents.length > 0 && (
+          <section className="container pb-12">
             <div className="mb-8 flex items-center gap-2">
               <h2 className="font-headline text-2xl font-bold">
                 Social Experience
@@ -358,8 +212,36 @@ export default function EventsPage() {
               <Info className="h-4 w-4 text-muted-foreground" />
             </div>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {filteredSocialEvents.map((event, index) => (
-                <SocialEventCard key={index} event={event} />
+              {socialEvents.map((event) => (
+                <ApiEventCard key={event.id} event={event} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {showWorkshops && workshopEvents.length > 0 && (
+          <section className="container pb-12">
+            <div className="mb-8 flex items-center gap-2">
+              <h2 className="font-headline text-2xl font-bold">Workshop</h2>
+              <Info className="h-4 w-4 text-muted-foreground" />
+            </div>
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {workshopEvents.map((event) => (
+                <ApiEventCard key={event.id} event={event} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {showNetworking && networkingEvents.length > 0 && (
+          <section className="container pb-20">
+            <div className="mb-8 flex items-center gap-2">
+              <h2 className="font-headline text-2xl font-bold">Networking</h2>
+              <Info className="h-4 w-4 text-muted-foreground" />
+            </div>
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {networkingEvents.map((event) => (
+                <ApiEventCard key={event.id} event={event} />
               ))}
             </div>
           </section>
@@ -370,50 +252,98 @@ export default function EventsPage() {
   );
 }
 
-function WebinarCard({ event }: { event: (typeof webinarEvents)[0] }) {
-  const timeParts = event.time.split(' GMT');
-  const mainTime = timeParts[0];
-  const timezone = timeParts[1] ? `GMT${timeParts[1]}` : '';
+function ApiWebinarCard({ event }: { event: ApiEvent }) {
+  const eventDate = new Date(event.date);
+  const colorMap = {
+    WEBINAR: "bg-yellow-50",
+    WORKSHOP: "bg-purple-50",
+  };
+
+  const backgroundColor =
+    colorMap[event.eventType as keyof typeof colorMap] || "bg-yellow-50";
 
   return (
     <div className="group flex flex-col gap-[5px] h-full">
-      <div className={`${event.color} p-4 relative rounded-xl transition-transform group-hover:-translate-y-1 flex flex-col flex-grow`}>
+      <div
+        className={`${backgroundColor} p-4 relative rounded-xl transition-transform group-hover:-translate-y-1 flex flex-col flex-grow`}
+      >
         <Badge className="absolute top-4 left-4 bg-white text-gray-800 hover:bg-gray-200 z-10">
-          {event.tag}
+          {event.isPublic ? "Free" : "Premium"}
         </Badge>
         <div className="flex items-start gap-4 pt-6 pb-4 flex-grow">
           <div className="flex-shrink-0">
-            <Image
-              src={event.coach.avatar}
-              alt={event.coach.name}
-              width={120}
-              height={120}
-              className="rounded-lg object-cover aspect-square"
-            />
+            <div className="w-[120px] h-[120px]">
+              {event.organizer?.avatarUrl ? (
+                <Image
+                  src={event.organizer.avatarUrl}
+                  alt={event.organizer.fullName || "Organizer"}
+                  width={120}
+                  height={120}
+                  className="rounded-lg object-cover aspect-square w-full h-full"
+                />
+              ) : (
+                <div className="w-full h-full bg-gray-200 rounded-lg flex items-center justify-center">
+                  <span className="text-2xl text-gray-500">
+                    {event.organizer?.fullName?.charAt(0) || "A"}
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
           <div className="flex flex-col gap-2">
-            <p className="text-xs text-gray-600">{event.coach.name}</p>
+            <p className="text-xs text-gray-600">
+              {event.organizer?.fullName || "Unknown"}
+            </p>
             <h4 className="font-semibold text-gray-800">{event.title}</h4>
             <div className="text-sm text-gray-600">
               <div>
-                <p className="font-bold">{event.date}</p>
-                <p>{mainTime} <span className="text-xs">{timezone}</span></p>
+                <p className="font-bold">
+                  {eventDate.toLocaleDateString("en-US", {
+                    weekday: "long",
+                    month: "long",
+                    day: "numeric",
+                  })}
+                </p>
+                <p>
+                  {eventDate.toLocaleTimeString("en-US", {
+                    hour: "numeric",
+                    minute: "2-digit",
+                    hour12: true,
+                  })}
+                </p>
               </div>
             </div>
           </div>
         </div>
         <div className="flex items-center pb-2">
           <div className="flex -space-x-2">
-            {event.attendees.map((attendee, i) => (
-              <Avatar key={i} className="h-8 w-8 border-2 border-white">
-                <AvatarImage src={attendee} />
-                <AvatarFallback>A</AvatarFallback>
-              </Avatar>
-            ))}
+            {event.attendeesList && event.attendeesList.length > 0
+              ? event.attendeesList.slice(0, 3).map((attendee, i) => (
+                  <Avatar key={i} className="h-8 w-8 border-2 border-white">
+                    <AvatarImage src={attendee.avatarUrl} />
+                    <AvatarFallback>
+                      {attendee.fullName?.charAt(0) || "A"}
+                    </AvatarFallback>
+                  </Avatar>
+                ))
+              : event.attendees > 0
+              ? Array.from({ length: Math.min(3, event.attendees) }).map(
+                  (_, i) => (
+                    <Avatar key={i} className="h-8 w-8 border-2 border-white">
+                      <AvatarFallback>
+                        {String.fromCharCode(65 + i)}
+                      </AvatarFallback>
+                    </Avatar>
+                  )
+                )
+              : null}
           </div>
-          {event.otherAttendees > 0 && (
+          {event.attendees > 0 && (
             <span className="ml-3 text-xs font-medium text-muted-foreground">
-              +{event.otherAttendees} people attending
+              {event.attendees > 3 && `+${event.attendees - 3} `}
+              {event.attendees === 1
+                ? "1 person attending"
+                : `${event.attendees} people attending`}
             </span>
           )}
         </div>
@@ -427,62 +357,119 @@ function WebinarCard({ event }: { event: (typeof webinarEvents)[0] }) {
   );
 }
 
+function ApiSocialCard({ event }: { event: ApiEvent }) {
+  const eventDate = new Date(event.date);
 
-function SocialEventCard({ event }: { event: (typeof socialEvents)[0] }) {
   return (
-    <Card className="group flex flex-col overflow-hidden rounded-xl shadow-none transition-shadow hover:shadow-lg">
-      <Link href={`/events/social/${event.slug}`} className="block relative">
-        <Image src={event.image} alt={event.title} width={600} height={400} className="w-full h-40 object-cover" data-ai-hint={event.imageHint} />
-        <Badge className="absolute top-2 left-2 bg-white text-gray-800 hover:bg-gray-200">
-          {event.tag}
-        </Badge>
-      </Link>
-      <CardContent className="flex flex-1 flex-col p-4">
-        <h3 className="font-headline text-lg font-semibold leading-tight">
-          {event.title}
-        </h3>
-        <div className="flex items-center gap-2 mt-2">
-          <Avatar className="h-6 w-6">
-            <AvatarImage src={event.coach.avatar} />
-            <AvatarFallback>{event.coach.name.charAt(0)}</AvatarFallback>
-          </Avatar>
-          <p className="text-sm text-muted-foreground">{event.coach.name}, {event.coach.role}</p>
-           <Badge
-              variant="outline"
-              className="flex items-center gap-1 border-yellow-400 bg-yellow-50/50 px-1 py-0.5 text-[10px] text-yellow-700"
-            >
-              <Star className="h-2 w-2 fill-current text-yellow-500" />
-              <span className="font-semibold">{event.rating}</span>
+    <Link href={`/events/social/${event.slug}`} className="block">
+      <Card className="group flex flex-col overflow-hidden rounded-xl shadow-none transition-shadow hover:shadow-lg cursor-pointer">
+        <div className="relative">
+          {event.images && event.images.length > 0 ? (
+            <div className="w-full h-40 bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
+              <Image
+                src={event.images[0]}
+                alt={event.title}
+                width={400}
+                height={160}
+                className="object-cover w-full h-full"
+              />
+            </div>
+          ) : (
+            <div className="w-full h-40 bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
+              <div className="text-center">
+                <div className="text-2xl mb-2">🎉</div>
+                <p className="text-sm font-medium text-blue-800">
+                  {event.eventType.toLowerCase()}
+                </p>
+              </div>
+            </div>
+          )}
+          <Badge className="absolute top-2 left-2 bg-white text-gray-800 hover:bg-gray-200">
+            {event.isPublic ? "Free" : "Premium"}
           </Badge>
         </div>
-        <p className="text-sm text-muted-foreground mt-2">{event.date}</p>
-
-        <div className="flex-grow" />
-        
-        <div className="mt-4 flex items-center justify-between">
-          <div className="flex items-center">
-            <div className="flex -space-x-2">
-              {event.attendees.map((attendee, i) => (
-                <Avatar key={i} className="h-8 w-8 border-2 border-white">
-                  <AvatarImage src={attendee} />
-                  <AvatarFallback>A</AvatarFallback>
-                </Avatar>
-              ))}
-            </div>
-            {event.otherAttendees > 0 && (
-              <span className="ml-3 text-sm font-medium text-muted-foreground">
-                +{event.otherAttendees} people attending
-              </span>
-            )}
+        <CardContent className="flex flex-1 flex-col p-4">
+          <h3 className="font-headline text-lg font-semibold leading-tight">
+            {event.title}
+          </h3>
+          <div className="flex items-center gap-2 mt-2">
+            <Avatar className="h-6 w-6">
+              <AvatarImage src={event.organizer?.avatarUrl} />
+              <AvatarFallback>
+                {event.organizer?.fullName?.charAt(0) || "A"}
+              </AvatarFallback>
+            </Avatar>
+            <p className="text-sm text-muted-foreground">
+              {event.organizer?.fullName || "Unknown"}, Organizer
+            </p>
+            <Badge
+              variant="outline"
+              className="flex items-center gap-1 border-green-400 bg-green-50/50 px-1 py-0.5 text-[10px] text-green-700"
+            >
+              <Star className="h-2 w-2 fill-current text-green-500" />
+              <span className="font-semibold">5.0</span>
+            </Badge>
           </div>
-        </div>
-        <Button asChild className="mt-4 w-full bg-gray-900 text-white hover:bg-gray-800">
-          <Link href={`/events/social/${event.slug}`}>
-            View Details <ArrowRight className="ml-2 h-4 w-4" />
-          </Link>
-        </Button>
-      </CardContent>
-    </Card>
-  )
+          <p className="text-sm text-muted-foreground mt-2">
+            {eventDate.toLocaleDateString("en-US", {
+              weekday: "long",
+              month: "long",
+              day: "numeric",
+              hour: "numeric",
+              minute: "2-digit",
+            })}
+          </p>
+
+          <div className="flex-grow" />
+
+          <div className="mt-4 flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="flex -space-x-2">
+                {event.attendeesList && event.attendeesList.length > 0
+                  ? event.attendeesList.slice(0, 3).map((attendee, i) => (
+                      <Avatar key={i} className="h-8 w-8 border-2 border-white">
+                        <AvatarImage src={attendee.avatarUrl} />
+                        <AvatarFallback>
+                          {attendee.fullName?.charAt(0) || "A"}
+                        </AvatarFallback>
+                      </Avatar>
+                    ))
+                  : event.attendees > 0
+                  ? // Show placeholder avatars when we have attendee count but no specific attendee data
+                    Array.from({ length: Math.min(3, event.attendees) }).map(
+                      (_, i) => (
+                        <Avatar key={i} className="h-8 w-8 border-2 border-white">
+                          <AvatarFallback>
+                            {String.fromCharCode(65 + i)}
+                          </AvatarFallback>
+                        </Avatar>
+                      )
+                    )
+                  : null}
+              </div>
+              {event.attendees > 0 && (
+                <span className="ml-3 text-sm font-medium text-muted-foreground">
+                  {event.attendees > 3 && `+${event.attendees - 3} `}
+                  {event.attendees === 1
+                    ? "1 person attending"
+                    : `${event.attendees} people attending`}
+                </span>
+              )}
+            </div>
+          </div>
+          <Button className="mt-4 w-full bg-gray-900 text-white hover:bg-gray-800 pointer-events-none">
+            Register now <ExternalLink className="ml-2 h-4 w-4" />
+          </Button>
+        </CardContent>
+      </Card>
+    </Link>
+  );
 }
 
+function ApiEventCard({ event }: { event: ApiEvent }) {
+  if (event.eventType === "WEBINAR" || event.eventType === "WORKSHOP") {
+    return <ApiWebinarCard event={event} />;
+  } else {
+    return <ApiSocialCard event={event} />;
+  }
+}

@@ -83,4 +83,4 @@ ehthumbs.db
 Thumbs.db
 
 # Prisma
-src/generated/prisma
+generated/prisma

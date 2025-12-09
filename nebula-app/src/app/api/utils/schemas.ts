@@ -56,31 +56,108 @@ export const updateCategorySchema = z.object({
 });
 
 export const createEventSchema = z.object({
-  title: z.string(),
-  description: z.string(),
-  eventType: z.string(),
-  date: z.date(),
-  location: z.string().optional(),
-  organizer: z.string().optional(),
+  title: z
+    .string()
+    .min(1, "Title is required")
+    .max(200, "Title must be less than 200 characters"),
+  description: z
+    .string()
+    .min(1, "Description is required")
+    .max(2000, "Description must be less than 2000 characters"),
+  eventType: z.enum(["WEBINAR", "SOCIAL", "WORKSHOP", "NETWORKING"], {
+    errorMap: () => ({
+      message:
+        "Event type must be one of: WEBINAR, SOCIAL, WORKSHOP, NETWORKING",
+    }),
+  }),
+  date: z.coerce.date(),
+  location: z
+    .string()
+    .max(500, "Location must be less than 500 characters")
+    .optional(),
+  images: z.array(z.string().url("Image URL must be a valid URL")).optional(),
+  slug: z
+    .string()
+    .min(1, "Slug is required")
+    .max(100, "Slug must be less than 100 characters")
+    .regex(
+      /^[a-z0-9-]+$/,
+      "Slug must contain only lowercase letters, numbers, and hyphens"
+    )
+    .optional(),
+  organizerId: z.string(),
   isPublic: z.boolean().default(true),
-  maxAttendees: z.number().optional(),
-  attendees: z.number().optional(),
-  status: z.string().optional(),
-  tags: z.array(z.string()).optional(),
+  maxAttendees: z
+    .number()
+    .int()
+    .positive("Max attendees must be a positive number")
+    .optional(),
+  status: z
+    .enum(["DRAFT", "PENDING", "UPCOMING", "LIVE", "COMPLETED", "CANCELLED"], {
+      errorMap: () => ({
+        message:
+          "Status must be one of: DRAFT, PENDING, UPCOMING, LIVE, COMPLETED, CANCELLED",
+      }),
+    })
+    .default("PENDING"),
+  tags: z
+    .array(z.string().min(1).max(50))
+    .max(10, "Maximum 10 tags allowed")
+    .default([]),
 });
 
 export const updateEventSchema = z.object({
-  title: z.string().optional(),
-  description: z.string().optional(),
-  eventType: z.string().optional(),
-  date: z.date().optional(),
-  location: z.string().optional(),
-  organizer: z.string().optional(),
+  title: z
+    .string()
+    .min(1, "Title is required")
+    .max(200, "Title must be less than 200 characters")
+    .optional(),
+  description: z
+    .string()
+    .min(1, "Description is required")
+    .max(2000, "Description must be less than 2000 characters")
+    .optional(),
+  eventType: z
+    .enum(["WEBINAR", "SOCIAL", "WORKSHOP", "NETWORKING"], {
+      errorMap: () => ({
+        message:
+          "Event type must be one of: WEBINAR, SOCIAL, WORKSHOP, NETWORKING",
+      }),
+    })
+    .optional(),
+  date: z.coerce.date().optional(),
+  location: z
+    .string()
+    .max(500, "Location must be less than 500 characters")
+    .optional(),
+  imageUrl: z.string().url("Image URL must be a valid URL").optional(),
+  slug: z
+    .string()
+    .min(1, "Slug is required")
+    .max(100, "Slug must be less than 100 characters")
+    .regex(
+      /^[a-z0-9-]+$/,
+      "Slug must contain only lowercase letters, numbers, and hyphens"
+    )
+    .optional(),
   isPublic: z.boolean().optional(),
-  maxAttendees: z.number().optional(),
-  attendees: z.number().optional(),
-  status: z.string().optional(),
-  tags: z.array(z.string()).optional(),
+  maxAttendees: z
+    .number()
+    .int()
+    .positive("Max attendees must be a positive number")
+    .optional(),
+  status: z
+    .enum(["DRAFT", "PENDING", "UPCOMING", "LIVE", "COMPLETED", "CANCELLED"], {
+      errorMap: () => ({
+        message:
+          "Status must be one of: DRAFT, PENDING, UPCOMING, LIVE, COMPLETED, CANCELLED",
+      }),
+    })
+    .optional(),
+  tags: z
+    .array(z.string().min(1).max(50))
+    .max(10, "Maximum 10 tags allowed")
+    .optional(),
 });
 
 export type RegisterData = z.infer<typeof registerSchema>;

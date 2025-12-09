@@ -10,16 +10,8 @@ import {
 import { RESPONSE_CODE } from "@/types";
 import HttpException from "../utils/http-exception";
 import sendResponse from "../utils/send-response";
+import { generateSlug } from "@/lib/utils/slug";
 
-function generateSlug(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
-    .trim()
-    .replace(/^-+|-+$/g, "");
-}
 
 async function slugExists(slug: string, excludeId?: string): Promise<boolean> {
   const category = await prisma.category.findFirst({

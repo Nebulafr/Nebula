@@ -61,6 +61,12 @@ export function Header() {
               Events
             </Link>
             <Link
+              href="/universities"
+              className="font-menu text-sm font-medium text-foreground/60 transition-colors hover:text-foreground/80"
+            >
+              For Universities
+            </Link>
+            <Link
               href="/become-a-coach"
               className="font-menu text-sm font-medium text-foreground/60 transition-colors hover:text-foreground/80"
             >

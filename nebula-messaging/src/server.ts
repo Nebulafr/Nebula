@@ -124,7 +124,12 @@ io.on("connection", (socket: AuthenticatedSocket) => {
           participants: {
             include: {
               user: {
-                select: { id: true, fullName: true, avatarUrl: true, role: true },
+                select: {
+                  id: true,
+                  fullName: true,
+                  avatarUrl: true,
+                  role: true,
+                },
               },
             },
           },
@@ -138,7 +143,9 @@ io.on("connection", (socket: AuthenticatedSocket) => {
       });
 
       const formattedConversations = conversations.map((conv) => {
-        const otherParticipant = conv.participants.find((p) => p.userId !== userId);
+        const otherParticipant = conv.participants.find(
+          (p) => p.userId !== userId
+        );
         return {
           id: conv.id,
           type: conv.type,
@@ -151,7 +158,9 @@ io.on("connection", (socket: AuthenticatedSocket) => {
                 minute: "2-digit",
               })
             : "",
-          unread: conv.participants.find((p) => p.userId === userId)?.unreadCount || 0,
+          unread:
+            conv.participants.find((p) => p.userId === userId)?.unreadCount ||
+            0,
           role: otherParticipant?.user.role || "STUDENT",
         };
       });
@@ -164,61 +173,64 @@ io.on("connection", (socket: AuthenticatedSocket) => {
   });
 
   // Load conversation messages
-  socket.on("load_messages", async (data: { conversationId: string; page?: number; limit?: number }) => {
-    if (!isAuthenticated || !userId) {
-      return socket.emit("error", { message: "Authentication required" });
-    }
-
-    try {
-      const { conversationId, page = 1, limit = 50 } = data;
-
-      // Verify user is participant
-      const participant = await prisma.conversationParticipant.findFirst({
-        where: { conversationId, userId },
-      });
-
-      if (!participant) {
-        return socket.emit("error", {
-          message: "Not authorized to access this conversation",
-        });
+  socket.on(
+    "load_messages",
+    async (data: { conversationId: string; page?: number; limit?: number }) => {
+      if (!isAuthenticated || !userId) {
+        return socket.emit("error", { message: "Authentication required" });
       }
 
-      const messages = await prisma.message.findMany({
-        where: { conversationId, isDeleted: false },
-        include: {
-          sender: {
-            select: { id: true, fullName: true, avatarUrl: true },
+      try {
+        const { conversationId, page = 1, limit = 50 } = data;
+
+        // Verify user is participant
+        const participant = await prisma.conversationParticipant.findFirst({
+          where: { conversationId, userId, },
+        });
+
+        if (!participant) {
+          return socket.emit("error", {
+            message: "Not authorized to access this conversation",
+          });
+        }
+
+        const messages = await prisma.message.findMany({
+          where: { conversationId, isDeleted: false },
+          include: {
+            sender: {
+              select: { id: true, fullName: true, avatarUrl: true },
+            },
           },
-        },
-        orderBy: { createdAt: "asc" },
-        skip: (page - 1) * limit,
-        take: limit,
-      });
+          orderBy: { createdAt: "asc" },
+          skip: (page - 1) * limit,
+          take: limit,
+        });
 
-      const formattedMessages = messages.map((msg) => ({
-        id: msg.id,
-        sender: msg.sender.fullName || "Unknown",
-        text: msg.content,
-        timestamp: new Date(msg.createdAt).toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-        isMe: msg.senderId === userId,
-        type: msg.type,
-        isRead: msg.isRead,
-        isEdited: msg.isEdited,
-      }));
+        const formattedMessages = messages.map((msg) => ({
+          id: msg.id,
+          sender: msg.sender.fullName || "Unknown",
+          text: msg.content,
+          timestamp: new Date(msg.createdAt).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          isMe: msg.senderId === userId,
+          type: msg.type,
+          isRead: msg.isRead,
+          isEdited: msg.isEdited,
+        }));
 
-      socket.emit("messages_loaded", {
-        conversationId,
-        messages: formattedMessages,
-        hasMore: messages.length === limit,
-      });
-    } catch (error) {
-      console.error("Error loading messages:", error);
-      socket.emit("error", { message: "Failed to load messages" });
+        socket.emit("messages_loaded", {
+          conversationId,
+          messages: formattedMessages,
+          hasMore: messages.length === limit,
+        });
+      } catch (error) {
+        console.error("Error loading messages:", error);
+        socket.emit("error", { message: "Failed to load messages" });
+      }
     }
-  });
+  );
 
   // Join conversation room
   socket.on("join_conversation", async (conversationId: string) => {

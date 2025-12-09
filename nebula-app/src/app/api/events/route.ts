@@ -10,5 +10,5 @@ export const POST = CatchError(
 );
 
 export const GET = CatchError(
-  isAuthenticated(async () => await eventController.getEvents())
+  async (req: NextRequest) => await eventController.getEvents(req)
 );

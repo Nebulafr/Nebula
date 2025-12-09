@@ -33,9 +33,7 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased">
         <AuthProvider>
-          <CategoryProvider>
-            {children}
-          </CategoryProvider>
+          <CategoryProvider>{children}</CategoryProvider>
         </AuthProvider>
         <Toaster />
         <ToastContainer
