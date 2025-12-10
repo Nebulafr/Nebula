@@ -93,7 +93,7 @@ export const createAuthMiddleware = () => {
 };
 
 export const isAuthenticated = (socket: AuthenticatedSocket): boolean => {
-  return socket?.data?.isAuthenticated && !!socket.data?.userId;
+  return socket && socket.data && socket.data.isAuthenticated && !!socket.data.userId;
 };
 
 export const getUserId = (socket: AuthenticatedSocket): string | null => {
@@ -104,8 +104,11 @@ export const requireAuth = (
   callback: (socket: AuthenticatedSocket, ...args: any[]) => Promise<void>
 ) => {
   return async (socket: AuthenticatedSocket, ...args: any[]) => {
-    if (!isAuthenticated(socket)) {
-      return socket.emit("error", { message: "Authentication required" });
+    if (!socket || !isAuthenticated(socket)) {
+      if (socket) {
+        return socket.emit("error", { message: "Authentication required" });
+      }
+      return;
     }
     return callback(socket, ...args);
   };

@@ -56,16 +56,34 @@ const logDisconnection = (socketId: string) => {
 };
 
 const registerEventHandlers = (socket: AuthenticatedSocket, io: Server) => {
-  socket.on("load_conversations", ConversationHandler.loadConversations);
-  socket.on("join_conversation", ConversationHandler.joinConversation);
-  socket.on("leave_conversation", ConversationHandler.leaveConversation);
-  socket.on("mark_read", ConversationHandler.markAsRead);
+  socket.on("load_conversations", () =>
+    ConversationHandler.loadConversations(socket)
+  );
+  socket.on("join_conversation", (conversationId: string) =>
+    ConversationHandler.joinConversation(socket, conversationId)
+  );
+  socket.on("leave_conversation", (conversationId: string) =>
+    ConversationHandler.leaveConversation(socket, conversationId)
+  );
+  socket.on("mark_read", (conversationId: string) =>
+    ConversationHandler.markAsRead(socket, conversationId)
+  );
 
-  socket.on("load_messages", MessageHandler.loadMessages);
-  socket.on("send_message", MessageHandler.sendMessage(io));
-  socket.on("mark_read", MessageHandler.markRead);
-  socket.on("delete_message", MessageHandler.deleteMessage);
-  socket.on("edit_message", MessageHandler.editMessage);
+  socket.on("load_messages", (data: any) =>
+    MessageHandler.loadMessages(socket, data)
+  );
+  socket.on("send_message", (data: any) =>
+    MessageHandler.sendMessage(io)(socket, data)
+  );
+  socket.on("mark_read", (conversationId: string) =>
+    MessageHandler.markRead(socket, conversationId)
+  );
+  socket.on("delete_message", (messageId: string) =>
+    MessageHandler.deleteMessage(socket, messageId)
+  );
+  socket.on("edit_message", (data: any) =>
+    MessageHandler.editMessage(socket, data)
+  );
 
   socket.on("disconnect", () => logDisconnection(socket.id));
 };
