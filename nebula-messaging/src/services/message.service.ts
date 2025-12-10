@@ -1,5 +1,5 @@
 import { prisma } from "../lib/prisma";
-import type { MessageType } from "@prisma/client";
+import type { MessageType } from "../../generated/prisma";
 import type {
   FormattedMessage,
   MessagesLoadedResponse,
