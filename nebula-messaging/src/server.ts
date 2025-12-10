@@ -1,7 +1,7 @@
 import { createServer } from "node:http";
 import { Server } from "socket.io";
 import dotenv from "dotenv";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "./lib/prisma";
 import { createAuthMiddleware } from "./middleware/auth.middleware";
 import * as ConversationHandler from ".//handlers/conversation.handler";
 import * as MessageHandler from ".//handlers/message.handler";
