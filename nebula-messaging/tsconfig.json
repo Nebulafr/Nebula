@@ -17,9 +17,8 @@
     "noEmit": false,
     "incremental": true,
     "types": ["node"],
-    "baseUrl": ".",
+    "baseUrl": "./src",
     "paths": {
-      "@/*": ["src/*"],
       "@/types": ["src/types"],
       "@/lib/*": ["src/lib/*"],
       "@/services/*": ["src/services/*"],
@@ -27,14 +26,8 @@
       "@/middleware/*": ["src/middleware/*"]
     }
   },
-  "include": [
-    "src/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "prisma/migrations"
-  ],
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "prisma/migrations"],
   "ts-node": {
     "esm": true
   }
