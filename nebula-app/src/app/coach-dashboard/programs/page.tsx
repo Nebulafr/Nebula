@@ -23,6 +23,7 @@ export default function CoachProgramsPage() {
   const { categories } = useCategories();
   const [programs, setPrograms] = useState<IProgram[]>([]);
   const [loading, setLoading] = useState(true);
+  const [createLoading, setCreateLoading] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
 
   console.log({ programs });
@@ -68,12 +69,13 @@ export default function CoachProgramsPage() {
     }
   };
 
-  const handleCreateProgram = async (programData: ProgramFormData) => {
+  const handleCreateProgram = async (programData: ProgramFormData): Promise<boolean> => {
     if (!profile) {
       toast.error("You must be logged in.");
-      return;
+      return false;
     }
 
+    setCreateLoading(true);
     try {
       // Convert to the format expected by createProgram action
       const createProgramData = {
@@ -98,6 +100,8 @@ export default function CoachProgramsPage() {
       toast.error("Could not create the program.");
       console.error(error);
       return false;
+    } finally {
+      setCreateLoading(false);
     }
   };
 
@@ -174,7 +178,7 @@ export default function CoachProgramsPage() {
         onOpenChange={setDialogOpen}
         categories={categories.map(cat => cat.name)}
         onCreateProgram={handleCreateProgram}
-        loading={loading}
+        loading={createLoading}
       />
     </div>
   );

@@ -16,7 +16,16 @@
     "isolatedModules": true,
     "noEmit": false,
     "incremental": true,
-    "types": ["node"]
+    "types": ["node"],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@/types": ["src/types"],
+      "@/lib/*": ["src/lib/*"],
+      "@/services/*": ["src/services/*"],
+      "@/handlers/*": ["src/handlers/*"],
+      "@/middleware/*": ["src/middleware/*"]
+    }
   },
   "include": [
     "src/**/*"

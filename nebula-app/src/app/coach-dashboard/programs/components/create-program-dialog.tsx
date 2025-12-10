@@ -29,7 +29,7 @@ interface CreateProgramDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   categories: string[];
-  onCreateProgram: (programData: ProgramFormData) => void;
+  onCreateProgram: (programData: ProgramFormData) => Promise<boolean>;
   loading?: boolean;
 }
 
@@ -40,7 +40,7 @@ export interface ProgramFormData {
   difficultyLevel: "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
   duration: string;
   price: number;
-  maxStudents?: number;
+  maxStudents: number;
   tags: string[];
   objectives: string[];
   modules: ModuleFormData[];
@@ -61,7 +61,7 @@ export function CreateProgramDialog({
     difficultyLevel: "BEGINNER",
     duration: "",
     price: 0,
-    maxStudents: undefined,
+    maxStudents: 0,
     tags: [],
     objectives: [],
     modules: [],
@@ -103,7 +103,7 @@ export function CreateProgramDialog({
       newErrors.price = "Price must be 0 or greater";
     }
 
-    if (formData.maxStudents && formData.maxStudents < 1) {
+    if (formData.maxStudents > 0 && formData.maxStudents < 1) {
       newErrors.maxStudents = "Max students must be at least 1";
     }
 
@@ -112,10 +112,14 @@ export function CreateProgramDialog({
   };
 
   const validateStep3 = (): boolean => {
-    if (formData.modules.length > 1) {
-      return true;
+    const newErrors: Partial<Record<keyof ProgramFormData, string>> = {};
+
+    if (formData.modules.length === 0) {
+      newErrors.modules = "At least one module is required";
     }
-    return false;
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleNext = () => {
@@ -181,7 +185,7 @@ export function CreateProgramDialog({
       difficultyLevel: "BEGINNER",
       duration: "",
       price: 0,
-      maxStudents: undefined,
+      maxStudents: 0,
       tags: [],
       objectives: [],
       modules: [],
@@ -191,13 +195,15 @@ export function CreateProgramDialog({
     setErrors({});
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (validateStep3()) {
-      onCreateProgram(formData);
-      resetForm();
-      onOpenChange(false);
+      const success = await onCreateProgram(formData);
+      if (success) {
+        resetForm();
+        onOpenChange(false);
+      }
     }
   };
 
@@ -224,6 +230,13 @@ export function CreateProgramDialog({
             2
           </div>
           <span>Details & Settings</span>
+        </div>
+        <div className="w-8 h-[1px] bg-muted"></div>
+        <div className="flex items-center space-x-2">
+          <div className="w-6 h-6 bg-muted text-muted-foreground rounded-full flex items-center justify-center text-xs">
+            3
+          </div>
+          <span>Modules</span>
         </div>
       </div>
 
@@ -303,9 +316,9 @@ export function CreateProgramDialog({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="beginner">Beginner</SelectItem>
-              <SelectItem value="intermediate">Intermediate</SelectItem>
-              <SelectItem value="advanced">Advanced</SelectItem>
+              <SelectItem value="BEGINNER">Beginner</SelectItem>
+              <SelectItem value="INTERMEDIATE">Intermediate</SelectItem>
+              <SelectItem value="ADVANCED">Advanced</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -386,11 +399,11 @@ export function CreateProgramDialog({
             type="number"
             min="1"
             placeholder="Unlimited"
-            value={formData.maxStudents || ""}
+            value={formData.maxStudents === 0 ? "" : formData.maxStudents?.toString() || ""}
             onChange={(e) =>
               handleInputChange(
                 "maxStudents",
-                e.target.value ? parseInt(e.target.value) : undefined
+                e.target.value ? parseInt(e.target.value) : 0
               )
             }
             className={`h-11 ${errors.maxStudents ? "border-red-500" : ""}`}
@@ -541,16 +554,20 @@ export function CreateProgramDialog({
       {/* Modules Form */}
       <div>
         <Label className="text-base font-medium mb-4 block">
-          Program Modules
+          Program Modules *
         </Label>
         <p className="text-sm text-muted-foreground mb-6">
-          Add modules to organize your program content by weeks or topics. This
-          step is optional.
+          Add modules to organize your program content by weeks or topics. At least one module is required.
         </p>
-        <ModulesForm
-          value={formData.modules}
-          onChange={(modules) => handleInputChange("modules", modules)}
-        />
+        <div className={errors.modules ? "border border-red-500 rounded-lg p-4" : ""}>
+          <ModulesForm
+            value={formData.modules}
+            onChange={(modules) => handleInputChange("modules", modules)}
+          />
+        </div>
+        {errors.modules && (
+          <p className="text-sm text-red-500 mt-2">{errors.modules}</p>
+        )}
       </div>
     </div>
   );
