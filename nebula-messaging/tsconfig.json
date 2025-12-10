@@ -1,42 +1,16 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
-    "allowJs": false,
-    "strict": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-
-    "declaration": false,
+    "target": "es6",
+    "module": "commonjs",
+    "sourceMap": true,
+    "allowJs": true,
     "outDir": "dist",
     "rootDir": "src",
-
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": false,
-    "incremental": true,
-
-    "types": ["node"],
-
-    "baseUrl": "./src",
-    "paths": {
-      "@/*": ["*"],
-      "@/types": ["types"],
-      "@/lib/*": ["lib/*"],
-      "@/services/*": ["services/*"],
-      "@/handlers/*": ["handlers/*"],
-      "@/middleware/*": ["middleware/*"]
-    }
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
   },
-
-  "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "dist", "prisma/migrations"],
-
-  "ts-node": {
-    "esm": true,
-    "experimentalResolver": true
-  }
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
 }
