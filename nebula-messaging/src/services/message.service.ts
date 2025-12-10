@@ -1,10 +1,10 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "../lib/prisma";
 import type { MessageType } from "@prisma/client";
 import type {
   FormattedMessage,
   MessagesLoadedResponse,
   NewMessageEmit,
-} from "@/types";
+} from "../types";
 
 const formatTimestamp = (date: Date): string => {
   return new Date(date).toLocaleTimeString([], {
@@ -28,8 +28,11 @@ const formatMessage = (msg: any, userId: string): FormattedMessage => ({
   isEdited: msg.isEdited,
 });
 
-const formatMessages = (messages: any[], userId: string): FormattedMessage[] => {
-  return messages.map(msg => formatMessage(msg, userId));
+const formatMessages = (
+  messages: any[],
+  userId: string
+): FormattedMessage[] => {
+  return messages.map((msg) => formatMessage(msg, userId));
 };
 
 const calculatePagination = (page: number, limit: number) => ({
@@ -41,9 +44,13 @@ const hasMoreMessages = (messagesLength: number, limit: number): boolean => {
   return messagesLength === limit;
 };
 
-const fetchMessages = async (conversationId: string, page: number, limit: number) => {
+const fetchMessages = async (
+  conversationId: string,
+  page: number,
+  limit: number
+) => {
   const { skip, take } = calculatePagination(page, limit);
-  
+
   return await prisma.message.findMany({
     where: { conversationId, isDeleted: false },
     include: {
@@ -165,7 +172,12 @@ export const createMessage = async (
   type: MessageType = "TEXT"
 ): Promise<NewMessageEmit> => {
   try {
-    const message = await createMessageInDb(conversationId, senderId, content, type);
+    const message = await createMessageInDb(
+      conversationId,
+      senderId,
+      content,
+      type
+    );
     return transformToNewMessageEmit(message);
   } catch (error) {
     console.error("Error creating message:", error);
@@ -199,7 +211,10 @@ export const getMessageStats = async (conversationId: string) => {
   }
 };
 
-export const deleteMessage = async (messageId: string, userId: string): Promise<boolean> => {
+export const deleteMessage = async (
+  messageId: string,
+  userId: string
+): Promise<boolean> => {
   try {
     const message = await findMessageByIdAndUser(messageId, userId);
 

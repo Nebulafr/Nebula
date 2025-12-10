@@ -1,5 +1,5 @@
-import { prisma } from "@/lib/prisma";
-import type { FormattedConversation } from "@/types";
+import { prisma } from "../lib/prisma";
+import type { FormattedConversation } from "../types";
 
 const findOtherParticipant = (participants: any[], userId: string) => {
   return participants.find((p: any) => p.userId !== userId);

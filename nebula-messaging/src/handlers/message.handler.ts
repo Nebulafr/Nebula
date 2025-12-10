@@ -1,12 +1,12 @@
 import type { Server } from "socket.io";
-import * as MessageService from "@/services/message.service";
-import * as ConversationService from "@/services/conversation.service";
-import { requireAuth, getUserId } from "@/middleware/auth.middleware";
+import * as MessageService from "../services/message.service";
+import * as ConversationService from "../services/conversation.service";
+import { requireAuth, getUserId } from "../middleware/auth.middleware";
 import type {
   AuthenticatedSocket,
   MessageData,
   LoadMessagesData,
-} from "@/types";
+} from "../types";
 
 const extractMessageData = (data: MessageData) => ({
   conversationId: data.conversationId,
@@ -20,7 +20,11 @@ const extractLoadMessagesData = (data: LoadMessagesData) => ({
   limit: data.limit || 50,
 });
 
-const handleError = (socket: AuthenticatedSocket, errorMessage: string, error?: any) => {
+const handleError = (
+  socket: AuthenticatedSocket,
+  errorMessage: string,
+  error?: any
+) => {
   if (error) {
     console.error("Error:", error);
   }
@@ -39,15 +43,25 @@ const emitMessageDeleted = (socket: AuthenticatedSocket, messageId: string) => {
   socket.emit("message_deleted", { messageId });
 };
 
-const emitMessageEdited = (socket: AuthenticatedSocket, messageId: string, content: string) => {
+const emitMessageEdited = (
+  socket: AuthenticatedSocket,
+  messageId: string,
+  content: string
+) => {
   socket.emit("message_edited", { messageId, content });
 };
 
-const checkParticipantAccess = async (conversationId: string, userId: string) => {
+const checkParticipantAccess = async (
+  conversationId: string,
+  userId: string
+) => {
   return await ConversationService.isUserParticipant(conversationId, userId);
 };
 
-const handleLoadMessages = async (socket: AuthenticatedSocket, data: LoadMessagesData) => {
+const handleLoadMessages = async (
+  socket: AuthenticatedSocket,
+  data: LoadMessagesData
+) => {
   try {
     const userId = getUserId(socket)!;
     const { conversationId, page, limit } = extractLoadMessagesData(data);
@@ -57,7 +71,12 @@ const handleLoadMessages = async (socket: AuthenticatedSocket, data: LoadMessage
       return handleError(socket, "Not authorized to access this conversation");
     }
 
-    const result = await MessageService.getMessages(conversationId, userId, page, limit);
+    const result = await MessageService.getMessages(
+      conversationId,
+      userId,
+      page,
+      limit
+    );
     emitMessagesLoaded(socket, result);
   } catch (error) {
     console.error("Error in loadMessages handler:", error);
@@ -65,32 +84,44 @@ const handleLoadMessages = async (socket: AuthenticatedSocket, data: LoadMessage
   }
 };
 
-const handleSendMessage = (io: Server) => async (socket: AuthenticatedSocket, data: MessageData) => {
-  try {
-    const userId = getUserId(socket)!;
-    const { conversationId, content, type } = extractMessageData(data);
+const handleSendMessage =
+  (io: Server) => async (socket: AuthenticatedSocket, data: MessageData) => {
+    try {
+      const userId = getUserId(socket)!;
+      const { conversationId, content, type } = extractMessageData(data);
 
-    const isParticipant = await checkParticipantAccess(conversationId, userId);
-    if (!isParticipant) {
-      return handleError(socket, "Not authorized to send messages to this conversation");
+      const isParticipant = await checkParticipantAccess(
+        conversationId,
+        userId
+      );
+      if (!isParticipant) {
+        return handleError(
+          socket,
+          "Not authorized to send messages to this conversation"
+        );
+      }
+
+      // Execute message creation and conversation updates
+      const [message] = await Promise.all([
+        MessageService.createMessage(conversationId, userId, content, type),
+        ConversationService.updateLastMessage(conversationId, content),
+        ConversationService.updateUnreadCount(conversationId, userId),
+      ]);
+
+      emitNewMessage(io, conversationId, message);
+      console.log(
+        `Message sent in conversation ${conversationId} by user ${userId}`
+      );
+    } catch (error) {
+      console.error("Error in sendMessage handler:", error);
+      handleError(socket, "Failed to send message");
     }
+  };
 
-    // Execute message creation and conversation updates
-    const [message] = await Promise.all([
-      MessageService.createMessage(conversationId, userId, content, type),
-      ConversationService.updateLastMessage(conversationId, content),
-      ConversationService.updateUnreadCount(conversationId, userId),
-    ]);
-
-    emitNewMessage(io, conversationId, message);
-    console.log(`Message sent in conversation ${conversationId} by user ${userId}`);
-  } catch (error) {
-    console.error("Error in sendMessage handler:", error);
-    handleError(socket, "Failed to send message");
-  }
-};
-
-const handleMarkRead = async (socket: AuthenticatedSocket, conversationId: string) => {
+const handleMarkRead = async (
+  socket: AuthenticatedSocket,
+  conversationId: string
+) => {
   try {
     const userId = getUserId(socket)!;
 
@@ -100,14 +131,19 @@ const handleMarkRead = async (socket: AuthenticatedSocket, conversationId: strin
       MessageService.markMessagesAsRead(conversationId, userId),
     ]);
 
-    console.log(`Messages marked as read for user ${userId} in conversation ${conversationId}`);
+    console.log(
+      `Messages marked as read for user ${userId} in conversation ${conversationId}`
+    );
   } catch (error) {
     console.error("Error in markRead handler:", error);
     handleError(socket, "Failed to mark messages as read");
   }
 };
 
-const handleDeleteMessage = async (socket: AuthenticatedSocket, messageId: string) => {
+const handleDeleteMessage = async (
+  socket: AuthenticatedSocket,
+  messageId: string
+) => {
   try {
     const userId = getUserId(socket)!;
     const success = await MessageService.deleteMessage(messageId, userId);
@@ -131,7 +167,11 @@ const handleEditMessage = async (
     const userId = getUserId(socket)!;
     const { messageId, content } = data;
 
-    const success = await MessageService.editMessage(messageId, userId, content);
+    const success = await MessageService.editMessage(
+      messageId,
+      userId,
+      content
+    );
 
     if (success) {
       emitMessageEdited(socket, messageId, content);
