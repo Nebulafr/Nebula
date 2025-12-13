@@ -2,10 +2,8 @@ import { protectedRoutes, publicRoutes } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 
 export function middleware(request: NextRequest) {
-  // Get pathname
   const { pathname } = request.nextUrl;
 
-  // Check if the route is public
   const isPublicRoute = publicRoutes.some(
     (route) => pathname === route || pathname.startsWith(route + "/")
   );

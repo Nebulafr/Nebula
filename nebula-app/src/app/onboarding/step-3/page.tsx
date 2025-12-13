@@ -7,7 +7,7 @@ import { ArrowLeft, CheckCircle, Clock, Zap } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import Image from "next/image";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
+import { PlaceHolderImages } from "@/lib/images/placeholder-images";
 import { useSearchParams, useRouter } from "next/navigation";
 import React from "react";
 import { createStudent } from "@/actions/student";
@@ -49,7 +49,6 @@ function OnboardingStep3Content() {
   const skillLevel = searchParams.get("skillLevel");
 
   const handleFinish = async () => {
-    console.log({ profile, program, skillLevel, selectedAvailability });
     if (!profile || !program || !skillLevel || !selectedAvailability) {
       toast.error(
         "Some information is missing. Please go back and complete all steps."

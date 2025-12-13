@@ -1,5 +1,3 @@
-import { type Conversation } from "@/actions/messaging";
-
 /**
  * Utility functions for chat formatting and display
  */
@@ -12,12 +10,12 @@ export function formatUserName(name: string | null | undefined): string {
   if (!name || name.trim().length === 0) {
     return "Unknown User";
   }
-  
+
   // Trim whitespace and capitalize first letter of each word
   return name
     .trim()
     .split(" ")
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(" ");
 }
 
@@ -31,14 +29,14 @@ export function formatUserRole(role: string | null | undefined): string {
   }
 
   const roleMap: Record<string, string> = {
-    "COACH": "Coach",
-    "STUDENT": "Student", 
-    "ADMIN": "Administrator",
-    "SUPPORT": "Support",
-    "MENTOR": "Mentor",
-    "TUTOR": "Tutor",
-    "INSTRUCTOR": "Instructor",
-    "TEACHER": "Teacher",
+    COACH: "Coach",
+    STUDENT: "Student",
+    ADMIN: "Administrator",
+    SUPPORT: "Support",
+    MENTOR: "Mentor",
+    TUTOR: "Tutor",
+    INSTRUCTOR: "Instructor",
+    TEACHER: "Teacher",
   };
 
   const normalizedRole = role.toUpperCase();
@@ -54,15 +52,19 @@ export function getUserInitials(name: string | null | undefined): string {
     return "U";
   }
 
-  const words = name.trim().split(" ").filter(word => word.length > 0);
-  
+  const words = name
+    .trim()
+    .split(" ")
+    .filter((word) => word.length > 0);
+
   if (words.length === 0) {
     return "U";
   } else if (words.length === 1) {
     return words[0].charAt(0).toUpperCase();
   } else {
-    // First and last name initials
-    return (words[0].charAt(0) + words[words.length - 1].charAt(0)).toUpperCase();
+    return (
+      words[0].charAt(0) + words[words.length - 1].charAt(0)
+    ).toUpperCase();
   }
 }
 
@@ -75,7 +77,7 @@ export function formatChatTime(date: string | Date | null | undefined): string {
 
   try {
     const dateObj = typeof date === "string" ? new Date(date) : date;
-    
+
     if (isNaN(dateObj.getTime())) {
       return "";
     }
@@ -84,32 +86,23 @@ export function formatChatTime(date: string | Date | null | undefined): string {
     const diff = now.getTime() - dateObj.getTime();
     const diffInDays = Math.floor(diff / (1000 * 60 * 60 * 24));
 
-    // If today, show time
     if (diffInDays === 0) {
       return dateObj.toLocaleTimeString([], {
         hour: "2-digit",
         minute: "2-digit",
-        hour12: true
+        hour12: true,
       });
-    }
-    // If yesterday, show "Yesterday"
-    else if (diffInDays === 1) {
+    } else if (diffInDays === 1) {
       return "Yesterday";
-    }
-    // If within a week, show day name
-    else if (diffInDays < 7) {
+    } else if (diffInDays < 7) {
       return dateObj.toLocaleDateString([], { weekday: "short" });
-    }
-    // If within current year, show month and day
-    else if (dateObj.getFullYear() === now.getFullYear()) {
+    } else if (dateObj.getFullYear() === now.getFullYear()) {
       return dateObj.toLocaleDateString([], { month: "short", day: "numeric" });
-    }
-    // Otherwise, show month, day, and year
-    else {
-      return dateObj.toLocaleDateString([], { 
-        month: "short", 
-        day: "numeric", 
-        year: "numeric" 
+    } else {
+      return dateObj.toLocaleDateString([], {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
       });
     }
   } catch (error) {
@@ -129,7 +122,7 @@ export interface ChatHeaderInfo {
   lastSeen?: string;
 }
 
-export function formatChatHeader(conversation: Conversation): ChatHeaderInfo {
+export function formatChatHeader(conversation: any): ChatHeaderInfo {
   return {
     displayName: formatUserName(conversation.name),
     displayRole: formatUserRole(conversation.role),
@@ -143,7 +136,7 @@ export function formatChatHeader(conversation: Conversation): ChatHeaderInfo {
  * Ensures consistent message preview length and formatting
  */
 export function formatMessagePreview(
-  message: string | null | undefined, 
+  message: string | null | undefined,
   maxLength: number = 50
 ): string {
   if (!message || message.trim().length === 0) {
@@ -151,7 +144,7 @@ export function formatMessagePreview(
   }
 
   const cleanMessage = message.trim().replace(/\s+/g, " ");
-  
+
   if (cleanMessage.length <= maxLength) {
     return cleanMessage;
   }
@@ -165,20 +158,23 @@ export function formatMessagePreview(
  */
 export function formatUnreadCount(count: number | null | undefined): string {
   if (!count || count <= 0) return "";
-  
+
   if (count > 99) {
     return "99+";
   }
-  
+
   return count.toString();
 }
 
 /**
  * Gets the appropriate placeholder text for message input based on user role
  */
-export function getMessageInputPlaceholder(userRole: string, recipientRole: string): string {
+export function getMessageInputPlaceholder(
+  userRole: string,
+  recipientRole: string
+): string {
   const userRoleFormatted = formatUserRole(userRole).toLowerCase();
   const recipientRoleFormatted = formatUserRole(recipientRole).toLowerCase();
-  
+
   return `Type a message to your ${recipientRoleFormatted}...`;
 }

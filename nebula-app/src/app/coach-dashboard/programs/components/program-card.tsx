@@ -12,42 +12,6 @@ import {
 import Link from "next/link";
 import { Program } from "@/generated/prisma";
 
-// export interface Program {
-//   id: string;
-//   title: string;
-//   slug: string;
-//   description: string;
-//   category: {
-//     name: string;
-//     slug: string;
-//   };
-//   price: number | null;
-//   duration: string;
-//   difficultyLevel: string;
-//   rating: number;
-//   totalReviews: number;
-//   isActive: boolean;
-//   status: string;
-//   coachId: string;
-//   maxStudents: number;
-//   currentEnrollments: number;
-//   tags: string[];
-//   prerequisites: string[];
-//   objectives: string[];
-//   modules: any[];
-//   coach: {
-//     name: string;
-//     role: string;
-//     avatar: string;
-//     email: string;
-//   };
-//   attendees: string[];
-//   otherAttendees?: number;
-//   categoryId: string;
-//   createdAt: Date;
-//   updatedAt: Date;
-// }
-
 export interface IProgram extends Program {
   category: any;
   coach: any;

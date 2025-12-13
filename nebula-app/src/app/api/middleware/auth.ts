@@ -22,7 +22,6 @@ function verifyJWT(token: string): { userId: string } | null {
 
 export function isAuthenticated(fn: Function) {
   return async (req: NextRequest, context?: any) => {
-    // Get token from Authorization header
     const authHeader = req.headers.get("Authorization");
     let token: string | undefined;
 
@@ -47,7 +46,6 @@ export function isAuthenticated(fn: Function) {
       );
     }
 
-    // check if user exists
     const user = await prisma.user.findUnique({
       where: {
         id: decoded.userId,

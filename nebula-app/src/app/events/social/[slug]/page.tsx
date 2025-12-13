@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -11,11 +10,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   ArrowLeft,
-  Calendar,
   CheckCircle,
   Clock,
   CreditCard,
-  LogOut,
   MapPin,
   Sparkles,
   Star,
@@ -23,12 +20,13 @@ import {
   Users,
   Loader2,
 } from "lucide-react";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
+import { PlaceHolderImages } from "@/lib/images/placeholder-images";
 import { Separator } from "@/components/ui/separator";
 import { useParams } from "next/navigation";
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
-import { getEventBySlug, Event as ApiEvent } from "@/actions/events";
+import { getEventBySlug } from "@/actions/events";
+import { Event } from "@/types/event";
 
 const eventData: Record<string, any> = {
   "hiking-adventure": {
@@ -82,14 +80,12 @@ const eventData: Record<string, any> = {
 export default function SocialEventPage() {
   const params = useParams<{ slug: string }>();
   const slug = params.slug;
-  const [event, setEvent] = useState<ApiEvent | null>(null);
+  const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showPayment, setShowPayment] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
   const [selectedSession, setSelectedSession] = useState<any>(null);
-
-  console.log({ event });
 
   useEffect(() => {
     async function fetchEvent() {
@@ -295,7 +291,9 @@ export default function SocialEventPage() {
                               className="cursor-pointer border hover:shadow-lg transition-shadow"
                               onClick={() =>
                                 handleSessionSelect({
-                                  date: new Date(session.date).toLocaleDateString("en-US", {
+                                  date: new Date(
+                                    session.date
+                                  ).toLocaleDateString("en-US", {
                                     weekday: "long",
                                     month: "long",
                                     day: "numeric",
@@ -310,11 +308,14 @@ export default function SocialEventPage() {
                               <CardContent className="p-4 flex justify-between items-center">
                                 <div>
                                   <p className="font-semibold">
-                                    {new Date(session.date).toLocaleDateString("en-US", {
-                                      weekday: "long",
-                                      month: "long",
-                                      day: "numeric",
-                                    })}
+                                    {new Date(session.date).toLocaleDateString(
+                                      "en-US",
+                                      {
+                                        weekday: "long",
+                                        month: "long",
+                                        day: "numeric",
+                                      }
+                                    )}
                                   </p>
                                   <p className="text-sm text-muted-foreground">
                                     {session.time}
@@ -327,11 +328,12 @@ export default function SocialEventPage() {
                                 </div>
                                 <div className="text-right">
                                   <p className="text-sm font-semibold">
-                                    {session.price === 0 ? "Free" : 
-                                     `${new Intl.NumberFormat("en-US", {
-                                       style: "currency",
-                                       currency: session.currency || "EUR",
-                                     }).format(session.price || 0)} / guest`}
+                                    {session.price === 0
+                                      ? "Free"
+                                      : `${new Intl.NumberFormat("en-US", {
+                                          style: "currency",
+                                          currency: session.currency || "EUR",
+                                        }).format(session.price || 0)} / guest`}
                                   </p>
                                   <Badge variant="outline" className="mt-1">
                                     {session.spotsLeft || 0} spots left
@@ -345,16 +347,22 @@ export default function SocialEventPage() {
                             className="cursor-pointer border hover:shadow-lg transition-shadow"
                             onClick={() =>
                               handleSessionSelect({
-                                date: new Date(event.date).toLocaleDateString("en-US", {
-                                  weekday: "long",
-                                  month: "long",
-                                  day: "numeric",
-                                }),
-                                time: new Date(event.date).toLocaleTimeString("en-US", {
-                                  hour: "numeric",
-                                  minute: "2-digit",
-                                  hour12: true,
-                                }),
+                                date: new Date(event.date).toLocaleDateString(
+                                  "en-US",
+                                  {
+                                    weekday: "long",
+                                    month: "long",
+                                    day: "numeric",
+                                  }
+                                ),
+                                time: new Date(event.date).toLocaleTimeString(
+                                  "en-US",
+                                  {
+                                    hour: "numeric",
+                                    minute: "2-digit",
+                                    hour12: true,
+                                  }
+                                ),
                                 price: event.isPublic ? 0 : 25,
                                 currency: "EUR",
                                 spotsLeft: event.maxAttendees
@@ -366,18 +374,24 @@ export default function SocialEventPage() {
                             <CardContent className="p-4 flex justify-between items-center">
                               <div>
                                 <p className="font-semibold">
-                                  {new Date(event.date).toLocaleDateString("en-US", {
-                                    weekday: "long",
-                                    month: "long",
-                                    day: "numeric",
-                                  })}
+                                  {new Date(event.date).toLocaleDateString(
+                                    "en-US",
+                                    {
+                                      weekday: "long",
+                                      month: "long",
+                                      day: "numeric",
+                                    }
+                                  )}
                                 </p>
                                 <p className="text-sm text-muted-foreground">
-                                  {new Date(event.date).toLocaleTimeString("en-US", {
-                                    hour: "numeric",
-                                    minute: "2-digit",
-                                    hour12: true,
-                                  })}
+                                  {new Date(event.date).toLocaleTimeString(
+                                    "en-US",
+                                    {
+                                      hour: "numeric",
+                                      minute: "2-digit",
+                                      hour12: true,
+                                    }
+                                  )}
                                 </p>
                               </div>
                               <div className="text-right">

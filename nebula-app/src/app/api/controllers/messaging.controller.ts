@@ -2,21 +2,20 @@ import { NextRequest } from "next/server";
 import { MessagingService } from "../services/messaging.service";
 import { z } from "zod";
 
-// Validation schemas
 const createConversationSchema = z.object({
   participants: z.array(z.string()).min(2),
   type: z.enum(["DIRECT", "GROUP", "SUPPORT"]).optional().default("DIRECT"),
-  title: z.string().optional()
+  title: z.string().optional(),
 });
 
 const sendMessageSchema = z.object({
   senderId: z.string(),
   content: z.string().min(1),
-  type: z.enum(["TEXT", "IMAGE", "FILE", "LINK"]).optional().default("TEXT")
+  type: z.enum(["TEXT", "IMAGE", "FILE", "LINK"]).optional().default("TEXT"),
 });
 
 const markReadSchema = z.object({
-  userId: z.string()
+  userId: z.string(),
 });
 
 export class MessagingController {

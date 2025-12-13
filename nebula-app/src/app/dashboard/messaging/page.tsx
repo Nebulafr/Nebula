@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createAuthenticatedSocket } from "@/lib/socket";
-import { type Conversation, type Message } from "@/actions/messaging";
 import { useAuth } from "@/hooks/use-auth";
 import { getAccessToken } from "@/lib/auth-storage";
 
@@ -12,6 +11,7 @@ import { ChatHeader } from "./components/chat-header";
 import { MessageList } from "./components/message-list";
 import { MessageInput } from "./components/message-input";
 import { EmptyState } from "./components/empty-state";
+import { Conversation, Message } from "@/generated/prisma";
 
 function StudentMessagingPageContent() {
   const searchParams = useSearchParams();
@@ -19,7 +19,6 @@ function StudentMessagingPageContent() {
   const conversationId = searchParams.get("conversationId");
   const { profile } = useAuth();
 
-  // Get current user from auth
   const accessToken = getAccessToken();
   const currentUser = {
     id: profile?.id || "",
@@ -28,15 +27,6 @@ function StudentMessagingPageContent() {
     token: accessToken || "",
   };
 
-  // Debug current user state
-  React.useEffect(() => {
-    console.log("Student user state:", {
-      id: currentUser.id,
-      hasToken: !!currentUser.token,
-      profileLoaded: !!profile,
-      role: profile?.role,
-    });
-  }, [currentUser.id, currentUser.token, profile]);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] =
     useState<Conversation | null>(null);
@@ -122,7 +112,7 @@ function StudentMessagingPageContent() {
             type: message.type,
             isRead: false,
             isEdited: false,
-          },
+          } as any,
         ]);
       });
 

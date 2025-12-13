@@ -3,10 +3,9 @@
 import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { type Message } from "@/actions/messaging";
 
 interface MessageListProps {
-  messages: Message[];
+  messages: any[];
   currentUserId?: string;
 }
 
@@ -45,7 +44,7 @@ export function MessageList({ messages }: MessageListProps) {
 }
 
 interface MessageBubbleProps {
-  message: Message;
+  message: any;
   isOwnMessage: boolean;
 }
 

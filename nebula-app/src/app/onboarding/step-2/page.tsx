@@ -7,7 +7,7 @@ import { ArrowLeft, ArrowRight, BarChart3, Bot, Leaf } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import Image from "next/image";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
+import { PlaceHolderImages } from "@/lib/images/placeholder-images";
 import { useSearchParams } from "next/navigation";
 import React from "react";
 import { SkillLevel } from "@/generated/prisma";

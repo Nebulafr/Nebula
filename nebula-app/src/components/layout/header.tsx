@@ -10,8 +10,6 @@ export function Header() {
   const { profile, signOut } = useAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  console.log({ profile });
-
   const handleLogout = async () => {
     if (isLoggingOut) return;
 

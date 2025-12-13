@@ -13,31 +13,31 @@ import {
 } from "lucide-react";
 import { createProgram, getPrograms } from "@/actions/programs";
 import { toast } from "react-toastify";
-import { useCategories } from "@/contexts/CategoryContext";
+import { useCategories } from "@/contexts/category-context";
 import { useAuth } from "@/hooks/use-auth";
 import { IProgram, ProgramCard } from "./components/program-card";
-import { CreateProgramDialog, ProgramFormData } from "./components/create-program-dialog";
+import {
+  CreateProgramDialog,
+  ProgramFormData,
+} from "./components/create-program-dialog";
 
 export default function CoachProgramsPage() {
-  const { profile, coachProfile } = useAuth();
+  const { profile } = useAuth();
   const { categories } = useCategories();
   const [programs, setPrograms] = useState<IProgram[]>([]);
   const [loading, setLoading] = useState(true);
   const [createLoading, setCreateLoading] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  console.log({ programs });
-
   useEffect(() => {
-    if (!coachProfile) return;
+    if (!profile) return;
 
     const fetchPrograms = async () => {
       try {
         setLoading(true);
-        const result = await getPrograms({ coachId: coachProfile!.id });
-
+        const result = await getPrograms({ coachId: profile?.coach!.id });
         if (result.success) {
-          setPrograms(result.programs);
+          setPrograms(result.data?.programs);
         } else {
           console.error("Error fetching programs:", result.error);
           setPrograms([]);
@@ -51,14 +51,14 @@ export default function CoachProgramsPage() {
     };
 
     fetchPrograms();
-  }, [coachProfile]);
+  }, [profile]);
 
   const refreshPrograms = async () => {
-    if (!coachProfile) return;
+    if (!profile) return;
     try {
-      const result = await getPrograms({ coachId: coachProfile.id });
+      const result = await getPrograms({ coachId: profile?.coach!.id });
       if (result.success) {
-        setPrograms(result.programs);
+        setPrograms(result.data?.programs);
       } else {
         console.error("Error refreshing programs:", result.error);
         setPrograms([]);
@@ -69,7 +69,9 @@ export default function CoachProgramsPage() {
     }
   };
 
-  const handleCreateProgram = async (programData: ProgramFormData): Promise<boolean> => {
+  const handleCreateProgram = async (
+    programData: ProgramFormData
+  ): Promise<boolean> => {
     if (!profile) {
       toast.error("You must be logged in.");
       return false;
@@ -77,7 +79,6 @@ export default function CoachProgramsPage() {
 
     setCreateLoading(true);
     try {
-      // Convert to the format expected by createProgram action
       const createProgramData = {
         title: programData.title,
         category: programData.category,
@@ -176,7 +177,7 @@ export default function CoachProgramsPage() {
       <CreateProgramDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
-        categories={categories.map(cat => cat.name)}
+        categories={categories.map((cat) => cat.name)}
         onCreateProgram={handleCreateProgram}
         loading={createLoading}
       />

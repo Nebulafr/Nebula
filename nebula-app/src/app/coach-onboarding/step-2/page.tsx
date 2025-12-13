@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
+import { PlaceHolderImages } from "@/lib/images/placeholder-images";
 import { ArrowLeft, ArrowRight, X, Loader2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -18,7 +18,7 @@ import { Progress } from "@/components/ui/progress";
 import React, { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { useSearchParams } from "next/navigation";
-import { useCategories } from "@/contexts/CategoryContext";
+import { useCategories } from "@/contexts/category-context";
 
 function CoachOnboardingStep2Content() {
   const image = PlaceHolderImages.find((img) => img.id === "about-hero");

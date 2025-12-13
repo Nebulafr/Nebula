@@ -1,7 +1,6 @@
 import { ApiResponse } from "@/types";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import axios, { AxiosError, AxiosRequestConfig } from "axios";
 import { getAccessToken } from "./auth-storage";
 
 export function cn(...inputs: ClassValue[]) {
@@ -31,7 +30,7 @@ export const publicRoutes = [
   "/become-a-coach",
 ];
 
-async function makeRequest<T = any>(
+export async function makeRequest<T = any>(
   endpoint: string,
   method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH",
   options: {
@@ -42,133 +41,101 @@ async function makeRequest<T = any>(
 ): Promise<ApiResponse<T>> {
   const { body, headers = {}, requireAuth = true } = options;
 
-  try {
-    let requestHeaders: Record<string, any> = {
-      "Content-Type": "application/json",
-    };
+  const requestHeaders: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...headers,
+  };
 
-    if (headers && typeof headers === "object") {
-      requestHeaders = { ...requestHeaders, ...headers };
+  if (requireAuth) {
+    const token = getAccessToken();
+    if (!token) {
+      return {
+        success: false,
+        error: "Authentication required",
+        message: "Please log in to continue",
+      };
     }
+    requestHeaders.Authorization = `Bearer ${token}`;
+  }
 
-    if (requireAuth) {
-      const token = getAccessToken();
+  const config: RequestInit = {
+    method,
+    headers: requestHeaders,
+    credentials: "include",
+  };
 
-      if (!token) {
-        return {
-          success: false,
-          data: null,
-          message: "Authentication required",
-          error: "No authentication token available",
-        } as ApiResponse<T>;
+  if (body && method !== "GET" && method !== "DELETE") {
+    config.body = JSON.stringify(body);
+  }
+
+  try {
+    const response = await fetch(`/api${endpoint}`, config);
+
+    if (response.status === 401) {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("accessToken");
+        sessionStorage.removeItem("accessToken");
       }
-
-      requestHeaders = {
-        ...requestHeaders,
-        Authorization: `Bearer ${token}`,
+      return {
+        success: false,
+        error: "Session expired",
+        message: "Your session has expired. Please log in again.",
       };
     }
 
-    const config: AxiosRequestConfig = {
-      method,
-      url: `/api${endpoint}`,
-      headers: requestHeaders,
-      withCredentials: true,
-      timeout: 30000,
-    };
+    const result = await response.json();
 
-    if (method !== "GET" && method !== "DELETE" && body) {
-      config.data = body;
+    if (!response.ok) {
+      return {
+        success: false,
+        error: result.error || result.message || `HTTP ${response.status}`,
+        message: result.message || "Request failed",
+        code: result.code,
+      };
     }
 
-    const response = await axios(config);
-
-    const responseData = response.data;
-
     return {
-      success: responseData.success !== false,
-      data: responseData.data || responseData,
-      message: responseData.message,
-      error: responseData.error,
-    } as ApiResponse<T>;
+      success: true,
+      data: result.data,
+      message: result.message || "Success",
+      code: result.code,
+    };
   } catch (error: any) {
     console.error(`API request failed [${method} /api${endpoint}]:`, error);
 
-    if (error instanceof AxiosError) {
-      if (!error.response) {
-        throw new Error("Network error. Please check your connection.");
-      }
-
-      // Handle 401 Unauthorized - clear auth data
-      if (error.response.status === 401) {
-        if (typeof window !== "undefined") {
-          localStorage.removeItem("accessToken");
-        }
-      }
-
-      const responseData = error.response.data;
-      console.log({ responseData });
-      throw new Error(
-        responseData?.error ||
-          responseData?.message ||
-          `HTTP ${error.response.status}`
-      );
-    }
-
-    throw new Error(error.message || "An unexpected error occurred");
+    return {
+      success: false,
+      error: "Network error",
+      message: error.message || "Failed to connect to server",
+    };
   }
 }
 
-export async function apiGet<T = any>(
-  endpoint: string,
-  options?: { headers?: Record<string, string>; requireAuth?: boolean }
-): Promise<ApiResponse<T>> {
-  return makeRequest<T>(endpoint, "GET", options);
-}
+export const apiGet = <T = any>(endpoint: string, options?: any) =>
+  makeRequest<T>(endpoint, "GET", options);
 
-export async function apiPost<T = any>(
-  endpoint: string,
-  body: any,
-  options?: { headers?: Record<string, string>; requireAuth?: boolean }
-): Promise<ApiResponse<T>> {
-  return makeRequest<T>(endpoint, "POST", { body, ...options });
-}
+export const apiPost = <T = any>(endpoint: string, body?: any, options?: any) =>
+  makeRequest<T>(endpoint, "POST", { body, ...options });
 
-export async function apiPut<T = any>(
-  endpoint: string,
-  body: any,
-  options?: { headers?: Record<string, string>; requireAuth?: boolean }
-): Promise<ApiResponse<T>> {
-  return makeRequest<T>(endpoint, "PUT", { body, ...options });
-}
+export const apiPut = <T = any>(endpoint: string, body?: any, options?: any) =>
+  makeRequest<T>(endpoint, "PUT", { body, ...options });
 
-export async function apiPatch<T = any>(
+export const apiPatch = <T = any>(
   endpoint: string,
-  body: any,
-  options?: { headers?: Record<string, string>; requireAuth?: boolean }
-): Promise<ApiResponse<T>> {
-  return makeRequest<T>(endpoint, "PATCH", { body, ...options });
-}
+  body?: any,
+  options?: any
+) => makeRequest<T>(endpoint, "PATCH", { body, ...options });
 
-export async function apiDelete<T = any>(
-  endpoint: string,
-  options?: { headers?: Record<string, string>; requireAuth?: boolean }
-): Promise<ApiResponse<T>> {
-  return makeRequest<T>(endpoint, "DELETE", options);
-}
-
-export async function apiRequest<T = any>(
-  endpoint: string,
-  options: {
-    method?: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
-    body?: any;
-    headers?: Record<string, string>;
-    requireAuth?: boolean;
-  } = {}
-): Promise<ApiResponse<T>> {
-  const { method = "GET", body, headers, requireAuth } = options;
-  return makeRequest<T>(endpoint, method, { body, headers, requireAuth });
-}
+export const apiDelete = <T = any>(endpoint: string, options?: any) =>
+  makeRequest<T>(endpoint, "DELETE", options);
 
 export const capitalize = (str: string) =>
   str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+
+export const generateSlug = (text: string): string =>
+  text
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/[\s_-]+/g, "-")
+    .replace(/^-+|-+$/g, "");

@@ -1,4 +1,3 @@
-// hooks/use-user.tsx
 "use client";
 
 import { useAuth } from "./use-auth";

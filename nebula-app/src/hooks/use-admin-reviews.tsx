@@ -1,7 +1,7 @@
 "use client";
 
+import { makeRequest } from "@/lib/utils";
 import { useState, useCallback } from "react";
-import { apiGet } from "@/lib/utils";
 
 export interface AdminReview {
   id: string;
@@ -57,36 +57,40 @@ export function useAdminReviews(): UseAdminReviewsReturn {
   const [error, setError] = useState<string | null>(null);
   const [lastParams, setLastParams] = useState<UseAdminReviewsParams>({});
 
-  const fetchReviews = useCallback(async (params: UseAdminReviewsParams = {}) => {
-    setLoading(true);
-    setError(null);
-    setLastParams(params);
+  const fetchReviews = useCallback(
+    async (params: UseAdminReviewsParams = {}) => {
+      setLoading(true);
+      setError(null);
+      setLastParams(params);
 
-    try {
-      const queryParams = new URLSearchParams();
-      if (params.search) queryParams.append("search", params.search);
-      if (params.targetType) queryParams.append("targetType", params.targetType);
-      if (params.status) queryParams.append("status", params.status);
-      if (params.rating) queryParams.append("rating", params.rating);
+      try {
+        const queryParams = new URLSearchParams();
+        if (params.search) queryParams.append("search", params.search);
+        if (params.targetType)
+          queryParams.append("targetType", params.targetType);
+        if (params.status) queryParams.append("status", params.status);
+        if (params.rating) queryParams.append("rating", params.rating);
 
-      const url = `/admin/reviews${
-        queryParams.toString() ? `?${queryParams.toString()}` : ""
-      }`;
-      const response = await apiGet(url);
-      
-      if (response.success) {
-        setReviews(response.data.reviews || []);
-      } else {
-        setError(response.message || "Failed to fetch reviews");
+        const url = `/admin/reviews${
+          queryParams.toString() ? `?${queryParams.toString()}` : ""
+        }`;
+        const response = await makeRequest(url, "GET");
+
+        if (response.success) {
+          setReviews(response.data.reviews || []);
+        } else {
+          setError(response.message || "Failed to fetch reviews");
+          setReviews([]);
+        }
+      } catch (err: any) {
+        setError(err.message || "Failed to fetch reviews");
         setReviews([]);
+      } finally {
+        setLoading(false);
       }
-    } catch (err: any) {
-      setError(err.message || "Failed to fetch reviews");
-      setReviews([]);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    },
+    []
+  );
 
   const refetch = useCallback(() => {
     fetchReviews(lastParams);

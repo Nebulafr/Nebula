@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -24,7 +23,7 @@ import { useParams, useRouter } from "next/navigation";
 import { Footer } from "@/components/layout/footer";
 import { bookCoachSession } from "@/actions/session";
 import { toast } from "react-toastify";
-import { getCoachById, CoachWithRelations } from "@/actions/coaches";
+import { getCoachById } from "@/actions/coaches";
 import { useAuth } from "@/hooks/use-auth";
 import { Header } from "@/components/layout/header";
 import {
@@ -38,11 +37,9 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { reviewCoach, type ReviewResponse } from "@/actions/reviews";
-import {
-  createConversation,
-  type CreateConversationResponse,
-} from "@/actions/messaging";
+import { reviewCoach } from "@/actions/reviews";
+import { createConversation } from "@/actions/messaging";
+import { CoachWithRelations } from "@/types/coach";
 
 export default function CoachDetailPage() {
   const [bookingStep, setBookingStep] = useState(0);
@@ -60,8 +57,6 @@ export default function CoachDetailPage() {
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
-
-  console.log("CoachDetailsPage===", { date, selectedTime });
 
   useEffect(() => {
     const fetchCoach = async () => {
@@ -294,15 +289,12 @@ export default function CoachDetailPage() {
     }
 
     try {
-      // Create or find conversation between current user and coach
-      const conversationResult: CreateConversationResponse =
-        await createConversation({
-          participants: [profile.id, coach.userId],
-          type: "DIRECT",
-        });
+      const conversationResult = await createConversation({
+        participants: [profile.id, coach.userId],
+        type: "DIRECT",
+      });
 
       if (conversationResult.success && conversationResult.data) {
-        // Redirect to messaging with the conversation
         router.push(
           `/dashboard/messaging?conversationId=${conversationResult.data.id}`
         );
@@ -339,7 +331,7 @@ export default function CoachDetailPage() {
     setIsSubmittingReview(true);
 
     try {
-      const response: ReviewResponse = await reviewCoach({
+      const response = await reviewCoach({
         coachId: coach.id,
         rating,
         content: reviewText,
@@ -362,7 +354,6 @@ export default function CoachDetailPage() {
 
   const resetReviewForm = () => {
     setIsReviewDialogOpen(false);
-    // Use a timeout to reset the form after the dialog has closed
     setTimeout(() => {
       setReviewSubmitted(false);
       setRating(0);

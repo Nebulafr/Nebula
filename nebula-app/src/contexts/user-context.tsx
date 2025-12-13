@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { apiGet } from "@/lib/utils";
+import { makeRequest } from "@/lib/utils";
 
 export interface UserOption {
   id: string;
@@ -49,7 +49,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       const url = `/admin/users${
         queryParams.toString() ? `?${queryParams.toString()}` : ""
       }`;
-      const response = await apiGet(url);
+      const response = await makeRequest(url, "GET", { requireAuth: true });
       if (response.success) {
         setUsers(response.data.users || []);
       } else {

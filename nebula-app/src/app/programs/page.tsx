@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -10,37 +9,17 @@ import { Star, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
-import { getPrograms, getGroupedPrograms } from "@/actions/programs";
-import { useCategories } from "@/contexts/CategoryContext";
-import { Program } from "@/generated/prisma";
-
-// Define the exact structure returned by the API
-type ProgramWithRelations = Program & {
-  category: {
-    id: string;
-    name: string;
-  };
-  coach: {
-    id: string;
-    title?: string;
-    user: {
-      id: string;
-      fullName?: string;
-      avatarUrl?: string;
-    };
-  };
-  attendees?: string[]; // Avatar URLs from enrollments
-  _count: {
-    enrollments: number;
-    reviews: number;
-  };
-};
+import { useCategories } from "@/contexts/category-context";
+import { ProgramWithRelations } from "@/types/program";
+import { getPrograms } from "@/actions/programs";
+import { toast } from "react-toastify";
+import { groupedPrograms } from "../../../data/programs";
 
 export default function ProgramsPage() {
   const [activeCategory, setActiveCategory] = useState("All");
   const [programsData, setProgramsData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const { categories, refetch } = useCategories();
+  const { categories } = useCategories();
 
   useEffect(() => {
     const fetchPrograms = async () => {
@@ -48,11 +27,18 @@ export default function ProgramsPage() {
         setLoading(true);
         const categoryParam =
           activeCategory === "All" ? undefined : activeCategory;
-        const groupedPrograms = await getGroupedPrograms(50, categoryParam);
-        console.log("Fetched grouped programs:", groupedPrograms);
+        const response = await getPrograms({
+          limit: 50,
+          category: categoryParam,
+        });
+        if (!response.success) {
+          throw new Error(response.message || "Failed to fetch programs");
+        }
+        const groupedPrograms = response.data?.groupedPrograms;
         setProgramsData(groupedPrograms);
       } catch (error) {
         console.error("Error fetching programs:", error);
+        toast.error((error as Error).message || "An unexpected error occurred");
         setProgramsData([]);
       } finally {
         setLoading(false);
@@ -62,7 +48,8 @@ export default function ProgramsPage() {
     fetchPrograms();
   }, [activeCategory]);
 
-  const filteredGroups = programsData;
+  const filteredGroups =
+    programsData.length > 3 ? programsData : groupedPrograms;
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -123,11 +110,8 @@ export default function ProgramsPage() {
                   </h2>
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     {group!.items.map(
-                      (program: ProgramWithRelations, programIndex: number) => (
-                        <Link
-                          key={programIndex}
-                          href={`/programs/${program.slug}`}
-                        >
+                      (program: ProgramWithRelations, index: number) => (
+                        <Link key={index} href={`/programs/${program.slug}`}>
                           <Card className="flex min-h-[340px] w-full flex-col overflow-hidden rounded-xl shadow-none transition-shadow hover:shadow-lg">
                             <CardContent className="flex flex-1 flex-col justify-between p-4">
                               <div className="flex-1">
@@ -146,22 +130,6 @@ export default function ProgramsPage() {
                               </div>
 
                               <div className="mb-4 rounded-lg border bg-background p-3">
-                                {/* <div className="flex items-center gap-3">
-                                <Avatar className="h-8 w-8">
-                                  <AvatarImage src={program.coach.avatar} />
-                                  <AvatarFallback>
-                                    {program.coach.name.charAt(0)}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <div>
-                                  <p className="font-headline text-xs font-semibold text-foreground">
-                                    {program.coach.name}
-                                  </p>
-                                  <p className="text-xs text-muted-foreground">
-                                    {program.coach.role}
-                                  </p>
-                                </div>
-                              </div> */}
                                 <div className="flex items-center gap-3">
                                   <Avatar className="h-8 w-8">
                                     <AvatarImage

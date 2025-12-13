@@ -1,33 +1,21 @@
-import { apiGet } from "@/lib/utils";
+import { apiDelete, apiGet, apiPost, apiPut } from "@/lib/utils";
 
-export interface PublicCategory {
-  name: string;
-  slug: string;
+export async function getCategories() {
+  return apiGet("/categories", { requireAuth: false });
 }
 
-export interface CategoriesResponse {
-  success: boolean;
-  data?: {
-    categories: PublicCategory[];
-  };
-  error?: string;
-  message?: string;
+export async function getAdminCategories() {
+  return apiGet("/admin/categories");
 }
 
-export async function getCategories(): Promise<CategoriesResponse> {
-  try {
-    const response = await apiGet("/categories", { requireAuth: false });
-    return {
-      success: response.success!,
-      data: response.data,
-      message: response.message,
-    };
-  } catch (error: any) {
-    console.error("Error fetching categories:", error);
-    return {
-      success: false,
-      error: error.message || "Failed to fetch categories",
-      message: error.message || "An unexpected error occurred",
-    };
-  }
+export async function createCategory(categoryData: any) {
+  return apiPost("/admin/categories", categoryData);
+}
+
+export async function updateCategory(categoryId: string, updateData: any) {
+  return apiPut(`/admin/categories/${categoryId}`, updateData);
+}
+
+export async function deleteCategory(categoryId: string) {
+  return apiDelete(`/admin/categories/${categoryId}`);
 }

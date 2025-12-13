@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import { useAdminReviews } from "@/hooks/use-admin-reviews";
 
-// Simple debounce function
 function debounce<T extends (...args: any[]) => any>(
   func: T,
   delay: number
@@ -41,7 +40,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
 
 const StarRating = ({ rating }: { rating: number }) => (
   <div className="flex items-center">
@@ -94,7 +92,12 @@ export default function AdminReviewsPage() {
     review: review.content,
     rating: review.rating,
     target: {
-      type: review.targetType === "PROGRAM" ? "Program" : review.targetType === "COACH" ? "Coach" : "Session",
+      type:
+        review.targetType === "PROGRAM"
+          ? "Program"
+          : review.targetType === "COACH"
+          ? "Coach"
+          : "Session",
       name: review.program?.title || review.reviewee?.fullName || "Unknown",
     },
     date: new Date(review.createdAt).toLocaleDateString(),
@@ -167,80 +170,83 @@ export default function AdminReviewsPage() {
                 ))
               ) : transformedReviews.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                  <TableCell
+                    colSpan={7}
+                    className="text-center py-8 text-muted-foreground"
+                  >
                     No reviews found matching your criteria.
                   </TableCell>
                 </TableRow>
               ) : (
                 transformedReviews.map((review, index) => (
-                <TableRow key={index}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={review.author.avatar} />
-                        <AvatarFallback>
-                          {review.author.name.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span>{review.author.name}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <p className="truncate-multiline">{review.review}</p>
-                  </TableCell>
-                  <TableCell>
-                    <StarRating rating={review.rating} />
-                  </TableCell>
-                  <TableCell>
-                    <div className="font-medium">{review.target.name}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {review.target.type}
-                    </div>
-                  </TableCell>
-                  <TableCell>{review.date}</TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={
-                        review.status === "Visible"
-                          ? "secondary"
-                          : review.status === "Hidden"
-                          ? "outline"
-                          : "destructive"
-                      }
-                      className={
-                        review.status === "Visible"
-                          ? "bg-green-100 text-green-800"
-                          : ""
-                      }
-                    >
-                      {review.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        {review.status !== "Visible" && (
-                          <DropdownMenuItem>
-                            <Eye className="mr-2 h-4 w-4" /> Approve & Show
+                  <TableRow key={index}>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={review.author.avatar} />
+                          <AvatarFallback>
+                            {review.author.name.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span>{review.author.name}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <p className="truncate-multiline">{review.review}</p>
+                    </TableCell>
+                    <TableCell>
+                      <StarRating rating={review.rating} />
+                    </TableCell>
+                    <TableCell>
+                      <div className="font-medium">{review.target.name}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {review.target.type}
+                      </div>
+                    </TableCell>
+                    <TableCell>{review.date}</TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={
+                          review.status === "Visible"
+                            ? "secondary"
+                            : review.status === "Hidden"
+                            ? "outline"
+                            : "destructive"
+                        }
+                        className={
+                          review.status === "Visible"
+                            ? "bg-green-100 text-green-800"
+                            : ""
+                        }
+                      >
+                        {review.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          {review.status !== "Visible" && (
+                            <DropdownMenuItem>
+                              <Eye className="mr-2 h-4 w-4" /> Approve & Show
+                            </DropdownMenuItem>
+                          )}
+                          {review.status === "Visible" && (
+                            <DropdownMenuItem>
+                              <EyeOff className="mr-2 h-4 w-4" /> Hide Review
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuItem className="text-destructive">
+                            <Trash2 className="mr-2 h-4 w-4" /> Delete
                           </DropdownMenuItem>
-                        )}
-                        {review.status === "Visible" && (
-                          <DropdownMenuItem>
-                            <EyeOff className="mr-2 h-4 w-4" /> Hide Review
-                          </DropdownMenuItem>
-                        )}
-                        <DropdownMenuItem className="text-destructive">
-                          <Trash2 className="mr-2 h-4 w-4" /> Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
                 ))
               )}
             </TableBody>

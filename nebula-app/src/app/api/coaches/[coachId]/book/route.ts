@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { isAuthenticated } from "../../../middleware/auth";
-import { bookSessionSchema } from "../../../utils/schemas";
+import { bookSessionSchema } from "@/lib/validations";
 import CatchError from "../../../utils/catch-error";
 import {
   UnauthorizedException,
@@ -8,7 +8,7 @@ import {
   BadRequestException,
 } from "../../../utils/http-exception";
 import { prisma } from "@/lib/prisma";
-import sendResponse from "../../../utils/send-response";
+import { sendSuccess } from "../../../utils/send-response";
 import moment from "moment-timezone";
 
 export const POST = CatchError(
@@ -23,7 +23,7 @@ export const POST = CatchError(
       } catch (error) {
         throw new BadRequestException("Invalid JSON body");
       }
-      
+
       const { coachId } = await context.params;
       const user = (request as any).user;
       console.log({ body, coachId });
@@ -139,7 +139,7 @@ export const POST = CatchError(
         return { sessionId: session.id, session };
       });
 
-      return sendResponse.success(
+      return sendSuccess(
         {
           sessionId: sessionResult.sessionId,
           coachId: coach.id,

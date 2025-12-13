@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
-import { CoachQueryData, CoachUpdateData } from "../utils/schemas";
+import { CoachQueryData, CoachUpdateData } from "@/lib/validations";
 import { NotFoundException } from "../utils/http-exception";
-import sendResponse from "../utils/send-response";
+import { sendSuccess } from "../utils/send-response";
 
 export class CoachService {
   static async findByUserId(userId: string) {
@@ -105,6 +105,7 @@ export class CoachService {
         if (!acc[groupKey]) {
           acc[groupKey] = [];
         }
+
         acc[groupKey].push(coach);
         return acc;
       },
@@ -118,7 +119,7 @@ export class CoachService {
       })
     );
 
-    return sendResponse.success(
+    return sendSuccess(
       {
         coaches: transformedCoaches,
         groupedCoaches: formattedGroups,
@@ -164,10 +165,7 @@ export class CoachService {
       },
     });
 
-    return sendResponse.success(
-      updatedProfile,
-      "Coach profile updated successfully"
-    );
+    return sendSuccess(updatedProfile, "Coach profile updated successfully");
   }
 
   static async getProfile(userId: string) {
@@ -176,7 +174,7 @@ export class CoachService {
       throw new NotFoundException("Coach profile not found");
     }
 
-    return sendResponse.success(coach, "Coach profile fetched successfully");
+    return sendSuccess(coach, "Coach profile fetched successfully");
   }
 
   static async findCoachIdBySlug(slug: string) {
@@ -226,7 +224,7 @@ export class CoachService {
 
     const transformedCoach = this.transformCoachData(coach, programs, reviews);
 
-    return sendResponse.success(
+    return sendSuccess(
       { coach: transformedCoach },
       "Coach fetched successfully"
     );

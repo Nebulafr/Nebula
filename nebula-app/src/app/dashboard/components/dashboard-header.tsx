@@ -7,7 +7,10 @@ interface DashboardHeaderProps {
   loading?: boolean;
 }
 
-export function DashboardHeader({ user, loading = false }: DashboardHeaderProps) {
+export function DashboardHeader({
+  user,
+  loading = false,
+}: DashboardHeaderProps) {
   if (loading) {
     return (
       <div className="flex items-center justify-between space-y-2">

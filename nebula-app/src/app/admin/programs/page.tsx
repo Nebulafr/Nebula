@@ -1,25 +1,21 @@
 "use client";
-
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { toast } from "react-toastify";
 import {
   getAdminPrograms,
   updateProgramStatus,
-  type AdminProgram,
 } from "@/actions/admin/programs";
 import { ProgramStatus } from "@/generated/prisma";
 import { createCategory } from "@/actions/admin/categories";
-import { useCategories } from "@/contexts/CategoryContext";
+import { useCategories } from "@/contexts/category-context";
 
 import { ProgramsFilters } from "./components/programs-filters";
 import { ProgramsTable } from "./components/programs-table";
 import { ProgramDetailsDialog } from "./components/program-details-dialog";
 import { DeleteCategoryDialog } from "./components/delete-category-dialog";
+import { AdminProgram } from "@/types/program";
 
-// Using AdminProgram type from actions
-
-// Mock data for fallback when API returns empty
 const mockPrograms: AdminProgram[] = [
   {
     id: "1",
@@ -47,10 +43,7 @@ const mockPrograms: AdminProgram[] = [
     prerequisites: [],
     createdAt: new Date("2024-01-15T10:00:00Z"),
     updatedAt: new Date("2024-01-15T10:00:00Z"),
-    category: {
-      id: "cat-1",
-      name: "Engineering",
-    },
+    category: { id: "cat-1", name: "Engineering" },
     coach: {
       id: "coach-1",
       user: {
@@ -85,10 +78,7 @@ const mockPrograms: AdminProgram[] = [
     prerequisites: [],
     createdAt: new Date("2024-01-10T14:30:00Z"),
     updatedAt: new Date("2024-01-10T14:30:00Z"),
-    category: {
-      id: "cat-2",
-      name: "Product",
-    },
+    category: { id: "cat-2", name: "Product" },
     coach: {
       id: "coach-2",
       user: {
@@ -123,10 +113,7 @@ const mockPrograms: AdminProgram[] = [
     prerequisites: [],
     createdAt: new Date("2024-01-08T09:15:00Z"),
     updatedAt: new Date("2024-01-08T09:15:00Z"),
-    category: {
-      id: "cat-3",
-      name: "Data Science",
-    },
+    category: { id: "cat-3", name: "Data Science" },
     coach: {
       id: "coach-3",
       user: {
@@ -161,10 +148,7 @@ const mockPrograms: AdminProgram[] = [
     prerequisites: [],
     createdAt: new Date("2024-01-05T16:45:00Z"),
     updatedAt: new Date("2024-01-05T16:45:00Z"),
-    category: {
-      id: "cat-4",
-      name: "Design",
-    },
+    category: { id: "cat-4", name: "Design" },
     coach: {
       id: "coach-4",
       user: {
@@ -177,180 +161,173 @@ const mockPrograms: AdminProgram[] = [
 
 export default function AdminProgramsPage() {
   const [programs, setPrograms] = useState<AdminProgram[]>([]);
-  const [filteredPrograms, setFilteredPrograms] = useState<AdminProgram[]>([]);
   const [selectedProgram, setSelectedProgram] = useState<AdminProgram | null>(
     null
   );
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+
   const [isLoading, setIsLoading] = useState(true);
   const [loadingActions, setLoadingActions] = useState<Record<string, string>>(
     {}
   );
+
   const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
 
   const { categories: publicCategories, refetch: refetchCategories } =
     useCategories();
 
   useEffect(() => {
-    const fetchPrograms = async () => {
-      try {
-        setIsLoading(true);
-        const response = await getAdminPrograms({
-          search: searchQuery || undefined,
-          status: statusFilter !== "all" ? statusFilter : undefined,
-          category: categoryFilter !== "all" ? categoryFilter : undefined,
-        });
-
-        if (
-          response.success &&
-          response.data?.programs &&
-          response.data.programs.length > 0
-        ) {
-          setPrograms(response.data.programs);
-        } else {
-          console.log("No programs found in API, using mock data");
-          setPrograms(mockPrograms);
-        }
-      } catch (error) {
-        console.error("Error fetching programs:", error);
-        setPrograms(mockPrograms);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchPrograms();
-  }, [searchQuery, statusFilter, categoryFilter]);
-
-  useEffect(() => {
-    setSearchQuery(searchTerm);
+    const id = setTimeout(() => setDebouncedSearch(searchTerm), 400);
+    return () => clearTimeout(id);
   }, [searchTerm]);
 
-  useEffect(() => {
-    setFilteredPrograms(programs);
-  }, [programs]);
-
-  const handleProgramAction = async (
-    programId: string,
-    action: "activate" | "deactivate" | "delete"
-  ) => {
+  const fetchPrograms = useCallback(async () => {
     try {
-      setLoadingActions((prev) => ({
-        ...prev,
-        [programId]: action,
-      }));
+      setIsLoading(true);
 
-      if (action === "delete") {
-        toast.error("Delete functionality not yet implemented.");
-        return;
+      const response = await getAdminPrograms({
+        search: debouncedSearch || undefined,
+        status: statusFilter !== "all" ? statusFilter : undefined,
+        category: categoryFilter !== "all" ? categoryFilter : undefined,
+      });
+
+      if (response.success && response.data) {
+        setPrograms(response.data.programs);
+      } else {
+        setPrograms(mockPrograms);
       }
+    } catch {
+      setPrograms(mockPrograms);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [debouncedSearch, statusFilter, categoryFilter]);
 
-      const response = await updateProgramStatus(programId, action);
+  /**
+   * Trigger fetch when filters or debounced search change
+   */
+  useEffect(() => {
+    fetchPrograms();
+  }, [fetchPrograms]);
 
-      if (response.success) {
+  /**
+   * Program actions: activate, deactivate, delete
+   */
+  const handleProgramAction = useCallback(
+    async (programId: string, action: "activate" | "deactivate" | "delete") => {
+      try {
+        setLoadingActions((prev) => ({ ...prev, [programId]: action }));
+
+        if (action === "delete") {
+          toast.error("Delete functionality not implemented yet.");
+          return;
+        }
+
+        const response = await updateProgramStatus(programId, action);
+        if (!response.success) throw new Error(response.error);
+
         setPrograms((prev) =>
-          prev.map((program) =>
-            program.id === programId
+          prev.map((p) =>
+            p.id === programId
               ? {
-                  ...program,
+                  ...p,
                   status:
                     action === "activate"
                       ? ProgramStatus.ACTIVE
                       : ProgramStatus.INACTIVE,
                   isActive: action === "activate",
                 }
-              : program
+              : p
           )
         );
 
-        toast.success(response.message || `Program ${action}d successfully.`);
-      } else {
-        throw new Error(response.error || `Failed to ${action} program`);
+        toast.success(response.message ?? `Program ${action}d successfully`);
+      } catch (e: any) {
+        toast.error(e?.message ?? `Failed to ${action} program.`);
+      } finally {
+        setLoadingActions((prev) => {
+          const copy = { ...prev };
+          delete copy[programId];
+          return copy;
+        });
       }
-    } catch (error: any) {
-      console.error(`Error ${action}ing program:`, error);
-      toast.error(error.message || `Failed to ${action} program.`);
-    } finally {
-      setLoadingActions((prev) => {
-        const updated = { ...prev };
-        delete updated[programId];
-        return updated;
-      });
-    }
-  };
+    },
+    []
+  );
 
-  const handleAddCategory = async (categoryName: string) => {
-    if (
-      categoryName &&
-      !publicCategories.some((cat) => cat.name === categoryName)
-    ) {
+  /**
+   * Add new category
+   */
+  const handleAddCategory = useCallback(
+    async (categoryName: string) => {
+      if (!categoryName) return;
+
+      const exists = publicCategories.some((c) => c.name === categoryName);
+      if (exists) return;
+
       try {
         const response = await createCategory({ name: categoryName });
+        if (!response.success || !response.data?.category)
+          throw new Error(response.error);
 
-        if (response.success && response.data?.category) {
-          toast.success(
-            response.message ||
-              `Category "${categoryName}" has been added successfully.`
-          );
-          await refetchCategories();
-        } else {
-          throw new Error(response.error || "Failed to create category");
-        }
-      } catch (error: any) {
-        console.error("Error creating category:", error);
-        toast.error(error.message || "Failed to create category.");
+        toast.success(`Category "${categoryName}" added successfully.`);
+        await refetchCategories();
+      } catch (e: any) {
+        toast.error(e?.message ?? "Failed to create category.");
       }
-    }
-  };
+    },
+    [publicCategories, refetchCategories]
+  );
 
-  const handleDeleteCategory = async (categoryName: string) => {
-    try {
-      const categoryToDeleteObj = publicCategories.find(
-        (cat) => cat.name === categoryName
-      );
-      if (!categoryToDeleteObj) return;
+  /**
+   * Temporary category deletion handler
+   */
+  const handleDeleteCategory = useCallback(async (categoryName: string) => {
+    toast.error(
+      "Category deletion is not implemented in this view. Use the Admin Categories page."
+    );
+    setCategoryToDelete(null);
+  }, []);
 
-      toast.error(
-        "Category deletion from this view is not yet implemented. Please use the admin categories page."
-      );
-      setCategoryToDelete(null);
-    } catch (error: any) {
-      console.error("Error deleting category:", error);
-      setCategoryToDelete(null);
-      toast.error(error.message || "Failed to delete category.");
-    }
-  };
-
-  const handleViewDetails = (program: AdminProgram) => {
+  /**
+   * Open program details dialog
+   */
+  const handleViewDetails = useCallback((program: AdminProgram) => {
     setSelectedProgram(program);
     setIsDetailsDialogOpen(true);
-  };
+  }, []);
 
-  const handleReassignCategory = (programId: string, categoryName: string) => {
-    setPrograms(
-      programs.map((p) =>
-        p.id === programId
-          ? {
-              ...p,
-              category: {
-                ...p.category,
-                name: categoryName,
-              },
-            }
-          : p
-      )
-    );
-    toast.success(`Program category has been updated to "${categoryName}".`);
-  };
-
-  const handleCloseDetailsDialog = () => {
-    setIsDetailsDialogOpen(false);
+  const handleCloseDetailsDialog = useCallback(() => {
     setSelectedProgram(null);
-  };
+    setIsDetailsDialogOpen(false);
+  }, []);
+
+  /**
+   * Local reassignment only (UI update)
+   */
+  const handleReassignCategory = useCallback(
+    (programId: string, categoryName: string) => {
+      setPrograms((prev) =>
+        prev.map((p) =>
+          p.id === programId
+            ? { ...p, category: { ...p.category, name: categoryName } }
+            : p
+        )
+      );
+      toast.success(`Program category updated to "${categoryName}".`);
+    },
+    []
+  );
+
+  /**
+   * Memoized program list (prepares for future computed filtering)
+   */
+  const computedPrograms = useMemo(() => programs, [programs]);
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8">
@@ -369,9 +346,10 @@ export default function AdminProgramsPage() {
             loading={isLoading}
           />
         </CardHeader>
+
         <CardContent>
           <ProgramsTable
-            programs={filteredPrograms}
+            programs={computedPrograms}
             loading={isLoading}
             loadingActions={loadingActions}
             onProgramAction={handleProgramAction}

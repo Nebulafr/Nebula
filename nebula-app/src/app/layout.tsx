@@ -1,39 +1,39 @@
 import type { Metadata } from "next";
 import { Toaster } from "@/components/ui/toaster";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { AuthProvider } from "@/contexts/auth-context";
 import { ToastContainer } from "react-toastify";
 import React from "react";
-import { CategoryProvider } from "@/contexts/CategoryContext";
+import { CategoryProvider } from "@/contexts/category-context";
+import { EventsProvider } from "@/contexts/events-context";
 import "./globals.css";
 import "react-toastify/dist/ReactToastify.css";
+import { ProgramsProvider } from "@/contexts/programs-context";
+import { Manrope } from "next/font/google";
 
 export const metadata: Metadata = {
   title: "Nebula - Coaching Platform",
   description: "Connect with expert coaches and accelerate your career growth",
 };
 
-export default function RootLayout({
+const manrope = Manrope({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+});
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
     <html lang="en">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700&family=PT+Serif:wght@400;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap"
-          rel="stylesheet"
-        />
-      </head>
-      <body className="font-body antialiased">
+      <body className={`${manrope.className}  antialiased`}>
         <AuthProvider>
-          <CategoryProvider>{children}</CategoryProvider>
+          <CategoryProvider>
+            <ProgramsProvider>
+              <EventsProvider>{children}</EventsProvider>
+            </ProgramsProvider>
+          </CategoryProvider>
         </AuthProvider>
         <Toaster />
         <ToastContainer

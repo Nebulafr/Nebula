@@ -1,15 +1,15 @@
 import { NextRequest } from "next/server";
 import { AuthService } from "../services/auth.service";
 import {
-  registerSchema,
-  signinSchema,
   googleAuthSchema,
-} from "../utils/schemas";
+  signinSchema,
+  signupSchema,
+} from "@/lib/validations";
 
 export class AuthController {
   async register(request: NextRequest) {
     const body = await request.json();
-    const payload = registerSchema.parse(body);
+    const payload = signupSchema.parse(body);
     return await AuthService.register(payload);
   }
 

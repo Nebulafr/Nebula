@@ -5,21 +5,21 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Search } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { type Conversation } from "@/actions/messaging";
-import { 
-  formatUserName, 
-  getUserInitials, 
-  formatChatTime, 
-  formatMessagePreview, 
-  formatUnreadCount 
+import {
+  formatUserName,
+  getUserInitials,
+  formatChatTime,
+  formatMessagePreview,
+  formatUnreadCount,
 } from "@/lib/chat-utils";
+import { Conversation } from "@/generated/prisma";
 
 interface ConversationListProps {
-  conversations: Conversation[];
+  conversations: any[];
   selectedConversation: Conversation | null;
   searchTerm: string;
   onSearchChange: (value: string) => void;
-  onConversationSelect: (conversation: Conversation) => void;
+  onConversationSelect: (conversation: any) => void;
   loading?: boolean;
 }
 
@@ -107,12 +107,16 @@ export function ConversationList({
 }
 
 interface ConversationItemProps {
-  conversation: Conversation;
+  conversation: any;
   isSelected: boolean;
   onClick: () => void;
 }
 
-function ConversationItem({ conversation, isSelected, onClick }: ConversationItemProps) {
+function ConversationItem({
+  conversation,
+  isSelected,
+  onClick,
+}: ConversationItemProps) {
   const displayName = formatUserName(conversation.name);
   const initials = getUserInitials(conversation.name);
   const timeDisplay = formatChatTime(conversation.time);
@@ -154,7 +158,7 @@ function ConversationItem({ conversation, isSelected, onClick }: ConversationIte
               )}
             </div>
           </div>
-          
+
           {/* Last Message */}
           <p className="text-sm text-muted-foreground truncate leading-relaxed">
             {messagePreview}

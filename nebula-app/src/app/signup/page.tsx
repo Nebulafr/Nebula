@@ -11,15 +11,15 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
+import { PlaceHolderImages } from "@/lib/images/placeholder-images";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { UserRole } from "@/generated/prisma";
-import { signUpWithEmail, signInWithGoogle } from "@/firebase/auth";
 import { toast } from "react-toastify";
 import { storeAuthData } from "@/lib/auth-storage";
 import { AuthPageGuard } from "@/components/auth/protected-route";
+import { useAuthActions } from "@/hooks/use-auth";
 
 function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -58,6 +58,7 @@ export default function SignupPage() {
   const [fullName, setFullName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { signUp, signInWithGoogle } = useAuthActions();
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,14 +72,12 @@ export default function SignupPage() {
     setLoading(true);
 
     try {
-      const result = await signUpWithEmail({
+      await signUp({
         email,
         password,
         fullName,
         role: UserRole.STUDENT,
       });
-      console.log("Signup result:", result);
-      storeAuthData(result);
       toast.success("Account created successfully!");
     } catch (error: any) {
       console.error("Signup error:", error);
@@ -94,9 +93,7 @@ export default function SignupPage() {
     setLoading(true);
 
     try {
-      const result = await signInWithGoogle(UserRole.STUDENT);
-      console.log("Google signup result:", result);
-      storeAuthData(result);
+      await signInWithGoogle(UserRole.STUDENT);
     } catch (error: any) {
       console.error("Google signup error:", error);
       if (error?.message !== "Redirecting to Google sign-in...") {
@@ -110,152 +107,155 @@ export default function SignupPage() {
   return (
     <AuthPageGuard>
       <div className="w-full min-h-screen lg:grid lg:grid-cols-5">
-      <div className="relative hidden h-full bg-muted lg:col-span-3 lg:block">
-        {signupImage && (
-          <Image
-            src={signupImage.imageUrl}
-            alt={signupImage.description}
-            fill
-            className="object-cover"
-            data-ai-hint={signupImage.imageHint}
-          />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-        <div className="absolute bottom-8 left-8 text-white">
-          <h2 className="text-4xl font-bold">Start your journey with Nebula</h2>
-          <p className="mt-2 max-w-lg">
-            Join a community of learners and experts to accelerate your career.
-          </p>
+        <div className="relative hidden h-full bg-muted lg:col-span-3 lg:block">
+          {signupImage && (
+            <Image
+              src={signupImage.imageUrl}
+              alt={signupImage.description}
+              fill
+              className="object-cover"
+              data-ai-hint={signupImage.imageHint}
+            />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+          <div className="absolute bottom-8 left-8 text-white">
+            <h2 className="text-4xl font-bold">
+              Start your journey with Nebula
+            </h2>
+            <p className="mt-2 max-w-lg">
+              Join a community of learners and experts to accelerate your
+              career.
+            </p>
+          </div>
         </div>
-      </div>
-      <div className="flex items-center justify-center py-12 lg:col-span-2">
-        <div className="mx-auto grid w-[350px] gap-6">
-          <Card className="border-none shadow-none">
-            <CardHeader className="p-0 text-left">
-              <Link
-                href="/"
-                className="flex items-center gap-2 mb-4 text-sm font-medium text-muted-foreground hover:text-foreground"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Back to website
-              </Link>
-              <CardTitle className="text-3xl font-bold text-primary">
-                Create an Account
-              </CardTitle>
-              <CardDescription>
-                Enter your information to get started.
-              </CardDescription>
-            </CardHeader>
-            <form onSubmit={handleSignup}>
-              <CardContent className="grid gap-4 p-0 mt-6">
-                <div className="grid gap-2">
-                  <Label htmlFor="full-name">Full Name</Label>
-                  <Input
-                    id="full-name"
-                    placeholder="John Doe"
-                    required
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    disabled={loading}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="m@example.com"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    disabled={loading}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="password">Password</Label>
-                  <div className="relative">
-                    <Input
-                      id="password"
-                      type={showPassword ? "text" : "password"}
-                      required
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      disabled={loading}
-                      className="pr-10"
-                      minLength={6}
-                    />
-                    <button
-                      type="button"
-                      className="absolute inset-y-0 right-0 flex items-center pr-3"
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? (
-                        <EyeOff className="h-4 w-4 text-muted-foreground" />
-                      ) : (
-                        <Eye className="h-4 w-4 text-muted-foreground" />
-                      )}
-                    </button>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Must be at least 6 characters
-                  </p>
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="confirm-password">Confirm Password</Label>
-                  <Input
-                    id="confirm-password"
-                    type="password"
-                    required
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    disabled={loading}
-                  />
-                  {confirmPassword && password !== confirmPassword && (
-                    <p className="text-xs text-destructive">
-                      Passwords do not match
-                    </p>
-                  )}
-                </div>
-                <Button
-                  type="submit"
-                  className="w-full"
-                  size="lg"
-                  disabled={loading || password !== confirmPassword}
+        <div className="flex items-center justify-center py-12 lg:col-span-2">
+          <div className="mx-auto grid w-[350px] gap-6">
+            <Card className="border-none shadow-none">
+              <CardHeader className="p-0 text-left">
+                <Link
+                  href="/"
+                  className="flex items-center gap-2 mb-4 text-sm font-medium text-muted-foreground hover:text-foreground"
                 >
-                  {loading ? "Creating account..." : "Create Account"}
-                </Button>
-              </CardContent>
-            </form>
-            <div className="relative mt-4">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
+                  <ArrowLeft className="h-4 w-4" />
+                  Back to website
+                </Link>
+                <CardTitle className="text-3xl font-bold text-primary">
+                  Create an Account
+                </CardTitle>
+                <CardDescription>
+                  Enter your information to get started.
+                </CardDescription>
+              </CardHeader>
+              <form onSubmit={handleSignup}>
+                <CardContent className="grid gap-4 p-0 mt-6">
+                  <div className="grid gap-2">
+                    <Label htmlFor="full-name">Full Name</Label>
+                    <Input
+                      id="full-name"
+                      placeholder="John Doe"
+                      required
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      disabled={loading}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="m@example.com"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      disabled={loading}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="password">Password</Label>
+                    <div className="relative">
+                      <Input
+                        id="password"
+                        type={showPassword ? "text" : "password"}
+                        required
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        disabled={loading}
+                        className="pr-10"
+                        minLength={6}
+                      />
+                      <button
+                        type="button"
+                        className="absolute inset-y-0 right-0 flex items-center pr-3"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4 text-muted-foreground" />
+                        ) : (
+                          <Eye className="h-4 w-4 text-muted-foreground" />
+                        )}
+                      </button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Must be at least 6 characters
+                    </p>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="confirm-password">Confirm Password</Label>
+                    <Input
+                      id="confirm-password"
+                      type="password"
+                      required
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      disabled={loading}
+                    />
+                    {confirmPassword && password !== confirmPassword && (
+                      <p className="text-xs text-destructive">
+                        Passwords do not match
+                      </p>
+                    )}
+                  </div>
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    size="lg"
+                    disabled={loading || password !== confirmPassword}
+                  >
+                    {loading ? "Creating account..." : "Create Account"}
+                  </Button>
+                </CardContent>
+              </form>
+              <div className="relative mt-4">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">
+                    Or continue with
+                  </span>
+                </div>
               </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">
-                  Or continue with
-                </span>
-              </div>
+              <Button
+                variant="outline"
+                className="w-full mt-4"
+                size="lg"
+                onClick={handleGoogleSignIn}
+                disabled={loading}
+              >
+                <GoogleIcon className="mr-2 h-5 w-5" />
+                {loading ? "Signing up..." : "Sign up with Google"}
+              </Button>
+            </Card>
+            <div className="mt-4 text-center text-sm">
+              Already have an account?{" "}
+              <Link href="/login" className="underline">
+                Log in
+              </Link>
             </div>
-            <Button
-              variant="outline"
-              className="w-full mt-4"
-              size="lg"
-              onClick={handleGoogleSignIn}
-              disabled={loading}
-            >
-              <GoogleIcon className="mr-2 h-5 w-5" />
-              {loading ? "Signing up..." : "Sign up with Google"}
-            </Button>
-          </Card>
-          <div className="mt-4 text-center text-sm">
-            Already have an account?{" "}
-            <Link href="/login" className="underline">
-              Log in
-            </Link>
           </div>
         </div>
       </div>
-    </div>
     </AuthPageGuard>
   );
 }

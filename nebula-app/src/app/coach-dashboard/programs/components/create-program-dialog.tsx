@@ -399,7 +399,11 @@ export function CreateProgramDialog({
             type="number"
             min="1"
             placeholder="Unlimited"
-            value={formData.maxStudents === 0 ? "" : formData.maxStudents?.toString() || ""}
+            value={
+              formData.maxStudents === 0
+                ? ""
+                : formData.maxStudents?.toString() || ""
+            }
             onChange={(e) =>
               handleInputChange(
                 "maxStudents",
@@ -557,9 +561,14 @@ export function CreateProgramDialog({
           Program Modules *
         </Label>
         <p className="text-sm text-muted-foreground mb-6">
-          Add modules to organize your program content by weeks or topics. At least one module is required.
+          Add modules to organize your program content by weeks or topics. At
+          least one module is required.
         </p>
-        <div className={errors.modules ? "border border-red-500 rounded-lg p-4" : ""}>
+        <div
+          className={
+            errors.modules ? "border border-red-500 rounded-lg p-4" : ""
+          }
+        >
           <ModulesForm
             value={formData.modules}
             onChange={(modules) => handleInputChange("modules", modules)}

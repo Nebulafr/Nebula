@@ -4,7 +4,6 @@ import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import { type Conversation } from "@/actions/messaging";
 import {
   formatUserName,
   getUserInitials,
@@ -13,18 +12,19 @@ import {
   formatUnreadCount,
 } from "@/lib/chat-utils";
 import { useEffect } from "react";
+import { Conversation } from "@/generated/prisma";
 
 interface ConversationListProps {
-  conversations: Conversation[];
+  conversations: any[];
   selectedConversation: Conversation | null;
   searchTerm: string;
   onSearchChange: (term: string) => void;
-  onConversationSelect: (conversation: Conversation) => void;
+  onConversationSelect: (conversation: any) => void;
   loading?: boolean;
 }
 
 interface ConversationItemProps {
-  conversation: Conversation;
+  conversation: any;
   isSelected: boolean;
   onClick: () => void;
 }

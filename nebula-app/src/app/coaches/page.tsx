@@ -13,8 +13,8 @@ import { useSearchParams } from "next/navigation";
 import React from "react";
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
-import { getCoaches, type CoachGroup } from "@/actions/coaches";
-import { useCategories } from "@/contexts/CategoryContext";
+import { getCoaches } from "@/actions/coaches";
+import { useCategories } from "@/contexts/category-context";
 
 // API response coach structure
 interface ApiCoach {
@@ -70,7 +70,6 @@ function CoachesPageContent() {
           category: activeCategory === "All" ? undefined : activeCategory,
           limit: 20,
         });
-
         if (response.success && response.data?.groupedCoaches) {
           setGroupedCoaches(response.data.groupedCoaches);
         } else {

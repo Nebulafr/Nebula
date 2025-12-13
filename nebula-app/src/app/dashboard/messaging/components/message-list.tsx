@@ -3,17 +3,17 @@
 import { useEffect, useRef } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import { type Message, type Conversation } from "@/actions/messaging";
+import { Conversation } from "@/generated/prisma";
 
 interface MessageListProps {
-  messages: Message[];
+  messages: any[];
   conversation: Conversation;
   currentUserId: string;
   loading?: boolean;
 }
 
 interface MessageBubbleProps {
-  message: Message;
+  message: any;
   isOwnMessage: boolean;
 }
 

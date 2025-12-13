@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { EventService } from "../services/event.service";
-import { createEventSchema, updateEventSchema } from "../utils/schemas";
+import { createEventSchema, updateEventSchema } from "@/lib/validations";
 
 class EventController {
   async createEvent(request: NextRequest) {

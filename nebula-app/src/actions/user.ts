@@ -1,46 +1,9 @@
-import { UserProfile } from "@/hooks/use-user";
 import { apiGet, apiPut } from "@/lib/utils";
 
-export const getUserProfile = async () => {
-  try {
-    const response = await apiGet<{
-      user: UserProfile;
-    }>("/users/profile");
+export async function getUserProfile() {
+  return apiGet("/users/profile");
+}
 
-    return {
-      success: response.success,
-      data: response.data,
-      message: response.message,
-    };
-  } catch (error: any) {
-    console.error("Error fetching users:", error);
-    return {
-      success: false,
-      error: error.message || "Failed to fetch user",
-      message: error.message || "An unexpected error occurred",
-    };
-  }
-};
-
-export const updateUserProfile = async (data: any) => {
-  try {
-    const response = await apiPut("/users/profile", data);
-
-    if (!response.success) {
-      throw new Error(response.message || "Failed to update user");
-    }
-
-    return {
-      success: true,
-      data: response.data,
-      message: response.message,
-    };
-  } catch (error: any) {
-    console.error("Error updating users:", error);
-    return {
-      success: false,
-      error: error.message || "Failed to update user",
-      message: error.message || "An unexpected error occurred",
-    };
-  }
-};
+export async function updateUserProfile(data: any) {
+  return apiPut("/users/profile", data);
+}

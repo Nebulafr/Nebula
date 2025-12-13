@@ -7,15 +7,15 @@ import {
   createEvent,
   updateEvent,
   deleteEvent,
-  Event as ApiEvent,
 } from "@/actions/events";
+import { Event } from "@/types/event";
 
 export function useEvents(params?: {
   search?: string;
   eventType?: string;
   status?: string;
 }) {
-  const [events, setEvents] = useState<ApiEvent[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<Record<string, boolean>>(
@@ -114,7 +114,7 @@ export function usePublicEvents(params?: {
   search?: string;
   eventType?: string;
 }) {
-  const [events, setEvents] = useState<ApiEvent[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

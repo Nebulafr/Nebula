@@ -2,16 +2,15 @@ import { prisma } from "@/lib/prisma";
 import {
   type CreateCategoryData,
   type UpdateCategoryData,
-} from "../utils/schemas";
+} from "@/lib/validations";
 import {
   NotFoundException,
   BadRequestException,
 } from "../utils/http-exception";
 import { RESPONSE_CODE } from "@/types";
 import HttpException from "../utils/http-exception";
-import sendResponse from "../utils/send-response";
-import { generateSlug } from "@/lib/utils/slug";
-
+import { sendSuccess } from "../utils/send-response";
+import { generateSlug } from "@/lib/utils";
 
 async function slugExists(slug: string, excludeId?: string): Promise<boolean> {
   const category = await prisma.category.findFirst({
@@ -57,10 +56,7 @@ export class CategoryService {
       },
     });
 
-    return sendResponse.success(
-      { categories },
-      "Categories fetched successfully"
-    );
+    return sendSuccess({ categories }, "Categories fetched successfully");
   }
 
   static async getById(id: string) {
@@ -87,11 +83,11 @@ export class CategoryService {
       throw new NotFoundException("Category not found");
     }
 
-    return sendResponse.success({ category }, "Category fetched successfully");
+    return sendSuccess({ category }, "Category fetched successfully");
   }
 
   static async create(data: CreateCategoryData) {
-    const { name, isActive } = data;
+    const { name } = data;
 
     const existingCategory = await prisma.category.findUnique({
       where: { name: name.trim() },
@@ -105,18 +101,16 @@ export class CategoryService {
       );
     }
 
-    // Generate unique slug
     const slug = await generateUniqueSlug(name);
 
     const category = await prisma.category.create({
       data: {
         name: name.trim(),
         slug,
-        isActive,
       },
     });
 
-    return sendResponse.success(
+    return sendSuccess(
       { category },
       `Category "${name}" created successfully`,
       201
@@ -150,7 +144,7 @@ export class CategoryService {
       },
     });
 
-    return sendResponse.success({ category }, "Category updated successfully");
+    return sendSuccess({ category }, "Category updated successfully");
   }
 
   static async delete(id: string) {
@@ -187,7 +181,7 @@ export class CategoryService {
       },
     });
 
-    return sendResponse.success(
+    return sendSuccess(
       null,
       `Category "${existingCategory.name}" deleted successfully`
     );

@@ -27,13 +27,16 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { formatUserName, getUserInitials } from "@/lib/chat-utils";
-import { type AdminProgram } from "@/actions/admin/programs";
+import { AdminProgram } from "@/types/program";
 
 interface ProgramsTableProps {
   programs: AdminProgram[];
   loading?: boolean;
   loadingActions?: Record<string, string>;
-  onProgramAction?: (programId: string, action: "activate" | "deactivate" | "delete") => void;
+  onProgramAction?: (
+    programId: string,
+    action: "activate" | "deactivate" | "delete"
+  ) => void;
   onViewDetails?: (program: AdminProgram) => void;
 }
 
@@ -125,15 +128,22 @@ export function ProgramsTable({
       <TableBody>
         {programs.length === 0 ? (
           <TableRow>
-            <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+            <TableCell
+              colSpan={6}
+              className="text-center py-8 text-muted-foreground"
+            >
               No programs found matching your criteria.
             </TableCell>
           </TableRow>
         ) : (
           programs.map((program) => {
-            const coachName = formatUserName(program.coach.user.fullName || "Unknown");
-            const coachInitials = getUserInitials(program.coach.user.fullName || "Unknown");
-            
+            const coachName = formatUserName(
+              program.coach.user.fullName || "Unknown"
+            );
+            const coachInitials = getUserInitials(
+              program.coach.user.fullName || "Unknown"
+            );
+
             return (
               <TableRow key={program.id}>
                 <TableCell className="font-medium">{program.title}</TableCell>
@@ -171,13 +181,17 @@ export function ProgramsTable({
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
-                      <DropdownMenuItem onClick={() => onViewDetails?.(program)}>
+                      <DropdownMenuItem
+                        onClick={() => onViewDetails?.(program)}
+                      >
                         View Details
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       {program.status === "INACTIVE" && (
                         <DropdownMenuItem
-                          onClick={() => onProgramAction?.(program.id, "activate")}
+                          onClick={() =>
+                            onProgramAction?.(program.id, "activate")
+                          }
                           disabled={!!loadingActions[program.id]}
                           className="text-green-600"
                         >
@@ -186,12 +200,16 @@ export function ProgramsTable({
                           ) : (
                             <CheckCircle className="mr-2 h-4 w-4" />
                           )}
-                          {loadingActions[program.id] === "activate" ? "Activating..." : "Activate"}
+                          {loadingActions[program.id] === "activate"
+                            ? "Activating..."
+                            : "Activate"}
                         </DropdownMenuItem>
                       )}
                       {program.status === "ACTIVE" && (
                         <DropdownMenuItem
-                          onClick={() => onProgramAction?.(program.id, "deactivate")}
+                          onClick={() =>
+                            onProgramAction?.(program.id, "deactivate")
+                          }
                           disabled={!!loadingActions[program.id]}
                           className="text-orange-600"
                         >
@@ -200,11 +218,13 @@ export function ProgramsTable({
                           ) : (
                             <PauseCircle className="mr-2 h-4 w-4" />
                           )}
-                          {loadingActions[program.id] === "deactivate" ? "Deactivating..." : "Deactivate"}
+                          {loadingActions[program.id] === "deactivate"
+                            ? "Deactivating..."
+                            : "Deactivate"}
                         </DropdownMenuItem>
                       )}
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem 
+                      <DropdownMenuItem
                         className="text-destructive"
                         onClick={() => onProgramAction?.(program.id, "delete")}
                       >

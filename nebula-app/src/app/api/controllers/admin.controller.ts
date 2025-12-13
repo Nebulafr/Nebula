@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { AdminService } from "../services/admin.service";
-import { adminProgramQuerySchema, programActionSchema } from "../utils/schemas";
+import {
+  adminProgramQuerySchema,
+  programActionSchema,
+} from "@/lib/validations";
 
 export class AdminController {
   async getPrograms(request: NextRequest) {
@@ -14,6 +17,8 @@ export class AdminController {
 
     const payload = adminProgramQuerySchema.parse(queryParams);
     const programs = await AdminService.getPrograms(payload);
+
+    console.log({ programs });
 
     return NextResponse.json(
       {

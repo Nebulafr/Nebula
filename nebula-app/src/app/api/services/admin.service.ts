@@ -1,35 +1,28 @@
 import { prisma } from "@/lib/prisma";
-import { AdminProgramQueryData, ProgramActionData } from "../utils/schemas";
+import { AdminProgramQueryData, ProgramActionData } from "@/lib/validations";
 import { ProgramStatus } from "@/generated/prisma";
-import sendResponse from "../utils/send-response";
+import { sendSuccess } from "../utils/send-response";
 
 export class AdminService {
   static async getPrograms(params: AdminProgramQueryData) {
     const { status, category, search } = params;
 
-    // Build where clause for Prisma query
     const whereClause: any = {};
 
-    // Apply status filter at database level
     if (status && status !== "all") {
-      // Map frontend filter values to ProgramStatus enum
       if (status === "active") {
-        whereClause.status = "ACTIVE";
+        whereClause.isActive = true;
       } else if (status === "inactive") {
-        whereClause.status = "INACTIVE";
-      } else {
-        whereClause.status = status.toUpperCase(); // Fallback for any other values
+        whereClause.isActive = false;
       }
     }
 
-    // Apply category filter at database level
     if (category && category !== "all") {
       whereClause.category = {
         name: category,
       };
     }
 
-    // Apply search filter at database level
     if (search) {
       whereClause.OR = [
         {
@@ -65,7 +58,6 @@ export class AdminService {
       ];
     }
 
-    // Fetch programs with Prisma including related data
     const programs = await prisma.program.findMany({
       where: whereClause,
       include: {
@@ -87,9 +79,7 @@ export class AdminService {
       },
     });
 
-    // Return exact Prisma structure with relations
     return programs.map((program) => ({
-      // Exact Prisma Program model fields
       id: program.id,
       title: program.title,
       categoryId: program.categoryId,
@@ -110,7 +100,6 @@ export class AdminService {
       prerequisites: program.prerequisites,
       createdAt: program.createdAt.toISOString(),
       updatedAt: program.updatedAt.toISOString(),
-      // Related data
       category: program.category,
       coach: program.coach,
       _count: program._count,
@@ -181,14 +170,18 @@ export class AdminService {
     };
   }
 
-  static async getUsers(params?: { search?: string; role?: string; status?: string }) {
+  static async getUsers(params?: {
+    search?: string;
+    role?: string;
+    status?: string;
+  }) {
     const { search, role, status } = params || {};
 
     // Build where clause for Prisma query
     const whereClause: any = {
       role: {
-        in: ["COACH", "STUDENT", "ADMIN"]
-      }
+        in: ["COACH", "STUDENT", "ADMIN"],
+      },
     };
 
     // Apply role filter at database level
@@ -231,16 +224,18 @@ export class AdminService {
         createdAt: true,
         updatedAt: true,
       },
-      orderBy: [
-        { role: "asc" },
-        { fullName: "asc" }
-      ]
+      orderBy: [{ role: "asc" }, { fullName: "asc" }],
     });
 
-    return sendResponse.success({ users }, "Users fetched successfully");
+    return sendSuccess({ users }, "Users fetched successfully");
   }
 
-  static async getReviews(params?: { search?: string; targetType?: string; status?: string; rating?: string }) {
+  static async getReviews(params?: {
+    search?: string;
+    targetType?: string;
+    status?: string;
+    rating?: string;
+  }) {
     const { search, targetType, status, rating } = params || {};
 
     // Build where clause for Prisma query
@@ -337,6 +332,6 @@ export class AdminService {
       },
     });
 
-    return sendResponse.success({ reviews }, "Reviews fetched successfully");
+    return sendSuccess({ reviews }, "Reviews fetched successfully");
   }
 }

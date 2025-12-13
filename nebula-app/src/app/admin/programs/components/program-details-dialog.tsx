@@ -21,7 +21,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { formatUserName, getUserInitials } from "@/lib/chat-utils";
-import { type AdminProgram } from "@/actions/admin/programs";
+import { AdminProgram } from "@/types/program";
 
 interface Category {
   id?: string;
@@ -63,7 +63,9 @@ export function ProgramDetailsDialog({
   if (!program) return null;
 
   const coachName = formatUserName(program.coach.user.fullName || "Unknown");
-  const coachInitials = getUserInitials(program.coach.user.fullName || "Unknown");
+  const coachInitials = getUserInitials(
+    program.coach.user.fullName || "Unknown"
+  );
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -80,7 +82,7 @@ export function ProgramDetailsDialog({
             </div>
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-start gap-4">
             <Label htmlFor="program-description" className="text-right pt-2">
@@ -93,7 +95,7 @@ export function ProgramDetailsDialog({
               {program.description}
             </p>
           </div>
-          
+
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="program-category" className="text-right">
               Category
@@ -123,8 +125,8 @@ export function ProgramDetailsDialog({
               Close
             </Button>
           </DialogClose>
-          <Button 
-            type="button" 
+          <Button
+            type="button"
             onClick={handleReassign}
             disabled={loading || selectedCategory === program.category.name}
           >

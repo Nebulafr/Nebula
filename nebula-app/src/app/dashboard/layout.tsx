@@ -197,7 +197,7 @@ export default function DashboardLayout({
       </Sidebar>
       <SidebarInset>
         <TopBar />
-        {children}
+        <>{children}</>
       </SidebarInset>
     </SidebarProvider>
   );

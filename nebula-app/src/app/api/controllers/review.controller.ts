@@ -2,24 +2,27 @@ import { NextRequest } from "next/server";
 import { ReviewService } from "../services/review.service";
 import { z } from "zod";
 
-// Validation schemas
 const createReviewSchema = z.object({
   targetType: z.enum(["COACH", "PROGRAM"]),
   targetId: z.string().cuid(),
   rating: z.number().min(1).max(5),
   title: z.string().optional(),
   content: z.string().min(1).max(2000),
-  sessionId: z.string().cuid().optional()
+  sessionId: z.string().cuid().optional(),
 });
 
 const getReviewsSchema = z.object({
   page: z.number().min(1).default(1),
   limit: z.number().min(1).max(50).default(10),
-  sortBy: z.enum(["recent", "rating", "oldest"]).default("recent")
+  sortBy: z.enum(["recent", "rating", "oldest"]).default("recent"),
 });
 
 export class ReviewController {
-  async createReview(request: NextRequest, targetType: string, targetId: string) {
+  async createReview(
+    request: NextRequest,
+    targetType: string,
+    targetId: string
+  ) {
     let body;
     try {
       body = await request.json();
@@ -36,22 +39,22 @@ export class ReviewController {
     const payload = createReviewSchema.parse({
       ...body,
       targetType,
-      targetId
+      targetId,
     });
 
     return await ReviewService.createReview({
       reviewerId: user.id,
-      ...payload
+      ...payload,
     });
   }
 
   async getReviews(request: NextRequest, targetType: string, targetId: string) {
     const { searchParams } = new URL(request.url);
-    
+
     const queryParams = {
       page: parseInt(searchParams.get("page") || "1"),
       limit: parseInt(searchParams.get("limit") || "10"),
-      sortBy: searchParams.get("sortBy") || "recent"
+      sortBy: searchParams.get("sortBy") || "recent",
     };
 
     const validatedParams = getReviewsSchema.parse(queryParams);
@@ -59,7 +62,7 @@ export class ReviewController {
     const sortOptions = {
       sortBy: validatedParams.sortBy as "recent" | "rating" | "oldest",
       page: validatedParams.page,
-      limit: validatedParams.limit
+      limit: validatedParams.limit,
     };
 
     return await ReviewService.getReviews(
@@ -68,5 +71,4 @@ export class ReviewController {
       sortOptions
     );
   }
-
 }

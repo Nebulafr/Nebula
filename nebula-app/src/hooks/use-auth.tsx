@@ -1,4 +1,4 @@
-import { AuthContext } from "@/contexts/AuthContext";
+import { AuthContext } from "@/contexts/auth-context";
 import { useContext } from "react";
 
 export function useAuth() {
@@ -10,7 +10,8 @@ export function useAuth() {
 }
 
 export function useAuthActions() {
-  const { signUp, signIn, signInWithGoogle, resetPassword, signOut } = useAuth();
+  const { signUp, signIn, signInWithGoogle, resetPassword, signOut } =
+    useAuth();
 
   return {
     signUp,

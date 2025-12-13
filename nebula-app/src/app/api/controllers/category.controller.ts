@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { CategoryService } from "../services/category.service";
-import { createCategorySchema, updateCategorySchema } from "../utils/schemas";
+import { createCategorySchema, updateCategorySchema } from "@/lib/validations";
 
 export class CategoryController {
   async getAll(request: NextRequest) {

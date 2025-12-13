@@ -4,10 +4,10 @@ import {
   BadRequestException,
   NotFoundException,
 } from "../utils/http-exception";
-import { createProgramSchema, updateProgramSchema } from "../utils/schemas";
+import { createProgramSchema, updateProgramSchema } from "@/lib/validations";
 import { prisma } from "@/lib/prisma";
-import sendResponse from "../utils/send-response";
-import { generateSlug } from "@/lib/utils/slug";
+import { sendSuccess } from "../utils/send-response";
+import { generateSlug } from "@/lib/utils";
 
 export class ProgramService {
   async createProgram(request: NextRequest) {
@@ -33,7 +33,7 @@ export class ProgramService {
     } = createProgramSchema.parse(body);
 
     const coachId = user.coach.id;
-    
+
     let baseSlug = generateSlug(title);
     let finalSlug = baseSlug;
     let counter = 1;
@@ -86,7 +86,7 @@ export class ProgramService {
       },
     });
 
-    return sendResponse.success(
+    return sendSuccess(
       {
         programId: program.id,
         program: program,
@@ -161,8 +161,6 @@ export class ProgramService {
       take: limit,
     });
 
-    console.log({ programs });
-
     const transformedPrograms = programs.map((program) => ({
       id: program.id,
       title: program.title,
@@ -185,7 +183,6 @@ export class ProgramService {
       attendees: program.enrollments.map((e) => e.student.user.avatarUrl),
       createdAt: program.createdAt.toISOString(),
       updatedAt: program.updatedAt.toISOString(),
-      // Related data (included)
       category: program.category,
       coach: program.coach,
       enrollments: program.enrollments,
@@ -211,8 +208,7 @@ export class ProgramService {
         items,
       })
     );
-    console.log({ formattedGroups });
-    return sendResponse.success({
+    return sendSuccess({
       programs: transformedPrograms,
       groupedPrograms: formattedGroups,
     });
@@ -246,7 +242,7 @@ export class ProgramService {
       throw new NotFoundException("Program not found");
     }
 
-    return sendResponse.success({ program });
+    return sendSuccess({ program });
   }
 
   async updateProgram(request: NextRequest, slug: string) {
@@ -278,8 +274,6 @@ export class ProgramService {
       maxStudents,
       tags,
       prerequisites,
-      isActive,
-      status,
     } = updateProgramSchema.parse(body);
 
     let categoryRecord;
@@ -319,13 +313,11 @@ export class ProgramService {
         maxStudents,
         tags,
         prerequisites,
-        isActive,
-        status,
         slug: newSlug,
       },
     });
 
-    return sendResponse.success({ program: updatedProgram });
+    return sendSuccess({ program: updatedProgram });
   }
 
   async deleteProgram(request: NextRequest, slug: string) {
@@ -349,6 +341,100 @@ export class ProgramService {
       where: { slug },
     });
 
-    return sendResponse.success(null, "Program deleted successfully");
+    return sendSuccess(null, "Program deleted successfully");
+  }
+
+  async getRecommendedPrograms(request: NextRequest) {
+    const user = (request as any).user;
+
+    if (!user.student) {
+      throw new BadRequestException("User is not a student");
+    }
+
+    const interestedProgram = user.student.interestedProgram;
+
+    const programs = await prisma.program.findMany({
+      where: {
+        category: {
+          name: String(interestedProgram),
+        },
+      },
+      include: {
+        category: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
+        coach: {
+          select: {
+            id: true,
+            title: true,
+            user: {
+              select: {
+                fullName: true,
+                avatarUrl: true,
+              },
+            },
+          },
+        },
+        enrollments: {
+          select: {
+            student: {
+              select: {
+                user: {
+                  select: {
+                    avatarUrl: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        modules: true,
+        _count: {
+          select: {
+            enrollments: true,
+            reviews: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: 3,
+    });
+
+    const transformedPrograms = programs.map((program) => ({
+      id: program.id,
+      title: program.title,
+      categoryId: program.categoryId,
+      description: program.description,
+      objectives: program.objectives,
+      coachId: program.coachId,
+      slug: program.slug,
+      rating: program.rating,
+      totalReviews: program.totalReviews,
+      price: program.price,
+      duration: program.duration,
+      difficultyLevel: program.difficultyLevel,
+      maxStudents: program.maxStudents,
+      currentEnrollments: program.currentEnrollments,
+      isActive: program.isActive,
+      status: program.status,
+      tags: program.tags,
+      prerequisites: program.prerequisites,
+      attendees: program.enrollments.map((e) => e.student.user.avatarUrl),
+      createdAt: program.createdAt.toISOString(),
+      updatedAt: program.updatedAt.toISOString(),
+      category: program!.category!,
+      coach: program.coach,
+      enrollments: program.enrollments,
+      modules: program.modules,
+      _count: program._count,
+    }));
+
+    return sendSuccess({ programs: transformedPrograms });
   }
 }

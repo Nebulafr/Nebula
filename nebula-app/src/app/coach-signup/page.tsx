@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
+import { PlaceHolderImages } from "@/lib/images/placeholder-images";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -65,13 +65,12 @@ export default function CoachSignupPage() {
     setLoading(true);
 
     try {
-      const result = await signUp({
+      await signUp({
         email,
         password,
         fullName,
         role: UserRole.COACH,
       });
-      console.log("Coach signup result:", result);
       toast.success("Account created successfully!");
     } catch (error: any) {
       console.error("Coach signup error:", error);
@@ -87,8 +86,8 @@ export default function CoachSignupPage() {
     setLoading(true);
 
     try {
-      const result = await signInWithGoogle(UserRole.COACH);
-      console.log("Coach Google signup result:", result);
+      await signInWithGoogle(UserRole.COACH);
+      toast.success("Account created successfully!");
     } catch (error: any) {
       console.error("Coach Google signup error:", error);
       if (error?.message !== "Redirecting to Google sign-in...") {
@@ -102,122 +101,122 @@ export default function CoachSignupPage() {
   return (
     <AuthPageGuard>
       <div className="w-full min-h-screen lg:grid lg:grid-cols-5">
-      <div className="relative hidden h-full bg-muted lg:col-span-3 lg:block">
-        {signupImage && (
-          <Image
-            src={signupImage.imageUrl}
-            alt={signupImage.description}
-            fill
-            className="object-cover"
-            data-ai-hint={signupImage.imageHint}
-          />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-        <div className="absolute bottom-8 left-8 text-white">
-          <h2 className="text-4xl font-bold">Join Nebula as a Coach</h2>
-          <p className="mt-2 max-w-lg">
-            Share your expertise, mentor the next generation of talent, and earn
-            on your own schedule.
-          </p>
+        <div className="relative hidden h-full bg-muted lg:col-span-3 lg:block">
+          {signupImage && (
+            <Image
+              src={signupImage.imageUrl}
+              alt={signupImage.description}
+              fill
+              className="object-cover"
+              data-ai-hint={signupImage.imageHint}
+            />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+          <div className="absolute bottom-8 left-8 text-white">
+            <h2 className="text-4xl font-bold">Join Nebula as a Coach</h2>
+            <p className="mt-2 max-w-lg">
+              Share your expertise, mentor the next generation of talent, and
+              earn on your own schedule.
+            </p>
+          </div>
         </div>
-      </div>
-      <div className="flex items-center justify-center py-12 lg:col-span-2">
-        <div className="mx-auto grid w-[350px] gap-6">
-          <Card className="border-none shadow-none">
-            <CardHeader className="p-0 text-left">
-              <Link
-                href="/become-a-coach"
-                className="flex items-center gap-2 mb-4 text-sm font-medium text-muted-foreground hover:text-foreground"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Back to website
-              </Link>
-              <CardTitle className="text-3xl font-bold text-primary">
-                Create a Coach Account
-              </CardTitle>
-              <CardDescription>
-                Enter your information to get started with your application.
-              </CardDescription>
-            </CardHeader>
-            <form onSubmit={handleSignup}>
-              <CardContent className="grid gap-4 p-0 mt-6">
-                <div className="grid gap-2">
-                  <Label htmlFor="full-name">Full Name</Label>
-                  <Input
-                    id="full-name"
-                    placeholder="John Doe"
-                    required
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="m@example.com"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="password">Password</Label>
-                  <div className="relative">
-                    <Input
-                      id="password"
-                      type={showPassword ? "text" : "password"}
-                      required
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="pr-10"
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
-                    </Button>
-                  </div>
-                </div>
-                <Button
-                  type="submit"
-                  className="w-full"
-                  size="lg"
-                  disabled={loading}
+        <div className="flex items-center justify-center py-12 lg:col-span-2">
+          <div className="mx-auto grid w-[350px] gap-6">
+            <Card className="border-none shadow-none">
+              <CardHeader className="p-0 text-left">
+                <Link
+                  href="/become-a-coach"
+                  className="flex items-center gap-2 mb-4 text-sm font-medium text-muted-foreground hover:text-foreground"
                 >
-                  {loading ? "Creating account..." : "Create an account"}
-                </Button>
-              </CardContent>
-            </form>
-            <Button
-              variant="outline"
-              className="w-full mt-4"
-              size="lg"
-              onClick={handleGoogleSignIn}
-              disabled={loading}
-            >
-              <GoogleIcon className="mr-2 h-5 w-5" />
-              {loading ? "Signing up..." : "Sign up with Google"}
-            </Button>
-          </Card>
-          <div className="mt-4 text-center text-sm">
-            Already have a coach account?{" "}
-            <Link href="/coach-login" className="underline">
-              Log in
-            </Link>
+                  <ArrowLeft className="h-4 w-4" />
+                  Back to website
+                </Link>
+                <CardTitle className="text-3xl font-bold text-primary">
+                  Create a Coach Account
+                </CardTitle>
+                <CardDescription>
+                  Enter your information to get started with your application.
+                </CardDescription>
+              </CardHeader>
+              <form onSubmit={handleSignup}>
+                <CardContent className="grid gap-4 p-0 mt-6">
+                  <div className="grid gap-2">
+                    <Label htmlFor="full-name">Full Name</Label>
+                    <Input
+                      id="full-name"
+                      placeholder="John Doe"
+                      required
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="m@example.com"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="password">Password</Label>
+                    <div className="relative">
+                      <Input
+                        id="password"
+                        type={showPassword ? "text" : "password"}
+                        required
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="pr-10"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    size="lg"
+                    disabled={loading}
+                  >
+                    {loading ? "Creating account..." : "Create an account"}
+                  </Button>
+                </CardContent>
+              </form>
+              <Button
+                variant="outline"
+                className="w-full mt-4"
+                size="lg"
+                onClick={handleGoogleSignIn}
+                disabled={loading}
+              >
+                <GoogleIcon className="mr-2 h-5 w-5" />
+                {loading ? "Signing up..." : "Sign up with Google"}
+              </Button>
+            </Card>
+            <div className="mt-4 text-center text-sm">
+              Already have a coach account?{" "}
+              <Link href="/coach-login" className="underline">
+                Log in
+              </Link>
+            </div>
           </div>
         </div>
       </div>
-    </div>
     </AuthPageGuard>
   );
 }

@@ -3,14 +3,14 @@ import {
   CreateEventData,
   createEventSchema,
   UpdateEventData,
-} from "../utils/schemas";
+} from "@/lib/validations";
 import { prisma } from "@/lib/prisma";
 import {
   UnauthorizedException,
   NotFoundException,
 } from "../utils/http-exception";
-import sendResponse from "../utils/send-response";
-import { generateSlug } from "@/lib/utils/slug";
+import { sendSuccess } from "../utils/send-response";
+import { generateSlug } from "@/lib/utils";
 
 export class EventService {
   static create = async (request: NextRequest, data: CreateEventData) => {
@@ -32,13 +32,90 @@ export class EventService {
 
       data.slug = finalSlug;
     }
+
     const payload = createEventSchema.parse(data);
+    const { sessions, ...eventData } = payload as any;
 
     const event = await prisma.event.create({
-      data: payload as any,
+      data: {
+        ...eventData,
+        organizerId: eventData.organizerId || user.id,
+        sessions:
+          sessions?.length > 0
+            ? {
+                create: sessions.map((session: any) => ({
+                  date: new Date(session.date + "T" + session.time),
+                  time: session.time,
+                  price: session.price || 0,
+                  currency: session.currency || "EUR",
+                  spotsLeft: session.spotsLeft,
+                  description: session.description,
+                })),
+              }
+            : undefined,
+      },
+      include: {
+        organizer: {
+          select: {
+            id: true,
+            fullName: true,
+            avatarUrl: true,
+          },
+        },
+        sessions: {
+          where: {
+            isActive: true,
+          },
+          orderBy: {
+            date: "asc",
+          },
+        },
+      },
     });
 
-    return sendResponse.success({ event }, "Event created successfully", 201);
+    const transformedEvent = {
+      id: event.id,
+      title: event.title,
+      description: event.description,
+      eventType: event.eventType,
+      date: event.date.toISOString(),
+      location: event.location,
+      images: event.images || [],
+      slug: event.slug,
+      organizer: (event as any).organizer
+        ? {
+            id: (event as any).organizer.id,
+            fullName: (event as any).organizer.fullName,
+            avatarUrl: (event as any).organizer.avatarUrl,
+          }
+        : null,
+      isPublic: event.isPublic,
+      maxAttendees: event.maxAttendees,
+      status: event.status,
+      tags: event.tags,
+      whatToBring: event.whatToBring,
+      additionalInfo: event.additionalInfo,
+      sessions:
+        event.sessions?.map((session: any) => ({
+          id: session.id,
+          eventId: session.eventId,
+          date: session.date.toISOString(),
+          time: session.time,
+          price: session.price,
+          currency: session.currency,
+          spotsLeft: session.spotsLeft,
+          isActive: session.isActive,
+          description: session.description,
+        })) || [],
+      createdAt: event.createdAt.toISOString(),
+      updatedAt: event.updatedAt.toISOString(),
+    };
+
+    return sendSuccess(
+      { event: transformedEvent },
+      "Event created successfully",
+      201
+    );
   };
 
   static find = async (request: NextRequest) => {
@@ -157,11 +234,13 @@ export class EventService {
       })),
       status: event.status,
       tags: event.tags,
+      whatToBring: event.whatToBring,
+      additionalInfo: event.additionalInfo,
       createdAt: event.createdAt.toISOString(),
       updatedAt: event.updatedAt.toISOString(),
     }));
 
-    return sendResponse.success({
+    return sendSuccess({
       events: transformedEvents,
       pagination: {
         total,
@@ -277,7 +356,7 @@ export class EventService {
       updatedAt: event.updatedAt.toISOString(),
     };
 
-    return sendResponse.success({ event: transformedEvent });
+    return sendSuccess({ event: transformedEvent });
   };
 
   static findBySlug = async (slug: string) => {
@@ -335,6 +414,8 @@ export class EventService {
       },
     });
 
+    console.log({ event });
+
     if (!event) {
       throw new NotFoundException("Event not found");
     }
@@ -385,7 +466,7 @@ export class EventService {
       updatedAt: event.updatedAt.toISOString(),
     };
 
-    return sendResponse.success({ event: transformedEvent });
+    return sendSuccess({ event: transformedEvent });
   };
 
   static update = async (
@@ -407,14 +488,109 @@ export class EventService {
       throw new NotFoundException("Event not found");
     }
 
-    const event = await prisma.event.update({
-      where: {
-        id,
-      },
-      data,
+    const { sessions, ...eventData } = data as any;
+
+    const event = await prisma.$transaction(async (tx) => {
+      await tx.event.update({
+        where: { id },
+        data: eventData,
+      });
+
+      if (sessions !== undefined) {
+        await tx.eventSession.deleteMany({
+          where: { eventId: id },
+        });
+
+        if (sessions.length > 0) {
+          await tx.eventSession.createMany({
+            data: sessions.map((session: any) => ({
+              eventId: id,
+              date: new Date(session.date + "T" + session.time),
+              time: session.time,
+              price: session.price || 0,
+              currency: session.currency || "EUR",
+              spotsLeft: session.spotsLeft,
+              description: session.description,
+            })),
+          });
+        }
+      }
+      return await tx.event.findUnique({
+        where: { id },
+        include: {
+          organizer: {
+            select: {
+              id: true,
+              fullName: true,
+              avatarUrl: true,
+            },
+          },
+          sessions: {
+            where: {
+              isActive: true,
+            },
+            orderBy: {
+              date: "asc",
+            },
+          },
+          _count: {
+            select: {
+              attendees: {
+                where: {
+                  status: {
+                    in: ["REGISTERED", "CONFIRMED", "ATTENDED"],
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
     });
 
-    return sendResponse.success({ event }, "Event updated successfully");
+    const transformedEvent = {
+      id: event!.id,
+      title: event!.title,
+      description: event!.description,
+      eventType: event!.eventType,
+      date: event!.date.toISOString(),
+      location: event!.location,
+      images: event!.images || [],
+      slug: event!.slug,
+      organizer: (event as any)!.organizer
+        ? {
+            id: (event as any)!.organizer.id,
+            fullName: (event as any)!.organizer.fullName,
+            avatarUrl: (event as any)!.organizer.avatarUrl,
+          }
+        : null,
+      isPublic: event!.isPublic,
+      maxAttendees: event!.maxAttendees,
+      attendees: (event as any)!._count.attendees,
+      status: event!.status,
+      tags: event!.tags,
+      whatToBring: event!.whatToBring,
+      additionalInfo: event!.additionalInfo,
+      sessions:
+        event!.sessions?.map((session: any) => ({
+          id: session.id,
+          eventId: session.eventId,
+          date: session.date.toISOString(),
+          time: session.time,
+          price: session.price,
+          currency: session.currency,
+          spotsLeft: session.spotsLeft,
+          isActive: session.isActive,
+          description: session.description,
+        })) || [],
+      createdAt: event!.createdAt.toISOString(),
+      updatedAt: event!.updatedAt.toISOString(),
+    };
+
+    return sendSuccess(
+      { event: transformedEvent },
+      "Event updated successfully"
+    );
   };
 
   static remove = async (request: NextRequest, id: string) => {
@@ -438,6 +614,6 @@ export class EventService {
       },
     });
 
-    return sendResponse.success(null, "Event deleted successfully", 204);
+    return sendSuccess(null, "Event deleted successfully", 204);
   };
 }

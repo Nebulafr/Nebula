@@ -6,6 +6,7 @@ import { UserFilters } from "./components/user-filters";
 import { UsersTable } from "./components/users-table";
 import { AddUserDialog } from "./components/add-user-dialog";
 import { useAdminUsers } from "@/hooks/use-admin-users";
+import { toast } from "react-toastify";
 
 // Simple debounce function
 function debounce<T extends (...args: any[]) => any>(
@@ -66,7 +67,12 @@ export default function UserManagementPage() {
       : "Unknown",
   }));
 
-  const handleAddUser = async (userData: { name: string; email: string; role: string; password: string }) => {
+  const handleAddUser = async (userData: {
+    name: string;
+    email: string;
+    role: string;
+    password: string;
+  }) => {
     try {
       const response = await fetch("/api/auth/register", {
         method: "POST",
@@ -84,16 +90,13 @@ export default function UserManagementPage() {
       const result = await response.json();
 
       if (result.success) {
-        // Refresh the users list after successful creation
         fetchUsers();
-        console.log("User created successfully:", result.data);
       } else {
         console.error("Failed to create user:", result.message);
-        // You could show a toast notification here
       }
     } catch (error) {
       console.error("Error creating user:", error);
-      // You could show a toast notification here
+      toast.error("An error occurred while creating the user.");
     }
   };
 

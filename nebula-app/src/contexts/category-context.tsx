@@ -1,10 +1,11 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { getCategories, type PublicCategory } from "@/actions/categories";
+import { getCategories } from "@/actions/categories";
+import { Category } from "@/generated/prisma";
 
 interface CategoryContextType {
-  categories: PublicCategory[];
+  categories: Category[];
   loading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
@@ -15,11 +16,9 @@ const CategoryContext = createContext<CategoryContextType | undefined>(
 );
 
 export function CategoryProvider({ children }: { children: React.ReactNode }) {
-  const [categories, setCategories] = useState<PublicCategory[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  console.log({ categories });
 
   const fetchCategories = async () => {
     try {

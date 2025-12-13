@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { CoachService } from "../services/coach.service";
-import { coachQuerySchema, updateCoachProfileSchema } from "../utils/schemas";
+import { coachQuerySchema, updateCoachProfileSchema } from "@/lib/validations";
 
 export class CoachController {
   async getAll(request: NextRequest) {
@@ -24,8 +24,6 @@ export class CoachController {
   async updateCoach(request: NextRequest) {
     const user = (request as any).user;
     const body = await request.json();
-
-    console.log({ body, user });
     const payload = updateCoachProfileSchema.parse(body);
     return await CoachService.updateCoach(user.id, payload);
   }

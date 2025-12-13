@@ -1,5 +1,3 @@
-"use client";
-
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,17 +22,15 @@ interface Session {
 }
 
 interface UpcomingSessionsProps {
-  sessions: Session[];
-  user: UserProfile;
+  sessions: any[];
   loading?: boolean;
   onRegister?: (session: Session) => void;
 }
 
-export function UpcomingSessions({ 
-  sessions, 
-  user, 
-  loading = false, 
-  onRegister 
+export function UpcomingSessions({
+  sessions,
+  loading = false,
+  onRegister,
 }: UpcomingSessionsProps) {
   if (loading) {
     return (
@@ -52,7 +48,10 @@ export function UpcomingSessions({
         <div className="mt-6 rounded-xl bg-primary/5 p-6">
           <div className="flex gap-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="w-80 h-48 bg-gray-200 rounded-xl animate-pulse" />
+              <div
+                key={i}
+                className="w-80 h-48 bg-gray-200 rounded-xl animate-pulse"
+              />
             ))}
           </div>
         </div>
@@ -96,19 +95,19 @@ export function UpcomingSessions({
                       variant="outline"
                       className="absolute right-4 top-4 z-10 bg-background/50 backdrop-blur-sm transition-opacity group-hover:opacity-20"
                     >
-                      {session.type}
+                      {session.eventType}
                     </Badge>
                     <div className="flex items-start justify-between">
                       <div className="flex gap-4">
                         <div className="flex w-16 flex-col items-center justify-center rounded-lg border bg-background p-2">
                           <span className="text-sm font-semibold text-muted-foreground">
-                            {session.day}
+                            {new Date(session.date).getDay()}
                           </span>
                           <span className="font-headline text-3xl font-bold text-primary">
-                            {session.date.split(" ")[1]}
+                            {new Date(session.date).getDate()}
                           </span>
                           <span className="-mt-1 text-xs text-muted-foreground">
-                            {session.date.split(" ")[0]}
+                            {new Date(session.date).getMonth()}
                           </span>
                         </div>
                         <div>
@@ -116,7 +115,7 @@ export function UpcomingSessions({
                             {session.title}
                           </h3>
                           <p className="text-sm text-muted-foreground">
-                            with {session.coach}
+                            with {session.organizer.fullName}
                           </p>
                           <p className="mt-1 text-sm text-muted-foreground">
                             {session.time}
@@ -125,8 +124,8 @@ export function UpcomingSessions({
                       </div>
                     </div>
                     <div className="mt-6 flex-grow" />
-                    <Button 
-                      className="w-full" 
+                    <Button
+                      className="w-full"
                       onClick={() => onRegister?.(session)}
                     >
                       Register

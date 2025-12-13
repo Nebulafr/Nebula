@@ -3,7 +3,6 @@
 import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { createAuthenticatedSocket } from "@/lib/socket";
-import { type Conversation, type Message } from "@/actions/messaging";
 import { useAuth } from "@/hooks/use-auth";
 import { getAccessToken } from "@/lib/auth-storage";
 
@@ -12,6 +11,7 @@ import { ChatHeader } from "./components/chat-header";
 import { MessageList } from "./components/message-list";
 import { MessageInput } from "./components/message-input";
 import { EmptyState } from "./components/empty-state";
+import { Conversation, Message, User } from "@/generated/prisma";
 
 function CoachMessagingPageContent() {
   const searchParams = useSearchParams();
@@ -27,16 +27,6 @@ function CoachMessagingPageContent() {
     avatar: profile?.avatarUrl || "https://i.pravatar.cc/150?u=coach",
     token: accessToken || "",
   };
-
-  // Debug current user state
-  React.useEffect(() => {
-    console.log("Coach user state:", {
-      id: currentUser.id,
-      hasToken: !!currentUser.token,
-      profileLoaded: !!profile,
-      role: profile?.role,
-    });
-  }, [currentUser.id, currentUser.token, profile]);
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] =
@@ -124,7 +114,7 @@ function CoachMessagingPageContent() {
             type: message.type,
             isRead: false,
             isEdited: false,
-          },
+          } as any,
         ]);
       });
 

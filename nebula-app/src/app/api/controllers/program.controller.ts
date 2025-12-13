@@ -12,6 +12,10 @@ export class ProgramController {
     return await programService.getPrograms(request);
   }
 
+  async getRecommendedPrograms(request: NextRequest) {
+    return await programService.getRecommendedPrograms(request);
+  }
+
   async getBySlug(request: NextRequest, slug: string) {
     return await programService.getBySlug(request, slug);
   }

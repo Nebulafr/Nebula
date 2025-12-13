@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { apiGet } from "@/lib/utils";
+import { makeRequest } from "@/lib/utils";
 
 export interface AdminUser {
   id: string;
@@ -48,8 +48,8 @@ export function useAdminUsers(): UseAdminUsersReturn {
       const url = `/admin/users${
         queryParams.toString() ? `?${queryParams.toString()}` : ""
       }`;
-      const response = await apiGet(url);
-      
+      const response = await makeRequest(url, "GET");
+
       if (response.success) {
         setUsers(response.data.users || []);
       } else {

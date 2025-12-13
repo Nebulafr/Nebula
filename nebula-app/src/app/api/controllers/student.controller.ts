@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { StudentService } from "../services/student.service";
-import { updateStudentSchema } from "../utils/schemas";
+import { updateStudentSchema } from "@/lib/validations";
 
 export class StudentController {
   async updateProfile(request: NextRequest) {

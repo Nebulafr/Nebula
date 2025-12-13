@@ -8,7 +8,7 @@ import { toast } from "react-toastify";
 import { useAuth } from "@/hooks/use-auth";
 
 export default function CoachProfilePage() {
-  const { profile: userProfile, coachProfile } = useAuth();
+  const { profile } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<ProfileFormData>({
     title: "",
@@ -26,7 +26,8 @@ export default function CoachProfilePage() {
   });
 
   useEffect(() => {
-    if (coachProfile) {
+    if (profile && profile.coach) {
+      const coachProfile = profile.coach;
       setFormData({
         title: coachProfile.title || "",
         bio: coachProfile.bio || "",
@@ -42,7 +43,7 @@ export default function CoachProfilePage() {
         languages: coachProfile.languages || ["English"],
       });
     }
-  }, [coachProfile]);
+  }, [profile]);
 
   const handleFormDataChange = (data: Partial<ProfileFormData>) => {
     setFormData((prev) => ({ ...prev, ...data }));
@@ -54,7 +55,7 @@ export default function CoachProfilePage() {
   };
 
   const handleSave = async () => {
-    if (!coachProfile) return;
+    if (!profile) return;
 
     setIsLoading(true);
     try {
@@ -72,7 +73,7 @@ export default function CoachProfilePage() {
     }
   };
 
-  if (!userProfile) {
+  if (!profile) {
     return <div>Loading...</div>;
   }
 
@@ -88,8 +89,8 @@ export default function CoachProfilePage() {
       <div className="grid gap-8 md:grid-cols-3">
         <div className="md:col-span-1">
           <ProfileAvatar
-            avatarUrl={coachProfile?.avatarUrl || undefined}
-            fullName={userProfile?.fullName || ""}
+            avatarUrl={profile?.avatarUrl || undefined}
+            fullName={profile?.fullName || ""}
             title={formData.title}
             onChangePhoto={handleChangePhoto}
           />

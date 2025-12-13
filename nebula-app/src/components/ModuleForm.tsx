@@ -22,7 +22,11 @@ export default function ModulesForm({
 
   const handleAddModule = () => {
     if (title.trim()) {
-      const newModule = { title: title.trim(), week, description: description.trim() };
+      const newModule = {
+        title: title.trim(),
+        week,
+        description: description.trim(),
+      };
       onChange([...modules, newModule]);
       setTitle("");
       setWeek(modules.length + 2);

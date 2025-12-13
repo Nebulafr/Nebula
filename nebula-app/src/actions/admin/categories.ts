@@ -1,41 +1,15 @@
-import { Category } from "@/generated/prisma";
-import { apiGet, apiPost, apiPut, apiDelete } from "@/lib/utils";
-
-export interface CategoriesResponse {
-  success: boolean;
-  data?: {
-    categories: Category[];
-  };
-  error?: string;
-  message?: string;
-}
-
-export interface CategoryActionResponse {
-  success: boolean;
-  data?: {
-    category: Category;
-  };
-  error?: string;
-  message?: string;
-}
-
-export interface CreateCategoryData {
-  name: string;
-  description?: string;
-}
-
-export interface UpdateCategoryData {
-  name?: string;
-  description?: string;
-  isActive?: boolean;
-}
+import { makeRequest } from "@/lib/utils";
+import { CreateCategoryData, UpdateCategoryData } from "@/lib/validations";
+import { CategoriesResponse, CategoryActionResponse } from "@/types/category";
 
 export async function getAdminCategories(): Promise<CategoriesResponse> {
   try {
-    const response = await apiGet("/admin/categories");
+    const response = await makeRequest("/admin/categories", "GET", {
+      requireAuth: true,
+    });
 
     return {
-      success: response.success!,
+      success: true,
       data: response.data,
       message: response.message,
     };
@@ -53,11 +27,10 @@ export async function createCategory(
   categoryData: CreateCategoryData
 ): Promise<CategoryActionResponse> {
   try {
-    const response = await apiPost("/admin/categories", categoryData);
-
-    if (!response.success) {
-      throw new Error(response.message || "Failed to create category");
-    }
+    const response = await makeRequest("/admin/categories", "POST", {
+      body: categoryData,
+      requireAuth: true,
+    });
 
     return {
       success: true,
@@ -79,14 +52,14 @@ export async function updateCategory(
   updateData: UpdateCategoryData
 ): Promise<CategoryActionResponse> {
   try {
-    const response = await apiPut(
+    const response = await makeRequest(
       `/admin/categories/${categoryId}`,
-      updateData
+      "PUT",
+      {
+        body: updateData,
+        requireAuth: true,
+      }
     );
-
-    if (!response.success) {
-      throw new Error(response.message || "Failed to update category");
-    }
 
     return {
       success: true,
@@ -107,11 +80,13 @@ export async function deleteCategory(
   categoryId: string
 ): Promise<CategoryActionResponse> {
   try {
-    const response = await apiDelete(`/admin/categories/${categoryId}`);
-
-    if (!response.success) {
-      throw new Error(response.message || "Failed to delete category");
-    }
+    const response = await makeRequest(
+      `/admin/categories/${categoryId}`,
+      "DELETE",
+      {
+        requireAuth: true,
+      }
+    );
 
     return {
       success: true,

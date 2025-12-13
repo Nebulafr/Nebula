@@ -1,8 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { SkillLevel } from "@/generated/prisma";
-import { type UpdateStudentData } from "../utils/schemas";
+import { UpdateStudentData } from "@/lib/validations";
 import { NotFoundException } from "../utils/http-exception";
-import sendResponse from "../utils/send-response";
+import { sendSuccess } from "../utils/send-response";
 
 function mapSkillLevelToEnum(skillLevel: string): SkillLevel {
   const normalizedLevel = skillLevel.toUpperCase();
@@ -60,10 +60,7 @@ export class StudentService {
       });
     }
 
-    return sendResponse.success(
-      student,
-      "Student profile updated successfully"
-    );
+    return sendSuccess(student, "Student profile updated successfully");
   }
 
   static async getProfile(userId: string) {
@@ -72,10 +69,7 @@ export class StudentService {
       throw new NotFoundException("Student profile not found");
     }
 
-    return sendResponse.success(
-      student,
-      "Student profile fetched successfully"
-    );
+    return sendSuccess(student, "Student profile fetched successfully");
   }
 
   static async create(data: {

@@ -13,7 +13,6 @@ import {
 import {
   ArrowRight,
   ChevronRight,
-  LogOut,
   MessageCircle,
   PlusCircle,
   Star,
@@ -28,8 +27,6 @@ import { Footer } from "@/components/layout/footer";
 import { getProgramBySlug } from "@/actions/programs";
 import { enrollInProgram } from "@/actions/enrollment";
 import { toast } from "react-toastify";
-import { Program, Review } from "@/generated/prisma";
-import { useUser } from "@/hooks/use-user";
 import { Header } from "@/components/layout/header";
 import { useAuth } from "@/hooks/use-auth";
 import {
@@ -43,54 +40,15 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { ProgramWithRelations } from "@/types/program";
 
-type ProgramWithRelations = Program & {
-  category: {
-    id: string;
-    name: string;
-  };
-  coach: {
-    id: string;
-    title?: string;
-    bio?: string;
-    style?: string;
-    specialties?: string[];
-    pastCompanies?: string[];
-    rating?: number;
-    user: {
-      id: string;
-      fullName?: string;
-      avatarUrl?: string;
-    };
-  };
-  modules: {
-    id: string;
-    title: string;
-    week: number;
-    description?: string;
-  }[];
-  reviews: Array<{
-    id: string;
-    content: string;
-    rating: number;
-    reviewer: {
-      id: string;
-      fullName?: string;
-    };
-  }>;
-  enrollments: Array<{
-    student: {
-      id: string;
-    };
-  }>;
-};
 export default function ProgramDetailPage({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = use(params);
-  const { profile, studentProfile, isStudent } = useAuth();
+  const { profile, isStudent } = useAuth();
   const [enrollmentStep, setEnrollmentStep] = useState(0);
   const [program, setProgram] = useState<ProgramWithRelations | null>(null);
   const [loading, setLoading] = useState(true);
@@ -111,14 +69,11 @@ export default function ProgramDetailPage({
     const fetchProgram = async () => {
       try {
         setLoading(true);
-        const programData = await getProgramBySlug(slug);
-
-        console.log({ programData });
-
-        if (programData && programData.success) {
-          setProgram(programData.data);
-        } else if (programData && !programData.success) {
-          setFetchError(programData.message || "Failed to fetch program.");
+        const response = await getProgramBySlug(slug);
+        if (response && response.success) {
+          setProgram(response.data);
+        } else if (response && !response.success) {
+          setFetchError(response.message || "Failed to fetch program.");
           setProgram({} as any);
         } else {
           setFetchError("Failed to fetch program.");
@@ -226,7 +181,6 @@ export default function ProgramDetailPage({
   };
 
   const handleDateSelect = (date: Date | undefined) => {
-    console.log({ date });
     if (date) {
       setSelectedDate(date);
       setEnrollmentStep(2);
@@ -240,7 +194,6 @@ export default function ProgramDetailPage({
   };
 
   const handleTimeSelect = async (time: string) => {
-    console.log({ time });
     if (!profile || !program) {
       toast.error("Please log in to complete enrollment.");
       return;
@@ -255,7 +208,7 @@ export default function ProgramDetailPage({
 
     try {
       setEnrolling(true);
-      if (!studentProfile) {
+      if (!profile) {
         toast.error(
           "Please complete your student profile to enroll in programs."
         );
@@ -301,8 +254,6 @@ export default function ProgramDetailPage({
 
   const handleReviewSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Here you would typically send the review data to your backend
-    console.log({ rating, reviewText });
     setReviewSubmitted(true);
   };
 

@@ -13,33 +13,37 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import Link from "next/link";
-import { UserProfile } from "@/hooks/use-user";
+import { Program } from "@/generated/prisma";
 
-interface Program {
-  category: string;
-  title: string;
-  description: string;
-  coach: {
+type ProgramWithRelations = Program & {
+  category: {
+    id: string;
     name: string;
-    role: string;
-    avatar: string;
+  };
+  coach: {
+    id: string;
+    title?: string;
+    user: {
+      id: string;
+      fullName: string;
+      avatarUrl?: string;
+    };
   };
   attendees: string[];
-  otherAttendees: number;
-  rating: number;
-  slug: string;
-}
+  _count: {
+    enrollments: number;
+    reviews: number;
+  };
+};
 
 interface RecommendedProgramsProps {
-  programs: Program[];
-  user: UserProfile;
+  programs: ProgramWithRelations[];
   loading?: boolean;
 }
 
-export function RecommendedPrograms({ 
-  programs, 
-  user, 
-  loading = false 
+export function RecommendedPrograms({
+  programs,
+  loading = false,
 }: RecommendedProgramsProps) {
   if (loading) {
     return (
@@ -57,7 +61,10 @@ export function RecommendedPrograms({
         <div className="mt-6">
           <div className="flex gap-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="w-80 h-96 bg-gray-200 rounded-xl animate-pulse" />
+              <div
+                key={i}
+                className="w-80 h-96 bg-gray-200 rounded-xl animate-pulse"
+              />
             ))}
           </div>
         </div>
@@ -106,7 +113,7 @@ export function RecommendedPrograms({
                           variant="secondary"
                           className="bg-muted text-muted-foreground"
                         >
-                          {program.category}
+                          {program.category.name}
                         </Badge>
                         <h3 className="font-headline mt-4 text-2xl font-semibold leading-tight">
                           {program.title}
@@ -119,17 +126,17 @@ export function RecommendedPrograms({
                         <div className="mb-6 rounded-lg border bg-background p-4">
                           <div className="flex items-center gap-4">
                             <Avatar className="h-12 w-12">
-                              <AvatarImage src={program.coach.avatar} />
+                              <AvatarImage src={program.coach.user.avatarUrl} />
                               <AvatarFallback>
-                                {program.coach.name.charAt(0)}
+                                {program?.coach!.user.fullName.charAt(0)}
                               </AvatarFallback>
                             </Avatar>
                             <div>
                               <p className="font-headline font-semibold text-foreground">
-                                {program.coach.name}
+                                {program.coach!.user?.fullName}
                               </p>
                               <p className="text-xs text-muted-foreground">
-                                {program.coach.role}
+                                {program.coach.title}
                               </p>
                             </div>
                           </div>
@@ -137,19 +144,21 @@ export function RecommendedPrograms({
                         <div className="flex items-center justify-between">
                           <div className="flex items-center">
                             <div className="flex -space-x-2">
-                              {program.attendees.map((attendee, i) => (
-                                <Avatar
-                                  key={i}
-                                  className="h-8 w-8 border-2 border-background"
-                                >
-                                  <AvatarImage src={attendee} />
-                                  <AvatarFallback>A</AvatarFallback>
-                                </Avatar>
-                              ))}
+                              {program?.attendees?.map(
+                                (attendee: string, i: number) => (
+                                  <Avatar
+                                    key={i}
+                                    className="h-8 w-8 border-2 border-background"
+                                  >
+                                    <AvatarImage src={attendee} />
+                                    <AvatarFallback>A</AvatarFallback>
+                                  </Avatar>
+                                )
+                              )}
                             </div>
-                            {program.otherAttendees > 0 && (
-                              <span className="ml-3 text-sm font-medium text-muted-foreground">
-                                +{program.otherAttendees}
+                            {program._count?.enrollments > 3 && (
+                              <span className="ml-2 text-xs font-medium text-muted-foreground">
+                                +{program._count?.enrollments - 3}
                               </span>
                             )}
                           </div>

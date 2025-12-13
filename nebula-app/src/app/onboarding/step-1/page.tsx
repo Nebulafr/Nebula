@@ -7,8 +7,8 @@ import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import Image from "next/image";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
-import { useCategories } from "@/contexts/CategoryContext";
+import { PlaceHolderImages } from "@/lib/images/placeholder-images";
+import { useCategories } from "@/contexts/category-context";
 import { Loader2 } from "lucide-react";
 
 const categoryIcons: Record<string, string> = {
@@ -30,6 +30,7 @@ const categoryColors: Record<string, string> = {
 export default function OnboardingStep1() {
   const [selectedProgram, setSelectedProgram] = useState<string | null>(null);
   const { categories, loading } = useCategories();
+
   const image = PlaceHolderImages.find((img) => img.id === "about-story");
 
   if (loading) {

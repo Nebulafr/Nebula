@@ -1,18 +1,17 @@
 import { prisma } from "@/lib/prisma";
-import { UserRole } from "@/generated/prisma";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import {
   type RegisterData,
   type SigninData,
   type GoogleAuthData,
-} from "../utils/schemas";
+} from "@/lib/validations";
 import HttpException, {
   UnauthorizedException,
   NotFoundException,
 } from "../utils/http-exception";
 import { RESPONSE_CODE } from "@/types";
-import sendResponse from "../utils/send-response";
+import { sendSuccess } from "../utils/send-response";
 
 export class AuthService {
   static generateAccessToken(userId: string): string {
@@ -55,7 +54,7 @@ export class AuthService {
     });
 
     const accessToken = this.generateAccessToken(user.id);
-    return sendResponse.success(
+    return sendSuccess(
       { accessToken, user },
       "Account created successfully",
       201
@@ -79,31 +78,21 @@ export class AuthService {
     }
 
     const accessToken = this.generateAccessToken(user.id);
-    return sendResponse.success(
-      { accessToken, user },
-      "Signed in successfully"
-    );
+    return sendSuccess({ accessToken, user }, "Signed in successfully");
   }
 
   static async googleAuth(data: GoogleAuthData) {
     const { googleId, email, fullName, role, avatarUrl } = data;
 
-    // Check if user exists with this Google ID
     let user = await this.findUserByGoogleId(googleId);
 
     if (user) {
-      // User exists, sign them in
       const accessToken = this.generateAccessToken(user.id);
-      return sendResponse.success(
-        { accessToken, user },
-        "Signed in successfully"
-      );
+      return sendSuccess({ accessToken, user }, "Signed in successfully");
     }
 
-    // Check if user exists with this email but no Google ID
     user = await this.findUserByEmail(email);
     if (user) {
-      // Link Google ID to existing account
       user = await prisma.user.update({
         where: { id: user.id },
         data: { googleId, avatarUrl },
@@ -114,13 +103,12 @@ export class AuthService {
       });
 
       const accessToken = this.generateAccessToken(user.id);
-      return sendResponse.success(
+      return sendSuccess(
         { accessToken, user },
         "Account linked and signed in successfully"
       );
     }
 
-    // Create new user
     user = await prisma.user.create({
       data: {
         email,
@@ -137,7 +125,7 @@ export class AuthService {
     });
 
     const accessToken = this.generateAccessToken(user.id);
-    return sendResponse.success(
+    return sendSuccess(
       { accessToken, user },
       "Account created successfully",
       201
@@ -151,7 +139,7 @@ export class AuthService {
       throw new NotFoundException("User profile not found in database");
     }
 
-    return sendResponse.success({ user }, "Profile fetched successfully");
+    return sendSuccess({ user }, "Profile fetched successfully");
   }
 
   static async findUserByEmail(email: string) {

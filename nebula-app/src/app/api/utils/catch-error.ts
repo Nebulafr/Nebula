@@ -1,25 +1,16 @@
-import { RESPONSE_CODE } from "@/types";
-import HttpException from "./http-exception";
-import sendResponse from "./send-response";
+import { sendError } from "./send-response";
 
-export default function CatchError(fn: Function) {
+export default function catchError(fn: Function) {
   return async function (req: Request, context?: any) {
     try {
       return await fn(req, context);
     } catch (err: any) {
-      const code = err.code || RESPONSE_CODE.ERROR;
-      console.log(`😥 Error [${code}]: ${err?.message}`);
-      console.log(err);
-      if (err instanceof HttpException) {
-        return sendResponse.error(err.code, err.message, err.statusCode, err);
-      }
+      console.error("API Error:", { err });
 
-      return sendResponse.error(
-        RESPONSE_CODE.INTERNAL_SERVER_ERROR,
-        "INTERNAL SERVER ERROR",
-        500,
-        err
-      );
+      if (err.name === "HttpException") {
+        return sendError(err.message, err.statusCode, err.code);
+      }
+      return sendError("Internal server error", 500, "INTERNAL_SERVER_ERROR");
     }
   };
 }

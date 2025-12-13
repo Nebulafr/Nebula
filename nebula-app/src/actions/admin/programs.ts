@@ -1,35 +1,5 @@
-import { Program } from "@/generated/prisma";
-import { apiGet, apiPost } from "@/lib/utils";
-
-// AdminProgram with exact Prisma relationships
-export type AdminProgram = Program & {
-  coach: {
-    id: string;
-    user: {
-      fullName?: string;
-      avatarUrl?: string;
-    };
-  };
-  category: {
-    id: string;
-    name: string;
-  };
-};
-
-export interface AdminProgramsResponse {
-  success: boolean;
-  data?: {
-    programs: AdminProgram[];
-  };
-  error?: string;
-  message?: string;
-}
-
-export interface ProgramActionResponse {
-  success: boolean;
-  message?: string;
-  error?: string;
-}
+import { makeRequest } from "@/lib/utils";
+import { AdminProgramsResponse, ProgramActionResponse } from "@/types/program";
 
 export async function getAdminPrograms(filters?: {
   status?: string;
@@ -52,10 +22,12 @@ export async function getAdminPrograms(filters?: {
     const url = `/admin/programs${
       params.toString() ? `?${params.toString()}` : ""
     }`;
-    const response = await apiGet(url);
+    const response = await makeRequest(url, "GET", {
+      requireAuth: true,
+    });
 
     return {
-      success: response.success!,
+      success: true,
       data: response.data,
       message: response.message,
     };
@@ -76,11 +48,10 @@ export async function updateProgramStatus(
 ): Promise<ProgramActionResponse> {
   try {
     const url = `/admin/programs/${programId}/actions`;
-    const response = await apiPost(url, { action, reason });
-
-    if (!response.success) {
-      throw new Error(response.message || "Failed to update program status");
-    }
+    const response = await makeRequest(url, "POST", {
+      body: { action, reason },
+      requireAuth: true,
+    });
 
     return {
       success: true,

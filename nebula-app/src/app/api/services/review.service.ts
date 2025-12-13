@@ -1,12 +1,16 @@
 import { prisma } from "@/lib/prisma";
 import { ReviewTargetType } from "@/generated/prisma";
-import sendResponse from "../utils/send-response";
-import { NotFoundException, UnauthorizedException, BadRequestException } from "../utils/http-exception";
+import { sendSuccess } from "../utils/send-response";
+import {
+  NotFoundException,
+  UnauthorizedException,
+  BadRequestException,
+} from "../utils/http-exception";
 
 export interface CreateReviewData {
   reviewerId: string;
   targetType: ReviewTargetType;
-  targetId: string; // coachId or programId
+  targetId: string;
   rating: number;
   title?: string;
   content: string;
@@ -21,22 +25,27 @@ export interface ReviewSortOptions {
 
 export class ReviewService {
   static async createReview(data: CreateReviewData) {
-    const { reviewerId, targetType, targetId, rating, title, content, sessionId } = data;
+    const {
+      reviewerId,
+      targetType,
+      targetId,
+      rating,
+      title,
+      content,
+      sessionId,
+    } = data;
 
-    // Validate rating
     if (rating < 1 || rating > 5) {
       throw new BadRequestException("Rating must be between 1 and 5");
     }
 
-    // Validate content
     if (!content.trim()) {
       throw new BadRequestException("Review content is required");
     }
 
-    // Get user and verify they're a student
     const user = await prisma.user.findUnique({
       where: { id: reviewerId },
-      include: { student: true }
+      include: { student: true },
     });
 
     if (!user || user.role !== "STUDENT" || !user.student) {
@@ -46,10 +55,13 @@ export class ReviewService {
     let targetEntity;
     let revieweeId: string | undefined;
 
-    // Validate target based on type
     switch (targetType) {
       case "COACH":
-        targetEntity = await this.validateCoachReview(targetId, reviewerId, sessionId);
+        targetEntity = await this.validateCoachReview(
+          targetId,
+          reviewerId,
+          sessionId
+        );
         revieweeId = targetEntity.userId;
         break;
       case "PROGRAM":
@@ -64,12 +76,14 @@ export class ReviewService {
       where: {
         reviewerId,
         [targetType === "COACH" ? "coachId" : "programId"]: targetId,
-        targetType
-      }
+        targetType,
+      },
     });
 
     if (existingReview) {
-      throw new BadRequestException(`You have already reviewed this ${targetType.toLowerCase()}`);
+      throw new BadRequestException(
+        `You have already reviewed this ${targetType.toLowerCase()}`
+      );
     }
 
     // Create review in transaction
@@ -84,28 +98,31 @@ export class ReviewService {
           title,
           content: content.trim(),
           isPublic: true,
-          isVerified: sessionId ? true : false
+          isVerified: sessionId ? true : false,
         },
         include: {
           reviewer: {
             select: {
               id: true,
               fullName: true,
-              avatarUrl: true
-            }
-          }
-        }
+              avatarUrl: true,
+            },
+          },
+        },
       });
 
-      // Update target entity ratings
       await this.updateTargetRating(tx, targetType, targetId, rating);
 
       return review;
     });
 
-    return sendResponse.success({
-      reviewId: result.id
-    }, "Review submitted successfully", 201);
+    return sendSuccess(
+      {
+        reviewId: result.id,
+      },
+      "Review submitted successfully",
+      201
+    );
   }
 
   static async getReviews(
@@ -119,7 +136,7 @@ export class ReviewService {
     const whereClause: any = {
       [targetType === "COACH" ? "coachId" : "programId"]: targetId,
       targetType,
-      isPublic: true
+      isPublic: true,
     };
 
     // Build order by clause
@@ -148,52 +165,61 @@ export class ReviewService {
               id: true,
               fullName: true,
               avatarUrl: true,
-              role: true
-            }
-          }
-        }
+              role: true,
+            },
+          },
+        },
       }),
-      prisma.review.count({ where: whereClause })
+      prisma.review.count({ where: whereClause }),
     ]);
 
     // Get rating distribution
-    const ratingDistribution = await this.getRatingDistribution(targetType, targetId);
+    const ratingDistribution = await this.getRatingDistribution(
+      targetType,
+      targetId
+    );
 
     // Get target entity info
     const targetEntity = await this.getTargetEntityInfo(targetType, targetId);
 
     const totalPages = Math.ceil(totalCount / limit);
 
-    return sendResponse.success({
-      reviews: reviews.map(review => ({
-        id: review.id,
-        reviewerId: review.reviewerId,
-        targetType: review.targetType,
-        rating: review.rating,
-        title: review.title,
-        content: review.content,
-        isVerified: review.isVerified,
-        createdAt: review.createdAt,
-        updatedAt: review.updatedAt,
-        reviewer: review.reviewer
-      })),
-      targetEntity,
-      ratingDistribution,
-      pagination: {
-        currentPage: page,
-        totalPages,
-        totalReviews: totalCount,
-        hasNextPage: page < totalPages,
-        hasPreviousPage: page > 1,
-        limit
-      }
-    }, "Reviews fetched successfully");
+    return sendSuccess(
+      {
+        reviews: reviews.map((review) => ({
+          id: review.id,
+          reviewerId: review.reviewerId,
+          targetType: review.targetType,
+          rating: review.rating,
+          title: review.title,
+          content: review.content,
+          isVerified: review.isVerified,
+          createdAt: review.createdAt,
+          updatedAt: review.updatedAt,
+          reviewer: review.reviewer,
+        })),
+        targetEntity,
+        ratingDistribution,
+        pagination: {
+          currentPage: page,
+          totalPages,
+          totalReviews: totalCount,
+          hasNextPage: page < totalPages,
+          hasPreviousPage: page > 1,
+          limit,
+        },
+      },
+      "Reviews fetched successfully"
+    );
   }
 
-
-  private static async validateCoachReview(coachId: string, reviewerId: string, sessionId?: string) {
+  private static async validateCoachReview(
+    coachId: string,
+    reviewerId: string,
+    sessionId?: string
+  ) {
     const coach = await prisma.coach.findFirst({
-      where: { id: coachId, isActive: true }
+      where: { id: coachId, isActive: true },
     });
 
     if (!coach) {
@@ -202,16 +228,16 @@ export class ReviewService {
 
     if (sessionId) {
       const student = await prisma.student.findUnique({
-        where: { userId: reviewerId }
+        where: { userId: reviewerId },
       });
 
       const session = await prisma.session.findUnique({
         where: { id: sessionId },
         include: {
           attendance: {
-            where: { studentId: student?.id }
-          }
-        }
+            where: { studentId: student?.id },
+          },
+        },
       });
 
       if (!session || session.coachId !== coachId) {
@@ -219,16 +245,21 @@ export class ReviewService {
       }
 
       if (session.attendance.length === 0) {
-        throw new UnauthorizedException("You can only review sessions you attended");
+        throw new UnauthorizedException(
+          "You can only review sessions you attended"
+        );
       }
     }
 
     return coach;
   }
 
-  private static async validateProgramReview(programId: string, reviewerId: string) {
+  private static async validateProgramReview(
+    programId: string,
+    reviewerId: string
+  ) {
     const program = await prisma.program.findFirst({
-      where: { id: programId, isActive: true }
+      where: { id: programId, isActive: true },
     });
 
     if (!program) {
@@ -240,66 +271,81 @@ export class ReviewService {
       where: {
         programId,
         student: {
-          userId: reviewerId
+          userId: reviewerId,
         },
-        status: { in: ["ACTIVE", "COMPLETED"] }
-      }
+        status: { in: ["ACTIVE", "COMPLETED"] },
+      },
     });
 
     if (!enrollment) {
-      throw new UnauthorizedException("You must be enrolled in this program to review it");
+      throw new UnauthorizedException(
+        "You must be enrolled in this program to review it"
+      );
     }
 
     return program;
   }
 
-
-  private static async updateTargetRating(tx: any, targetType: ReviewTargetType, targetId: string, newRating: number) {
+  private static async updateTargetRating(
+    tx: any,
+    targetType: ReviewTargetType,
+    targetId: string,
+    newRating: number
+  ) {
     if (targetType === "COACH") {
       const coach = await tx.coach.findUnique({ where: { id: targetId } });
       const currentRating = coach?.rating || 0;
       const currentReviewCount = coach?.totalReviews || 0;
       const newReviewCount = currentReviewCount + 1;
-      const updatedRating = (currentRating * currentReviewCount + newRating) / newReviewCount;
+      const updatedRating =
+        (currentRating * currentReviewCount + newRating) / newReviewCount;
 
       await tx.coach.update({
         where: { id: targetId },
         data: {
           rating: Number(updatedRating.toFixed(1)),
-          totalReviews: newReviewCount
-        }
+          totalReviews: newReviewCount,
+        },
       });
     } else if (targetType === "PROGRAM") {
       const program = await tx.program.findUnique({ where: { id: targetId } });
       const currentRating = program?.rating || 0;
       const currentReviewCount = program?.totalReviews || 0;
       const newReviewCount = currentReviewCount + 1;
-      const updatedRating = (currentRating * currentReviewCount + newRating) / newReviewCount;
+      const updatedRating =
+        (currentRating * currentReviewCount + newRating) / newReviewCount;
 
       await tx.program.update({
         where: { id: targetId },
         data: {
           rating: Number(updatedRating.toFixed(1)),
-          totalReviews: newReviewCount
-        }
+          totalReviews: newReviewCount,
+        },
       });
     }
   }
 
-  private static async getRatingDistribution(targetType: ReviewTargetType, targetId: string) {
+  private static async getRatingDistribution(
+    targetType: ReviewTargetType,
+    targetId: string
+  ) {
     const whereClause = {
-      [targetType === "COACH" ? "coachId" : targetType === "PROGRAM" ? "programId" : "id"]: targetId,
+      [targetType === "COACH"
+        ? "coachId"
+        : targetType === "PROGRAM"
+        ? "programId"
+        : "id"]: targetId,
       targetType,
-      isPublic: true
+      isPublic: true,
     };
 
     const reviews = await prisma.review.findMany({
       where: whereClause,
-      select: { rating: true }
+      select: { rating: true },
     });
 
     const distribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
-    reviews.forEach(review => {
+    reviews.forEach((review) => {
       if (review.rating >= 1 && review.rating <= 5) {
         distribution[review.rating as keyof typeof distribution]++;
       }
@@ -308,7 +354,10 @@ export class ReviewService {
     return distribution;
   }
 
-  private static async getTargetEntityInfo(targetType: ReviewTargetType, targetId: string) {
+  private static async getTargetEntityInfo(
+    targetType: ReviewTargetType,
+    targetId: string
+  ) {
     switch (targetType) {
       case "COACH":
         return await prisma.coach.findUnique({
@@ -318,8 +367,8 @@ export class ReviewService {
             fullName: true,
             avatarUrl: true,
             rating: true,
-            totalReviews: true
-          }
+            totalReviews: true,
+          },
         });
       case "PROGRAM":
         return await prisma.program.findUnique({
@@ -328,8 +377,8 @@ export class ReviewService {
             id: true,
             title: true,
             rating: true,
-            totalReviews: true
-          }
+            totalReviews: true,
+          },
         });
       default:
         return null;

@@ -8,7 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
+import { PlaceHolderImages } from "@/lib/images/placeholder-images";
 import { ArrowLeft, CheckCircle, Euro } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";

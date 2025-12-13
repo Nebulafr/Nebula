@@ -1,7 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { MessageType, ConversationType } from "@/generated/prisma";
-import sendResponse from "../utils/send-response";
-import { NotFoundException, UnauthorizedException } from "../utils/http-exception";
+import { sendSuccess } from "../utils/send-response";
+import {
+  NotFoundException,
+  UnauthorizedException,
+} from "../utils/http-exception";
 
 export class MessagingService {
   static async getUserConversations(userId: string) {
@@ -9,10 +12,10 @@ export class MessagingService {
       where: {
         participants: {
           some: {
-            userId
-          }
+            userId,
+          },
         },
-        isActive: true
+        isActive: true,
       },
       include: {
         participants: {
@@ -22,14 +25,14 @@ export class MessagingService {
                 id: true,
                 fullName: true,
                 avatarUrl: true,
-                role: true
-              }
-            }
-          }
+                role: true,
+              },
+            },
+          },
         },
         messages: {
           orderBy: {
-            createdAt: "desc"
+            createdAt: "desc",
           },
           take: 1,
           include: {
@@ -37,49 +40,58 @@ export class MessagingService {
               select: {
                 id: true,
                 fullName: true,
-                avatarUrl: true
-              }
-            }
-          }
-        }
+                avatarUrl: true,
+              },
+            },
+          },
+        },
       },
       orderBy: {
-        lastMessageTime: "desc"
-      }
+        lastMessageTime: "desc",
+      },
     });
 
-    const formattedConversations = conversations.map(conversation => {
-      const otherParticipant = conversation.participants.find(p => p.userId !== userId);
-      const currentUserParticipant = conversation.participants.find(p => p.userId === userId);
+    const formattedConversations = conversations.map((conversation) => {
+      const otherParticipant = conversation.participants.find(
+        (p) => p.userId !== userId
+      );
+      const currentUserParticipant = conversation.participants.find(
+        (p) => p.userId === userId
+      );
       const lastMessage = conversation.messages[0];
 
       return {
         id: conversation.id,
         type: conversation.type,
-        name: conversation.title || otherParticipant?.user.fullName || "Unknown",
+        name:
+          conversation.title || otherParticipant?.user.fullName || "Unknown",
         avatar: otherParticipant?.user.avatarUrl || null,
         lastMessage: lastMessage?.content || conversation.lastMessage || "",
-        time: conversation.lastMessageTime 
+        time: conversation.lastMessageTime
           ? new Date(conversation.lastMessageTime).toLocaleString()
           : "",
         unread: currentUserParticipant?.unreadCount || 0,
         role: otherParticipant?.user.role || "STUDENT",
-        participants: conversation.participants.map(p => ({
+        participants: conversation.participants.map((p) => ({
           id: p.user.id,
           name: p.user.fullName,
           avatar: p.user.avatarUrl,
-          role: p.user.role
-        }))
+          role: p.user.role,
+        })),
       };
     });
 
-    return sendResponse.success(
+    return sendSuccess(
       formattedConversations,
       "Conversations fetched successfully"
     );
   }
 
-  static async createConversation(participants: string[], type: ConversationType = "DIRECT", title?: string) {
+  static async createConversation(
+    participants: string[],
+    type: ConversationType = "DIRECT",
+    title?: string
+  ) {
     if (participants.length < 2) {
       throw new Error("At least 2 participants are required");
     }
@@ -92,21 +104,27 @@ export class MessagingService {
           participants: {
             every: {
               userId: {
-                in: participants
-              }
-            }
-          }
+                in: participants,
+              },
+            },
+          },
         },
         include: {
-          participants: true
-        }
+          participants: true,
+        },
       });
 
-      if (existingConversation && existingConversation.participants.length === 2) {
-        return sendResponse.success({
-          id: existingConversation.id,
-          isNew: false
-        }, "Conversation already exists");
+      if (
+        existingConversation &&
+        existingConversation.participants.length === 2
+      ) {
+        return sendSuccess(
+          {
+            id: existingConversation.id,
+            isNew: false,
+          },
+          "Conversation already exists"
+        );
       }
     }
 
@@ -117,74 +135,95 @@ export class MessagingService {
         title,
         participants: {
           create: participants.map((userId: string) => ({
-            userId
-          }))
-        }
-      }
+            userId,
+          })),
+        },
+      },
     });
 
-    return sendResponse.success({
-      id: conversation.id,
-      isNew: true
-    }, "Conversation created successfully", 201);
+    return sendSuccess(
+      {
+        id: conversation.id,
+        isNew: true,
+      },
+      "Conversation created successfully",
+      201
+    );
   }
 
-  static async getConversationMessages(conversationId: string, userId: string, page = 1, limit = 50) {
+  static async getConversationMessages(
+    conversationId: string,
+    userId: string,
+    page = 1,
+    limit = 50
+  ) {
     // Verify user is a participant
     const participant = await this.verifyParticipant(conversationId, userId);
     if (!participant) {
-      throw new UnauthorizedException("Not authorized to view this conversation");
+      throw new UnauthorizedException(
+        "Not authorized to view this conversation"
+      );
     }
 
     const messages = await prisma.message.findMany({
       where: {
         conversationId,
-        isDeleted: false
+        isDeleted: false,
       },
       include: {
         sender: {
           select: {
             id: true,
             fullName: true,
-            avatarUrl: true
-          }
+            avatarUrl: true,
+          },
         },
-        attachments: true
+        attachments: true,
       },
       orderBy: {
-        createdAt: "desc"
+        createdAt: "desc",
       },
       skip: (page - 1) * limit,
-      take: limit
+      take: limit,
     });
 
-    const formattedMessages = messages.reverse().map(message => ({
+    const formattedMessages = messages.reverse().map((message) => ({
       id: message.id,
       sender: message.sender.fullName || "Unknown",
       text: message.content,
       timestamp: new Date(message.createdAt).toLocaleTimeString([], {
         hour: "2-digit",
-        minute: "2-digit"
+        minute: "2-digit",
       }),
       isMe: message.senderId === userId,
       type: message.type,
       isRead: message.isRead,
       isEdited: message.isEdited,
       editedAt: message.editedAt,
-      attachments: message.attachments
+      attachments: message.attachments,
     }));
 
-    return sendResponse.success({
-      messages: formattedMessages,
-      hasMore: messages.length === limit
-    }, "Messages fetched successfully");
+    return sendSuccess(
+      {
+        messages: formattedMessages,
+        hasMore: messages.length === limit,
+      },
+      "Messages fetched successfully"
+    );
   }
 
-  static async sendMessage(conversationId: string, senderId: string, content: string, type: MessageType = "TEXT") {
+  static async sendMessage(
+    conversationId: string,
+    senderId: string,
+    content: string,
+    type: MessageType = "TEXT"
+  ) {
     // Verify user is a participant
     const participant = await this.verifyParticipant(conversationId, senderId);
     if (!participant) {
-      throw new UnauthorizedException("Not authorized to send messages to this conversation");
+      throw new UnauthorizedException(
+        "Not authorized to send messages to this conversation"
+      );
     }
 
     const message = await prisma.message.create({
@@ -192,17 +231,17 @@ export class MessagingService {
         conversationId,
         senderId,
         content,
-        type
+        type,
       },
       include: {
         sender: {
           select: {
             id: true,
             fullName: true,
-            avatarUrl: true
-          }
-        }
-      }
+            avatarUrl: true,
+          },
+        },
+      },
     });
 
     // Update conversation with last message
@@ -211,61 +250,65 @@ export class MessagingService {
       data: {
         lastMessage: content,
         lastMessageTime: new Date(),
-        updatedAt: new Date()
-      }
+        updatedAt: new Date(),
+      },
     });
 
     // Update unread count for other participants
     await prisma.conversationParticipant.updateMany({
       where: {
         conversationId,
-        userId: { not: senderId }
+        userId: { not: senderId },
       },
       data: {
-        unreadCount: { increment: 1 }
-      }
+        unreadCount: { increment: 1 },
+      },
     });
 
-    return sendResponse.success({
-      id: message.id
-    }, "Message sent successfully", 201);
+    return sendSuccess(
+      {
+        id: message.id,
+      },
+      "Message sent successfully",
+      201
+    );
   }
 
   static async markMessagesAsRead(conversationId: string, userId: string) {
     await prisma.conversationParticipant.updateMany({
       where: {
         conversationId,
-        userId
+        userId,
       },
       data: {
-        unreadCount: 0
-      }
+        unreadCount: 0,
+      },
     });
 
     await prisma.message.updateMany({
       where: {
         conversationId,
         senderId: { not: userId },
-        isRead: false
+        isRead: false,
       },
       data: {
         isRead: true,
-        readAt: new Date()
-      }
+        readAt: new Date(),
+      },
     });
 
-    return sendResponse.success(
-      null,
-      "Messages marked as read successfully"
-    );
+    return sendSuccess(null, "Messages marked as read successfully");
   }
 
-  private static async verifyParticipant(conversationId: string, userId: string) {
+  private static async verifyParticipant(
+    conversationId: string,
+    userId: string
+  ) {
     return await prisma.conversationParticipant.findFirst({
       where: {
         conversationId,
-        userId
-      }
+        userId,
+      },
     });
   }
 }

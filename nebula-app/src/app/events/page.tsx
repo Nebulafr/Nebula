@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { usePublicEvents } from "@/hooks/use-events";
+import { useState, useEffect } from "react";
+import { useEventsContext } from "@/contexts/events-context";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -11,16 +11,11 @@ import {
   ArrowRight,
   ExternalLink,
   Info,
-  Linkedin,
-  LogOut,
-  LucideIcon,
   PartyPopper,
   Search,
   Star,
-  Twitter,
   Users,
   Video,
-  Youtube,
   Loader2,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -34,17 +29,23 @@ import {
 } from "@/components/ui/tooltip";
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
-import { Event as ApiEvent } from "@/actions/events";
+import { Event } from "@/types/event";
+import { sampleEvents } from "../../../data/event";
 
 export default function EventsPage() {
   const [activePriceFilter, setActivePriceFilter] = useState("All");
   const [activeTypeFilter, setActiveTypeFilter] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const { events, loading, refetch } = useEventsContext();
 
-  const { events, loading } = usePublicEvents({
-    search: searchTerm,
-    eventType: activeTypeFilter?.toUpperCase(),
-  });
+  useEffect(() => {
+    const params = {
+      search: searchTerm || undefined,
+      eventType: activeTypeFilter?.toUpperCase() || undefined,
+    };
+
+    refetch(params);
+  }, [searchTerm, activeTypeFilter, refetch]);
 
   const priceFilters = ["All", "Free", "Premium"];
   const typeFilters = [
@@ -80,13 +81,15 @@ export default function EventsPage() {
     e.preventDefault();
   };
 
-  const filteredEvents = events.filter((event) => {
-    const priceMatch =
-      activePriceFilter === "All" ||
-      (activePriceFilter === "Free" && event.isPublic) ||
-      (activePriceFilter === "Premium" && !event.isPublic);
-    return priceMatch;
-  });
+  const filteredEvents = (events.length > 3 ? events : sampleEvents).filter(
+    (event) => {
+      const priceMatch =
+        activePriceFilter === "All" ||
+        (activePriceFilter === "Free" && event.isPublic) ||
+        (activePriceFilter === "Premium" && !event.isPublic);
+      return priceMatch;
+    }
+  );
 
   const webinarEvents = filteredEvents.filter(
     (event) => event.eventType === "WEBINAR"
@@ -252,7 +255,7 @@ export default function EventsPage() {
   );
 }
 
-function ApiWebinarCard({ event }: { event: ApiEvent }) {
+function ApiWebinarCard({ event }: { event: Event }) {
   const eventDate = new Date(event.date);
   const colorMap = {
     WEBINAR: "bg-yellow-50",
@@ -357,7 +360,7 @@ function ApiWebinarCard({ event }: { event: ApiEvent }) {
   );
 }
 
-function ApiSocialCard({ event }: { event: ApiEvent }) {
+function ApiSocialCard({ event }: { event: Event }) {
   const eventDate = new Date(event.date);
 
   return (
@@ -438,7 +441,10 @@ function ApiSocialCard({ event }: { event: ApiEvent }) {
                   ? // Show placeholder avatars when we have attendee count but no specific attendee data
                     Array.from({ length: Math.min(3, event.attendees) }).map(
                       (_, i) => (
-                        <Avatar key={i} className="h-8 w-8 border-2 border-white">
+                        <Avatar
+                          key={i}
+                          className="h-8 w-8 border-2 border-white"
+                        >
                           <AvatarFallback>
                             {String.fromCharCode(65 + i)}
                           </AvatarFallback>
@@ -466,7 +472,7 @@ function ApiSocialCard({ event }: { event: ApiEvent }) {
   );
 }
 
-function ApiEventCard({ event }: { event: ApiEvent }) {
+function ApiEventCard({ event }: { event: Event }) {
   if (event.eventType === "WEBINAR" || event.eventType === "WORKSHOP") {
     return <ApiWebinarCard event={event} />;
   } else {
