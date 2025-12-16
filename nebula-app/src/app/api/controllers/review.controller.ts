@@ -16,7 +16,6 @@ const createReviewSchema = z.object({
   sessionId: z.string().cuid().optional(),
 });
 
-
 const getReviewsSchema = z.object({
   page: z.number().min(1).default(1),
   limit: z.number().min(1).max(50).default(10),
@@ -24,7 +23,11 @@ const getReviewsSchema = z.object({
 });
 
 export class ReviewController {
-  async createReview(request: NextRequest, targetType: string, targetId: string) {
+  async createReview(
+    request: NextRequest,
+    targetType: string,
+    targetId: string
+  ) {
     const body = await request.json();
     const user = (request as any).user;
 

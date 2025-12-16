@@ -3,7 +3,6 @@ import { ReviewTargetType } from "@/generated/prisma";
 import { sendSuccess } from "../utils/send-response";
 import {
   NotFoundException,
-  UnauthorizedException,
   BadRequestException,
 } from "../utils/http-exception";
 
@@ -88,7 +87,7 @@ export class ReviewService {
     });
 
     if (!user || user.role !== "STUDENT" || !user.student) {
-      throw new UnauthorizedException("Only students can create reviews");
+      throw new BadRequestException("Only students can create reviews");
     }
 
     let targetEntity;
@@ -284,7 +283,7 @@ export class ReviewService {
       }
 
       if (session.attendance.length === 0) {
-        throw new UnauthorizedException(
+        throw new BadRequestException(
           "You can only review sessions you attended"
         );
       }
@@ -317,7 +316,7 @@ export class ReviewService {
     });
 
     if (!enrollment) {
-      throw new UnauthorizedException(
+      throw new BadRequestException(
         "You must be enrolled in this program to review it"
       );
     }
