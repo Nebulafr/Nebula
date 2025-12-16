@@ -24,12 +24,12 @@ export async function reviewCoach({
 }
 
 export async function reviewProgram({
-  programSlug,
+  programId,
   rating,
   content,
   title,
 }: {
-  programSlug: string;
+  programId: string;
   rating: number;
   content: string;
   title?: string;
@@ -40,7 +40,7 @@ export async function reviewProgram({
     content: content.trim(),
   };
 
-  return apiPost(`/programs/${programSlug}/review`, reviewData);
+  return apiPost(`/programs/${programId}/review`, reviewData);
 }
 
 export async function getCoachReviews({

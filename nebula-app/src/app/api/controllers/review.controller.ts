@@ -16,6 +16,7 @@ const createReviewSchema = z.object({
   sessionId: z.string().cuid().optional(),
 });
 
+
 const getReviewsSchema = z.object({
   page: z.number().min(1).default(1),
   limit: z.number().min(1).max(50).default(10),
@@ -23,20 +24,19 @@ const getReviewsSchema = z.object({
 });
 
 export class ReviewController {
-  async createReview(request: NextRequest, targetType: string, slug: string) {
+  async createReview(request: NextRequest, targetType: string, targetId: string) {
     const body = await request.json();
     const user = (request as any).user;
 
     const payload = createReviewSchema.parse({
       ...body,
       targetType,
-      targetId: slug, // Will be resolved by service
+      targetId,
     });
 
-    return await ReviewService.createReviewBySlug({
+    return await ReviewService.createReview({
       reviewerId: user.id,
       ...payload,
-      slug,
     });
   }
 
