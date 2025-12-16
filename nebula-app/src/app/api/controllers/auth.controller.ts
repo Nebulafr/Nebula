@@ -5,28 +5,96 @@ import {
   signinSchema,
   signupSchema,
 } from "@/lib/validations";
+import {
+  BadRequestException,
+  ValidationException,
+  UnauthorizedException,
+} from "../utils/http-exception";
+import { z } from "zod";
 
 export class AuthController {
   async register(request: NextRequest) {
-    const body = await request.json();
-    const payload = signupSchema.parse(body);
+    let body;
+    try {
+      body = await request.json();
+    } catch (error) {
+      throw new BadRequestException("Invalid JSON body");
+    }
+
+    let payload;
+    try {
+      payload = signupSchema.parse(body);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        throw new ValidationException(
+          `Validation failed: ${error.errors
+            .map((e) => `${e.path.join(".")}: ${e.message}`)
+            .join(", ")}`
+        );
+      }
+      throw error;
+    }
+
     return await AuthService.register(payload);
   }
 
   async signin(request: NextRequest) {
-    const body = await request.json();
-    const payload = signinSchema.parse(body);
+    let body;
+    try {
+      body = await request.json();
+    } catch (error) {
+      throw new BadRequestException("Invalid JSON body");
+    }
+
+    let payload;
+    try {
+      payload = signinSchema.parse(body);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        throw new ValidationException(
+          `Validation failed: ${error.errors
+            .map((e) => `${e.path.join(".")}: ${e.message}`)
+            .join(", ")}`
+        );
+      }
+      throw error;
+    }
+
     return await AuthService.signin(payload);
   }
 
   async googleAuth(request: NextRequest) {
-    const body = await request.json();
-    const payload = googleAuthSchema.parse(body);
+    let body;
+    try {
+      body = await request.json();
+    } catch (error) {
+      throw new BadRequestException("Invalid JSON body");
+    }
+
+    let payload;
+    try {
+      payload = googleAuthSchema.parse(body);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        throw new ValidationException(
+          `Validation failed: ${error.errors
+            .map((e) => `${e.path.join(".")}: ${e.message}`)
+            .join(", ")}`
+        );
+      }
+      throw error;
+    }
+
     return await AuthService.googleAuth(payload);
   }
 
   async getProfile(request: NextRequest) {
     const user = (request as any).user;
+    
+    if (!user) {
+      throw new UnauthorizedException("Authentication required");
+    }
+
     return await AuthService.getProfile(user.id);
   }
 }

@@ -1,8 +1,11 @@
 import { NextRequest } from "next/server";
 import { ReviewService } from "../services/review.service";
 import { z } from "zod";
-import { ProgramService } from "../services/program.service";
-import { prisma } from "@/lib/prisma";
+import {
+  BadRequestException,
+  UnauthorizedException,
+  ValidationException,
+} from "../utils/http-exception";
 
 const createReviewSchema = z.object({
   targetType: z.enum(["COACH", "PROGRAM"]),
@@ -18,40 +21,22 @@ const getReviewsSchema = z.object({
   limit: z.number().min(1).max(50).default(10),
   sortBy: z.enum(["recent", "rating", "oldest"]).default("recent"),
 });
+
 export class ReviewController {
   async createReview(request: NextRequest, targetType: string, slug: string) {
-    let body;
-    try {
-      body = await request.json();
-    } catch (error) {
-      throw new Error("Invalid JSON body");
-    }
-
+    const body = await request.json();
     const user = (request as any).user;
-
-    if (!user) {
-      throw new Error("Authentication required");
-    }
-
-    const program = await prisma.program.findUnique({
-      where: { slug },
-    });
-
-    if (!program) {
-      throw new Error("Program not found");
-    }
-
-    const targetId = program.id;
 
     const payload = createReviewSchema.parse({
       ...body,
       targetType,
-      targetId,
+      targetId: slug, // Will be resolved by service
     });
 
-    return await ReviewService.createReview({
+    return await ReviewService.createReviewBySlug({
       reviewerId: user.id,
       ...payload,
+      slug,
     });
   }
 
@@ -64,7 +49,7 @@ export class ReviewController {
       sortBy: searchParams.get("sortBy") || "recent",
     };
 
-    const validatedParams = getReviewsSchema.parse(queryParams);
+    let validatedParams = getReviewsSchema.parse(queryParams);
 
     const sortOptions = {
       sortBy: validatedParams.sortBy as "recent" | "rating" | "oldest",

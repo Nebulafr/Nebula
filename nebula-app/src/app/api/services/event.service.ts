@@ -15,7 +15,11 @@ import { createCalendarEvent } from "@/lib/google-api";
 import { EmailService } from "./email.service";
 
 export class EventService {
-  static create = async (request: NextRequest, data: CreateEventData, accessToken?: string) => {
+  static create = async (
+    request: NextRequest,
+    data: CreateEventData,
+    accessToken?: string
+  ) => {
     const user = (request as any).user;
 
     if (user.role !== "ADMIN") {

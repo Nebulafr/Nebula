@@ -1,9 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { AdminService } from "../services/admin.service";
 import {
   adminProgramQuerySchema,
   programActionSchema,
 } from "@/lib/validations";
+import { BadRequestException } from "../utils/http-exception";
 
 export class AdminController {
   async getPrograms(request: NextRequest) {
@@ -16,34 +17,18 @@ export class AdminController {
     };
 
     const payload = adminProgramQuerySchema.parse(queryParams);
-    const programs = await AdminService.getPrograms(payload);
-
-    console.log({ programs });
-
-    return NextResponse.json(
-      {
-        success: true,
-        data: { programs },
-        message: "Programs fetched successfully",
-      },
-      { status: 200 }
-    );
+    return await AdminService.getPrograms(payload);
   }
 
   async updateProgramStatus(request: NextRequest, programId: string) {
+    if (!programId) {
+      throw new BadRequestException("Program ID is required");
+    }
+
     const body = await request.json();
     const payload = programActionSchema.parse(body);
 
-    const result = await AdminService.updateProgramStatus(programId, payload);
-
-    return NextResponse.json(
-      {
-        success: result.success,
-        data: { program: result.program },
-        message: result.message,
-      },
-      { status: 200 }
-    );
+    return await AdminService.updateProgramStatus(programId, payload);
   }
 
   async getUsers(request: NextRequest) {

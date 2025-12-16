@@ -17,6 +17,17 @@ export interface CreateReviewData {
   sessionId?: string;
 }
 
+export interface CreateReviewBySlugData {
+  reviewerId: string;
+  targetType: ReviewTargetType;
+  targetId: string;
+  slug: string;
+  rating: number;
+  title?: string;
+  content: string;
+  sessionId?: string;
+}
+
 export interface ReviewSortOptions {
   sortBy: "recent" | "rating" | "oldest";
   page: number;
@@ -24,6 +35,34 @@ export interface ReviewSortOptions {
 }
 
 export class ReviewService {
+  static async createReviewBySlug(data: CreateReviewBySlugData) {
+    const { slug, targetType, ...reviewData } = data;
+
+    // Resolve the target ID from slug
+    let resolvedTargetId: string;
+
+    if (targetType === "PROGRAM") {
+      const program = await prisma.program.findUnique({
+        where: { slug },
+      });
+
+      if (!program) {
+        throw new NotFoundException("Program not found");
+      }
+
+      resolvedTargetId = program.id;
+    } else {
+      // For COACH type, we expect the targetId to be passed directly
+      resolvedTargetId = reviewData.targetId;
+    }
+
+    return this.createReview({
+      ...reviewData,
+      targetId: resolvedTargetId,
+      targetType,
+    });
+  }
+
   static async createReview(data: CreateReviewData) {
     const {
       reviewerId,
