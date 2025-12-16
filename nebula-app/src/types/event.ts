@@ -1,3 +1,19 @@
+export enum EventType {
+  WEBINAR = "WEBINAR",
+  SOCIAL = "SOCIAL",
+}
+
+export enum EventStatus {
+  DRAFT = "DRAFT",
+  PENDING = "PENDING", 
+  UPCOMING = "UPCOMING",
+  LIVE = "LIVE",
+  COMPLETED = "COMPLETED",
+  CANCELLED = "CANCELLED",
+}
+
+export type EventTypeString = keyof typeof EventType;
+
 export interface EventSession {
   id: string;
   eventId: string;
@@ -14,7 +30,7 @@ export interface Event {
   id: string;
   title: string;
   description: string;
-  eventType: "WEBINAR" | "SOCIAL" | "WORKSHOP" | "NETWORKING";
+  eventType: EventType;
   date: string;
   location?: string;
   images?: string[];
@@ -34,7 +50,7 @@ export interface Event {
     status: string;
     registeredAt: string;
   }[];
-  status: "DRAFT" | "PENDING" | "UPCOMING" | "LIVE" | "COMPLETED" | "CANCELLED";
+  status: EventStatus;
   tags: string[];
   whatToBring?: string;
   additionalInfo?: string;
@@ -55,19 +71,13 @@ export interface CreateEventSessionData {
 export interface CreateEventData {
   title: string;
   description: string;
-  eventType: "WEBINAR" | "SOCIAL" | "WORKSHOP" | "NETWORKING";
+  eventType: EventType;
   date: Date | string;
   location?: string;
   images?: string[];
   isPublic?: boolean;
   maxAttendees?: number;
-  status?:
-    | "DRAFT"
-    | "PENDING"
-    | "UPCOMING"
-    | "LIVE"
-    | "COMPLETED"
-    | "CANCELLED";
+  status?: EventStatus;
   tags?: string[];
   whatToBring?: string;
   additionalInfo?: string;

@@ -2,6 +2,7 @@ import Cookies from "universal-cookie";
 
 export const AUTH_TOKEN_KEY = "accessToken";
 export const USER_DATA_KEY = "userData";
+export const GOOGLE_ACCESS_TOKEN_KEY = "googleAccessToken";
 
 const cookies = new Cookies();
 
@@ -49,9 +50,22 @@ export function getStoredUserData(): any | null {
     : null;
 }
 
+export function storeGoogleAccessToken(token: string): void {
+  cookies.set(GOOGLE_ACCESS_TOKEN_KEY, token, cookieOptions);
+}
+
+export function getGoogleAccessToken(): string | null {
+  return cookies.get(GOOGLE_ACCESS_TOKEN_KEY) || null;
+}
+
+export function removeGoogleAccessToken(): void {
+  cookies.remove(GOOGLE_ACCESS_TOKEN_KEY, { path: "/" });
+}
+
 export function clearAuthData(): void {
   cookies.remove(AUTH_TOKEN_KEY, { path: "/" });
   cookies.remove(USER_DATA_KEY, { path: "/" });
+  cookies.remove(GOOGLE_ACCESS_TOKEN_KEY, { path: "/" });
   if (typeof window !== "undefined") {
     sessionStorage.removeItem("pendingGoogleSignInRole");
   }

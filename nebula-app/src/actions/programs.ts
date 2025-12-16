@@ -25,7 +25,7 @@ export async function getRecommendedPrograms() {
 }
 
 export async function getProgramBySlug(slug: string) {
-  return apiGet(`/programs/${slug}`, { requireAuth: false });
+  return apiGet(`/programs/${slug}`);
 }
 
 export async function updateProgram(

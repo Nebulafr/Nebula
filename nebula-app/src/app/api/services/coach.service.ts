@@ -1,7 +1,9 @@
+import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { CoachQueryData, CoachUpdateData } from "@/lib/validations";
 import { NotFoundException } from "../utils/http-exception";
 import { sendSuccess } from "../utils/send-response";
+import { extractUserFromRequest } from "../utils/extract-user";
 
 export class CoachService {
   static async findByUserId(userId: string) {
@@ -89,24 +91,34 @@ export class CoachService {
 
     const groupedCoaches = transformedCoaches.reduce(
       (acc: Record<string, any[]>, coach) => {
-        let groupKey = "General";
-
-        const matchingCategory = categories.find((category) =>
+        const matchingCategories = categories.filter((category) =>
           coach.specialties.some(
             (specialty: string) =>
               specialty.toLowerCase() === category.name.toLowerCase()
           )
         );
 
-        if (matchingCategory) {
-          groupKey = matchingCategory.name;
+        if (matchingCategories.length > 0) {
+          matchingCategories.forEach((category) => {
+            if (!acc[category.name]) {
+              acc[category.name] = [];
+            }
+
+            const existingCoach = acc[category.name].find(
+              (existingCoach) => existingCoach.id === coach.id
+            );
+
+            if (!existingCoach) {
+              acc[category.name].push(coach);
+            }
+          });
+        } else {
+          if (!acc["General"]) {
+            acc["General"] = [];
+          }
+          acc["General"].push(coach);
         }
 
-        if (!acc[groupKey]) {
-          acc[groupKey] = [];
-        }
-
-        acc[groupKey].push(coach);
         return acc;
       },
       {}
@@ -195,7 +207,7 @@ export class CoachService {
     return coach.id;
   }
 
-  static async getCoachById(coachId: string) {
+  static async getCoachById(coachId: string, request?: NextRequest) {
     const coach = await prisma.coach.findFirst({
       where: {
         id: coachId,
@@ -216,13 +228,26 @@ export class CoachService {
       throw new NotFoundException("Coach not found");
     }
 
-    // Fetch related data in parallel
-    const [programs, reviews] = await Promise.all([
+    let userId: string | undefined;
+    if (request) {
+      const user = await extractUserFromRequest(request);
+      userId = user?.id;
+    }
+
+    const [programs, reviews, hasUserReviewed] = await Promise.all([
       this.fetchCoachPrograms(coachId),
       this.fetchCoachReviews(coachId),
+      userId
+        ? this.checkUserReview(coachId, userId, "COACH")
+        : Promise.resolve(false),
     ]);
 
-    const transformedCoach = this.transformCoachData(coach, programs, reviews);
+    const transformedCoach = this.transformCoachData(
+      coach,
+      programs,
+      reviews,
+      hasUserReviewed
+    );
 
     return sendSuccess(
       { coach: transformedCoach },
@@ -327,7 +352,35 @@ export class CoachService {
     }
   }
 
-  static transformCoachData(coach: any, programs: any[], reviews: any[]) {
+  static async checkUserReview(
+    targetId: string,
+    userId: string,
+    targetType: "COACH" | "PROGRAM"
+  ) {
+    try {
+      const existingReview = await prisma.review.findFirst({
+        where: {
+          reviewerId: userId,
+          targetType,
+          ...(targetType === "COACH"
+            ? { coachId: targetId }
+            : { programId: targetId }),
+        },
+      });
+
+      return !!existingReview;
+    } catch (error) {
+      console.error("Error checking user review:", error);
+      return false;
+    }
+  }
+
+  static transformCoachData(
+    coach: any,
+    programs: any[],
+    reviews: any[],
+    hasUserReviewed?: boolean
+  ) {
     return {
       id: coach.id,
       userId: coach.userId,
@@ -358,6 +411,7 @@ export class CoachService {
       updatedAt: coach.updatedAt.toISOString(),
       programs,
       reviews,
+      hasUserReviewed: hasUserReviewed || false,
     };
   }
 }

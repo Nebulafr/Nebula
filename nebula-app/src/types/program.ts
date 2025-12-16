@@ -73,4 +73,5 @@ export type ProgramWithRelations = Program & {
     enrollments: number;
     reviews: number;
   };
+  hasUserReviewed: boolean;
 };

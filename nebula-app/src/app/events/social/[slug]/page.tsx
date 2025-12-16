@@ -321,8 +321,12 @@ export default function SocialEventPage() {
                                     {session.time}
                                   </p>
                                   {session.description && (
-                                    <p className="text-xs text-muted-foreground mt-1">
-                                      {session.description}
+                                    <p className="text-xs text-muted-foreground mt-1 max-w-[200px] overflow-hidden">
+                                      <span className="block truncate">
+                                        {session.description.length > 60
+                                          ? `${session.description.substring(0, 60)}...`
+                                          : session.description}
+                                      </span>
                                     </p>
                                   )}
                                 </div>

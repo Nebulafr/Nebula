@@ -27,7 +27,7 @@ export async function getCoachBySlug(slug: string) {
 }
 
 export async function getCoachById(coachId: string) {
-  return apiGet(`/coaches/id/${coachId}`, { requireAuth: false });
+  return apiGet(`/coaches/${coachId}`);
 }
 
 export async function createCoach(coachData: CreateCoachData) {

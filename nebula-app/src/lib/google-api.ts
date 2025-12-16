@@ -4,6 +4,7 @@
  */
 
 import { google, calendar_v3 } from "googleapis";
+import "dotenv/config";
 
 /**
  * Creates a Google Calendar event with a Google Meet link.
@@ -12,6 +13,7 @@ import { google, calendar_v3 } from "googleapis";
  * @param {string} startTime - The start time of the event in ISO 8601 format.
  * @param {string} endTime - The end time of the event in ISO 8601 format.
  * @param {string[]} attendees - An array of attendee email addresses.
+ * @param {string} accessToken - Google OAuth2 access token.
  * @returns {Promise<{ meetLink: string; eventId: string }>} - The Google Meet link and the event ID.
  * @throws {Error} - If environment variables are not set or API call fails.
  */
@@ -21,28 +23,26 @@ export async function createCalendarEvent(
   description: string,
   startTime: string,
   endTime: string,
-  attendees: string[]
+  attendees: string[],
+  accessToken: string
 ): Promise<{ meetLink: string; eventId: string }> {
   // Check for required environment variables
-  if (
-    !process.env.GOOGLE_CLIENT_ID ||
-    !process.env.GOOGLE_CLIENT_SECRET ||
-    !process.env.GOOGLE_REFRESH_TOKEN
-  ) {
+  if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
     throw new Error(
-      "GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, and GOOGLE_REFRESH_TOKEN must be set in environment variables"
+      "GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be set in environment variables"
     );
   }
 
-  // Create OAuth2 client
+  // Create OAuth2 client credentials
   const auth = new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
-    process.env.GOOGLE_CLIENT_SECRET
+    process.env.GOOGLE_CLIENT_SECRET,
+    `${process.env.NEXTAUTH_URL}/admin/events`
   );
 
-  // Set refresh token
+  // Set the access token
   auth.setCredentials({
-    refresh_token: process.env.GOOGLE_REFRESH_TOKEN,
+    access_token: accessToken,
   });
 
   // Create calendar client with authentication
@@ -63,7 +63,7 @@ export async function createCalendarEvent(
     attendees: attendees.map((email) => ({ email })),
     conferenceData: {
       createRequest: {
-        requestId: `nebula-${Date.now()}`,
+        requestId: `meet-${Date.now()}`,
         conferenceSolutionKey: {
           type: "hangoutsMeet",
         },

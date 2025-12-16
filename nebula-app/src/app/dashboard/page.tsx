@@ -24,18 +24,20 @@ export default function DashboardPage() {
 
   return (
     <StudentRoute>
-      <div className="flex-1 space-y-4 p-4 md:p-8">
-        <DashboardHeader user={profile} />
-        <div className="flex flex-col gap-[90px] mt-6">
-          <RecommendedPrograms
-            programs={programs.length > 3 ? programs : recommendedPrograms}
-          />
-          <UpcomingSessions
-            sessions={
-              upcomingEvents.length > 3 ? upcomingEvents : upcomingSessions
-            }
-          />
-          <SuggestedCoaches coaches={suggestedCoaches} user={profile!} />
+      <div className="min-h-full bg-muted/30 p-4 md:p-6 lg:p-8">
+        <div className="mx-auto max-w-7xl space-y-8">
+          <DashboardHeader user={profile} />
+          <div className="space-y-12 md:space-y-16">
+            <RecommendedPrograms
+              programs={programs.length > 3 ? programs : recommendedPrograms}
+            />
+            <UpcomingSessions
+              sessions={
+                upcomingEvents.length > 3 ? upcomingEvents : upcomingSessions
+              }
+            />
+            <SuggestedCoaches coaches={suggestedCoaches} user={profile!} />
+          </div>
         </div>
       </div>
     </StudentRoute>

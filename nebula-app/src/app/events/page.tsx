@@ -97,17 +97,9 @@ export default function EventsPage() {
   const socialEvents = filteredEvents.filter(
     (event) => event.eventType === "SOCIAL"
   );
-  const workshopEvents = filteredEvents.filter(
-    (event) => event.eventType === "WORKSHOP"
-  );
-  const networkingEvents = filteredEvents.filter(
-    (event) => event.eventType === "NETWORKING"
-  );
 
   const showWebinars = !activeTypeFilter || activeTypeFilter === "Webinar";
   const showSocial = !activeTypeFilter || activeTypeFilter === "Social";
-  const showWorkshops = !activeTypeFilter || activeTypeFilter === "Workshop";
-  const showNetworking = !activeTypeFilter || activeTypeFilter === "Networking";
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -216,34 +208,6 @@ export default function EventsPage() {
             </div>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
               {socialEvents.map((event) => (
-                <ApiEventCard key={event.id} event={event} />
-              ))}
-            </div>
-          </section>
-        )}
-
-        {showWorkshops && workshopEvents.length > 0 && (
-          <section className="container pb-12">
-            <div className="mb-8 flex items-center gap-2">
-              <h2 className="font-headline text-2xl font-bold">Workshop</h2>
-              <Info className="h-4 w-4 text-muted-foreground" />
-            </div>
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {workshopEvents.map((event) => (
-                <ApiEventCard key={event.id} event={event} />
-              ))}
-            </div>
-          </section>
-        )}
-
-        {showNetworking && networkingEvents.length > 0 && (
-          <section className="container pb-20">
-            <div className="mb-8 flex items-center gap-2">
-              <h2 className="font-headline text-2xl font-bold">Networking</h2>
-              <Info className="h-4 w-4 text-muted-foreground" />
-            </div>
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {networkingEvents.map((event) => (
                 <ApiEventCard key={event.id} event={event} />
               ))}
             </div>
@@ -473,7 +437,7 @@ function ApiSocialCard({ event }: { event: Event }) {
 }
 
 function ApiEventCard({ event }: { event: Event }) {
-  if (event.eventType === "WEBINAR" || event.eventType === "WORKSHOP") {
+  if (event.eventType === "WEBINAR") {
     return <ApiWebinarCard event={event} />;
   } else {
     return <ApiSocialCard event={event} />;

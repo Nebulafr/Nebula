@@ -30,8 +30,6 @@ interface EventsContextType {
   upcomingEvents: Event[];
   webinarEvents: Event[];
   socialEvents: Event[];
-  workshopEvents: Event[];
-  networkingEvents: Event[];
   loading: boolean;
   error: string | null;
   actionLoading: Record<string, boolean>;
@@ -179,20 +177,12 @@ export function EventsProvider({ children }: { children: React.ReactNode }) {
 
   const webinarEvents = events.filter((event) => event.eventType === "WEBINAR");
   const socialEvents = events.filter((event) => event.eventType === "SOCIAL");
-  const workshopEvents = events.filter(
-    (event) => event.eventType === "WORKSHOP"
-  );
-  const networkingEvents = events.filter(
-    (event) => event.eventType === "NETWORKING"
-  );
 
   const contextValue: EventsContextType = {
     events,
     upcomingEvents,
     webinarEvents,
     socialEvents,
-    workshopEvents,
-    networkingEvents,
     loading,
     error,
     actionLoading,

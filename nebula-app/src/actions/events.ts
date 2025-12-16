@@ -23,7 +23,7 @@ export async function getEvents(params?: {
   if (params?.offset) searchParams.set("offset", params.offset.toString());
 
   const query = searchParams.toString() ? `?${searchParams}` : "";
-  return apiGet(`/events${query}`);
+  return apiGet(`/events${query}`, { requireAuth: false });
 }
 
 export async function getPublicEvents(params?: {
@@ -53,4 +53,12 @@ export async function updateEvent(id: string, updateData: any) {
 
 export async function deleteEvent(id: string) {
   return apiDelete(`/events/${id}`);
+}
+
+export async function registerForEvent(eventId: string) {
+  return apiPost(`/events/${eventId}/register`);
+}
+
+export async function unregisterFromEvent(eventId: string) {
+  return apiDelete(`/events/${eventId}/register`);
 }

@@ -1,6 +1,8 @@
 import { NextRequest } from "next/server";
 import { ReviewService } from "../services/review.service";
 import { z } from "zod";
+import { ProgramService } from "../services/program.service";
+import { prisma } from "@/lib/prisma";
 
 const createReviewSchema = z.object({
   targetType: z.enum(["COACH", "PROGRAM"]),
@@ -16,13 +18,8 @@ const getReviewsSchema = z.object({
   limit: z.number().min(1).max(50).default(10),
   sortBy: z.enum(["recent", "rating", "oldest"]).default("recent"),
 });
-
 export class ReviewController {
-  async createReview(
-    request: NextRequest,
-    targetType: string,
-    targetId: string
-  ) {
+  async createReview(request: NextRequest, targetType: string, slug: string) {
     let body;
     try {
       body = await request.json();
@@ -35,6 +32,16 @@ export class ReviewController {
     if (!user) {
       throw new Error("Authentication required");
     }
+
+    const program = await prisma.program.findUnique({
+      where: { slug },
+    });
+
+    if (!program) {
+      throw new Error("Program not found");
+    }
+
+    const targetId = program.id;
 
     const payload = createReviewSchema.parse({
       ...body,

@@ -35,6 +35,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { VisuallyHidden } from "@/components/ui/visually-hidden";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { reviewCoach } from "@/actions/reviews";
@@ -57,6 +58,8 @@ export default function CoachDetailPage() {
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
+
+  console.log({ coach });
 
   useEffect(() => {
     const fetchCoach = async () => {
@@ -97,6 +100,7 @@ export default function CoachDetailPage() {
             timezone: "PST",
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
+            hasUserReviewed: false,
             programs: [
               {
                 id: "mock-1",
@@ -211,6 +215,7 @@ export default function CoachDetailPage() {
           timezone: "PST",
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
+          hasUserReviewed: false,
           programs: [],
           reviews: [],
         });
@@ -340,6 +345,12 @@ export default function CoachDetailPage() {
       if (response.success) {
         toast.success(response.message || "Review submitted successfully!");
         setReviewSubmitted(true);
+
+        const updatedCoachResponse = await getCoachById(params.coachId);
+        if (updatedCoachResponse.success && updatedCoachResponse.data?.coach) {
+          setCoach(updatedCoachResponse.data.coach);
+        }
+
         setIsReviewDialogOpen(false);
       } else {
         toast.error(response.error || "Failed to submit review.");
@@ -547,7 +558,17 @@ export default function CoachDetailPage() {
               onOpenChange={setIsReviewDialogOpen}
             >
               <DialogTrigger asChild>
-                <Button variant="outline" size="icon" className="rounded-full">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="rounded-full"
+                  disabled={coach.hasUserReviewed}
+                  title={
+                    coach.hasUserReviewed
+                      ? "You have already reviewed this coach"
+                      : "Add a review"
+                  }
+                >
                   <PlusCircle className="h-5 w-5" />
                 </Button>
               </DialogTrigger>
@@ -622,16 +643,23 @@ export default function CoachDetailPage() {
                     </form>
                   </>
                 ) : (
-                  <div className="text-center py-8">
-                    <CheckCircle className="h-16 w-16 mx-auto mb-4 text-green-500" />
-                    <h3 className="text-xl font-semibold">Thank You!</h3>
-                    <p className="text-muted-foreground mt-2">
-                      Your review has been submitted successfully.
-                    </p>
-                    <Button onClick={resetReviewForm} className="mt-6">
-                      Close
-                    </Button>
-                  </div>
+                  <>
+                    <DialogHeader>
+                      <VisuallyHidden>
+                        <DialogTitle>Review Submitted</DialogTitle>
+                      </VisuallyHidden>
+                    </DialogHeader>
+                    <div className="text-center py-8">
+                      <CheckCircle className="h-16 w-16 mx-auto mb-4 text-green-500" />
+                      <h3 className="text-xl font-semibold">Thank You!</h3>
+                      <p className="text-muted-foreground mt-2">
+                        Your review has been submitted successfully.
+                      </p>
+                      <Button onClick={resetReviewForm} className="mt-6">
+                        Close
+                      </Button>
+                    </div>
+                  </>
                 )}
               </DialogContent>
             </Dialog>

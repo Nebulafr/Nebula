@@ -28,11 +28,11 @@ export class CoachController {
     return await CoachService.updateCoach(user.id, payload);
   }
 
-  async getById(request: NextRequest, context?: any) {
-    const { coachId } = context?.params || {};
+  async getById(coachId?: string, request?: NextRequest) {
     if (!coachId) {
       throw new Error("Coach ID is required");
     }
-    return await CoachService.getCoachById(coachId);
+    
+    return await CoachService.getCoachById(coachId, request);
   }
 }

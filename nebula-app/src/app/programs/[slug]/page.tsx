@@ -38,9 +38,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { VisuallyHidden } from "@/components/ui/visually-hidden";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ProgramWithRelations } from "@/types/program";
+import { reviewProgram } from "@/actions/reviews";
 
 export default function ProgramDetailPage({
   params,
@@ -60,6 +62,7 @@ export default function ProgramDetailPage({
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
@@ -71,7 +74,7 @@ export default function ProgramDetailPage({
         setLoading(true);
         const response = await getProgramBySlug(slug);
         if (response && response.success) {
-          setProgram(response.data);
+          setProgram(response.data!.program);
         } else if (response && !response.success) {
           setFetchError(response.message || "Failed to fetch program.");
           setProgram({} as any);
@@ -252,9 +255,52 @@ export default function ProgramDetailPage({
     router.replace(`/dashboard/messaging?conversationId=${profile?.id}`);
   };
 
-  const handleReviewSubmit = (e: React.FormEvent) => {
+  const handleReviewSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setReviewSubmitted(true);
+
+    if (!program) {
+      toast.error("Program information not available.");
+      return;
+    }
+
+    if (rating === 0) {
+      toast.error("Please select a rating.");
+      return;
+    }
+
+    if (!reviewText.trim()) {
+      toast.error("Please write a review.");
+      return;
+    }
+
+    setIsSubmittingReview(true);
+
+    try {
+      const response = await reviewProgram({
+        programSlug: program.slug,
+        rating,
+        content: reviewText,
+      });
+
+      if (response.success) {
+        toast.success(response.message || "Review submitted successfully!");
+        setReviewSubmitted(true);
+
+        const updatedProgramResponse = await getProgramBySlug(slug);
+        if (updatedProgramResponse.success && updatedProgramResponse.data) {
+          setProgram(updatedProgramResponse.data);
+        }
+
+        setIsReviewDialogOpen(false);
+      } else {
+        toast.error(response.error || "Failed to submit review.");
+      }
+    } catch (error: any) {
+      console.error("Error submitting review:", error);
+      toast.error("Failed to submit review. Please try again.");
+    } finally {
+      setIsSubmittingReview(false);
+    }
   };
 
   const resetReviewForm = () => {
@@ -279,7 +325,7 @@ export default function ProgramDetailPage({
                 Programs
               </Link>
               <ChevronRight className="h-4 w-4" />
-              <span>{program.category.name!}</span>
+              <span>{program.category?.name!}</span>
             </div>
             <h1 className="font-headline text-5xl font-bold tracking-tighter text-primary md:text-6xl">
               {program.title}
@@ -470,6 +516,12 @@ export default function ProgramDetailPage({
                         variant="outline"
                         size="icon"
                         className="rounded-full"
+                        disabled={program.hasUserReviewed}
+                        title={
+                          program.hasUserReviewed
+                            ? "You have already reviewed this program"
+                            : "Add a review"
+                        }
                       >
                         <PlusCircle className="h-5 w-5" />
                       </Button>
@@ -535,24 +587,39 @@ export default function ProgramDetailPage({
                             <DialogFooter>
                               <Button
                                 type="submit"
-                                disabled={rating === 0 || !reviewText.trim()}
+                                disabled={
+                                  rating === 0 ||
+                                  !reviewText.trim() ||
+                                  isSubmittingReview
+                                }
                               >
-                                Submit Review
+                                {isSubmittingReview
+                                  ? "Submitting..."
+                                  : "Submit Review"}
                               </Button>
                             </DialogFooter>
                           </form>
                         </>
                       ) : (
-                        <div className="text-center py-8">
-                          <CheckCircle className="h-16 w-16 mx-auto mb-4 text-green-500" />
-                          <h3 className="text-xl font-semibold">Thank You!</h3>
-                          <p className="text-muted-foreground mt-2">
-                            Your review has been submitted successfully.
-                          </p>
-                          <Button onClick={resetReviewForm} className="mt-6">
-                            Close
-                          </Button>
-                        </div>
+                        <>
+                          <DialogHeader>
+                            <VisuallyHidden>
+                              <DialogTitle>Review Submitted</DialogTitle>
+                            </VisuallyHidden>
+                          </DialogHeader>
+                          <div className="text-center py-8">
+                            <CheckCircle className="h-16 w-16 mx-auto mb-4 text-green-500" />
+                            <h3 className="text-xl font-semibold">
+                              Thank You!
+                            </h3>
+                            <p className="text-muted-foreground mt-2">
+                              Your review has been submitted successfully.
+                            </p>
+                            <Button onClick={resetReviewForm} className="mt-6">
+                              Close
+                            </Button>
+                          </div>
+                        </>
                       )}
                     </DialogContent>
                   </Dialog>

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { UserRole, SkillLevel, DifficultyLevel } from "@/generated/prisma";
+import { EventType, EventStatus } from "@/types/event";
 
 export const moduleSchema = z.object({
   title: z.string().min(1, "Module title is required"),
@@ -224,10 +225,9 @@ export const createEventSchema = z.object({
     .string()
     .min(1, "Description is required")
     .max(2000, "Description must be less than 2000 characters"),
-  eventType: z.enum(["WEBINAR", "SOCIAL", "WORKSHOP", "NETWORKING"], {
+  eventType: z.nativeEnum(EventType, {
     errorMap: () => ({
-      message:
-        "Event type must be one of: WEBINAR, SOCIAL, WORKSHOP, NETWORKING",
+      message: "Event type must be either WEBINAR or SOCIAL",
     }),
   }),
   date: z.coerce.date(),
@@ -253,13 +253,13 @@ export const createEventSchema = z.object({
     .positive("Max attendees must be a positive number")
     .optional(),
   status: z
-    .enum(["DRAFT", "PENDING", "UPCOMING", "LIVE", "COMPLETED", "CANCELLED"], {
+    .nativeEnum(EventStatus, {
       errorMap: () => ({
         message:
           "Status must be one of: DRAFT, PENDING, UPCOMING, LIVE, COMPLETED, CANCELLED",
       }),
     })
-    .default("PENDING"),
+    .default(EventStatus.PENDING),
   tags: z
     .array(z.string().min(1).max(50))
     .max(10, "Maximum 10 tags allowed")
@@ -271,6 +271,13 @@ export const createEventSchema = z.object({
   additionalInfo: z
     .string()
     .max(2000, "Additional info must be less than 2000 characters")
+    .optional(),
+  meetingUrl: z
+    .string()
+    .url("Meeting URL must be a valid URL")
+    .optional(),
+  googleEventId: z
+    .string()
     .optional(),
   sessions: z.array(eventSessionSchema).optional(),
 });
@@ -287,10 +294,9 @@ export const updateEventSchema = z.object({
     .max(2000, "Description must be less than 2000 characters")
     .optional(),
   eventType: z
-    .enum(["WEBINAR", "SOCIAL", "WORKSHOP", "NETWORKING"], {
+    .nativeEnum(EventType, {
       errorMap: () => ({
-        message:
-          "Event type must be one of: WEBINAR, SOCIAL, WORKSHOP, NETWORKING",
+        message: "Event type must be either WEBINAR or SOCIAL",
       }),
     })
     .optional(),
@@ -317,7 +323,7 @@ export const updateEventSchema = z.object({
     .positive("Max attendees must be a positive number")
     .optional(),
   status: z
-    .enum(["DRAFT", "PENDING", "UPCOMING", "LIVE", "COMPLETED", "CANCELLED"], {
+    .nativeEnum(EventStatus, {
       errorMap: () => ({
         message:
           "Status must be one of: DRAFT, PENDING, UPCOMING, LIVE, COMPLETED, CANCELLED",

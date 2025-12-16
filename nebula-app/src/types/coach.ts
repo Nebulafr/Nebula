@@ -66,6 +66,7 @@ export interface CoachWithRelations {
   languages: string[];
   createdAt: string;
   updatedAt: string;
+  hasUserReviewed: boolean;
   programs: {
     id: string;
     title: string;

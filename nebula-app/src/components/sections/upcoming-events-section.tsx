@@ -193,13 +193,6 @@ export function UpcomingEventsSection() {
             </div>
           )}
         </div>
-        {upcomingEvents.length > 3 && (
-          <div className="mt-12 text-center">
-            <Button asChild size="lg">
-              <Link href="/events">View All Events</Link>
-            </Button>
-          </div>
-        )}
       </div>
     </section>
   );

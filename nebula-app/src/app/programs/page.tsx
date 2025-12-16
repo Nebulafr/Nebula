@@ -48,8 +48,10 @@ export default function ProgramsPage() {
     fetchPrograms();
   }, [activeCategory]);
 
+  console.log("Programs Data:", programsData);
+
   const filteredGroups =
-    programsData.length > 3 ? programsData : groupedPrograms;
+    programsData.length > 0 ? programsData : groupedPrograms;
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -86,9 +88,9 @@ export default function ProgramsPage() {
                 variant="outline"
                 className={cn(
                   "rounded-full",
-                  activeCategory === category.name && "bg-muted font-bold"
+                  activeCategory === category?.name && "bg-muted font-bold"
                 )}
-                onClick={() => setActiveCategory(category.name)}
+                onClick={() => setActiveCategory(category?.name)}
                 disabled={loading}
               >
                 {loading && activeCategory === category.name && (
@@ -119,7 +121,7 @@ export default function ProgramsPage() {
                                   variant="secondary"
                                   className="bg-muted text-muted-foreground"
                                 >
-                                  {program.category.name}
+                                  {program?.category?.name}
                                 </Badge>
                                 <h3 className="font-headline mt-3 text-base font-semibold leading-tight">
                                   {program.title}

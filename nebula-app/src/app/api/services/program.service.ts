@@ -8,6 +8,7 @@ import { createProgramSchema, updateProgramSchema } from "@/lib/validations";
 import { prisma } from "@/lib/prisma";
 import { sendSuccess } from "../utils/send-response";
 import { generateSlug } from "@/lib/utils";
+import { extractUserFromRequest } from "../utils/extract-user";
 
 export class ProgramService {
   async createProgram(request: NextRequest) {
@@ -215,6 +216,9 @@ export class ProgramService {
   }
 
   async getBySlug(request: NextRequest, slug: string) {
+    const user = await extractUserFromRequest(request);
+    const userId = user?.id;
+
     const program = await prisma.program.findUnique({
       where: { slug },
       include: {
@@ -242,7 +246,44 @@ export class ProgramService {
       throw new NotFoundException("Program not found");
     }
 
-    return sendSuccess({ program });
+    let hasUserReviewed = false;
+    if (userId) {
+      hasUserReviewed = await this.checkUserReview(
+        program.id,
+        userId,
+        "PROGRAM"
+      );
+    }
+
+    const transformedProgram = {
+      ...program,
+      hasUserReviewed,
+    };
+
+    return sendSuccess({ program: transformedProgram });
+  }
+
+  async checkUserReview(
+    targetId: string,
+    userId: string,
+    targetType: "COACH" | "PROGRAM"
+  ) {
+    try {
+      const existingReview = await prisma.review.findFirst({
+        where: {
+          reviewerId: userId,
+          targetType,
+          ...(targetType === "COACH"
+            ? { coachId: targetId }
+            : { programId: targetId }),
+        },
+      });
+
+      return !!existingReview;
+    } catch (error) {
+      console.error("Error checking user review:", error);
+      return false;
+    }
   }
 
   async updateProgram(request: NextRequest, slug: string) {

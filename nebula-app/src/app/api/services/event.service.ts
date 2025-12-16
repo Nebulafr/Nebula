@@ -11,9 +11,11 @@ import {
 } from "../utils/http-exception";
 import { sendSuccess } from "../utils/send-response";
 import { generateSlug } from "@/lib/utils";
+import { createCalendarEvent } from "@/lib/google-api";
+import { EmailService } from "./email.service";
 
 export class EventService {
-  static create = async (request: NextRequest, data: CreateEventData) => {
+  static create = async (request: NextRequest, data: CreateEventData, accessToken?: string) => {
     const user = (request as any).user;
 
     if (user.role !== "ADMIN") {
@@ -36,10 +38,49 @@ export class EventService {
     const payload = createEventSchema.parse(data);
     const { sessions, ...eventData } = payload as any;
 
+    // Create Google Meet link for webinars
+    let meetLink: string | undefined;
+    let googleEventId: string | undefined;
+
+    if (eventData.eventType === "WEBINAR") {
+      try {
+        // Calculate event end time (default 1 hour duration)
+        const startTime = new Date(eventData.date);
+        const endTime = new Date(startTime.getTime() + 60 * 60 * 1000);
+
+        // Get organizer email for the meeting
+        const organizer = await prisma.user.findUnique({
+          where: { id: eventData.organizerId || user.id },
+          select: { email: true },
+        });
+
+        if (!accessToken) {
+          throw new Error("Google access token required for webinar events");
+        }
+
+        const googleMeetResult = await createCalendarEvent(
+          eventData.title,
+          eventData.description,
+          startTime.toISOString(),
+          endTime.toISOString(),
+          organizer?.email ? [organizer.email] : [],
+          accessToken
+        );
+
+        meetLink = googleMeetResult.meetLink;
+        googleEventId = googleMeetResult.eventId;
+      } catch (error) {
+        console.error("Failed to create Google Meet link:", error);
+        // Continue creating event even if Google Meet fails
+      }
+    }
+
     const event = await prisma.event.create({
       data: {
         ...eventData,
         organizerId: eventData.organizerId || user.id,
+        meetLink,
+        googleEventId,
         sessions:
           sessions?.length > 0
             ? {
@@ -95,6 +136,8 @@ export class EventService {
       tags: event.tags,
       whatToBring: event.whatToBring,
       additionalInfo: event.additionalInfo,
+      meetLink: meetLink,
+      googleEventId: googleEventId,
       sessions:
         event.sessions?.map((session: any) => ({
           id: session.id,
@@ -615,5 +658,110 @@ export class EventService {
     });
 
     return sendSuccess(null, "Event deleted successfully", 204);
+  };
+
+  static registerForEvent = async (userId: string, eventId: string) => {
+    const event = await prisma.event.findUnique({
+      where: { id: eventId },
+      include: {
+        organizer: {
+          select: {
+            fullName: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    if (!event) {
+      throw new NotFoundException("Event not found");
+    }
+
+    const existingRegistration = await prisma.eventAttendee.findUnique({
+      where: {
+        eventId_studentId: {
+          eventId,
+          studentId: userId,
+        },
+      },
+    });
+
+    if (existingRegistration) {
+      throw new Error("Already registered for this event");
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        email: true,
+        fullName: true,
+        student: { select: { id: true } },
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException("User not found");
+    }
+
+    const registration = await prisma.eventAttendee.create({
+      data: {
+        studentId: user.student!.id,
+        eventId,
+        status: "REGISTERED",
+      },
+    });
+
+    if (event.eventType === "WEBINAR" && event.meetLink) {
+      await EmailService.sendWebinarRegistrationEmail(user.email, {
+        userName: user.fullName || "Participant",
+        eventTitle: event.title,
+        eventDate: event.date.toISOString(),
+        meetingUrl: event.meetLink,
+        organizerName: event.organizer?.fullName || "Event Organizer",
+        eventDescription: event.description || "",
+      });
+    }
+
+    return sendSuccess(
+      {
+        message: "Successfully registered for event",
+        registration: {
+          id: registration.id,
+          eventId: registration.eventId,
+          registeredAt: registration.registeredAt || registration.createdAt,
+        },
+      },
+      "Successfully registered for event",
+      201
+    );
+  };
+
+  static unregisterFromEvent = async (userId: string, eventId: string) => {
+    const registration = await prisma.eventAttendee.findUnique({
+      where: {
+        eventId_studentId: {
+          eventId,
+          studentId: userId,
+        },
+      },
+    });
+
+    if (!registration) {
+      throw new NotFoundException("Not registered for this event");
+    }
+
+    await prisma.eventAttendee.delete({
+      where: {
+        eventId_studentId: {
+          eventId,
+          studentId: userId,
+        },
+      },
+    });
+
+    return sendSuccess(
+      { message: "Successfully unregistered from event" },
+      "Successfully unregistered from event"
+    );
   };
 }

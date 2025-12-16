@@ -479,6 +479,8 @@ model Event {
   maxAttendees   Int?     @map("max_attendees")
   status         String?
   tags           String[]
+  meetLink       String?  @map("meet_link")
+  googleEventId  String?  @map("google_event_id")
   whatToBring    String?  @map("what_to_bring")
   additionalInfo String?  @map("additional_info")
   createdAt      DateTime @default(now()) @map("created_at")

@@ -7,8 +7,9 @@ class EventController {
   async createEvent(request: NextRequest) {
     try {
       const payload = await request.json();
-      const body = createEventSchema.parse(payload);
-      return await EventService.create(request, body);
+      const { googleAccessToken, ...eventData } = payload;
+      const body = createEventSchema.parse(eventData);
+      return await EventService.create(request, body, googleAccessToken);
     } catch (error) {
       if (error instanceof z.ZodError) {
         return NextResponse.json(

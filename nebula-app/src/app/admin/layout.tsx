@@ -49,7 +49,7 @@ function TopBar() {
   }
 
   return (
-    <div className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b bg-background px-4 sm:px-6">
+    <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:px-6 backdrop-blur-sm bg-background/95">
       <div className="flex items-center gap-2">
         <SidebarTrigger className="md:hidden" />
         <h1 className="text-xl font-bold">{pageTitle}</h1>
@@ -64,11 +64,13 @@ function TopBar() {
         </Button>
         <div className="relative hidden md:block">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input placeholder="Search..." className="pl-9" />
+          <Input placeholder="Search..." className="pl-9 w-64" />
         </div>
-        <Bell className="h-5 w-5 text-muted-foreground" />
+        <Button variant="ghost" size="icon">
+          <Bell className="h-5 w-5" />
+        </Button>
       </div>
-    </div>
+    </header>
   );
 }
 
@@ -104,8 +106,8 @@ export default function AdminLayout({
             </div>
           </div>
         </SidebarHeader>
-        <SidebarContent>
-          <SidebarMenu className="mt-6">
+        <SidebarContent className="overflow-y-auto">
+          <SidebarMenu className="mt-6 space-y-1">
             <SidebarMenuItem>
               <Link href="/admin">
                 <SidebarMenuButton
@@ -210,7 +212,11 @@ export default function AdminLayout({
       </Sidebar>
       <SidebarInset>
         <TopBar />
-        {children}
+        <main className="flex-1 overflow-auto">
+          <div className="h-full">
+            {children}
+          </div>
+        </main>
       </SidebarInset>
     </SidebarProvider>
   );
