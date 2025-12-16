@@ -277,7 +277,7 @@ export default function ProgramDetailPage({
 
     try {
       const response = await reviewProgram({
-        programSlug: program.slug,
+        programId: program.id,
         rating,
         content: reviewText,
       });
