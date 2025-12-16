@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { createAuthenticatedSocket } from "@/lib/socket";
 import { useAuth } from "@/hooks/use-auth";
 import { getAccessToken } from "@/lib/auth-storage";
+import { getUserConversations } from "@/actions/messaging";
 
 import { ConversationList } from "./components/conversation-list";
 import { ChatHeader } from "./components/chat-header";
@@ -74,21 +75,7 @@ function CoachMessagingPageContent() {
 
       newSocket.on("connect", () => {
         console.log("Coach socket connected:", newSocket.id);
-        newSocket.emit("load_conversations");
-      });
-
-      newSocket.on("conversations_loaded", (conversations: any[]) => {
-        console.log("📋 Coach conversations loaded via socket:", conversations);
-        setConversations(conversations);
-        setLoading(false);
-
-        // Auto-select first conversation if no conversationId in URL
-        if (!conversationId && conversations.length > 0) {
-          const firstConversation = conversations[0];
-          router.replace(
-            `/coach-dashboard/messaging?conversationId=${firstConversation.id}`
-          );
-        }
+        loadConversations();
       });
 
       newSocket.on("messages_loaded", (data: any) => {
@@ -124,7 +111,6 @@ function CoachMessagingPageContent() {
 
       return () => {
         newSocket.off("connect");
-        newSocket.off("conversations_loaded");
         newSocket.off("messages_loaded");
         newSocket.off("new_message");
         newSocket.off("error");
@@ -136,10 +122,10 @@ function CoachMessagingPageContent() {
 
   useEffect(() => {
     if (selectedConversation && socket?.connected) {
-      socket.emit("join_conversation", selectedConversation.id);
+      socket.emit("join_conversation", selectedConversation?.id);
 
       return () => {
-        socket.emit("leave_conversation", selectedConversation.id);
+        socket.emit("leave_conversation", selectedConversation?.id);
       };
     }
   }, [selectedConversation]);
@@ -151,12 +137,15 @@ function CoachMessagingPageContent() {
       return;
     }
 
-    // Load conversations only via socket
-    if (socket && socket.connected) {
-      console.log("Coach loading conversations via socket");
-      socket.emit("load_conversations");
-    } else {
-      console.warn("Socket not connected, cannot load conversations");
+    try {
+      const response = await getUserConversations(currentUser.id, 10);
+      if (response.success) {
+        console.log("📋 Coach conversations loaded via API:", response.data);
+        setConversations(response.data);
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error("Error loading conversations:", error);
       setLoading(false);
     }
   };
@@ -181,7 +170,9 @@ function CoachMessagingPageContent() {
 
   const handleSelectConversation = async (conversation: Conversation) => {
     // Update URL to reflect selected conversation
-    router.push(`/coach-dashboard/messaging?conversationId=${conversation.id}`);
+    router.push(
+      `/coach-dashboard/messaging?conversationId=${conversation?.id}`
+    );
   };
 
   const handleSendMessage = async (messageText: string) => {
@@ -209,6 +200,10 @@ function CoachMessagingPageContent() {
         content: messageText,
         type: "TEXT",
       });
+
+      // Reload conversations to update last message and order
+      await loadConversations();
+
       socket.emit("load_messages", { conversationId: selectedConversation.id });
       handleSelectConversation(selectedConversation);
     } catch (error) {

@@ -1,7 +1,7 @@
 import { apiGet, apiPost } from "@/lib/utils";
 
-export async function getUserConversations(userId: string) {
-  return apiGet(`/conversations?userId=${userId}`);
+export async function getUserConversations(userId: string, limit: number = 10) {
+  return apiGet(`/conversations?userId=${userId}&limit=${limit}`);
 }
 
 export async function createConversation(data: any) {

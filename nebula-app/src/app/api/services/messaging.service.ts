@@ -7,7 +7,7 @@ import {
 } from "../utils/http-exception";
 
 export class MessagingService {
-  static async getUserConversations(userId: string) {
+  static async getUserConversations(userId: string, limit: number = 10) {
     const conversations = await prisma.conversation.findMany({
       where: {
         participants: {
@@ -49,6 +49,7 @@ export class MessagingService {
       orderBy: {
         lastMessageTime: "desc",
       },
+      take: limit,
     });
 
     const formattedConversations = conversations.map((conversation) => {

@@ -23,12 +23,13 @@ export class MessagingController {
   async getConversations(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get("userId");
+    const limit = parseInt(searchParams.get("limit") || "10");
 
     if (!userId) {
       throw new BadRequestException("User ID is required");
     }
 
-    return await MessagingService.getUserConversations(userId);
+    return await MessagingService.getUserConversations(userId, limit);
   }
 
   async createConversation(request: NextRequest) {

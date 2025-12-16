@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { createAuthenticatedSocket } from "@/lib/socket";
 import { useAuth } from "@/hooks/use-auth";
 import { getAccessToken } from "@/lib/auth-storage";
+import { getUserConversations } from "@/actions/messaging";
 
 import { ConversationList } from "./components/conversation-list";
 import { ChatHeader } from "./components/chat-header";
@@ -38,6 +39,20 @@ function StudentMessagingPageContent() {
 
   console.log({ currentMessages, selectedConversation });
 
+  const loadConversations = async () => {
+    try {
+      const response = await getUserConversations(currentUser.id, 10);
+      if (response.success) {
+        console.log("📋 Student conversations loaded via API:", response.data);
+        setConversations(response.data);
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error("Error loading conversations:", error);
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (conversationId && conversations.length > 0) {
       const convo = conversations.find((c) => c.id === conversationId);
@@ -69,24 +84,7 @@ function StudentMessagingPageContent() {
 
       newSocket.on("connect", () => {
         console.log("Student socket connected:", newSocket.id);
-        newSocket.emit("load_conversations");
-      });
-
-      newSocket.on("conversations_loaded", (conversations: any[]) => {
-        console.log(
-          "📋 Student conversations loaded via socket:",
-          conversations
-        );
-        setConversations(conversations);
-        setLoading(false);
-
-        // Auto-select first conversation if no conversationId in URL
-        if (!conversationId && conversations.length > 0) {
-          const firstConversation = conversations[0];
-          router.replace(
-            `/dashboard/messaging?conversationId=${firstConversation.id}`
-          );
-        }
+        loadConversations();
       });
 
       newSocket.on("messages_loaded", (data: any) => {
@@ -122,7 +120,6 @@ function StudentMessagingPageContent() {
 
       return () => {
         newSocket.off("connect");
-        newSocket.off("conversations_loaded");
         newSocket.off("messages_loaded");
         newSocket.off("new_message");
         newSocket.off("error");
@@ -144,7 +141,7 @@ function StudentMessagingPageContent() {
 
   const handleSelectConversation = async (conversation: Conversation) => {
     // Update URL to reflect selected conversation
-    router.push(`/dashboard/messaging?conversationId=${conversation.id}`);
+    router.push(`/dashboard/messaging?conversationId=${conversation?.id}`);
   };
 
   const handleSendMessage = async (messageText: string) => {
@@ -172,7 +169,10 @@ function StudentMessagingPageContent() {
         content: messageText,
         type: "TEXT",
       });
-      // socket.emit("load_messages", { conversationId: selectedConversation.id });
+
+      // Reload conversations to update last message and order
+      await loadConversations();
+
       handleSelectConversation(selectedConversation);
     } catch (error) {
       console.error("Error sending message:", error);

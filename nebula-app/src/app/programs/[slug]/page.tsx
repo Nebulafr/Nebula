@@ -288,7 +288,7 @@ export default function ProgramDetailPage({
 
         const updatedProgramResponse = await getProgramBySlug(slug);
         if (updatedProgramResponse.success && updatedProgramResponse.data) {
-          setProgram(updatedProgramResponse.data);
+          setProgram(updatedProgramResponse.data.program);
         }
 
         setIsReviewDialogOpen(false);
