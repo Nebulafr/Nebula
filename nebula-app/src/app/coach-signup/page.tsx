@@ -17,7 +17,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { UserRole } from "@/generated/prisma";
 import { toast } from "react-toastify";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuthActions } from "@/hooks/use-auth";
 import { AuthPageGuard } from "@/components/auth/protected-route";
 
 function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
@@ -51,12 +51,12 @@ function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
 
 export default function CoachSignupPage() {
   const signupImage = PlaceHolderImages.find((img) => img.id === "about-story");
-  const { signUp, signInWithGoogle } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { signUp, signInWithGoogle } = useAuthActions();
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
