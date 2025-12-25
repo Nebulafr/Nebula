@@ -24,6 +24,15 @@ export async function getRecommendedPrograms() {
   return apiGet("/programs/recommended", { requireAuth: false });
 }
 
+export async function getPopularPrograms(params?: { limit?: number }) {
+  const searchParams = new URLSearchParams();
+  
+  if (params?.limit) searchParams.set("limit", params.limit.toString());
+  
+  const query = searchParams.toString() ? `?${searchParams}` : "";
+  return apiGet(`/programs/popular${query}`, { requireAuth: false });
+}
+
 export async function getProgramBySlug(slug: string) {
   return apiGet(`/programs/${slug}`);
 }

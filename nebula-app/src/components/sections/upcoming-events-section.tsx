@@ -1,15 +1,13 @@
 "use client";
 
-import { useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ExternalLink, Loader2 } from "lucide-react";
-import { useEventsContext } from "@/contexts/events-context";
+import { usePublicEvents } from "@/hooks";
 import { Event } from "@/types/event";
-import { sampleEvents } from "../../../data/event";
 
 const eventTypeColors = {
   WEBINAR: "bg-yellow-50",
@@ -129,12 +127,22 @@ function EventCard({ event }: { event: Event }) {
 }
 
 export function UpcomingEventsSection() {
-  const { upcomingEvents, loading, error, fetchEvents } = useEventsContext();
-  const events = upcomingEvents.length > 3 ? upcomingEvents : sampleEvents;
+  const {
+    data: eventsResponse,
+    isLoading: loading,
+    error,
+  } = usePublicEvents({ limit: 3 });
+  console.log({ eventsResponse });
 
-  useEffect(() => {
-    fetchEvents();
-  }, [fetchEvents]);
+  const allEvents = eventsResponse?.data?.events || [];
+  const upcomingEvents = allEvents.filter((event: Event) => {
+    // const eventDate = new Date(event.date);
+    // const now = new Date();
+    return event.status === "UPCOMING";
+  });
+
+  const events = upcomingEvents;
+  console.log({ events });
 
   if (error) {
     return (
@@ -147,7 +155,7 @@ export function UpcomingEventsSection() {
             </p>
           </div>
           <div className="mt-12 text-center">
-            <p className="text-muted-foreground">{error}</p>
+            <p className="text-muted-foreground">Failed to load events</p>
           </div>
         </div>
       </section>
@@ -181,7 +189,7 @@ export function UpcomingEventsSection() {
           ) : events.length > 0 ? (
             events
               .slice(0, 3)
-              .map((event: any) => <EventCard key={event.id} event={event} />)
+              .map((event: Event) => <EventCard key={event.id} event={event} />)
           ) : (
             <div className="col-span-full text-center">
               <p className="text-muted-foreground">

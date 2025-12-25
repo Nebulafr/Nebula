@@ -478,4 +478,103 @@ export class ProgramService {
 
     return sendSuccess({ programs: transformedPrograms });
   }
+
+  async getPopularPrograms(request: NextRequest) {
+    const { searchParams } = new URL(request.url);
+    const limit = parseInt(searchParams.get("limit") || "6");
+
+    // Get popular programs based on rating and enrollment count
+    const programs = await prisma.program.findMany({
+      where: {
+        isActive: true,
+        status: "ACTIVE",
+      },
+      include: {
+        category: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
+        coach: {
+          select: {
+            id: true,
+            title: true,
+            user: {
+              select: {
+                fullName: true,
+                avatarUrl: true,
+              },
+            },
+          },
+        },
+        enrollments: {
+          select: {
+            student: {
+              select: {
+                user: {
+                  select: {
+                    avatarUrl: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        modules: true,
+        _count: {
+          select: {
+            enrollments: true,
+            reviews: true,
+          },
+        },
+      },
+      orderBy: [
+        {
+          rating: "desc",
+        },
+        {
+          totalReviews: "desc",
+        },
+        {
+          currentEnrollments: "desc",
+        },
+        {
+          createdAt: "desc",
+        },
+      ],
+      take: limit,
+    });
+
+    const transformedPrograms = programs.map((program) => ({
+      id: program.id,
+      title: program.title,
+      categoryId: program.categoryId,
+      description: program.description,
+      objectives: program.objectives,
+      coachId: program.coachId,
+      slug: program.slug,
+      rating: program.rating,
+      totalReviews: program.totalReviews,
+      price: program.price,
+      duration: program.duration,
+      difficultyLevel: program.difficultyLevel,
+      maxStudents: program.maxStudents,
+      currentEnrollments: program.currentEnrollments,
+      isActive: program.isActive,
+      status: program.status,
+      tags: program.tags,
+      prerequisites: program.prerequisites,
+      createdAt: program.createdAt.toISOString(),
+      updatedAt: program.updatedAt.toISOString(),
+      category: program!.category!,
+      coach: program.coach,
+      enrollments: program.enrollments,
+      modules: program.modules,
+      _count: program._count,
+    }));
+
+    return sendSuccess({ programs: transformedPrograms }, "Popular programs fetched successfully");
+  }
 }

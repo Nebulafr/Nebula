@@ -79,7 +79,7 @@ export class AdminService {
       },
     });
 
-    return programs.map((program) => ({
+    const formattedPrograms = programs.map((program) => ({
       id: program.id,
       title: program.title,
       categoryId: program.categoryId,
@@ -104,6 +104,8 @@ export class AdminService {
       coach: program.coach,
       _count: program._count,
     }));
+
+    return sendSuccess({ programs: formattedPrograms }, "Programs fetched successfully");
   }
 
   static async updateProgramStatus(programId: string, data: ProgramActionData) {

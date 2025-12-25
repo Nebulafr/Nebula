@@ -1,5 +1,4 @@
 import React, { Suspense } from "react";
-import { UserProvider } from "@/contexts/user-context";
 import AdminEventsContent from "./components/admin-events-content";
 
 function AdminEventsPageFallback() {
@@ -14,10 +13,8 @@ function AdminEventsPageFallback() {
 
 export default function AdminEventsPage() {
   return (
-    <UserProvider>
-      <Suspense fallback={<AdminEventsPageFallback />}>
-        <AdminEventsContent />
-      </Suspense>
-    </UserProvider>
+    <Suspense fallback={<AdminEventsPageFallback />}>
+      <AdminEventsContent />
+    </Suspense>
   );
 }

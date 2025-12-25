@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useEventsContext } from "@/contexts/events-context";
+import { useState } from "react";
+import { usePublicEvents } from "@/hooks";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -30,22 +30,21 @@ import {
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
 import { Event } from "@/types/event";
-import { sampleEvents } from "../../../data/event";
 
 export default function EventsPage() {
   const [activePriceFilter, setActivePriceFilter] = useState("All");
   const [activeTypeFilter, setActiveTypeFilter] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const { events, loading, refetch } = useEventsContext();
 
-  useEffect(() => {
-    const params = {
-      search: searchTerm || undefined,
-      eventType: activeTypeFilter?.toUpperCase() || undefined,
-    };
-
-    refetch(params);
-  }, [searchTerm, activeTypeFilter, refetch]);
+  const {
+    data: eventsResponse,
+    isLoading: loading,
+    error,
+  } = usePublicEvents({
+    search: searchTerm || undefined,
+    eventType: activeTypeFilter?.toUpperCase() || undefined,
+  });
+  const events = eventsResponse?.data?.events || [];
 
   const priceFilters = ["All", "Free", "Premium"];
   const typeFilters = [
@@ -81,21 +80,19 @@ export default function EventsPage() {
     e.preventDefault();
   };
 
-  const filteredEvents = (events.length > 3 ? events : sampleEvents).filter(
-    (event) => {
-      const priceMatch =
-        activePriceFilter === "All" ||
-        (activePriceFilter === "Free" && event.isPublic) ||
-        (activePriceFilter === "Premium" && !event.isPublic);
-      return priceMatch;
-    }
-  );
+  const filteredEvents = events.filter((event: Event) => {
+    const priceMatch =
+      activePriceFilter === "All" ||
+      (activePriceFilter === "Free" && event.isPublic) ||
+      (activePriceFilter === "Premium" && !event.isPublic);
+    return priceMatch;
+  });
 
   const webinarEvents = filteredEvents.filter(
-    (event) => event.eventType === "WEBINAR"
+    (event: any) => event.eventType === "WEBINAR"
   );
   const socialEvents = filteredEvents.filter(
-    (event) => event.eventType === "SOCIAL"
+    (event: any) => event.eventType === "SOCIAL"
   );
 
   const showWebinars = !activeTypeFilter || activeTypeFilter === "Webinar";
@@ -191,7 +188,7 @@ export default function EventsPage() {
               <Info className="h-4 w-4 text-muted-foreground" />
             </div>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {webinarEvents.map((event) => (
+              {webinarEvents.map((event: any) => (
                 <ApiEventCard key={event.id} event={event} />
               ))}
             </div>
@@ -207,7 +204,7 @@ export default function EventsPage() {
               <Info className="h-4 w-4 text-muted-foreground" />
             </div>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {socialEvents.map((event) => (
+              {socialEvents.map((event: any) => (
                 <ApiEventCard key={event.id} event={event} />
               ))}
             </div>

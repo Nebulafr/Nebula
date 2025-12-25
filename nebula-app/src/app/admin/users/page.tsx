@@ -5,53 +5,37 @@ import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { UserFilters } from "./components/user-filters";
 import { UsersTable } from "./components/users-table";
 import { AddUserDialog } from "./components/add-user-dialog";
-import { useAdminUsers } from "@/hooks/use-admin-users";
+import { useAdminUsers, useCreateUser } from "@/hooks";
 import { toast } from "react-toastify";
 
-// Simple debounce function
-function debounce<T extends (...args: any[]) => any>(
-  func: T,
-  delay: number
-): (...args: Parameters<T>) => void {
-  let timeoutId: NodeJS.Timeout;
-  return (...args: Parameters<T>) => {
-    clearTimeout(timeoutId);
-    timeoutId = setTimeout(() => func(...args), delay);
-  };
-}
 
 export default function UserManagementPage() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [activeTab, setActiveTab] = useState("all");
-  const { users, loading, fetchUsers } = useAdminUsers();
 
-  // Debounced search function
-  const debouncedFetch = React.useCallback(
-    debounce((search: string, role: string) => {
-      fetchUsers({
-        search: search || undefined,
-        role: role === "all" ? undefined : role,
-      });
-    }, 300),
-    [fetchUsers]
-  );
+  const { 
+    data: users = [], 
+    isLoading: loading,
+    refetch: fetchUsers
+  } = useAdminUsers({
+    search: debouncedSearch || undefined,
+    role: activeTab === "all" ? undefined : activeTab,
+  });
 
-  // Initial fetch on mount
+  const createUserMutation = useCreateUser();
+
+  // Debounce search term
   React.useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+    }, 300);
 
-  // Effect to trigger API call when search or tab changes
-  React.useEffect(() => {
-    if (searchTerm || activeTab !== "all") {
-      debouncedFetch(searchTerm, activeTab);
-    } else {
-      fetchUsers();
-    }
-  }, [searchTerm, activeTab, debouncedFetch, fetchUsers]);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   // Transform users to match the table interface
-  const transformedUsers = users.map((user) => ({
+  const transformedUsers = users.map((user: any) => ({
     name: user.fullName || user.email,
     email: user.email,
     avatar: user.avatarUrl,
@@ -74,29 +58,11 @@ export default function UserManagementPage() {
     password: string;
   }) => {
     try {
-      const response = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: userData.email,
-          password: userData.password,
-          fullName: userData.name,
-          role: userData.role.toUpperCase(),
-        }),
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        fetchUsers();
-      } else {
-        console.error("Failed to create user:", result.message);
-      }
-    } catch (error) {
+      await createUserMutation.mutateAsync(userData);
+      toast.success("User created successfully!");
+    } catch (error: any) {
       console.error("Error creating user:", error);
-      toast.error("An error occurred while creating the user.");
+      toast.error(error.message || "An error occurred while creating the user.");
     }
   };
 
@@ -116,7 +82,7 @@ export default function UserManagementPage() {
           loading={loading}
         />
         <div className="flex justify-end mb-4">
-          <AddUserDialog onAddUser={handleAddUser} loading={loading} />
+          <AddUserDialog onAddUser={handleAddUser} loading={createUserMutation.isPending} />
         </div>
 
         <TabsContent value={activeTab} className="mt-6">

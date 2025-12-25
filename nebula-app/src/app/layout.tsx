@@ -3,12 +3,10 @@ import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/contexts/auth-context";
 import { ToastContainer } from "react-toastify";
 import React from "react";
-import { CategoryProvider } from "@/contexts/category-context";
-import { EventsProvider } from "@/contexts/events-context";
 import "./globals.css";
 import "react-toastify/dist/ReactToastify.css";
-import { ProgramsProvider } from "@/contexts/programs-context";
 import { Manrope } from "next/font/google";
+import { Providers } from "./providers";
 
 export const metadata: Metadata = {
   title: "Nebula - Coaching Platform",
@@ -28,13 +26,11 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body className={`${manrope.className}  antialiased`}>
-        <AuthProvider>
-          <CategoryProvider>
-            <ProgramsProvider>
-              <EventsProvider>{children}</EventsProvider>
-            </ProgramsProvider>
-          </CategoryProvider>
-        </AuthProvider>
+        <Providers>
+          <AuthProvider>
+            {children}
+          </AuthProvider>
+        </Providers>
         <Toaster />
         <ToastContainer
           position="top-right"

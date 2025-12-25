@@ -17,6 +17,10 @@ export class ProgramController {
     return await programService.getRecommendedPrograms(request);
   }
 
+  async getPopularPrograms(request: NextRequest) {
+    return await programService.getPopularPrograms(request);
+  }
+
   async getBySlug(request: NextRequest, slug: string) {
     if (!slug) {
       throw new BadRequestException("Program Slug is required");

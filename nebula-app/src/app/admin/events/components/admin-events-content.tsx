@@ -1,7 +1,12 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useEventsContext } from "@/contexts/events-context";
+import {
+  useEvents,
+  useCreateEvent,
+  useUpdateEvent,
+  useDeleteEvent,
+} from "@/hooks";
 import { toast } from "react-toastify";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { EventsHeader } from "./events-header";
@@ -35,15 +40,53 @@ export default function AdminEventsContent() {
   );
 
   const {
-    events,
-    loading,
+    data: eventsResponse,
+    isLoading: loading,
     error,
-    fetchAdminEvents,
-    actionLoading,
-    createEvent: handleCreateEventAction,
-    updateEvent: handleUpdateEventAction,
-    deleteEvent: handleDeleteEventAction,
-  } = useEventsContext();
+    refetch: fetchAdminEvents,
+  } = useEvents({
+    search: searchTerm || undefined,
+    status: activeTab === "all" ? undefined : activeTab.toUpperCase(),
+    limit: 10,
+  });
+
+  const events = eventsResponse?.data?.events || [];
+  const createEventMutation = useCreateEvent();
+  const updateEventMutation = useUpdateEvent();
+  const deleteEventMutation = useDeleteEvent();
+
+  const handleCreateEventAction = async (data: any) => {
+    try {
+      await createEventMutation.mutateAsync(data);
+      return true;
+    } catch (error) {
+      return false;
+    }
+  };
+
+  const handleUpdateEventAction = async (id: string, data: any) => {
+    try {
+      await updateEventMutation.mutateAsync({ id, updateData: data });
+      return true;
+    } catch (error) {
+      return false;
+    }
+  };
+
+  const handleDeleteEventAction = async (id: string) => {
+    try {
+      await deleteEventMutation.mutateAsync(id);
+      return true;
+    } catch (error) {
+      return false;
+    }
+  };
+
+  const actionLoading = {
+    create: createEventMutation.isPending,
+    [selectedEvent?.id]: updateEventMutation.isPending,
+    [`delete-${selectedEvent?.id}`]: deleteEventMutation.isPending,
+  };
 
   // Handle Google OAuth callback and URL parameters
   useEffect(() => {
@@ -85,12 +128,7 @@ export default function AdminEventsContent() {
 
   // Fetch admin events with current filters
   useEffect(() => {
-    const params = {
-      search: searchTerm || undefined,
-      eventType: activeTab === "all" ? undefined : activeTab.toUpperCase(),
-    };
-
-    fetchAdminEvents(params);
+    fetchAdminEvents();
   }, [searchTerm, activeTab, fetchAdminEvents]);
 
   // Helper function to trigger Google Calendar authentication for webinars
@@ -300,7 +338,9 @@ export default function AdminEventsContent() {
     return (
       <div className="flex-1 space-y-4 p-4 md:p-8">
         <div className="flex items-center justify-center h-64">
-          <div className="text-destructive">{error}</div>
+          <div className="text-destructive">
+            {error?.message || "Failed to load events"}
+          </div>
         </div>
       </div>
     );

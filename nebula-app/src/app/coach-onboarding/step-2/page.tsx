@@ -18,13 +18,14 @@ import { Progress } from "@/components/ui/progress";
 import React, { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { useSearchParams } from "next/navigation";
-import { useCategories } from "@/contexts/category-context";
+import { useCategories } from "@/hooks";
 
 function CoachOnboardingStep2Content() {
   const image = PlaceHolderImages.find((img) => img.id === "about-hero");
   const [specialties, setSpecialties] = useState<string[]>([]);
   const [inputValue, setInputValue] = useState("");
-  const { categories, loading } = useCategories();
+  const { data: categoriesResponse, isLoading: loading } = useCategories();
+  const categories = categoriesResponse?.data?.categories || [];
 
   const searchParams = useSearchParams();
   const role = searchParams.get("role");

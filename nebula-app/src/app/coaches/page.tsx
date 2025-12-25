@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -13,8 +13,7 @@ import { useSearchParams } from "next/navigation";
 import React from "react";
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
-import { getCoaches } from "@/actions/coaches";
-import { useCategories } from "@/contexts/category-context";
+import { useCategories, useCoaches } from "@/hooks";
 
 // API response coach structure
 interface ApiCoach {
@@ -57,37 +56,18 @@ function CoachesPageContent() {
   const initialSearch = searchParams.get("search") || "";
   const [activeCategory, setActiveCategory] = useState("All");
   const [searchTerm, setSearchTerm] = useState(initialSearch);
-  const [groupedCoaches, setGroupedCoaches] = useState<ApiCoachGroup[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { categories } = useCategories();
 
-  useEffect(() => {
-    const fetchCoaches = async () => {
-      setLoading(true);
-      try {
-        const response = await getCoaches({
-          search: searchTerm as string,
-          category: activeCategory === "All" ? undefined : activeCategory,
-          limit: 20,
-        });
-        if (response.success && response.data?.groupedCoaches) {
-          setGroupedCoaches(response.data.groupedCoaches);
-        } else {
-          console.log("No coaches found in API");
-          setGroupedCoaches([]);
-        }
-      } catch (err) {
-        console.error("Error fetching coaches:", err);
-        setGroupedCoaches([]);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const { data: categoriesResponse } = useCategories();
+  const { data: coachesResponse, isLoading: loading } = useCoaches({
+    search: searchTerm,
+    category: activeCategory === "All" ? undefined : activeCategory,
+    limit: 20,
+  });
 
-    fetchCoaches();
-  }, [searchTerm, activeCategory]);
+  const categories = categoriesResponse?.data?.categories || [];
+  const groupedCoaches = coachesResponse?.data?.groupedCoaches || [];
 
-  const filteredGroups = groupedCoaches.filter((group) => {
+  const filteredGroups = groupedCoaches.filter((group: any) => {
     if (activeCategory === "All") return group.items.length > 0;
     return group.group === activeCategory && group.items.length > 0;
   });
@@ -137,7 +117,7 @@ function CoachesPageContent() {
               )}
               All
             </Button>
-            {categories.map((category) => (
+            {categories.map((category: any) => (
               <Button
                 key={category.slug}
                 variant="outline"
@@ -159,13 +139,13 @@ function CoachesPageContent() {
 
         <section className="container pb-20">
           {filteredGroups.length > 0 ? (
-            filteredGroups.map(({ group, items }) => (
+            filteredGroups.map(({ group, items }: any) => (
               <div key={group} className="mb-16">
                 <h2 className="font-headline text-3xl font-bold text-left mb-8">
                   {group}
                 </h2>
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                  {items.map((coach) => (
+                  {items.map((coach: any) => (
                     <Link key={coach.id} href={`/coaches/${coach.id}`}>
                       <Card className="flex w-full flex-col rounded-xl border transition-all hover:shadow-lg">
                         <CardContent className="flex flex-1 flex-col p-4">
@@ -181,7 +161,7 @@ function CoachesPageContent() {
                               <AvatarFallback>
                                 {coach.fullName
                                   .split(" ")
-                                  .map((n) => n[0])
+                                  .map((n: any) => n[0])
                                   .join("")}
                               </AvatarFallback>
                             </Avatar>
@@ -204,7 +184,7 @@ function CoachesPageContent() {
                             <div className="flex flex-wrap justify-center gap-2">
                               {coach.specialties
                                 .slice(0, 3)
-                                .map((specialty) => (
+                                .map((specialty: any) => (
                                   <Badge key={specialty} variant="secondary">
                                     {specialty}
                                   </Badge>

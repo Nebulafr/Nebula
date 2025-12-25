@@ -2,7 +2,7 @@
 
 import React from "react";
 import ReactSelect, { SingleValue, Props as SelectProps } from "react-select";
-import { useUsers } from "@/contexts/user-context";
+import { useAdminUsers } from "@/hooks";
 import { UserRole } from "@/enums";
 
 // Type assertion for react-select to fix TypeScript compatibility
@@ -25,19 +25,19 @@ export function UserSelect({
   onChange,
   placeholder = "Select a user...",
 }: UserSelectProps) {
-  const { users, loading } = useUsers();
+  const { data: users = [], isLoading: loading } = useAdminUsers();
 
   const options = React.useMemo(() => {
     return users
-      .filter((user) => user.role !== UserRole.ADMIN)
-      .map((user) => ({
+      .filter((user: any) => user.role !== UserRole.ADMIN)
+      .map((user: any) => ({
         value: user.id,
         label: `${user.fullName || user.email} (${user.role.toLowerCase()})`,
       }));
   }, [users]);
 
   const selectedOption = value
-    ? options.find((option) => option.value === value) || null
+    ? options.find((option: any) => option.value === value) || null
     : null;
 
   const handleChange = (option: SingleValue<UserSelectOption>) => {

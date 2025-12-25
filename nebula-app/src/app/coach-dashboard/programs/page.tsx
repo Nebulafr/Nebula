@@ -1,21 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-  PlusCircle,
-  MoreHorizontal,
-  Briefcase,
-  GraduationCap,
-  Star,
-  Users,
-} from "lucide-react";
-import { createProgram, getPrograms } from "@/actions/programs";
+import { PlusCircle, Briefcase } from "lucide-react";
 import { toast } from "react-toastify";
-import { useCategories } from "@/contexts/category-context";
+import { useCategories, usePrograms, useCreateProgram } from "@/hooks";
 import { useAuth } from "@/hooks/use-auth";
-import { IProgram, ProgramCard } from "./components/program-card";
+import { ProgramCard } from "./components/program-card";
 import {
   CreateProgramDialog,
   ProgramFormData,
@@ -23,51 +15,18 @@ import {
 
 export default function CoachProgramsPage() {
   const { profile } = useAuth();
-  const { categories } = useCategories();
-  const [programs, setPrograms] = useState<IProgram[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [createLoading, setCreateLoading] = useState(false);
+  const { data: categoriesResponse } = useCategories();
+  const { 
+    data: programsResponse, 
+    isLoading: loading 
+  } = usePrograms({ 
+    coachId: profile?.coach?.id 
+  });
+  const createProgramMutation = useCreateProgram();
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  useEffect(() => {
-    if (!profile) return;
-
-    const fetchPrograms = async () => {
-      try {
-        setLoading(true);
-        const result = await getPrograms({ coachId: profile?.coach!.id });
-        if (result.success) {
-          setPrograms(result.data?.programs);
-        } else {
-          console.error("Error fetching programs:", result.error);
-          setPrograms([]);
-        }
-      } catch (error) {
-        console.error("Error fetching programs:", error);
-        setPrograms([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPrograms();
-  }, [profile]);
-
-  const refreshPrograms = async () => {
-    if (!profile) return;
-    try {
-      const result = await getPrograms({ coachId: profile?.coach!.id });
-      if (result.success) {
-        setPrograms(result.data?.programs);
-      } else {
-        console.error("Error refreshing programs:", result.error);
-        setPrograms([]);
-      }
-    } catch (error) {
-      console.error("Error refreshing programs:", error);
-      setPrograms([]);
-    }
-  };
+  const categories = categoriesResponse?.data?.categories || [];
+  const programs = programsResponse?.data?.programs || [];
 
   const handleCreateProgram = async (
     programData: ProgramFormData
@@ -77,7 +36,6 @@ export default function CoachProgramsPage() {
       return false;
     }
 
-    setCreateLoading(true);
     try {
       const createProgramData = {
         title: programData.title,
@@ -87,22 +45,13 @@ export default function CoachProgramsPage() {
         modules: programData.modules,
       };
 
-      const result = await createProgram(createProgramData);
-
-      if (result.success) {
-        toast.success(result.message || "Your new program has been created.");
-        await refreshPrograms();
-        return true;
-      } else {
-        toast.error(result.message || "Could not create the program.");
-        return false;
-      }
+      await createProgramMutation.mutateAsync(createProgramData);
+      toast.success("Your new program has been created.");
+      return true;
     } catch (error) {
       toast.error("Could not create the program.");
       console.error(error);
       return false;
-    } finally {
-      setCreateLoading(false);
     }
   };
 
@@ -168,7 +117,7 @@ export default function CoachProgramsPage() {
         </Card>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {programs.map((program) => (
+          {programs.map((program: any) => (
             <ProgramCard key={program.id} program={program} />
           ))}
         </div>
@@ -177,9 +126,9 @@ export default function CoachProgramsPage() {
       <CreateProgramDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
-        categories={categories.map((cat) => cat.name)}
+        categories={categories.map((cat: any) => cat.name)}
         onCreateProgram={handleCreateProgram}
-        loading={createLoading}
+        loading={createProgramMutation.isPending}
       />
     </div>
   );

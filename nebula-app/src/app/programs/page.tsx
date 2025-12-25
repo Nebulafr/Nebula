@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -9,49 +9,20 @@ import { Star, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
-import { useCategories } from "@/contexts/category-context";
+import { useCategories, usePrograms } from "@/hooks";
 import { ProgramWithRelations } from "@/types/program";
-import { getPrograms } from "@/actions/programs";
-import { toast } from "react-toastify";
-import { groupedPrograms } from "../../../data/programs";
 
 export default function ProgramsPage() {
   const [activeCategory, setActiveCategory] = useState("All");
-  const [programsData, setProgramsData] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { categories } = useCategories();
 
-  useEffect(() => {
-    const fetchPrograms = async () => {
-      try {
-        setLoading(true);
-        const categoryParam =
-          activeCategory === "All" ? undefined : activeCategory;
-        const response = await getPrograms({
-          limit: 50,
-          category: categoryParam,
-        });
-        if (!response.success) {
-          throw new Error(response.message || "Failed to fetch programs");
-        }
-        const groupedPrograms = response.data?.groupedPrograms;
-        setProgramsData(groupedPrograms);
-      } catch (error) {
-        console.error("Error fetching programs:", error);
-        toast.error((error as Error).message || "An unexpected error occurred");
-        setProgramsData([]);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const { data: categoriesResponse } = useCategories();
+  const { data: programsResponse, isLoading: loading } = usePrograms({
+    limit: 50,
+    category: activeCategory === "All" ? undefined : activeCategory,
+  });
 
-    fetchPrograms();
-  }, [activeCategory]);
-
-  console.log("Programs Data:", programsData);
-
-  const filteredGroups =
-    programsData.length > 0 ? programsData : groupedPrograms;
+  const categories = categoriesResponse?.data?.categories || [];
+  const filteredGroups = programsResponse?.data?.groupedPrograms || [];
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -82,7 +53,7 @@ export default function ProgramsPage() {
               )}
               All
             </Button>
-            {categories.map((category) => (
+            {categories.map((category: any) => (
               <Button
                 key={category.slug}
                 variant="outline"

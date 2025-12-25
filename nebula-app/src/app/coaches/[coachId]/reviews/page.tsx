@@ -1,48 +1,27 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ArrowLeft, Star } from "lucide-react";
+import { ArrowLeft, Star, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
-import { getCoachReviews } from "@/actions/reviews";
 import { capitalize } from "@/lib/utils";
+import { useCoachReviews } from "@/hooks";
 
-type Review = {
-  id: string;
-  rating: number;
-  content: string;
-  reviewer: {
-    id: string;
-    fullName: string;
-    role: string;
-    avatarUrl?: string;
-  };
-  createdAt: string;
-};
 
 export default function CoachReviewsPage() {
   const { coachId } = useParams<{ coachId: string }>();
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [coachName, setCoachName] = useState("Adrian Cucurella");
-
-  useEffect(() => {
-    if (!coachId) return;
-
-    const fetchReviews = async () => {
-      const response = await getCoachReviews({ coachId });
-      const responseData = response.data;
-      if (responseData?.reviews) {
-        setReviews(responseData.reviews);
-      }
-    };
-
-    fetchReviews();
-  }, [coachId]);
+  
+  const { 
+    data: reviewsResponse, 
+    isLoading: loading 
+  } = useCoachReviews({ coachId });
+  
+  const reviews = reviewsResponse?.data?.reviews || [];
+  const coachName = "Coach"; // This would ideally come from a separate coach query
 
   const renderStars = (rating: number) => {
     return (
@@ -99,9 +78,15 @@ export default function CoachReviewsPage() {
           </div>
 
           {/* Reviews Grid */}
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {reviews.length > 0 ? (
-              reviews.map((review) => (
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin" />
+              <span className="ml-2">Loading reviews...</span>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {reviews.length > 0 ? (
+                reviews.map((review: any) => (
                 <Card
                   key={review.id}
                   className="overflow-hidden rounded-xl border shadow-sm transition-shadow hover:shadow-md"
@@ -146,7 +131,8 @@ export default function CoachReviewsPage() {
                 </Button>
               </div>
             )}
-          </div>
+            </div>
+          )}
         </section>
       </main>
 

@@ -6,21 +6,25 @@ import { DashboardHeader } from "./components/dashboard-header";
 import { RecommendedPrograms } from "./components/recommended-programs";
 import { UpcomingSessions } from "./components/upcoming-sessions";
 import { SuggestedCoaches } from "./components/suggested-coaches";
-import { useEventsContext } from "@/contexts/events-context";
-import { useProgramsContext } from "@/contexts/programs-context";
-import { sampleEvents } from "../../../data/event";
-import { transformedCoaches } from "../../../data/coaches";
-import { CoachWithRelations } from "@/types/coach";
-import { transformedPrograms } from "../../../data/programs";
-
-const recommendedPrograms = transformedPrograms.slice(0, 6);
-const upcomingSessions = sampleEvents.slice(0, 6);
-const suggestedCoaches = transformedCoaches.slice(0, 4) as CoachWithRelations[];
+import { usePublicEvents, useRecommendedPrograms, useCoaches } from "@/hooks";
+import { Event } from "@/types/event";
 
 export default function DashboardPage() {
   const { profile } = useAuth();
-  const { upcomingEvents } = useEventsContext();
-  const { programs } = useProgramsContext();
+  
+  // Fetch data using React Query hooks
+  const { data: eventsResponse } = usePublicEvents({ limit: 6 });
+  const { data: programsResponse } = useRecommendedPrograms();
+  const { data: coachesResponse } = useCoaches({ limit: 4 });
+
+  const upcomingEvents = eventsResponse?.data?.events?.filter((event: Event) => {
+    const eventDate = new Date(event.date);
+    const now = new Date();
+    return eventDate > now && event.status === "UPCOMING";
+  }) || [];
+
+  const programs = programsResponse?.data?.programs || [];
+  const coaches = coachesResponse?.data?.coaches || [];
 
   return (
     <StudentRoute>
@@ -28,15 +32,9 @@ export default function DashboardPage() {
         <div className="mx-auto max-w-7xl space-y-8">
           <DashboardHeader user={profile} />
           <div className="space-y-12 md:space-y-16">
-            <RecommendedPrograms
-              programs={programs.length > 3 ? programs : recommendedPrograms}
-            />
-            <UpcomingSessions
-              sessions={
-                upcomingEvents.length > 3 ? upcomingEvents : upcomingSessions
-              }
-            />
-            <SuggestedCoaches coaches={suggestedCoaches} user={profile!} />
+            <RecommendedPrograms programs={programs} />
+            <UpcomingSessions sessions={upcomingEvents} />
+            <SuggestedCoaches coaches={coaches} user={profile!} />
           </div>
         </div>
       </div>

@@ -1,18 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { useAdminReviews } from "@/hooks/use-admin-reviews";
+import { useAdminReviews } from "@/hooks";
 
-function debounce<T extends (...args: any[]) => any>(
-  func: T,
-  delay: number
-): (...args: Parameters<T>) => void {
-  let timeoutId: NodeJS.Timeout;
-  return (...args: Parameters<T>) => {
-    clearTimeout(timeoutId);
-    timeoutId = setTimeout(() => func(...args), delay);
-  };
-}
 import {
   Table,
   TableHeader,
@@ -56,34 +46,23 @@ const StarRating = ({ rating }: { rating: number }) => (
 
 export default function AdminReviewsPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const { reviews, loading, fetchReviews } = useAdminReviews();
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
-  // Debounced search function
-  const debouncedFetch = React.useCallback(
-    debounce((search: string) => {
-      fetchReviews({
-        search: search || undefined,
-      });
-    }, 300),
-    [fetchReviews]
-  );
+  const { data: reviews = [], isLoading: loading } = useAdminReviews({
+    search: debouncedSearch || undefined,
+  });
 
-  // Initial fetch on mount
+  // Debounce search term
   React.useEffect(() => {
-    fetchReviews();
-  }, [fetchReviews]);
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+    }, 300);
 
-  // Effect to trigger API call when search changes
-  React.useEffect(() => {
-    if (searchTerm) {
-      debouncedFetch(searchTerm);
-    } else {
-      fetchReviews();
-    }
-  }, [searchTerm, debouncedFetch, fetchReviews]);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   // Transform reviews to match the table interface
-  const transformedReviews = reviews.map((review) => ({
+  const transformedReviews = reviews.map((review: any) => ({
     id: review.id,
     author: {
       name: review.reviewer.fullName || review.reviewer.email,
@@ -178,7 +157,7 @@ export default function AdminReviewsPage() {
                   </TableCell>
                 </TableRow>
               ) : (
-                transformedReviews.map((review, index) => (
+                transformedReviews.map((review: any, index: number) => (
                   <TableRow key={index}>
                     <TableCell>
                       <div className="flex items-center gap-3">
