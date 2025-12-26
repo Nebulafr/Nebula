@@ -34,12 +34,12 @@ export class EventService {
     }
 
     const payload = createEventSchema.parse(data);
-    const eventData = payload as any;
+    const { organizerId, ...eventData } = payload as any;
 
     const event = await prisma.event.create({
       data: {
         ...eventData,
-        organizerId: eventData.organizerId || user.id,
+        organizerId: organizerId || user.id,
       },
       include: {
         organizer: {
@@ -74,6 +74,7 @@ export class EventService {
       tags: event.tags,
       whatToBring: event.whatToBring,
       additionalInfo: event.additionalInfo,
+      lumaEventLink: event.lumaEventLink,
       createdAt: event.createdAt.toISOString(),
       updatedAt: event.updatedAt.toISOString(),
     };
@@ -203,6 +204,7 @@ export class EventService {
       tags: event.tags,
       whatToBring: event.whatToBring,
       additionalInfo: event.additionalInfo,
+      lumaEventLink: event.lumaEventLink,
       createdAt: event.createdAt.toISOString(),
       updatedAt: event.updatedAt.toISOString(),
     }));
@@ -299,6 +301,7 @@ export class EventService {
       tags: event.tags,
       whatToBring: event.whatToBring,
       additionalInfo: event.additionalInfo,
+      lumaEventLink: event.lumaEventLink,
       createdAt: event.createdAt.toISOString(),
       updatedAt: event.updatedAt.toISOString(),
     };
@@ -389,6 +392,7 @@ export class EventService {
       tags: event.tags,
       whatToBring: event.whatToBring,
       additionalInfo: event.additionalInfo,
+      lumaEventLink: event.lumaEventLink,
       createdAt: event.createdAt.toISOString(),
       updatedAt: event.updatedAt.toISOString(),
     };
@@ -470,7 +474,7 @@ export class EventService {
       tags: event!.tags,
       whatToBring: event!.whatToBring,
       additionalInfo: event!.additionalInfo,
-
+      lumaEventLink: event!.lumaEventLink,
       createdAt: event!.createdAt.toISOString(),
       updatedAt: event!.updatedAt.toISOString(),
     };

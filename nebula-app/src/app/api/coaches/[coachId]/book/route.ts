@@ -43,6 +43,14 @@ export const POST = CatchError(
           id: coachId,
           isActive: true,
         },
+        include: {
+          user: {
+            select: {
+              id: true,
+              fullName: true,
+            },
+          },
+        },
       });
 
       if (!coach) {
@@ -117,7 +125,7 @@ export const POST = CatchError(
             scheduledTime: sessionStartDate,
             duration: duration,
             status: "SCHEDULED",
-            title: `Session with ${coach.fullName || "Coach"}`,
+            title: `Session with ${coach.user?.fullName || "Coach"}`,
           },
         });
 

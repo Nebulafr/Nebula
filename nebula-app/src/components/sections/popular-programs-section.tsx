@@ -146,11 +146,8 @@ export function PopularProgramsSection() {
           ) : (
             <div className="col-span-full text-center">
               <p className="text-muted-foreground">
-                No upcoming events at the moment.
+                No popular programs at the moment.
               </p>
-              <Button asChild className="mt-4">
-                <Link href="/events">Explore All Events</Link>
-              </Button>
             </div>
           )}
         </div>

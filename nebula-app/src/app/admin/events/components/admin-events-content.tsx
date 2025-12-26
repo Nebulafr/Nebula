@@ -48,30 +48,39 @@ export default function AdminEventsContent() {
   const deleteEventMutation = useDeleteEvent();
 
   const handleCreateEventAction = async (data: any) => {
-    try {
-      await createEventMutation.mutateAsync(data);
-      return true;
-    } catch (error) {
+    const response = await createEventMutation.mutateAsync(data);
+
+    if (!response.success) {
+      toast.error(response.message);
       return false;
     }
+    toast.success(response.message || "Event created successfully");
+    return true;
   };
 
   const handleUpdateEventAction = async (id: string, data: any) => {
-    try {
-      await updateEventMutation.mutateAsync({ id, updateData: data });
-      return true;
-    } catch (error) {
+    const response = await updateEventMutation.mutateAsync({
+      id,
+      updateData: data,
+    });
+
+    if (!response.success) {
+      toast.error(response.message);
       return false;
     }
+    toast.success(response.message || "Event updated successfully");
+    return true;
   };
 
   const handleDeleteEventAction = async (id: string) => {
-    try {
-      await deleteEventMutation.mutateAsync(id);
-      return true;
-    } catch (error) {
+    const response = await deleteEventMutation.mutateAsync(id);
+
+    if (!response.success) {
+      toast.error(response.message);
       return false;
     }
+    toast.success(response.message || "Event deleted successfully");
+    return true;
   };
 
   const actionLoading = {
@@ -124,17 +133,13 @@ export default function AdminEventsContent() {
     isPublic: true,
     maxAttendees: "",
     tags: [] as string[],
+    lumaEventLink: "",
   });
 
   const handleEventAction = async (id: string, newStatus: string) => {
-    const success = await handleUpdateEventAction(id, {
+    await handleUpdateEventAction(id, {
       status: newStatus as any,
     });
-    if (success) {
-      toast.success("Event updated successfully");
-    } else {
-      toast.error("Failed to update event");
-    }
   };
 
   const handleViewDetails = (event: any) => {
@@ -151,9 +156,6 @@ export default function AdminEventsContent() {
       if (success) {
         setIsDetailsDialogOpen(false);
         setSelectedEvent(null);
-        toast.success("Event updated successfully");
-      } else {
-        toast.error("Failed to update event");
       }
     }
   };
@@ -175,6 +177,7 @@ export default function AdminEventsContent() {
           : undefined,
         tags: newEvent.tags,
         organizerId: newEvent.organizerId || undefined,
+        lumaEventLink: newEvent.lumaEventLink,
       };
 
       const success = await handleCreateEventAction(eventData);
@@ -193,11 +196,9 @@ export default function AdminEventsContent() {
           isPublic: true,
           maxAttendees: "",
           tags: [],
+          lumaEventLink: "",
         });
         setIsCreateDialogOpen(false);
-        toast.success("Event created successfully");
-      } else {
-        toast.error("Failed to create event");
       }
     }
   };
@@ -207,12 +208,7 @@ export default function AdminEventsContent() {
   };
 
   const handleDeleteEvent = async (id: string) => {
-    const success = await handleDeleteEventAction(id);
-    if (success) {
-      toast.success("Event deleted successfully");
-    } else {
-      toast.error("Failed to delete event");
-    }
+    await handleDeleteEventAction(id);
   };
 
   const filteredEvents = events;

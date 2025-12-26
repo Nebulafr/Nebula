@@ -122,6 +122,10 @@ model User {
   // Events organized
   organizedEvents Event[] @relation("EventOrganizer")
 
+  // Indexes for performance
+  @@index([email])
+  @@index([role, status])
+  @@index([createdAt])
   @@map("users")
 }
 
@@ -136,17 +140,18 @@ model Category {
   // Relationships
   programs Program[]
 
+  // Indexes for performance
+  @@index([slug])
+  @@index([isActive])
   @@map("categories")
 }
 
 model Coach {
   id              String   @id @default(cuid())
   userId          String   @unique @map("user_id")
-  email           String?
-  fullName        String?  @map("full_name")
-  avatarUrl       String?  @map("avatar_url")
+  // Removed: email, fullName, avatarUrl (use user.email, user.fullName, user.avatarUrl instead)
   title           String
-  bio             String
+  bio             String   @db.Text
   style           String
   specialties     String[]
   pastCompanies   String[] @map("past_companies")
@@ -175,24 +180,26 @@ model Coach {
   enrollments Enrollment[]
   reviews     Review[]     @relation("ReviewCoach")
 
+  // Indexes for performance
+  @@index([slug])
+  @@index([isActive, isVerified])
+  @@index([rating])
+  @@index([category])
+  @@index([createdAt])
   @@map("coaches")
 }
 
 model Student {
   id                String      @id @default(cuid())
   userId            String      @unique @map("user_id")
-  email             String?
-  fullName          String?     @map("full_name")
-  avatarUrl         String?     @map("avatar_url")
+  // Removed: email, fullName, avatarUrl (use user.email, user.fullName, user.avatarUrl instead)
   interestedProgram String?     @map("interested_program")
   skillLevel        SkillLevel? @map("skill_level")
   commitment        String?
   learningGoals     String[]    @map("learning_goals")
   currentLevel      String?     @map("current_level")
   timeZone          String?     @map("time_zone")
-  enrolledPrograms  String[]    @map("enrolled_programs")
-  completedSessions String[]    @map("completed_sessions")
-  upcomingSessions  String[]    @map("upcoming_sessions")
+  // Removed: enrolledPrograms, completedSessions, upcomingSessions (use relations instead for data integrity)
   createdAt         DateTime    @default(now()) @map("created_at")
   updatedAt         DateTime    @updatedAt @map("updated_at")
 
@@ -205,6 +212,9 @@ model Student {
   // Event attendance
   eventAttendances EventAttendee[]
 
+  // Indexes for performance
+  @@index([skillLevel])
+  @@index([createdAt])
   @@map("students")
 }
 
@@ -227,17 +237,17 @@ model Program {
   id                 String          @id @default(cuid())
   title              String
   categoryId         String          @map("category_id")
-  description        String
+  description        String          @db.Text
   objectives         String[]
   coachId            String          @map("coach_id")
   slug               String          @unique
   rating             Float           @default(0)
-  totalReviews       Int?            @default(0) @map("total_reviews")
-  price              Int?            @default(0)
+  totalReviews       Int             @default(0) @map("total_reviews")
+  price              Int             @default(0)
   duration           String?
   difficultyLevel    DifficultyLevel @default(BEGINNER) @map("difficulty_level")
-  maxStudents        Int?            @default(100)
-  currentEnrollments Int?            @default(0) @map("current_enrollments")
+  maxStudents        Int             @default(100) @map("max_students")
+  currentEnrollments Int             @default(0) @map("current_enrollments")
   isActive           Boolean         @default(false) @map("is_active")
   status             ProgramStatus   @default(INACTIVE)
   tags               String[]
@@ -252,6 +262,14 @@ model Program {
   enrollments Enrollment[]
   reviews     Review[]     @relation("ReviewProgram")
 
+  // Indexes for performance
+  @@index([slug])
+  @@index([categoryId])
+  @@index([coachId])
+  @@index([isActive, status])
+  @@index([rating])
+  @@index([difficultyLevel])
+  @@index([createdAt])
   @@map("programs")
 }
 
@@ -260,11 +278,14 @@ model Module {
   programId   String  @map("program_id")
   title       String
   week        Int
-  description String?
+  description String? @db.Text
 
   // Relationships
   program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
 
+  // Indexes for performance
+  @@index([programId])
+  @@index([programId, week])
   @@map("modules")
 }
 
@@ -287,6 +308,15 @@ model Enrollment {
   program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
   coach   Coach   @relation(fields: [coachId], references: [id])
 
+  // Indexes for performance
+  @@index([studentId])
+  @@index([programId])
+  @@index([coachId])
+  @@index([status])
+  @@index([paymentStatus])
+  @@index([studentId, status])
+  @@index([coachId, status])
+  @@index([enrollmentDate])
   @@map("enrollments")
 }
 
@@ -294,13 +324,13 @@ model Session {
   id            String        @id @default(cuid())
   coachId       String        @map("coach_id")
   title         String?
-  description   String?
+  description   String?       @db.Text
   scheduledTime DateTime      @map("scheduled_time")
   duration      Int
   status        SessionStatus @default(SCHEDULED)
   meetLink      String?       @map("meet_link")
   googleEventId String?       @map("google_event_id")
-  notes         String?
+  notes         String?       @db.Text
   createdAt     DateTime      @default(now()) @map("created_at")
   updatedAt     DateTime      @updatedAt @map("updated_at")
 
@@ -309,6 +339,12 @@ model Session {
   attendance SessionAttendance[]
   recordings SessionRecording[]
 
+  // Indexes for performance
+  @@index([coachId])
+  @@index([scheduledTime])
+  @@index([status])
+  @@index([coachId, scheduledTime])
+  @@index([coachId, status])
   @@map("sessions")
 }
 
@@ -326,6 +362,9 @@ model SessionAttendance {
   student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@unique([sessionId, studentId])
+  @@index([sessionId])
+  @@index([studentId])
+  @@index([studentId, attended])
   @@map("session_attendance")
 }
 
@@ -341,6 +380,9 @@ model SessionRecording {
   // Relationships
   session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
+  // Indexes for performance
+  @@index([sessionId])
+  @@index([uploadedAt])
   @@map("session_recordings")
 }
 
@@ -353,10 +395,10 @@ model Review {
   targetType   ReviewTargetType @map("target_type")
   rating       Int
   title        String?
-  content      String
+  content      String           @db.Text
   isVerified   Boolean          @default(false) @map("is_verified")
   isPublic     Boolean          @default(true) @map("is_public")
-  helpfulCount Int?             @default(0) @map("helpful_count")
+  helpfulCount Int              @default(0) @map("helpful_count")
   tags         String[]
   createdAt    DateTime         @default(now()) @map("created_at")
   updatedAt    DateTime         @updatedAt @map("updated_at")
@@ -367,6 +409,15 @@ model Review {
   program  Program? @relation("ReviewProgram", fields: [programId], references: [id])
   coach    Coach?   @relation("ReviewCoach", fields: [coachId], references: [id])
 
+  // Indexes for performance
+  @@index([reviewerId])
+  @@index([revieweeId])
+  @@index([programId])
+  @@index([coachId])
+  @@index([targetType])
+  @@index([rating])
+  @@index([isPublic, isVerified])
+  @@index([createdAt])
   @@map("reviews")
 }
 
@@ -468,51 +519,38 @@ model MessageReaction {
 model Event {
   id             String   @id @default(cuid())
   title          String
-  description    String
+  description    String   @db.Text
   eventType      String   @map("event_type")
   date           DateTime
   location       String?
   images         String[] // Array of image URLs
   slug           String   @unique
-  organizerId    String?  @map("organizer_id")
+  organizerId    String   @map("organizer_id")
   isPublic       Boolean  @default(true) @map("is_public")
   maxAttendees   Int?     @map("max_attendees")
   status         String?
   tags           String[]
   meetLink       String?  @map("meet_link")
   googleEventId  String?  @map("google_event_id")
-  whatToBring    String?  @map("what_to_bring")
-  additionalInfo String?  @map("additional_info")
+  whatToBring    String?  @db.Text @map("what_to_bring")
+  additionalInfo String?  @db.Text @map("additional_info")
+  lumaEventLink  String   @map("luma_event_link")
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt @map("updated_at")
 
   organizer User?           @relation("EventOrganizer", fields: [organizerId], references: [id])
   attendees EventAttendee[]
-  sessions  EventSession[]
 
+  // Indexes for performance
+  @@index([slug])
   @@index([organizerId])
+  @@index([date])
+  @@index([eventType])
+  @@index([isPublic, date])
+  @@index([status])
   @@map("events")
 }
 
-model EventSession {
-  id          String   @id @default(cuid())
-  eventId     String   @map("event_id")
-  date        DateTime
-  time        String
-  price       Float?   @default(0)
-  currency    String?  @default("EUR")
-  spotsLeft   Int?     @map("spots_left")
-  isActive    Boolean  @default(true) @map("is_active")
-  description String?
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
-  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
-
-  @@index([eventId])
-  @@index([date])
-  @@map("event_sessions")
-}
 
 model EventAttendee {
   id           String              @id @default(cuid())

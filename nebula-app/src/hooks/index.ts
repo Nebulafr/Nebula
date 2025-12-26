@@ -1,65 +1,70 @@
 // Auth hooks
-export * from './use-auth-queries';
+export * from "./use-auth-queries";
 
-// Programs hooks  
-export * from './use-programs-queries';
+// Programs hooks
+export * from "./use-programs-queries";
 
 // Coaches hooks
-export * from './use-coaches-queries';
+export * from "./use-coaches-queries";
 
 // Events hooks
-export * from './use-events-queries';
+export * from "./use-events-queries";
 
 // Reviews hooks
-export * from './use-reviews-queries';
+export * from "./use-reviews-queries";
 
 // Categories hooks
-export * from './use-categories-queries';
+export * from "./use-categories-queries";
 
 // Admin hooks
-export * from './use-admin-queries';
+export * from "./use-admin-queries";
 
 // Legacy hook re-exports (maintain backward compatibility)
-export * from './use-auth';
-export * from './use-user';
-export * from './use-events';
-export * from './use-filtered-events';
-export * from './use-admin-reviews';
-export * from './use-admin-users';
-export * from './use-mobile';
+export * from "./use-auth";
+export * from "./use-user";
+export * from "./use-events";
+export * from "./use-filtered-events";
+export * from "./use-admin-reviews";
+export * from "./use-admin-users";
+export * from "./use-mobile";
 
 // Query keys for easy access
 export const QUERY_KEYS = {
   // Auth
-  USER_PROFILE: 'user-profile',
-  
+  USER_PROFILE: "user-profile",
+
   // Programs
-  PROGRAMS: 'programs',
-  RECOMMENDED_PROGRAMS: 'recommended-programs',
-  POPULAR_PROGRAMS: 'popular-programs',
-  PROGRAM_BY_SLUG: 'program-by-slug',
-  ADMIN_PROGRAMS: 'admin-programs',
-  
+  PROGRAMS: "programs",
+  RECOMMENDED_PROGRAMS: "recommended-programs",
+  POPULAR_PROGRAMS: "popular-programs",
+  PROGRAM_BY_SLUG: "program-by-slug",
+  ADMIN_PROGRAMS: "admin-programs",
+
   // Coaches
-  COACHES: 'coaches',
-  COACH_BY_SLUG: 'coach-by-slug',
-  COACH_BY_ID: 'coach-by-id',
-  
+  COACHES: "coaches",
+  COACH_BY_SLUG: "coach-by-slug",
+  COACH_BY_ID: "coach-by-id",
+  SUGGESTED_COACHES: "suggested-coaches",
+
   // Events
-  EVENTS: 'events',
-  PUBLIC_EVENTS: 'public-events',
-  EVENT_BY_ID: 'event-by-id',
-  EVENT_BY_SLUG: 'event-by-slug',
-  
+  EVENTS: "events",
+  PUBLIC_EVENTS: "public-events",
+  EVENT_BY_ID: "event-by-id",
+  EVENT_BY_SLUG: "event-by-slug",
+
   // Reviews
-  COACH_REVIEWS: 'coach-reviews',
-  PROGRAM_REVIEWS: 'program-reviews',
-  
+  COACH_REVIEWS: "coach-reviews",
+  PROGRAM_REVIEWS: "program-reviews",
+
   // Categories
-  CATEGORIES: 'categories',
-  ADMIN_CATEGORIES: 'admin-categories',
-  
+  CATEGORIES: "categories",
+  ADMIN_CATEGORIES: "admin-categories",
+
   // Admin
-  ADMIN_REVIEWS: 'admin-reviews',
-  ADMIN_USERS: 'admin-users',
+  ADMIN_REVIEWS: "admin-reviews",
+  ADMIN_USERS: "admin-users",
+  ADMIN_DASHBOARD_STATS: "admin-dashboard-stats",
+  ADMIN_RECENT_SIGNUPS: "admin-recent-signups",
+  ADMIN_PLATFORM_ACTIVITY: "admin-platform-activity",
+  ADMIN_EVENTS: "admin-events",
 } as const;

@@ -1,6 +1,10 @@
 import { NextRequest } from "next/server";
 import { CoachService } from "../services/coach.service";
-import { coachQuerySchema, updateCoachProfileSchema } from "@/lib/validations";
+import {
+  coachQuerySchema,
+  updateCoachProfileSchema,
+  createCoachSchema,
+} from "@/lib/validations";
 import {
   BadRequestException,
   ValidationException,
@@ -41,6 +45,33 @@ export class CoachController {
     return await CoachService.getProfile(user.id);
   }
 
+  async createCoach(request: NextRequest) {
+    const user = (request as any).user;
+
+    let body;
+    try {
+      body = await request.json();
+    } catch (error) {
+      throw new BadRequestException("Invalid JSON body");
+    }
+
+    let payload;
+    try {
+      payload = createCoachSchema.parse(body);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        throw new ValidationException(
+          `Validation failed: ${error.errors
+            .map((e) => `${e.path.join(".")}: ${e.message}`)
+            .join(", ")}`
+        );
+      }
+      throw error;
+    }
+
+    return await CoachService.createCoach(user.id, payload);
+  }
+
   async updateCoach(request: NextRequest) {
     const user = (request as any).user;
 
@@ -74,5 +105,14 @@ export class CoachController {
     }
 
     return await CoachService.getCoachById(coachId, request);
+  }
+
+  async getSuggestedCoaches(request: NextRequest) {
+    const user = (request as any).user;
+
+    const { searchParams } = new URL(request.url);
+    const limit = parseInt(searchParams.get("limit") || "4");
+
+    return await CoachService.getSuggestedCoaches(user.id, limit);
   }
 }

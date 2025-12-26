@@ -3,6 +3,10 @@ import { makeRequest } from "@/lib/utils";
 
 export const ADMIN_REVIEWS_QUERY_KEY = "admin-reviews";
 export const ADMIN_USERS_QUERY_KEY = "admin-users";
+export const ADMIN_DASHBOARD_STATS_QUERY_KEY = "admin-dashboard-stats";
+export const ADMIN_RECENT_SIGNUPS_QUERY_KEY = "admin-recent-signups";
+export const ADMIN_PLATFORM_ACTIVITY_QUERY_KEY = "admin-platform-activity";
+export const ADMIN_EVENTS_QUERY_KEY = "admin-events";
 
 export interface AdminReview {
   id: string;
@@ -59,7 +63,8 @@ export function useAdminReviews(params?: {
     queryFn: async () => {
       const queryParams = new URLSearchParams();
       if (params?.search) queryParams.append("search", params.search);
-      if (params?.targetType) queryParams.append("targetType", params.targetType);
+      if (params?.targetType)
+        queryParams.append("targetType", params.targetType);
       if (params?.status) queryParams.append("status", params.status);
       if (params?.rating) queryParams.append("rating", params.rating);
 
@@ -67,11 +72,11 @@ export function useAdminReviews(params?: {
         queryParams.toString() ? `?${queryParams.toString()}` : ""
       }`;
       const response = await makeRequest(url, "GET");
-      
+
       if (!response.success) {
         throw new Error(response.message || "Failed to fetch reviews");
       }
-      
+
       return response.data.reviews || [];
     },
     staleTime: 2 * 60 * 1000, // 2 minutes
@@ -95,11 +100,11 @@ export function useAdminUsers(params?: {
         queryParams.toString() ? `?${queryParams.toString()}` : ""
       }`;
       const response = await makeRequest(url, "GET");
-      
+
       if (!response.success) {
         throw new Error(response.message || "Failed to fetch users");
       }
-      
+
       return response.data.users || [];
     },
     staleTime: 2 * 60 * 1000, // 2 minutes
@@ -141,5 +146,138 @@ export function useCreateUser() {
       // Invalidate and refetch admin users
       queryClient.invalidateQueries({ queryKey: [ADMIN_USERS_QUERY_KEY] });
     },
+  });
+}
+
+export interface DashboardStats {
+  revenue: { value: string; change: string };
+  users: { value: string; change: string };
+  signups: { value: string; change: string };
+  coaches: { value: string; change: string };
+}
+
+export function useDashboardStats() {
+  return useQuery({
+    queryKey: [ADMIN_DASHBOARD_STATS_QUERY_KEY],
+    queryFn: async () => {
+      const response = await makeRequest("/admin/dashboard/stats", "GET");
+
+      if (!response.success) {
+        throw new Error(response.message || "Failed to fetch dashboard stats");
+      }
+
+      return response.data.stats as DashboardStats;
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+}
+
+export interface RecentSignup {
+  name: string;
+  email: string;
+  avatar?: string;
+  role: string;
+  joined?: string;
+}
+
+export function useRecentSignups(limit: number = 5) {
+  return useQuery({
+    queryKey: [ADMIN_RECENT_SIGNUPS_QUERY_KEY, limit],
+    queryFn: async () => {
+      const url = `/admin/dashboard/recent-signups?limit=${limit}`;
+      const response = await makeRequest(url, "GET");
+
+      if (!response.success) {
+        throw new Error(response.message || "Failed to fetch recent signups");
+      }
+
+      return response.data.signups as RecentSignup[];
+    },
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
+}
+
+export interface PlatformActivity {
+  type: string;
+  description: string;
+  time: string;
+}
+
+export function usePlatformActivity(limit: number = 10) {
+  return useQuery({
+    queryKey: [ADMIN_PLATFORM_ACTIVITY_QUERY_KEY, limit],
+    queryFn: async () => {
+      const url = `/admin/dashboard/activity?limit=${limit}`;
+      const response = await makeRequest(url, "GET");
+
+      if (!response.success) {
+        throw new Error(
+          response.message || "Failed to fetch platform activity"
+        );
+      }
+
+      return response.data.activities as PlatformActivity[];
+    },
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
+}
+
+export interface AdminEvent {
+  id: string;
+  title: string;
+  description: string;
+  eventType: string;
+  date: string;
+  location?: string;
+  images: string[];
+  slug: string;
+  organizerId: string;
+  isPublic: boolean;
+  maxAttendees?: number;
+  status?: string;
+  tags: string[];
+  meetLink?: string;
+  googleEventId?: string;
+  whatToBring?: string;
+  additionalInfo?: string;
+  lumaEventLink: string;
+  createdAt: string;
+  updatedAt: string;
+  organizer?: {
+    id: string;
+    fullName: string;
+    email: string;
+    avatarUrl?: string;
+  };
+  _count?: {
+    attendees: number;
+  };
+}
+
+export function useAdminEvents(params?: {
+  search?: string;
+  eventType?: string;
+  status?: string;
+}) {
+  return useQuery({
+    queryKey: [ADMIN_EVENTS_QUERY_KEY, params],
+    queryFn: async () => {
+      const queryParams = new URLSearchParams();
+      if (params?.search) queryParams.append("search", params.search);
+      if (params?.eventType) queryParams.append("eventType", params.eventType);
+      if (params?.status) queryParams.append("status", params.status);
+
+      const url = `/admin/events${
+        queryParams.toString() ? `?${queryParams.toString()}` : ""
+      }`;
+      const response = await makeRequest(url, "GET");
+
+      if (!response.success) {
+        throw new Error(response.message || "Failed to fetch events");
+      }
+
+      return response.data.events as AdminEvent[];
+    },
+    staleTime: 2 * 60 * 1000, // 2 minutes
   });
 }

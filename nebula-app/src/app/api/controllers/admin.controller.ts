@@ -55,4 +55,34 @@ export class AdminController {
 
     return await AdminService.getReviews(queryParams);
   }
+
+  async getDashboardStats() {
+    return await AdminService.getDashboardStats();
+  }
+
+  async getRecentSignups(request: NextRequest) {
+    const { searchParams } = new URL(request.url);
+    const limit = parseInt(searchParams.get("limit") || "5");
+
+    return await AdminService.getRecentSignups(limit);
+  }
+
+  async getPlatformActivity(request: NextRequest) {
+    const { searchParams } = new URL(request.url);
+    const limit = parseInt(searchParams.get("limit") || "10");
+
+    return await AdminService.getPlatformActivity(limit);
+  }
+
+  async getEvents(request: NextRequest) {
+    const { searchParams } = new URL(request.url);
+
+    const queryParams = {
+      search: searchParams.get("search") || undefined,
+      eventType: searchParams.get("eventType") || undefined,
+      status: searchParams.get("status") || undefined,
+    };
+
+    return await AdminService.getEvents(queryParams);
+  }
 }

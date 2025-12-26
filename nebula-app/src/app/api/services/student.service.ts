@@ -42,8 +42,6 @@ export class StudentService {
 
       student = await this.create({
         userId,
-        email: user.email,
-        fullName: user.fullName,
         interestedProgram: data.interestedProgram,
         skillLevel: mappedSkillLevel,
         commitment: data.commitment,
@@ -74,9 +72,6 @@ export class StudentService {
 
   static async create(data: {
     userId: string;
-    email: string;
-    fullName: string;
-    avatarUrl?: string;
     interestedProgram: string;
     skillLevel: SkillLevel;
     commitment: string;
@@ -86,18 +81,12 @@ export class StudentService {
     return prisma.student.create({
       data: {
         userId: data.userId,
-        email: data.email,
-        fullName: data.fullName,
-        avatarUrl: data.avatarUrl,
         interestedProgram: data.interestedProgram,
         skillLevel: data.skillLevel,
         commitment: data.commitment,
         timeZone: data.timeZone || "UTC",
         learningGoals: data.learningGoals || [],
         currentLevel: "BEGINNER",
-        enrolledPrograms: [],
-        completedSessions: [],
-        upcomingSessions: [],
       },
     });
   }

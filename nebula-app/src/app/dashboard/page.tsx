@@ -6,22 +6,27 @@ import { DashboardHeader } from "./components/dashboard-header";
 import { RecommendedPrograms } from "./components/recommended-programs";
 import { UpcomingSessions } from "./components/upcoming-sessions";
 import { SuggestedCoaches } from "./components/suggested-coaches";
-import { usePublicEvents, useRecommendedPrograms, useCoaches } from "@/hooks";
+import {
+  usePublicEvents,
+  useRecommendedPrograms,
+  useSuggestedCoaches,
+} from "@/hooks";
 import { Event } from "@/types/event";
 
 export default function DashboardPage() {
   const { profile } = useAuth();
-  
+
   // Fetch data using React Query hooks
   const { data: eventsResponse } = usePublicEvents({ limit: 6 });
   const { data: programsResponse } = useRecommendedPrograms();
-  const { data: coachesResponse } = useCoaches({ limit: 4 });
+  const { data: coachesResponse } = useSuggestedCoaches(4);
 
-  const upcomingEvents = eventsResponse?.data?.events?.filter((event: Event) => {
-    const eventDate = new Date(event.date);
-    const now = new Date();
-    return eventDate > now && event.status === "UPCOMING";
-  }) || [];
+  const upcomingEvents =
+    eventsResponse?.data?.events?.filter((event: Event) => {
+      const eventDate = new Date(event.date);
+      const now = new Date();
+      return eventDate > now && event.status === "UPCOMING";
+    }) || [];
 
   const programs = programsResponse?.data?.programs || [];
   const coaches = coachesResponse?.data?.coaches || [];

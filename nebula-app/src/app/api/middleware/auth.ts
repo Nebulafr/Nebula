@@ -92,3 +92,35 @@ export function requireAdmin(fn: Function) {
     return await fn(req, context);
   });
 }
+
+export function requireCoach(fn: Function) {
+  return isAuthenticated(async (req: NextRequest, context?: any) => {
+    const user = (req as any)["user"];
+
+    if (user.role !== UserRole.COACH) {
+      throw new HttpException(
+        RESPONSE_CODE.FORBIDDEN,
+        "Coach access required",
+        403
+      );
+    }
+
+    return await fn(req, context);
+  });
+}
+
+export function requireStudent(fn: Function) {
+  return isAuthenticated(async (req: NextRequest, context?: any) => {
+    const user = (req as any)["user"];
+
+    if (user.role !== UserRole.STUDENT) {
+      throw new HttpException(
+        RESPONSE_CODE.FORBIDDEN,
+        "Student access required",
+        403
+      );
+    }
+
+    return await fn(req, context);
+  });
+}

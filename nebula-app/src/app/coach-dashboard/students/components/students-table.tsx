@@ -25,11 +25,8 @@ export interface Student {
   email: string;
   avatar?: string;
   program: string;
-  status: 'active' | 'paused' | 'completed' | 'cancelled';
-  progress: number;
+  status: "active" | "paused" | "completed" | "cancelled";
   lastSession?: string;
-  nextSession?: string;
-  totalSessions: number;
 }
 
 interface StudentsTableProps {
@@ -49,18 +46,18 @@ export function StudentsTable({
   onViewProfile,
   onRemoveStudent,
 }: StudentsTableProps) {
-  const getStatusColor = (status: Student['status']) => {
+  const getStatusColor = (status: Student["status"]) => {
     switch (status) {
-      case 'active':
-        return 'bg-green-100 text-green-800';
-      case 'paused':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'completed':
-        return 'bg-blue-100 text-blue-800';
-      case 'cancelled':
-        return 'bg-red-100 text-red-800';
+      case "active":
+        return "bg-green-100 text-green-800";
+      case "paused":
+        return "bg-yellow-100 text-yellow-800";
+      case "completed":
+        return "bg-blue-100 text-blue-800";
+      case "cancelled":
+        return "bg-red-100 text-red-800";
       default:
-        return 'bg-gray-100 text-gray-800';
+        return "bg-gray-100 text-gray-800";
     }
   };
 
@@ -68,7 +65,10 @@ export function StudentsTable({
     return (
       <div className="space-y-4">
         {[1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="flex items-center space-x-4 p-4 animate-pulse">
+          <div
+            key={i}
+            className="flex items-center space-x-4 p-4 animate-pulse"
+          >
             <div className="h-10 w-10 rounded-full bg-gray-200" />
             <div className="space-y-2 flex-1">
               <div className="h-4 bg-gray-200 rounded w-1/4" />
@@ -97,9 +97,7 @@ export function StudentsTable({
           <TableHead>Student</TableHead>
           <TableHead>Program</TableHead>
           <TableHead>Status</TableHead>
-          <TableHead>Progress</TableHead>
-          <TableHead>Last Session</TableHead>
-          <TableHead>Sessions</TableHead>
+          <TableHead>Last Contact</TableHead>
           <TableHead className="text-right">Actions</TableHead>
         </TableRow>
       </TableHeader>
@@ -111,7 +109,10 @@ export function StudentsTable({
                 <Avatar>
                   <AvatarImage src={student.avatar} />
                   <AvatarFallback>
-                    {student.name.split(' ').map(n => n[0]).join('')}
+                    {student.name
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")}
                   </AvatarFallback>
                 </Avatar>
                 <div>
@@ -128,32 +129,10 @@ export function StudentsTable({
                 {student.status}
               </Badge>
             </TableCell>
-            <TableCell>
-              <div className="flex items-center space-x-2">
-                <div className="w-16 h-2 bg-gray-200 rounded-full">
-                  <div
-                    className="h-2 bg-blue-600 rounded-full"
-                    style={{ width: `${student.progress}%` }}
-                  />
-                </div>
-                <span className="text-sm text-muted-foreground">
-                  {student.progress}%
-                </span>
-              </div>
-            </TableCell>
+
             <TableCell>
               <div className="text-sm">
-                {student.lastSession || 'No sessions yet'}
-              </div>
-              {student.nextSession && (
-                <div className="text-xs text-muted-foreground">
-                  Next: {student.nextSession}
-                </div>
-              )}
-            </TableCell>
-            <TableCell>
-              <div className="text-sm font-medium">
-                {student.totalSessions}
+                {student.lastSession || "No sessions yet"}
               </div>
             </TableCell>
             <TableCell className="text-right">
@@ -179,16 +158,22 @@ export function StudentsTable({
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => onViewProfile?.(student.id)}>
+                    <DropdownMenuItem
+                      onClick={() => onViewProfile?.(student.id)}
+                    >
                       View Profile
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => onMessageStudent?.(student.id)}>
+                    <DropdownMenuItem
+                      onClick={() => onMessageStudent?.(student.id)}
+                    >
                       Send Message
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => onScheduleSession?.(student.id)}>
+                    <DropdownMenuItem
+                      onClick={() => onScheduleSession?.(student.id)}
+                    >
                       Schedule Session
                     </DropdownMenuItem>
-                    <DropdownMenuItem 
+                    <DropdownMenuItem
                       onClick={() => onRemoveStudent?.(student.id)}
                       className="text-red-600"
                     >

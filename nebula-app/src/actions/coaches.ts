@@ -37,3 +37,16 @@ export async function createCoach(coachData: CreateCoachData) {
 export async function updateCoachProfile(coachData: CoachUpdateData) {
   return apiPut("/coaches/profile", coachData);
 }
+
+export async function getSuggestedCoaches(limit?: number) {
+  const params = new URLSearchParams();
+
+  if (limit) {
+    params.append("limit", limit.toString());
+  }
+
+  const url = `/coaches/suggested${
+    params.toString() ? `?${params.toString()}` : ""
+  }`;
+  return apiGet(url, { requireAuth: true });
+}

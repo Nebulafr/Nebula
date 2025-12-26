@@ -5,6 +5,12 @@ import { CoachController } from "../../controllers/coach.controller";
 
 const coachController = new CoachController();
 
+export const POST = CatchError(
+  isAuthenticated(
+    async (req: NextRequest) => await coachController.createCoach(req)
+  )
+);
+
 export const PUT = CatchError(
   isAuthenticated(
     async (req: NextRequest) => await coachController.updateCoach(req)

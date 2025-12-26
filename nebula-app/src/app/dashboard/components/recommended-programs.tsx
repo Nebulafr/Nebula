@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowRight, Star } from "lucide-react";
+import { ArrowRight, Star, BookOpen } from "lucide-react";
 import {
   Carousel,
   CarouselContent,
@@ -67,6 +67,42 @@ export function RecommendedPrograms({
               />
             ))}
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!programs || programs.length === 0) {
+    return (
+      <div>
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-xl font-bold tracking-tight">
+              Recommended Programs
+            </h3>
+          </div>
+          <Button variant="link" asChild>
+            <Link href="/programs">
+              See All <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
+        </div>
+        <div className="mt-6">
+          <Card className="border-dashed">
+            <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+              <div className="rounded-full bg-muted p-4 mb-4">
+                <BookOpen className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2">No Programs Yet</h3>
+              <p className="text-sm text-muted-foreground mb-6 max-w-sm">
+                We're curating personalized program recommendations for you.
+                Check back soon or explore all available programs.
+              </p>
+              <Button asChild>
+                <Link href="/programs">Browse All Programs</Link>
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </div>
     );

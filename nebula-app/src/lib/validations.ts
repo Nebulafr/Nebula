@@ -204,7 +204,6 @@ export const enrollmentSchema = z.object({
   date: z.string().optional(),
 });
 
-
 export const createEventSchema = z.object({
   title: z
     .string()
@@ -234,7 +233,7 @@ export const createEventSchema = z.object({
       "Slug must contain only lowercase letters, numbers, and hyphens"
     )
     .optional(),
-  organizerId: z.string().optional(),
+  organizerId: z.string(),
   isPublic: z.boolean().default(true),
   maxAttendees: z
     .number()
@@ -261,6 +260,10 @@ export const createEventSchema = z.object({
     .string()
     .max(2000, "Additional info must be less than 2000 characters")
     .optional(),
+  lumaEventLink: z
+    .string()
+    .url("Luma event link must be a valid URL")
+    .min(1, "Luma event link is required"),
 });
 
 export const updateEventSchema = z.object({

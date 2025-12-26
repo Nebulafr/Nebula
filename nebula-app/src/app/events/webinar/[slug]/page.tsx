@@ -1,78 +1,28 @@
 "use client";
-import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  ArrowLeft,
-  Calendar,
-  CheckCircle,
-  Home,
-  Star,
-  Users,
-  Video,
-  Loader2,
-} from "lucide-react";
+import { ArrowLeft, Star, Video, Loader2, Home } from "lucide-react";
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
 import { useParams } from "next/navigation";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { getEventBySlug } from "@/actions/events";
+import { useEventBySlug } from "@/hooks";
 import { Event } from "@/types/event";
 
 export default function WebinarPage() {
   const params = useParams<{ slug: string }>();
   const slug = params.slug;
-  const [event, setEvent] = useState<Event | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [isRegistered, setIsRegistered] = useState(false);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  useEffect(() => {
-    async function fetchEvent() {
-      setLoading(true);
-      setError(null);
+  const {
+    data: eventResponse,
+    isLoading: loading,
+    error: queryError,
+  } = useEventBySlug(slug);
 
-      const response = await getEventBySlug(slug);
-
-      if (response.success && response.data) {
-        setEvent(response.data.event);
-      } else {
-        setError(response.message || "Webinar not found");
-      }
-
-      setLoading(false);
-    }
-
-    if (slug) {
-      fetchEvent();
-    }
-  }, [slug]);
-
-  const handleJoinEvent = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsRegistered(true);
-  };
-
-  const handleDialogClose = () => {
-    setIsDialogOpen(false);
-    // Reset state after a delay to allow the dialog to close smoothly
-    setTimeout(() => {
-      setIsRegistered(false);
-    }, 300);
-  };
+  const event = eventResponse?.data?.event || null;
+  const error = queryError ? "Webinar not found" : null;
 
   if (loading) {
     return (
@@ -179,9 +129,6 @@ export default function WebinarPage() {
                   Expert facilitator with years of experience in delivering
                   engaging webinars.
                 </p>
-                <Button variant="outline" className="w-full mt-4">
-                  Free intro call
-                </Button>
               </Card>
             </div>
 
@@ -268,100 +215,19 @@ export default function WebinarPage() {
                 </div>
               </Card>
 
-              <Dialog
-                open={isDialogOpen}
-                onOpenChange={setIsDialogOpen}
+              <Button
+                size="lg"
+                className="w-full bg-foreground text-background hover:bg-foreground/90"
+                asChild
               >
-                <DialogTrigger asChild>
-                  <Button
-                    size="lg"
-                    className="w-full bg-foreground text-background hover:bg-foreground/90"
-                  >
-                    Register now
-                  </Button>
-                </DialogTrigger>
-                <DialogContent
-                  className="sm:max-w-3xl p-0 overflow-hidden"
-                  onInteractOutside={(e) => {
-                    if (isRegistered) e.preventDefault();
-                  }}
+                <a
+                  href={event.lumaEventLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
                 >
-                  {!isRegistered ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2">
-                      <div className="hidden md:block bg-primary/5 p-8">
-                        <h3 className="font-headline text-2xl font-bold text-primary">
-                          {event.title}
-                        </h3>
-                        <p className="text-muted-foreground mt-2">
-                          Hosted by {event.organizer?.fullName || "Expert Host"}
-                        </p>
-                      </div>
-                      <div className="p-8">
-                        <DialogHeader className="text-left mb-6">
-                          <DialogTitle className="text-2xl font-bold">
-                            Enter your info
-                          </DialogTitle>
-                          <DialogDescription>
-                            To join the event, please provide your details below.
-                          </DialogDescription>
-                        </DialogHeader>
-                        <form onSubmit={handleJoinEvent}>
-                          <div className="grid gap-4">
-                            <div className="grid grid-cols-2 gap-4">
-                              <div className="grid gap-2">
-                                <Label htmlFor="first-name">First Name</Label>
-                                <Input
-                                  id="first-name"
-                                  placeholder="John"
-                                  required
-                                />
-                              </div>
-                              <div className="grid gap-2">
-                                <Label htmlFor="last-name">Last Name</Label>
-                                <Input
-                                  id="last-name"
-                                  placeholder="Doe"
-                                  required
-                                />
-                              </div>
-                            </div>
-                            <div className="grid gap-2">
-                              <Label htmlFor="email">Email</Label>
-                              <Input
-                                id="email"
-                                type="email"
-                                placeholder="john.doe@example.com"
-                                required
-                              />
-                            </div>
-                          </div>
-                          <Button type="submit" className="w-full mt-6">
-                            Join event
-                          </Button>
-                          <p className="text-center text-xs text-muted-foreground mt-4">
-                            Already have an account?{" "}
-                            <Link href="/login" className="underline">
-                              Log in
-                            </Link>
-                          </p>
-                        </form>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="text-center py-12 px-8">
-                      <CheckCircle className="h-16 w-16 mx-auto mb-4 text-green-500" />
-                      <h3 className="text-2xl font-semibold">You're in!</h3>
-                      <p className="text-muted-foreground mt-2 max-w-sm mx-auto">
-                        Your spot for '{event.title}' is confirmed. A
-                        confirmation has been sent to your email.
-                      </p>
-                      <Button onClick={handleDialogClose} className="mt-8">
-                        Close
-                      </Button>
-                    </div>
-                  )}
-                </DialogContent>
-              </Dialog>
+                  Register on Luma
+                </a>
+              </Button>
 
               <div className="mt-12">
                 <h3 className="text-xl font-bold mb-4">About the event</h3>

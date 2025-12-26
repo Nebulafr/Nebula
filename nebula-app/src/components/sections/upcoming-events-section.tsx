@@ -40,7 +40,7 @@ function EventCard({ event }: { event: Event }) {
   const eventUrl =
     event.eventType === "SOCIAL"
       ? `/events/social/${event.slug}`
-      : `/events/${event.slug}`;
+      : `/events/webinar/${event.slug}`;
 
   return (
     <div className="group flex flex-col gap-[5px] h-full">
@@ -132,7 +132,6 @@ export function UpcomingEventsSection() {
     isLoading: loading,
     error,
   } = usePublicEvents({ limit: 3 });
-  console.log({ eventsResponse });
 
   const allEvents = eventsResponse?.data?.events || [];
   const upcomingEvents = allEvents.filter((event: Event) => {
@@ -142,7 +141,6 @@ export function UpcomingEventsSection() {
   });
 
   const events = upcomingEvents;
-  console.log({ events });
 
   if (error) {
     return (
@@ -195,9 +193,6 @@ export function UpcomingEventsSection() {
               <p className="text-muted-foreground">
                 No upcoming events at the moment.
               </p>
-              <Button asChild className="mt-4">
-                <Link href="/events">Explore All Events</Link>
-              </Button>
             </div>
           )}
         </div>

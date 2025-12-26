@@ -54,6 +54,7 @@ interface NewEvent {
   isPublic: boolean;
   maxAttendees: string;
   tags: string[];
+  lumaEventLink: string;
 }
 
 interface ActionLoading {
@@ -244,6 +245,17 @@ export function CreateEventDialog({
                                     value={newEvent.organizerId}
                                     onChange={handleSelectOrganizer}
                                     placeholder="Select event organizer"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="lumaEventLink">Luma Event Link *</Label>
+                                <Input 
+                                    id="lumaEventLink" 
+                                    type="url" 
+                                    placeholder="https://lu.ma/your-event"
+                                    value={newEvent.lumaEventLink || ''}
+                                    onChange={(e) => setNewEvent(prev => ({...prev, lumaEventLink: e.target.value}))}
+                                    required
                                 />
                             </div>
                             {eventType === 'Social' && (

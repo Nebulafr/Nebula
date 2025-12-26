@@ -84,9 +84,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
     ): Promise<ApiResponse<T>> => {
       try {
         const result = await action();
-        console.log({ result });
-        storeAuthData(result!.data!);
-        updateUserState(result.data!.user);
+        console.log("Auth result:", { result });
+        console.log("Auth result.data:", { data: result.data });
+        if (result.data) {
+          storeAuthData(result.data);
+          updateUserState(result.data.user);
+        }
         return result;
       } catch (error) {
         clearAuthData();

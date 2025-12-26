@@ -57,13 +57,13 @@ export default function UserManagementPage() {
     role: string;
     password: string;
   }) => {
-    try {
-      await createUserMutation.mutateAsync(userData);
-      toast.success("User created successfully!");
-    } catch (error: any) {
-      console.error("Error creating user:", error);
-      toast.error(error.message || "An error occurred while creating the user.");
+    const response = await createUserMutation.mutateAsync(userData);
+
+    if (!response.success) {
+      toast.error(response.message);
+      return;
     }
+    toast.success(response.message || "User created successfully!");
   };
 
   const handleUserAction = (user: any, action: string) => {

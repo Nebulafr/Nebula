@@ -1,14 +1,12 @@
 import { NextRequest } from "next/server";
 import { EventService } from "../services/event.service";
 import { createEventSchema, updateEventSchema } from "@/lib/validations";
-import {
-  BadRequestException,
-} from "../utils/http-exception";
+import { BadRequestException } from "../utils/http-exception";
 
 class EventController {
   async createEvent(request: NextRequest) {
     const payload = await request.json();
-
+    console.log({ payload });
     const body = createEventSchema.parse(payload);
 
     return await EventService.create(request, body);

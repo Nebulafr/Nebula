@@ -43,6 +43,7 @@ export interface Event {
   tags: string[];
   whatToBring?: string;
   additionalInfo?: string;
+  lumaEventLink: string;
   createdAt: string;
   updatedAt: string;
 }

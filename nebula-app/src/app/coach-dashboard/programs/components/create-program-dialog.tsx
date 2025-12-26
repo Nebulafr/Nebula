@@ -107,6 +107,10 @@ export function CreateProgramDialog({
       newErrors.maxStudents = "Max students must be at least 1";
     }
 
+    if (formData.objectives.length === 0) {
+      newErrors.objectives = "At least one objective is required";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -166,6 +170,10 @@ export function CreateProgramDialog({
         objectives: [...prev.objectives, objectiveInput.trim()],
       }));
       setObjectiveInput("");
+      // Clear objectives error if it exists
+      if (errors.objectives) {
+        setErrors((prev) => ({ ...prev, objectives: undefined }));
+      }
     }
   };
 
@@ -462,7 +470,7 @@ export function CreateProgramDialog({
       {/* Learning Objectives */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <Label className="text-base font-medium">Learning Objectives</Label>
+          <Label className="text-base font-medium">Learning Objectives *</Label>
           <Button
             type="button"
             onClick={() => {
@@ -491,7 +499,7 @@ export function CreateProgramDialog({
           onKeyDown={(e) =>
             e.key === "Enter" && (e.preventDefault(), addObjective())
           }
-          className="h-11"
+          className={`h-11 ${errors.objectives ? "border-red-500" : ""}`}
         />
 
         {formData.objectives.length > 0 && (
@@ -524,6 +532,9 @@ export function CreateProgramDialog({
               </ul>
             </div>
           </div>
+        )}
+        {errors.objectives && (
+          <p className="text-sm text-red-500">{errors.objectives}</p>
         )}
       </div>
     </div>

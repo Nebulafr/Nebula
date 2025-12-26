@@ -1,6 +1,10 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { CoachQueryData, CoachUpdateData } from "@/lib/validations";
+import {
+  CoachQueryData,
+  CoachUpdateData,
+  CreateCoachData,
+} from "@/lib/validations";
 import { NotFoundException } from "../utils/http-exception";
 import { sendSuccess } from "../utils/send-response";
 import { extractUserFromRequest } from "../utils/extract-user";
@@ -138,6 +142,33 @@ export class CoachService {
       },
       "Coaches retrieved successfully"
     );
+  }
+
+  static async createCoach(userId: string, data: CreateCoachData) {
+    const slug = `${data.title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")}-${userId.substring(0, 8)}`;
+
+    const newProfile = await prisma.coach.create({
+      data: {
+        userId,
+        title: data.title,
+        bio: data.bio,
+        style: data.style,
+        specialties: data.specialties,
+        hourlyRate: data.hourlyRate,
+        pastCompanies: data.pastCompanies || [],
+        linkedinUrl: data.linkedinUrl || null,
+        availability: data.availability,
+        qualifications: data.qualifications || [],
+        experience: data.experience || null,
+        timezone: data.timezone || null,
+        languages: data.languages || [],
+        slug,
+      },
+    });
+
+    return sendSuccess(newProfile, "Coach profile created successfully", 201);
   }
 
   static async updateCoach(userId: string, data: CoachUpdateData) {
@@ -413,5 +444,83 @@ export class CoachService {
       reviews,
       hasUserReviewed: hasUserReviewed || false,
     };
+  }
+
+  static async getSuggestedCoaches(userId: string, limit: number = 4) {
+    // Get the student's profile to understand their interests
+    const student = await prisma.student.findUnique({
+      where: { userId },
+      select: {
+        interestedProgram: true,
+        learningGoals: true,
+      },
+    });
+
+    // Build the where clause based on student interests
+    const whereClause: any = {
+      isActive: true,
+    };
+
+    // If student has an interested program, filter coaches by that specialty
+    if (student?.interestedProgram) {
+      whereClause.specialties = {
+        has: student.interestedProgram,
+      };
+    }
+
+    // Fetch suggested coaches
+    const coaches = await prisma.coach.findMany({
+      where: whereClause,
+      orderBy: [{ rating: "desc" }, { studentsCoached: "desc" }],
+      take: limit,
+      include: {
+        user: {
+          select: {
+            fullName: true,
+            email: true,
+            avatarUrl: true,
+            role: true,
+          },
+        },
+      },
+    });
+
+    // Transform coaches to match the expected format
+    const transformedCoaches = coaches.map((coach) => ({
+      id: coach.id,
+      userId: coach.userId,
+      email: coach.user?.email || "",
+      fullName: coach.user?.fullName || "",
+      avatarUrl: coach.user?.avatarUrl || null,
+      title: coach.title,
+      bio: coach.bio,
+      style: coach.style,
+      specialties: coach.specialties,
+      pastCompanies: coach.pastCompanies,
+      linkedinUrl: coach.linkedinUrl,
+      availability: coach.availability,
+      hourlyRate: coach.hourlyRate,
+      rating: coach.rating,
+      totalReviews: coach.totalReviews,
+      totalSessions: coach.totalSessions,
+      studentsCoached: coach.studentsCoached,
+      isActive: coach.isActive,
+      isVerified: coach.isVerified,
+      slug: coach.slug,
+      category: coach.category,
+      qualifications: coach.qualifications,
+      experience: coach.experience,
+      timezone: coach.timezone,
+      languages: coach.languages,
+      createdAt: coach.createdAt.toISOString(),
+      updatedAt: coach.updatedAt.toISOString(),
+    }));
+
+    return sendSuccess(
+      {
+        coaches: transformedCoaches,
+      },
+      "Suggested coaches retrieved successfully"
+    );
   }
 }

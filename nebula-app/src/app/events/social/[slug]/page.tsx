@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -24,40 +24,24 @@ import { Separator } from "@/components/ui/separator";
 import { useParams } from "next/navigation";
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
-import { getEventBySlug } from "@/actions/events";
+import { useEventBySlug } from "@/hooks";
 import { Event } from "@/types/event";
-
 
 export default function SocialEventPage() {
   const params = useParams<{ slug: string }>();
   const slug = params.slug;
-  const [event, setEvent] = useState<Event | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [showRegistration, setShowRegistration] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
 
-  useEffect(() => {
-    async function fetchEvent() {
-      setLoading(true);
-      setError(null);
+  const {
+    data: eventResponse,
+    isLoading: loading,
+    error: queryError,
+  } = useEventBySlug(slug);
 
-      const response = await getEventBySlug(slug);
-
-      if (response.success && response.data) {
-        setEvent(response.data.event);
-      } else {
-        setError(response.message || "Event not found");
-      }
-
-      setLoading(false);
-    }
-
-    if (slug) {
-      fetchEvent();
-    }
-  }, [slug]);
+  const event = eventResponse?.data?.event || null;
+  const error = queryError ? "Event not found" : null;
 
   const handlePaymentSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,27 +49,13 @@ export default function SocialEventPage() {
     setIsRegistered(true);
   };
 
-  const handleRegistrationSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setShowRegistration(false);
-    setShowPayment(true);
-  };
-
   const handleCloseSuccess = () => {
     setIsRegistered(false);
-  };
-
-  const handleRegisterClick = () => {
-    setShowRegistration(true);
   };
 
   const handleBackFromPayment = () => {
     setShowPayment(false);
     setShowRegistration(true);
-  };
-
-  const handleBackFromRegistration = () => {
-    setShowRegistration(false);
   };
 
   if (loading) {
@@ -234,60 +204,6 @@ export default function SocialEventPage() {
       );
     }
 
-    if (showRegistration) {
-      return (
-        <Card className="mt-6 shadow-lg">
-          <CardContent className="p-6">
-            <div className="flex justify-between items-start mb-8">
-              <div>
-                <Button
-                  variant="ghost"
-                  onClick={handleBackFromRegistration}
-                  className="mb-4 -ml-4"
-                >
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back
-                </Button>
-                <h3 className="font-semibold text-lg">Your Information</h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Please provide your details to register.
-                </p>
-              </div>
-            </div>
-            <form onSubmit={handleRegistrationSubmit}>
-              <div className="grid gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="name">Full Name</Label>
-                  <Input id="name" placeholder="John Doe" required />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="m@example.com"
-                    required
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="phone">Phone Number</Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    placeholder="+1 (555) 123-4567"
-                    required
-                  />
-                </div>
-                <Button size="lg" type="submit" className="w-full mt-4">
-                  Continue to Payment
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      );
-    }
-
     return (
       <Card className="mb-6 rounded-xl border">
         <CardContent className="p-8">
@@ -352,12 +268,14 @@ export default function SocialEventPage() {
               </CardContent>
             </Card>
           </div>
-          <Button
-            size="lg"
-            className="w-full mt-6"
-            onClick={handleRegisterClick}
-          >
-            Register
+          <Button size="lg" className="w-full mt-6" asChild>
+            <a
+              href={event.lumaEventLink}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Register on Luma
+            </a>
           </Button>
         </CardContent>
       </Card>
@@ -508,7 +426,7 @@ export default function SocialEventPage() {
                           <div>
                             <p className="font-semibold">Tags</p>
                             <div className="flex flex-wrap gap-1 mt-1">
-                              {event.tags.map((tag, index) => (
+                              {event.tags.map((tag: any, index: number) => (
                                 <Badge
                                   key={index}
                                   variant="secondary"

@@ -168,7 +168,6 @@ export class ReviewService {
     slug: string,
     sortOptions: ReviewSortOptions
   ) {
-
     // Resolve the target ID from slug
     let targetId: string;
 
@@ -428,12 +427,13 @@ export class ReviewService {
       case "COACH":
         return await prisma.coach.findUnique({
           where: { id: targetId },
-          select: {
-            id: true,
-            fullName: true,
-            avatarUrl: true,
-            rating: true,
-            totalReviews: true,
+          include: {
+            user: {
+              select: {
+                fullName: true,
+                avatarUrl: true,
+              },
+            },
           },
         });
       case "PROGRAM":

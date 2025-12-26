@@ -36,23 +36,22 @@ export default function CoachProgramsPage() {
       return false;
     }
 
-    try {
-      const createProgramData = {
-        title: programData.title,
-        category: programData.category,
-        description: programData.description,
-        objectives: programData.objectives,
-        modules: programData.modules,
-      };
+    const createProgramData = {
+      title: programData.title,
+      category: programData.category,
+      description: programData.description,
+      objectives: programData.objectives,
+      modules: programData.modules,
+    };
 
-      await createProgramMutation.mutateAsync(createProgramData);
-      toast.success("Your new program has been created.");
-      return true;
-    } catch (error) {
-      toast.error("Could not create the program.");
-      console.error(error);
+    const response = await createProgramMutation.mutateAsync(createProgramData);
+
+    if (!response.success) {
+      toast.error(response.message);
       return false;
     }
+    toast.success(response.message || "Your new program has been created.");
+    return true;
   };
 
   if (loading) {

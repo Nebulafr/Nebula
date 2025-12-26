@@ -5,12 +5,14 @@ import {
   getCoachById,
   createCoach,
   updateCoachProfile,
+  getSuggestedCoaches,
 } from "@/actions/coaches";
 import { CoachUpdateData, CreateCoachData } from "@/lib/validations";
 
 export const COACHES_QUERY_KEY = "coaches";
 export const COACH_BY_SLUG_QUERY_KEY = "coach-by-slug";
 export const COACH_BY_ID_QUERY_KEY = "coach-by-id";
+export const SUGGESTED_COACHES_QUERY_KEY = "suggested-coaches";
 
 export function useCoaches(filters?: {
   category?: string;
@@ -69,5 +71,13 @@ export function useUpdateCoachProfile() {
       // Also invalidate user profile since coach profile was updated
       queryClient.invalidateQueries({ queryKey: ["user-profile"] });
     },
+  });
+}
+
+export function useSuggestedCoaches(limit?: number) {
+  return useQuery({
+    queryKey: [SUGGESTED_COACHES_QUERY_KEY, limit],
+    queryFn: () => getSuggestedCoaches(limit),
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }

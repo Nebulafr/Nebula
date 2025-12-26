@@ -2,14 +2,18 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { toast } from "react-toastify";
-import { useCategories, useAdminPrograms, useUpdateProgramStatus, useCreateCategory } from "@/hooks";
+import {
+  useCategories,
+  useAdminPrograms,
+  useUpdateProgramStatus,
+  useCreateCategory,
+} from "@/hooks";
 
 import { ProgramsFilters } from "./components/programs-filters";
 import { ProgramsTable } from "./components/programs-table";
 import { ProgramDetailsDialog } from "./components/program-details-dialog";
 import { DeleteCategoryDialog } from "./components/delete-category-dialog";
 import { AdminProgram } from "@/types/program";
-
 
 export default function AdminProgramsPage() {
   const [selectedProgram, setSelectedProgram] = useState<AdminProgram | null>(
@@ -31,10 +35,10 @@ export default function AdminProgramsPage() {
   const { data: categoriesResponse } = useCategories();
   const publicCategories = categoriesResponse?.data?.categories || [];
 
-  const { 
-    data: programsResponse, 
+  const {
+    data: programsResponse,
     isLoading: isLoading,
-    refetch: fetchPrograms 
+    refetch: fetchPrograms,
   } = useAdminPrograms({
     search: debouncedSearch || undefined,
     status: statusFilter !== "all" ? statusFilter : undefined,
@@ -50,31 +54,39 @@ export default function AdminProgramsPage() {
     return () => clearTimeout(id);
   }, [searchTerm]);
 
-
   /**
    * Program actions: activate, deactivate, delete
    */
   const handleProgramAction = useCallback(
     async (programId: string, action: "activate" | "deactivate" | "delete") => {
-      try {
-        setLoadingActions((prev) => ({ ...prev, [programId]: action }));
+      setLoadingActions((prev) => ({ ...prev, [programId]: action }));
 
-        if (action === "delete") {
-          toast.error("Delete functionality not implemented yet.");
-          return;
-        }
-
-        await updateProgramStatusMutation.mutateAsync({ programId, action });
-        toast.success(`Program ${action}d successfully`);
-      } catch (e: any) {
-        toast.error(e?.message ?? `Failed to ${action} program.`);
-      } finally {
+      if (action === "delete") {
+        toast.error("Delete functionality not implemented yet.");
         setLoadingActions((prev) => {
           const copy = { ...prev };
           delete copy[programId];
           return copy;
         });
+        return;
       }
+
+      const response = await updateProgramStatusMutation.mutateAsync({
+        programId,
+        action,
+      });
+
+      if (!response.success) {
+        toast.error(response.message);
+      } else {
+        toast.success(response.message || `Program ${action}d successfully`);
+      }
+
+      setLoadingActions((prev) => {
+        const copy = { ...prev };
+        delete copy[programId];
+        return copy;
+      });
     },
     [updateProgramStatusMutation]
   );
@@ -89,11 +101,16 @@ export default function AdminProgramsPage() {
       const exists = publicCategories.some((c: any) => c.name === categoryName);
       if (exists) return;
 
-      try {
-        await createCategoryMutation.mutateAsync({ name: categoryName });
-        toast.success(`Category "${categoryName}" added successfully.`);
-      } catch (e: any) {
-        toast.error(e?.message ?? "Failed to create category.");
+      const response = await createCategoryMutation.mutateAsync({
+        name: categoryName,
+      });
+
+      if (!response.success) {
+        toast.error(response.message);
+      } else {
+        toast.success(
+          response.message || `Category "${categoryName}" added successfully.`
+        );
       }
     },
     [publicCategories, createCategoryMutation]

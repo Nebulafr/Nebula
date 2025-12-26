@@ -14,7 +14,7 @@ interface EventsHeaderProps {
   onCreateEvent: () => void;
 }
 
-const eventTypes = ["all", "webinar", "social", "workshop", "networking"];
+const eventTypes = ["all", "webinar", "social"];
 
 export function EventsHeader({
   searchTerm,

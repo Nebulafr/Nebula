@@ -38,17 +38,19 @@ export async function signInWithGoogle(role: UserRole = UserRole.STUDENT) {
         avatarUrl: user.photoURL || undefined,
       };
 
-      const response = await makeRequest("/api/auth/google", "POST", {
+      const response = await makeRequest("/auth/google", "POST", {
         body: payload,
         requireAuth: false,
       });
+
+      console.log("Firebase auth response:", { response });
 
       if (!response.success) {
         throw new Error(response.message || "Authentication failed");
       }
 
       toast.success(response.message || "Authentication successful!");
-      return response.data;
+      return response;
     } catch (popupError: any) {
       if (
         popupError.code === "auth/popup-blocked" ||
@@ -110,7 +112,7 @@ export async function handleGoogleRedirectResult(): Promise<{
         avatarUrl: user.photoURL || undefined,
       };
 
-      const response = await makeRequest("/api/auth/google", "POST", {
+      const response = await makeRequest("/auth/google", "POST", {
         body: payload,
         requireAuth: false,
       });
@@ -119,7 +121,7 @@ export async function handleGoogleRedirectResult(): Promise<{
         throw new Error(response.message || "Authentication failed");
       }
 
-      return response.data;
+      return response;
     }
     return null;
   } catch (error: any) {

@@ -66,9 +66,6 @@ CREATE TABLE "categories" (
 CREATE TABLE "coaches" (
     "id" TEXT NOT NULL,
     "user_id" TEXT NOT NULL,
-    "email" TEXT,
-    "full_name" TEXT,
-    "avatar_url" TEXT,
     "title" TEXT NOT NULL,
     "bio" TEXT NOT NULL,
     "style" TEXT NOT NULL,
@@ -99,18 +96,12 @@ CREATE TABLE "coaches" (
 CREATE TABLE "students" (
     "id" TEXT NOT NULL,
     "user_id" TEXT NOT NULL,
-    "email" TEXT,
-    "full_name" TEXT,
-    "avatar_url" TEXT,
     "interested_program" TEXT,
     "skill_level" "SkillLevel",
     "commitment" TEXT,
     "learning_goals" TEXT[],
     "current_level" TEXT,
     "time_zone" TEXT,
-    "enrolled_programs" TEXT[],
-    "completed_sessions" TEXT[],
-    "upcoming_sessions" TEXT[],
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
@@ -140,12 +131,12 @@ CREATE TABLE "programs" (
     "coach_id" TEXT NOT NULL,
     "slug" TEXT NOT NULL,
     "rating" DOUBLE PRECISION NOT NULL DEFAULT 0,
-    "total_reviews" INTEGER DEFAULT 0,
-    "price" INTEGER DEFAULT 0,
+    "total_reviews" INTEGER NOT NULL DEFAULT 0,
+    "price" INTEGER NOT NULL DEFAULT 0,
     "duration" TEXT,
     "difficulty_level" "DifficultyLevel" NOT NULL DEFAULT 'BEGINNER',
-    "maxStudents" INTEGER DEFAULT 100,
-    "current_enrollments" INTEGER DEFAULT 0,
+    "max_students" INTEGER NOT NULL DEFAULT 100,
+    "current_enrollments" INTEGER NOT NULL DEFAULT 0,
     "is_active" BOOLEAN NOT NULL DEFAULT false,
     "status" "ProgramStatus" NOT NULL DEFAULT 'INACTIVE',
     "tags" TEXT[],
@@ -242,7 +233,7 @@ CREATE TABLE "reviews" (
     "content" TEXT NOT NULL,
     "is_verified" BOOLEAN NOT NULL DEFAULT false,
     "is_public" BOOLEAN NOT NULL DEFAULT true,
-    "helpful_count" INTEGER DEFAULT 0,
+    "helpful_count" INTEGER NOT NULL DEFAULT 0,
     "tags" TEXT[],
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
@@ -325,13 +316,18 @@ CREATE TABLE "events" (
     "event_type" TEXT NOT NULL,
     "date" TIMESTAMP(3) NOT NULL,
     "location" TEXT,
-    "image_url" TEXT,
-    "slug" TEXT,
-    "organizer_id" TEXT,
+    "images" TEXT[],
+    "slug" TEXT NOT NULL,
+    "organizer_id" TEXT NOT NULL,
     "is_public" BOOLEAN NOT NULL DEFAULT true,
     "max_attendees" INTEGER,
     "status" TEXT,
     "tags" TEXT[],
+    "meet_link" TEXT,
+    "google_event_id" TEXT,
+    "what_to_bring" TEXT,
+    "additional_info" TEXT,
+    "luma_event_link" TEXT NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
@@ -361,10 +357,25 @@ CREATE UNIQUE INDEX "users_google_id_key" ON "users"("google_id");
 CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
 
 -- CreateIndex
+CREATE INDEX "users_email_idx" ON "users"("email");
+
+-- CreateIndex
+CREATE INDEX "users_role_status_idx" ON "users"("role", "status");
+
+-- CreateIndex
+CREATE INDEX "users_created_at_idx" ON "users"("created_at");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "categories_name_key" ON "categories"("name");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "categories_slug_key" ON "categories"("slug");
+
+-- CreateIndex
+CREATE INDEX "categories_slug_idx" ON "categories"("slug");
+
+-- CreateIndex
+CREATE INDEX "categories_is_active_idx" ON "categories"("is_active");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "coaches_user_id_key" ON "coaches"("user_id");
@@ -373,7 +384,28 @@ CREATE UNIQUE INDEX "coaches_user_id_key" ON "coaches"("user_id");
 CREATE UNIQUE INDEX "coaches_slug_key" ON "coaches"("slug");
 
 -- CreateIndex
+CREATE INDEX "coaches_slug_idx" ON "coaches"("slug");
+
+-- CreateIndex
+CREATE INDEX "coaches_is_active_is_verified_idx" ON "coaches"("is_active", "is_verified");
+
+-- CreateIndex
+CREATE INDEX "coaches_rating_idx" ON "coaches"("rating");
+
+-- CreateIndex
+CREATE INDEX "coaches_category_idx" ON "coaches"("category");
+
+-- CreateIndex
+CREATE INDEX "coaches_created_at_idx" ON "coaches"("created_at");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "students_user_id_key" ON "students"("user_id");
+
+-- CreateIndex
+CREATE INDEX "students_skill_level_idx" ON "students"("skill_level");
+
+-- CreateIndex
+CREATE INDEX "students_created_at_idx" ON "students"("created_at");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "student_preferences_student_id_key" ON "student_preferences"("student_id");
@@ -382,7 +414,112 @@ CREATE UNIQUE INDEX "student_preferences_student_id_key" ON "student_preferences
 CREATE UNIQUE INDEX "programs_slug_key" ON "programs"("slug");
 
 -- CreateIndex
+CREATE INDEX "programs_slug_idx" ON "programs"("slug");
+
+-- CreateIndex
+CREATE INDEX "programs_category_id_idx" ON "programs"("category_id");
+
+-- CreateIndex
+CREATE INDEX "programs_coach_id_idx" ON "programs"("coach_id");
+
+-- CreateIndex
+CREATE INDEX "programs_is_active_status_idx" ON "programs"("is_active", "status");
+
+-- CreateIndex
+CREATE INDEX "programs_rating_idx" ON "programs"("rating");
+
+-- CreateIndex
+CREATE INDEX "programs_difficulty_level_idx" ON "programs"("difficulty_level");
+
+-- CreateIndex
+CREATE INDEX "programs_created_at_idx" ON "programs"("created_at");
+
+-- CreateIndex
+CREATE INDEX "modules_program_id_idx" ON "modules"("program_id");
+
+-- CreateIndex
+CREATE INDEX "modules_program_id_week_idx" ON "modules"("program_id", "week");
+
+-- CreateIndex
+CREATE INDEX "enrollments_student_id_idx" ON "enrollments"("student_id");
+
+-- CreateIndex
+CREATE INDEX "enrollments_program_id_idx" ON "enrollments"("program_id");
+
+-- CreateIndex
+CREATE INDEX "enrollments_coach_id_idx" ON "enrollments"("coach_id");
+
+-- CreateIndex
+CREATE INDEX "enrollments_status_idx" ON "enrollments"("status");
+
+-- CreateIndex
+CREATE INDEX "enrollments_payment_status_idx" ON "enrollments"("payment_status");
+
+-- CreateIndex
+CREATE INDEX "enrollments_student_id_status_idx" ON "enrollments"("student_id", "status");
+
+-- CreateIndex
+CREATE INDEX "enrollments_coach_id_status_idx" ON "enrollments"("coach_id", "status");
+
+-- CreateIndex
+CREATE INDEX "enrollments_enrollment_date_idx" ON "enrollments"("enrollment_date");
+
+-- CreateIndex
+CREATE INDEX "sessions_coach_id_idx" ON "sessions"("coach_id");
+
+-- CreateIndex
+CREATE INDEX "sessions_scheduled_time_idx" ON "sessions"("scheduled_time");
+
+-- CreateIndex
+CREATE INDEX "sessions_status_idx" ON "sessions"("status");
+
+-- CreateIndex
+CREATE INDEX "sessions_coach_id_scheduled_time_idx" ON "sessions"("coach_id", "scheduled_time");
+
+-- CreateIndex
+CREATE INDEX "sessions_coach_id_status_idx" ON "sessions"("coach_id", "status");
+
+-- CreateIndex
+CREATE INDEX "session_attendance_session_id_idx" ON "session_attendance"("session_id");
+
+-- CreateIndex
+CREATE INDEX "session_attendance_student_id_idx" ON "session_attendance"("student_id");
+
+-- CreateIndex
+CREATE INDEX "session_attendance_student_id_attended_idx" ON "session_attendance"("student_id", "attended");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "session_attendance_session_id_student_id_key" ON "session_attendance"("session_id", "student_id");
+
+-- CreateIndex
+CREATE INDEX "session_recordings_session_id_idx" ON "session_recordings"("session_id");
+
+-- CreateIndex
+CREATE INDEX "session_recordings_uploaded_at_idx" ON "session_recordings"("uploaded_at");
+
+-- CreateIndex
+CREATE INDEX "reviews_reviewer_id_idx" ON "reviews"("reviewer_id");
+
+-- CreateIndex
+CREATE INDEX "reviews_reviewee_id_idx" ON "reviews"("reviewee_id");
+
+-- CreateIndex
+CREATE INDEX "reviews_program_id_idx" ON "reviews"("program_id");
+
+-- CreateIndex
+CREATE INDEX "reviews_coach_id_idx" ON "reviews"("coach_id");
+
+-- CreateIndex
+CREATE INDEX "reviews_target_type_idx" ON "reviews"("target_type");
+
+-- CreateIndex
+CREATE INDEX "reviews_rating_idx" ON "reviews"("rating");
+
+-- CreateIndex
+CREATE INDEX "reviews_is_public_is_verified_idx" ON "reviews"("is_public", "is_verified");
+
+-- CreateIndex
+CREATE INDEX "reviews_created_at_idx" ON "reviews"("created_at");
 
 -- CreateIndex
 CREATE INDEX "conversations_created_at_idx" ON "conversations"("created_at");
@@ -427,7 +564,22 @@ CREATE UNIQUE INDEX "message_reactions_message_id_user_id_emoji_key" ON "message
 CREATE UNIQUE INDEX "events_slug_key" ON "events"("slug");
 
 -- CreateIndex
+CREATE INDEX "events_slug_idx" ON "events"("slug");
+
+-- CreateIndex
 CREATE INDEX "events_organizer_id_idx" ON "events"("organizer_id");
+
+-- CreateIndex
+CREATE INDEX "events_date_idx" ON "events"("date");
+
+-- CreateIndex
+CREATE INDEX "events_event_type_idx" ON "events"("event_type");
+
+-- CreateIndex
+CREATE INDEX "events_is_public_date_idx" ON "events"("is_public", "date");
+
+-- CreateIndex
+CREATE INDEX "events_status_idx" ON "events"("status");
 
 -- CreateIndex
 CREATE INDEX "event_attendees_event_id_idx" ON "event_attendees"("event_id");
@@ -511,7 +663,7 @@ ALTER TABLE "message_attachments" ADD CONSTRAINT "message_attachments_message_id
 ALTER TABLE "message_reactions" ADD CONSTRAINT "message_reactions_message_id_fkey" FOREIGN KEY ("message_id") REFERENCES "messages"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "events" ADD CONSTRAINT "events_organizer_id_fkey" FOREIGN KEY ("organizer_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "events" ADD CONSTRAINT "events_organizer_id_fkey" FOREIGN KEY ("organizer_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "event_attendees" ADD CONSTRAINT "event_attendees_event_id_fkey" FOREIGN KEY ("event_id") REFERENCES "events"("id") ON DELETE CASCADE ON UPDATE CASCADE;
