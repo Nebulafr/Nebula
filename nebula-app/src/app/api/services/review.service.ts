@@ -427,7 +427,10 @@ export class ReviewService {
       case "COACH":
         return await prisma.coach.findUnique({
           where: { id: targetId },
-          include: {
+          select: {
+            id: true,
+            rating: true,
+            totalReviews: true,
             user: {
               select: {
                 fullName: true,
