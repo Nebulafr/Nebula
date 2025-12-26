@@ -1,0 +1,382 @@
+"use client";
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  ArrowLeft,
+  Calendar,
+  CheckCircle,
+  Home,
+  Star,
+  Users,
+  Video,
+  Loader2,
+} from "lucide-react";
+import { Footer } from "@/components/layout/footer";
+import { Header } from "@/components/layout/header";
+import { useParams } from "next/navigation";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { getEventBySlug } from "@/actions/events";
+import { Event } from "@/types/event";
+
+export default function WebinarPage() {
+  const params = useParams<{ slug: string }>();
+  const slug = params.slug;
+  const [event, setEvent] = useState<Event | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isRegistered, setIsRegistered] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  useEffect(() => {
+    async function fetchEvent() {
+      setLoading(true);
+      setError(null);
+
+      const response = await getEventBySlug(slug);
+
+      if (response.success && response.data) {
+        setEvent(response.data.event);
+      } else {
+        setError(response.message || "Webinar not found");
+      }
+
+      setLoading(false);
+    }
+
+    if (slug) {
+      fetchEvent();
+    }
+  }, [slug]);
+
+  const handleJoinEvent = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsRegistered(true);
+  };
+
+  const handleDialogClose = () => {
+    setIsDialogOpen(false);
+    // Reset state after a delay to allow the dialog to close smoothly
+    setTimeout(() => {
+      setIsRegistered(false);
+    }, 300);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen flex-col bg-background">
+        <Header />
+        <main className="flex-1">
+          <div className="flex items-center justify-center h-64">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Loader2 className="h-6 w-6 animate-spin" />
+              Loading webinar...
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (error || !event) {
+    return (
+      <div className="flex min-h-screen flex-col bg-background">
+        <Header />
+        <main className="flex-1">
+          <div className="container py-12">
+            <div className="mb-8">
+              <Button variant="ghost" asChild>
+                <Link href="/events">
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back to Events
+                </Link>
+              </Button>
+            </div>
+            <div className="text-center">
+              <h1 className="text-2xl font-bold mb-4">Webinar Not Found</h1>
+              <p className="text-muted-foreground">{error}</p>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex min-h-screen flex-col bg-background">
+      <Header />
+      <main className="flex-1 py-12 md:py-20">
+        <div className="container">
+          <div className="mb-8">
+            <Button variant="ghost" asChild>
+              <Link href="/events">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Events
+              </Link>
+            </Button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+            {/* Left Column */}
+            <div className="md:col-span-1 space-y-8">
+              <Card className="overflow-hidden rounded-xl">
+                <div className="relative h-56 bg-primary/10">
+                  {event.images && event.images.length > 0 ? (
+                    <Image
+                      src={event.images[0]}
+                      alt={event.title}
+                      fill
+                      className="object-cover"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center">
+                      <Video className="h-16 w-16 text-white opacity-80" />
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-black/30 p-6 flex flex-col justify-end">
+                    <h2 className="font-headline text-3xl font-bold text-white leading-tight">
+                      {event.title}
+                    </h2>
+                    <p className="text-white/80 mt-2">
+                      Hosted by {event.organizer?.fullName || "Expert Host"}
+                    </p>
+                  </div>
+                </div>
+              </Card>
+              <Card className="rounded-xl p-6">
+                <h3 className="font-semibold mb-4">Hosted by</h3>
+                <div className="flex items-center gap-4">
+                  <Avatar className="h-12 w-12">
+                    <AvatarImage src={event.organizer?.avatarUrl} />
+                    <AvatarFallback>
+                      {event.organizer?.fullName?.charAt(0) || "H"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <h4 className="font-semibold">
+                      {event.organizer?.fullName || "Expert Host"}
+                    </h4>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
+                      <span>5.0 (150 reviews)</span>
+                    </div>
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground mt-4">
+                  Expert facilitator with years of experience in delivering
+                  engaging webinars.
+                </p>
+                <Button variant="outline" className="w-full mt-4">
+                  Free intro call
+                </Button>
+              </Card>
+            </div>
+
+            {/* Right Column */}
+            <div className="md:col-span-2">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Home className="h-4 w-4" />
+                <span>/</span>
+                <span>Webinar</span>
+              </div>
+              <h1 className="font-headline text-4xl font-bold mt-4">
+                {event.title}
+              </h1>
+
+              <div className="flex items-center gap-4 mt-4">
+                <div className="flex items-center">
+                  <div className="flex -space-x-2">
+                    {/* Mock attendee avatars */}
+                    <Avatar className="h-8 w-8 border-2 border-background">
+                      <AvatarImage src="https://i.pravatar.cc/40?u=1" />
+                      <AvatarFallback>A</AvatarFallback>
+                    </Avatar>
+                    <Avatar className="h-8 w-8 border-2 border-background">
+                      <AvatarImage src="https://i.pravatar.cc/40?u=2" />
+                      <AvatarFallback>B</AvatarFallback>
+                    </Avatar>
+                    <Avatar className="h-8 w-8 border-2 border-background">
+                      <AvatarImage src="https://i.pravatar.cc/40?u=3" />
+                      <AvatarFallback>C</AvatarFallback>
+                    </Avatar>
+                  </div>
+                  <span className="ml-3 text-sm font-medium text-muted-foreground">
+                    +{event.attendees || 32} people going
+                  </span>
+                </div>
+              </div>
+
+              <Card className="my-8 rounded-xl p-6">
+                <div className="flex items-center gap-6">
+                  <div className="flex flex-col items-center">
+                    <span className="text-xs uppercase text-muted-foreground">
+                      {new Date(event.date)
+                        .toLocaleDateString("en-US", { month: "short" })
+                        .toUpperCase()}
+                    </span>
+                    <span className="text-2xl font-bold">
+                      {new Date(event.date).getDate()}
+                    </span>
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold">
+                      {new Date(event.date).toLocaleDateString("en-US", {
+                        weekday: "long",
+                        month: "long",
+                        day: "numeric",
+                      })}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {new Date(event.date).toLocaleTimeString("en-US", {
+                        hour: "numeric",
+                        minute: "2-digit",
+                        hour12: true,
+                      })}{" "}
+                      -{" "}
+                      {new Date(
+                        new Date(event.date).getTime() + 60 * 60 * 1000
+                      ).toLocaleTimeString("en-US", {
+                        hour: "numeric",
+                        minute: "2-digit",
+                        hour12: true,
+                      })}{" "}
+                      CET
+                    </p>
+                  </div>
+                </div>
+                <hr className="my-4" />
+                <div className="flex items-center gap-6">
+                  <div className="flex flex-col items-center justify-center h-10 w-10">
+                    <Video className="h-6 w-6 text-muted-foreground" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold">Online event</p>
+                  </div>
+                </div>
+              </Card>
+
+              <Dialog
+                open={isDialogOpen}
+                onOpenChange={setIsDialogOpen}
+              >
+                <DialogTrigger asChild>
+                  <Button
+                    size="lg"
+                    className="w-full bg-foreground text-background hover:bg-foreground/90"
+                  >
+                    Register now
+                  </Button>
+                </DialogTrigger>
+                <DialogContent
+                  className="sm:max-w-3xl p-0 overflow-hidden"
+                  onInteractOutside={(e) => {
+                    if (isRegistered) e.preventDefault();
+                  }}
+                >
+                  {!isRegistered ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2">
+                      <div className="hidden md:block bg-primary/5 p-8">
+                        <h3 className="font-headline text-2xl font-bold text-primary">
+                          {event.title}
+                        </h3>
+                        <p className="text-muted-foreground mt-2">
+                          Hosted by {event.organizer?.fullName || "Expert Host"}
+                        </p>
+                      </div>
+                      <div className="p-8">
+                        <DialogHeader className="text-left mb-6">
+                          <DialogTitle className="text-2xl font-bold">
+                            Enter your info
+                          </DialogTitle>
+                          <DialogDescription>
+                            To join the event, please provide your details below.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <form onSubmit={handleJoinEvent}>
+                          <div className="grid gap-4">
+                            <div className="grid grid-cols-2 gap-4">
+                              <div className="grid gap-2">
+                                <Label htmlFor="first-name">First Name</Label>
+                                <Input
+                                  id="first-name"
+                                  placeholder="John"
+                                  required
+                                />
+                              </div>
+                              <div className="grid gap-2">
+                                <Label htmlFor="last-name">Last Name</Label>
+                                <Input
+                                  id="last-name"
+                                  placeholder="Doe"
+                                  required
+                                />
+                              </div>
+                            </div>
+                            <div className="grid gap-2">
+                              <Label htmlFor="email">Email</Label>
+                              <Input
+                                id="email"
+                                type="email"
+                                placeholder="john.doe@example.com"
+                                required
+                              />
+                            </div>
+                          </div>
+                          <Button type="submit" className="w-full mt-6">
+                            Join event
+                          </Button>
+                          <p className="text-center text-xs text-muted-foreground mt-4">
+                            Already have an account?{" "}
+                            <Link href="/login" className="underline">
+                              Log in
+                            </Link>
+                          </p>
+                        </form>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-12 px-8">
+                      <CheckCircle className="h-16 w-16 mx-auto mb-4 text-green-500" />
+                      <h3 className="text-2xl font-semibold">You're in!</h3>
+                      <p className="text-muted-foreground mt-2 max-w-sm mx-auto">
+                        Your spot for '{event.title}' is confirmed. A
+                        confirmation has been sent to your email.
+                      </p>
+                      <Button onClick={handleDialogClose} className="mt-8">
+                        Close
+                      </Button>
+                    </div>
+                  )}
+                </DialogContent>
+              </Dialog>
+
+              <div className="mt-12">
+                <h3 className="text-xl font-bold mb-4">About the event</h3>
+                <div className="prose max-w-none text-muted-foreground">
+                  <p>{event.description}</p>
+                </div>
+                <Button variant="link" className="px-0 mt-2">
+                  Show more &raquo;
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+      <Footer />
+    </div>
+  );
+}

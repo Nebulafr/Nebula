@@ -1,21 +1,17 @@
 import { NextRequest } from "next/server";
-import { z } from "zod";
 import { EventService } from "../services/event.service";
 import { createEventSchema, updateEventSchema } from "@/lib/validations";
 import {
   BadRequestException,
-  ValidationException,
 } from "../utils/http-exception";
 
 class EventController {
   async createEvent(request: NextRequest) {
     const payload = await request.json();
 
-    const { googleAccessToken, ...eventData } = payload;
+    const body = createEventSchema.parse(payload);
 
-    const body = createEventSchema.parse(eventData);
-
-    return await EventService.create(request, body, googleAccessToken);
+    return await EventService.create(request, body);
   }
 
   async getEvents(request: NextRequest) {

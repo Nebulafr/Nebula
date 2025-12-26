@@ -163,6 +163,34 @@ export class ReviewService {
     );
   }
 
+  static async getReviewsBySlug(
+    targetType: ReviewTargetType,
+    slug: string,
+    sortOptions: ReviewSortOptions
+  ) {
+
+    // Resolve the target ID from slug
+    let targetId: string;
+
+    if (targetType === "PROGRAM") {
+      const program = await prisma.program.findUnique({
+        where: { slug },
+      });
+
+      if (!program) {
+        throw new NotFoundException("Program not found");
+      }
+
+      targetId = program.id;
+    } else {
+      // For COACH type, we'll use the slug as the coach ID for now
+      // This might need adjustment based on your coach routing strategy
+      targetId = slug;
+    }
+
+    return this.getReviews(targetType, targetId, sortOptions);
+  }
+
   static async getReviews(
     targetType: ReviewTargetType,
     targetId: string,

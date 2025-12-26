@@ -14,10 +14,6 @@ import { EventsTable } from "./events-table";
 import { EventDetailsDialog } from "./event-details-dialog";
 import { CreateEventDialog } from "./create-event-dialog";
 import { useSearchParams } from "next/navigation";
-import {
-  storeGoogleAccessToken,
-  getGoogleAccessToken,
-} from "@/lib/auth-storage";
 import { EventType } from "@/types/event";
 
 export default function AdminEventsContent() {
@@ -33,10 +29,6 @@ export default function AdminEventsContent() {
   const urlStep = searchParams.get("step");
   const [createStep, setCreateStep] = useState<number>(
     urlStep ? parseInt(urlStep) : 1
-  );
-  const [currentSessionIndex, setCurrentSessionIndex] = useState<number>(0);
-  const [googleAccessToken, setGoogleAccessToken] = useState<string>(
-    getGoogleAccessToken() || ""
   );
 
   const {
@@ -88,17 +80,10 @@ export default function AdminEventsContent() {
     [`delete-${selectedEvent?.id}`]: deleteEventMutation.isPending,
   };
 
-  // Handle Google OAuth callback and URL parameters
+  // Handle URL parameters
   useEffect(() => {
-    const accessToken = searchParams.get("access_token");
     const eventType = searchParams.get("eventType");
     const step = searchParams.get("step");
-
-    if (accessToken) {
-      storeGoogleAccessToken(accessToken);
-      setGoogleAccessToken(accessToken);
-      toast.success("Google Calendar connected successfully!");
-    }
 
     // Update form state based on URL parameters
     if (eventType) {
@@ -116,41 +101,12 @@ export default function AdminEventsContent() {
     if (eventType || step) {
       setIsCreateDialogOpen(true);
     }
-
-    // Clean URL after processing
-    if (accessToken) {
-      const url = new URL(window.location.href);
-      url.searchParams.delete("access_token");
-      url.searchParams.delete("refresh_token");
-      window.history.replaceState({}, "", url.toString());
-    }
   }, [searchParams]);
 
   // Fetch admin events with current filters
   useEffect(() => {
     fetchAdminEvents();
   }, [searchTerm, activeTab, fetchAdminEvents]);
-
-  // Helper function to trigger Google Calendar authentication for webinars
-  const triggerGoogleAuth = (eventType: string, step: number) => {
-    // Check if we already have a stored Google access token
-    const existingToken = getGoogleAccessToken();
-    if (existingToken) {
-      // Skip auth and go directly to the next step
-      setGoogleAccessToken(existingToken);
-      setCreateStep(step);
-      toast.info("Using existing Google Calendar connection");
-      return;
-    }
-
-    const authUrl = new URL(
-      "/api/auth/google-calendar",
-      window.location.origin
-    );
-    authUrl.searchParams.set("eventType", eventType);
-    authUrl.searchParams.set("step", step.toString());
-    window.location.href = authUrl.toString();
-  };
 
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(
     !!urlEventType || !!urlStep
@@ -168,14 +124,6 @@ export default function AdminEventsContent() {
     isPublic: true,
     maxAttendees: "",
     tags: [] as string[],
-    sessions: [] as Array<{
-      date: string;
-      time: string;
-      price: string;
-      currency: string;
-      spotsLeft: string;
-      description: string;
-    }>,
   });
 
   const handleEventAction = async (id: string, newStatus: string) => {
@@ -227,23 +175,6 @@ export default function AdminEventsContent() {
           : undefined,
         tags: newEvent.tags,
         organizerId: newEvent.organizerId || undefined,
-        // Include Google access token for webinar events
-        ...(newEvent.eventType === EventType.WEBINAR && googleAccessToken
-          ? { googleAccessToken }
-          : {}),
-        ...(newEvent.eventType === EventType.SOCIAL &&
-          newEvent.sessions.length > 0 && {
-            sessions: newEvent.sessions.map((session) => ({
-              date: session.date,
-              time: session.time,
-              price: session.price ? parseFloat(session.price) : 0,
-              currency: session.currency,
-              spotsLeft: session.spotsLeft
-                ? parseInt(session.spotsLeft)
-                : undefined,
-              description: session.description || undefined,
-            })),
-          }),
       };
 
       const success = await handleCreateEventAction(eventData);
@@ -262,7 +193,6 @@ export default function AdminEventsContent() {
           isPublic: true,
           maxAttendees: "",
           tags: [],
-          sessions: [],
         });
         setIsCreateDialogOpen(false);
         toast.success("Event created successfully");
@@ -283,53 +213,6 @@ export default function AdminEventsContent() {
     } else {
       toast.error("Failed to delete event");
     }
-  };
-
-  const addSession = () => {
-    const newSessions = [
-      ...newEvent.sessions,
-      {
-        date: "",
-        time: "",
-        price: "0",
-        currency: "EUR",
-        spotsLeft: "",
-        description: "",
-      },
-    ];
-    setNewEvent({
-      ...newEvent,
-      sessions: newSessions,
-    });
-    setCurrentSessionIndex(newSessions.length - 1);
-  };
-
-  const updateSession = (index: number, field: string, value: string) => {
-    const updatedSessions = [...newEvent.sessions];
-    updatedSessions[index] = { ...updatedSessions[index], [field]: value };
-    setNewEvent({ ...newEvent, sessions: updatedSessions });
-  };
-
-  const removeSession = (index: number) => {
-    const updatedSessions = newEvent.sessions.filter((_, i) => i !== index);
-    setNewEvent({ ...newEvent, sessions: updatedSessions });
-    if (currentSessionIndex >= updatedSessions.length) {
-      setCurrentSessionIndex(Math.max(0, updatedSessions.length - 1));
-    }
-  };
-
-  const navigateToSession = (index: number) => {
-    setCurrentSessionIndex(index);
-  };
-
-  const goToPreviousSession = () => {
-    setCurrentSessionIndex(Math.max(0, currentSessionIndex - 1));
-  };
-
-  const goToNextSession = () => {
-    setCurrentSessionIndex(
-      Math.min(newEvent.sessions.length - 1, currentSessionIndex + 1)
-    );
   };
 
   const filteredEvents = events;
@@ -388,16 +271,6 @@ export default function AdminEventsContent() {
         setNewEvent={setNewEvent}
         actionLoading={actionLoading}
         onCreateEvent={handleCreateEvent}
-        currentSessionIndex={currentSessionIndex}
-        setCurrentSessionIndex={setCurrentSessionIndex}
-        onAddSession={addSession}
-        onUpdateSession={updateSession}
-        onRemoveSession={removeSession}
-        onNavigateToSession={navigateToSession}
-        onGoToPreviousSession={goToPreviousSession}
-        onGoToNextSession={goToNextSession}
-        googleAccessToken={googleAccessToken}
-        onTriggerGoogleAuth={triggerGoogleAuth}
       />
     </div>
   );

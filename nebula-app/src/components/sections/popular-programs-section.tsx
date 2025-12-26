@@ -5,12 +5,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Star } from "lucide-react";
 import { usePopularPrograms } from "@/hooks";
+import { Button } from "../ui/button";
 
 export function PopularProgramsSection() {
-  const { 
-    data: programsResponse, 
-    isLoading: loading 
-  } = usePopularPrograms({ limit: 3 });
+  const { data: programsResponse, isLoading: loading } = usePopularPrograms({
+    limit: 3,
+  });
   const programs = programsResponse?.data?.programs || [];
   return (
     <section className="bg-light-gray py-20 sm:py-32">
@@ -26,7 +26,10 @@ export function PopularProgramsSection() {
           {loading ? (
             // Loading skeleton cards
             Array.from({ length: 3 }).map((_, i) => (
-              <Card key={i} className="flex w-full flex-col overflow-hidden rounded-xl shadow-none">
+              <Card
+                key={i}
+                className="flex w-full flex-col overflow-hidden rounded-xl shadow-none"
+              >
                 <CardContent className="flex flex-1 flex-col justify-between p-6">
                   <div className="flex-1">
                     <div className="h-6 w-20 bg-gray-200 rounded animate-pulse mb-4"></div>
@@ -62,8 +65,7 @@ export function PopularProgramsSection() {
                 </CardContent>
               </Card>
             ))
-          ) : (
-            // Actual program cards
+          ) : programs.length > 0 ? (
             programs.map((program: any) => (
               <Link
                 key={program.title}
@@ -108,15 +110,17 @@ export function PopularProgramsSection() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center">
                           <div className="flex -space-x-2">
-                            {program.attendees?.map((attendee: any, i: number) => (
-                              <Avatar
-                                key={i}
-                                className="h-8 w-8 border-2 border-background"
-                              >
-                                <AvatarImage src={attendee} />
-                                <AvatarFallback>A</AvatarFallback>
-                              </Avatar>
-                            ))}
+                            {program.attendees?.map(
+                              (attendee: any, i: number) => (
+                                <Avatar
+                                  key={i}
+                                  className="h-8 w-8 border-2 border-background"
+                                >
+                                  <AvatarImage src={attendee} />
+                                  <AvatarFallback>A</AvatarFallback>
+                                </Avatar>
+                              )
+                            )}
                           </div>
                           {program._count?.enrollments > 0 && (
                             <span className="ml-3 text-sm font-medium text-muted-foreground">
@@ -129,7 +133,9 @@ export function PopularProgramsSection() {
                           className="flex items-center gap-1 border-yellow-400 bg-yellow-50/50 px-1 py-0.5 text-[10px]"
                         >
                           <Star className="h-2 w-2 fill-current text-yellow-500" />
-                          <span className="font-semibold">{program.rating}</span>
+                          <span className="font-semibold">
+                            {program.rating}
+                          </span>
                         </Badge>
                       </div>
                     </div>
@@ -137,6 +143,15 @@ export function PopularProgramsSection() {
                 </Card>
               </Link>
             ))
+          ) : (
+            <div className="col-span-full text-center">
+              <p className="text-muted-foreground">
+                No upcoming events at the moment.
+              </p>
+              <Button asChild className="mt-4">
+                <Link href="/events">Explore All Events</Link>
+              </Button>
+            </div>
           )}
         </div>
       </div>

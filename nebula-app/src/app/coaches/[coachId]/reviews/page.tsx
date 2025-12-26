@@ -8,37 +8,49 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
-import { capitalize } from "@/lib/utils";
 import { useCoachReviews } from "@/hooks";
-
 
 export default function CoachReviewsPage() {
   const { coachId } = useParams<{ coachId: string }>();
-  
-  const { 
-    data: reviewsResponse, 
-    isLoading: loading 
-  } = useCoachReviews({ coachId });
-  
-  const reviews = reviewsResponse?.data?.reviews || [];
-  const coachName = "Coach"; // This would ideally come from a separate coach query
 
-  const renderStars = (rating: number) => {
+  const {
+    data: reviewsResponse,
+    isLoading: loading,
+    error,
+  } = useCoachReviews({
+    coachId,
+  });
+
+  const reviews = reviewsResponse?.data?.reviews || [];
+  const targetEntity = reviewsResponse?.data?.targetEntity;
+  // const ratingDistribution = reviewsResponse?.data?.ratingDistribution;
+  // const pagination = reviewsResponse?.data?.pagination;
+
+  const coachName = targetEntity?.fullName || "Coach";
+
+  if (error) {
     return (
-      <div className="flex items-center gap-1 mb-4">
-        {[...Array(5)].map((_, index) => (
-          <Star
-            key={index}
-            className={`h-5 w-5 ${
-              index < rating
-                ? "fill-yellow-400 text-yellow-400"
-                : "text-gray-300"
-            }`}
-          />
-        ))}
+      <div className="flex min-h-screen flex-col bg-background">
+        <Header />
+        <main className="flex-1">
+          <section className="container py-12 md:py-20">
+            <div className="text-center">
+              <h1 className="font-headline text-4xl font-bold tracking-tighter text-primary md:text-5xl">
+                Coach Not Found
+              </h1>
+              <p className="mt-4 text-lg text-muted-foreground">
+                The coach you're looking for doesn't exist or has been removed.
+              </p>
+              <Button asChild className="mt-6">
+                <Link href="/coaches">Browse Coaches</Link>
+              </Button>
+            </div>
+          </section>
+        </main>
+        <Footer />
       </div>
     );
-  };
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -57,7 +69,7 @@ export default function CoachReviewsPage() {
           </div>
 
           {/* Page Header */}
-          <div className="mb-12">
+          <div className="mb-8">
             <h1 className="font-headline text-4xl font-bold tracking-tighter text-primary md:text-5xl">
               Reviews for {coachName}
             </h1>
@@ -67,12 +79,16 @@ export default function CoachReviewsPage() {
             </p>
 
             {/* Reviews Summary */}
-            {reviews.length > 0 && (
-              <div className="mt-4 flex items-center gap-2 text-muted-foreground">
-                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                <span className="font-medium">
-                  {reviews.length} review{reviews.length !== 1 ? "s" : ""}
-                </span>
+            {targetEntity && (
+              <div className="mt-4 flex items-center gap-4">
+                <div className="flex items-center gap-1">
+                  <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                  <span className="font-semibold">{targetEntity.rating}</span>
+                  <span className="text-muted-foreground">
+                    ({targetEntity.totalReviews} review
+                    {targetEntity.totalReviews !== 1 ? "s" : ""})
+                  </span>
+                </div>
               </div>
             )}
           </div>
@@ -83,55 +99,76 @@ export default function CoachReviewsPage() {
               <Loader2 className="h-8 w-8 animate-spin" />
               <span className="ml-2">Loading reviews...</span>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {reviews.length > 0 ? (
-                reviews.map((review: any) => (
-                <Card
-                  key={review.id}
-                  className="overflow-hidden rounded-xl border shadow-sm transition-shadow hover:shadow-md"
-                >
-                  <CardContent className="p-6">
-                    {renderStars(review.rating)}
-
-                    <p className="font-serif text-base text-muted-foreground italic">
-                      &quot;{review.content}&quot;
-                    </p>
-
-                    <div className="mt-4 flex items-center gap-3">
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage
-                          src={review.reviewer.avatarUrl}
-                          alt={review.reviewer.fullName}
-                        />
-                        <AvatarFallback>
-                          {review.reviewer.fullName.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
-
-                      <div>
-                        <p className="text-sm font-semibold">
-                          {review.reviewer.fullName}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {capitalize(review.reviewer.role)}
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
-            ) : (
-              <div className="col-span-full py-12 text-center">
-                <p className="text-lg text-muted-foreground">
-                  No reviews yet. Be the first to review this coach!
-                </p>
-                <Button className="mt-4" asChild>
-                  <Link href={`/coaches/${coachId}`}>View Coach Profile</Link>
-                </Button>
-              </div>
-            )}
+          ) : reviews.length === 0 ? (
+            <div className="col-span-full py-12 text-center">
+              <p className="text-lg text-muted-foreground">
+                No reviews yet. Be the first to review this coach!
+              </p>
+              <Button className="mt-4" asChild>
+                <Link href={`/coaches/${coachId}`}>View Coach Profile</Link>
+              </Button>
             </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {reviews.map((review: any) => (
+                  <Card
+                    key={review.id}
+                    className="overflow-hidden rounded-xl border shadow-sm transition-shadow hover:shadow-md"
+                  >
+                    <CardContent className="p-6">
+                      <div className="flex items-center gap-1 mb-4">
+                        {[...Array(review.rating)].map((_, i) => (
+                          <Star
+                            key={i}
+                            className="h-5 w-5 fill-yellow-400 text-yellow-400"
+                          />
+                        ))}
+                        {[...Array(5 - review.rating)].map((_, i) => (
+                          <Star key={i} className="h-5 w-5 text-gray-300" />
+                        ))}
+                        {review.isVerified && (
+                          <span className="ml-2 text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                            Verified
+                          </span>
+                        )}
+                      </div>
+
+                      {review.title && (
+                        <h4 className="font-semibold mb-2">{review.title}</h4>
+                      )}
+
+                      <p className="font-serif text-base text-muted-foreground italic mb-4">
+                        &quot;{review.content}&quot;
+                      </p>
+
+                      <div className="flex justify-between items-end">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-10 w-10">
+                            <AvatarImage
+                              src={review.reviewer.avatarUrl}
+                              alt={review.reviewer.fullName}
+                            />
+                            <AvatarFallback>
+                              {review.reviewer.fullName?.charAt(0) || "A"}
+                            </AvatarFallback>
+                          </Avatar>
+
+                          <div>
+                            <p className="text-sm font-semibold">
+                              {review.reviewer.fullName || "Anonymous"}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {new Date(review.createdAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </>
           )}
         </section>
       </main>

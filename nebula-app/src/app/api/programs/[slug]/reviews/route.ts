@@ -10,6 +10,6 @@ export const GET = CatchError(
     context: { params: Promise<{ slug: string }> }
   ) => {
     const { slug } = await context.params;
-    return await reviewController.getReviews(request, "PROGRAM", slug);
+    return await reviewController.getReviewsBySlug(request, "PROGRAM", slug);
   }
 );

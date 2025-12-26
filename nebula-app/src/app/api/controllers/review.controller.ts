@@ -66,4 +66,28 @@ export class ReviewController {
       sortOptions
     );
   }
+
+  async getReviewsBySlug(request: NextRequest, targetType: string, slug: string) {
+    const { searchParams } = new URL(request.url);
+
+    const queryParams = {
+      page: parseInt(searchParams.get("page") || "1"),
+      limit: parseInt(searchParams.get("limit") || "10"),
+      sortBy: searchParams.get("sortBy") || "recent",
+    };
+
+    let validatedParams = getReviewsSchema.parse(queryParams);
+
+    const sortOptions = {
+      sortBy: validatedParams.sortBy as "recent" | "rating" | "oldest",
+      page: validatedParams.page,
+      limit: validatedParams.limit,
+    };
+
+    return await ReviewService.getReviewsBySlug(
+      targetType as any,
+      slug,
+      sortOptions
+    );
+  }
 }

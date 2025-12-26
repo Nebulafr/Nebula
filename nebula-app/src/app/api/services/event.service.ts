@@ -11,15 +11,9 @@ import {
 } from "../utils/http-exception";
 import { sendSuccess } from "../utils/send-response";
 import { generateSlug } from "@/lib/utils";
-import { createCalendarEvent } from "@/lib/google-api";
-import { EmailService } from "./email.service";
 
 export class EventService {
-  static create = async (
-    request: NextRequest,
-    data: CreateEventData,
-    accessToken?: string
-  ) => {
+  static create = async (request: NextRequest, data: CreateEventData) => {
     const user = (request as any).user;
 
     if (user.role !== "ADMIN") {
@@ -40,64 +34,12 @@ export class EventService {
     }
 
     const payload = createEventSchema.parse(data);
-    const { sessions, ...eventData } = payload as any;
-
-    // Create Google Meet link for webinars
-    let meetLink: string | undefined;
-    let googleEventId: string | undefined;
-
-    if (eventData.eventType === "WEBINAR") {
-      try {
-        // Calculate event end time (default 1 hour duration)
-        const startTime = new Date(eventData.date);
-        const endTime = new Date(startTime.getTime() + 60 * 60 * 1000);
-
-        // Get organizer email for the meeting
-        const organizer = await prisma.user.findUnique({
-          where: { id: eventData.organizerId || user.id },
-          select: { email: true },
-        });
-
-        if (!accessToken) {
-          throw new Error("Google access token required for webinar events");
-        }
-
-        const googleMeetResult = await createCalendarEvent(
-          eventData.title,
-          eventData.description,
-          startTime.toISOString(),
-          endTime.toISOString(),
-          organizer?.email ? [organizer.email] : [],
-          accessToken
-        );
-
-        meetLink = googleMeetResult.meetLink;
-        googleEventId = googleMeetResult.eventId;
-      } catch (error) {
-        console.error("Failed to create Google Meet link:", error);
-        // Continue creating event even if Google Meet fails
-      }
-    }
+    const eventData = payload as any;
 
     const event = await prisma.event.create({
       data: {
         ...eventData,
         organizerId: eventData.organizerId || user.id,
-        meetLink,
-        googleEventId,
-        sessions:
-          sessions?.length > 0
-            ? {
-                create: sessions.map((session: any) => ({
-                  date: new Date(session.date + "T" + session.time),
-                  time: session.time,
-                  price: session.price || 0,
-                  currency: session.currency || "EUR",
-                  spotsLeft: session.spotsLeft,
-                  description: session.description,
-                })),
-              }
-            : undefined,
       },
       include: {
         organizer: {
@@ -105,14 +47,6 @@ export class EventService {
             id: true,
             fullName: true,
             avatarUrl: true,
-          },
-        },
-        sessions: {
-          where: {
-            isActive: true,
-          },
-          orderBy: {
-            date: "asc",
           },
         },
       },
@@ -140,20 +74,6 @@ export class EventService {
       tags: event.tags,
       whatToBring: event.whatToBring,
       additionalInfo: event.additionalInfo,
-      meetLink: meetLink,
-      googleEventId: googleEventId,
-      sessions:
-        event.sessions?.map((session: any) => ({
-          id: session.id,
-          eventId: session.eventId,
-          date: session.date.toISOString(),
-          time: session.time,
-          price: session.price,
-          currency: session.currency,
-          spotsLeft: session.spotsLeft,
-          isActive: session.isActive,
-          description: session.description,
-        })) || [],
       createdAt: event.createdAt.toISOString(),
       updatedAt: event.updatedAt.toISOString(),
     };
@@ -331,14 +251,6 @@ export class EventService {
             },
           },
         },
-        sessions: {
-          where: {
-            isActive: true,
-          },
-          orderBy: {
-            date: "asc",
-          },
-        },
         _count: {
           select: {
             attendees: {
@@ -387,18 +299,6 @@ export class EventService {
       tags: event.tags,
       whatToBring: event.whatToBring,
       additionalInfo: event.additionalInfo,
-      sessions:
-        event.sessions?.map((session: any) => ({
-          id: session.id,
-          eventId: session.eventId,
-          date: session.date.toISOString(),
-          time: session.time,
-          price: session.price,
-          currency: session.currency,
-          spotsLeft: session.spotsLeft,
-          isActive: session.isActive,
-          description: session.description,
-        })) || [],
       createdAt: event.createdAt.toISOString(),
       updatedAt: event.updatedAt.toISOString(),
     };
@@ -437,14 +337,6 @@ export class EventService {
                 },
               },
             },
-          },
-        },
-        sessions: {
-          where: {
-            isActive: true,
-          },
-          orderBy: {
-            date: "asc",
           },
         },
         _count: {
@@ -497,18 +389,6 @@ export class EventService {
       tags: event.tags,
       whatToBring: event.whatToBring,
       additionalInfo: event.additionalInfo,
-      sessions:
-        event.sessions?.map((session: any) => ({
-          id: session.id,
-          eventId: session.eventId,
-          date: session.date.toISOString(),
-          time: session.time,
-          price: session.price,
-          currency: session.currency,
-          spotsLeft: session.spotsLeft,
-          isActive: session.isActive,
-          description: session.description,
-        })) || [],
       createdAt: event.createdAt.toISOString(),
       updatedAt: event.updatedAt.toISOString(),
     };
@@ -535,33 +415,13 @@ export class EventService {
       throw new NotFoundException("Event not found");
     }
 
-    const { sessions, ...eventData } = data as any;
+    const eventData = data as any;
 
     const event = await prisma.$transaction(async (tx) => {
       await tx.event.update({
         where: { id },
         data: eventData,
       });
-
-      if (sessions !== undefined) {
-        await tx.eventSession.deleteMany({
-          where: { eventId: id },
-        });
-
-        if (sessions.length > 0) {
-          await tx.eventSession.createMany({
-            data: sessions.map((session: any) => ({
-              eventId: id,
-              date: new Date(session.date + "T" + session.time),
-              time: session.time,
-              price: session.price || 0,
-              currency: session.currency || "EUR",
-              spotsLeft: session.spotsLeft,
-              description: session.description,
-            })),
-          });
-        }
-      }
       return await tx.event.findUnique({
         where: { id },
         include: {
@@ -570,14 +430,6 @@ export class EventService {
               id: true,
               fullName: true,
               avatarUrl: true,
-            },
-          },
-          sessions: {
-            where: {
-              isActive: true,
-            },
-            orderBy: {
-              date: "asc",
             },
           },
           _count: {
@@ -618,18 +470,7 @@ export class EventService {
       tags: event!.tags,
       whatToBring: event!.whatToBring,
       additionalInfo: event!.additionalInfo,
-      sessions:
-        event!.sessions?.map((session: any) => ({
-          id: session.id,
-          eventId: session.eventId,
-          date: session.date.toISOString(),
-          time: session.time,
-          price: session.price,
-          currency: session.currency,
-          spotsLeft: session.spotsLeft,
-          isActive: session.isActive,
-          description: session.description,
-        })) || [],
+
       createdAt: event!.createdAt.toISOString(),
       updatedAt: event!.updatedAt.toISOString(),
     };
@@ -714,17 +555,6 @@ export class EventService {
         status: "REGISTERED",
       },
     });
-
-    if (event.eventType === "WEBINAR" && event.meetLink) {
-      await EmailService.sendWebinarRegistrationEmail(user.email, {
-        userName: user.fullName || "Participant",
-        eventTitle: event.title,
-        eventDate: event.date.toISOString(),
-        meetingUrl: event.meetLink,
-        organizerName: event.organizer?.fullName || "Event Organizer",
-        eventDescription: event.description || "",
-      });
-    }
 
     return sendSuccess(
       {

@@ -8,7 +8,6 @@ import { EventType } from "@/types/event";
 interface FormStepFooterProps {
   currentStep: number;
   totalSteps: number;
-  eventType: EventType;
   canGoNext?: boolean;
   canSubmit?: boolean;
   isSubmitting?: boolean;
@@ -23,7 +22,6 @@ interface FormStepFooterProps {
 export function FormStepFooter({
   currentStep,
   totalSteps,
-  eventType,
   canGoNext = true,
   canSubmit = true,
   isSubmitting = false,
@@ -36,7 +34,6 @@ export function FormStepFooter({
 }: FormStepFooterProps) {
   const isFirstStep = currentStep === 1;
   const isFinalStep = currentStep === totalSteps;
-  const isSessionsStep = currentStep === 3 && eventType === EventType.SOCIAL;
 
   return (
     <DialogFooter>

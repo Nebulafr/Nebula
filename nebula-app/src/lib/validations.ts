@@ -204,17 +204,6 @@ export const enrollmentSchema = z.object({
   date: z.string().optional(),
 });
 
-const eventSessionSchema = z.object({
-  date: z.string().min(1, "Session date is required"),
-  time: z.string().min(1, "Session time is required"),
-  price: z.number().min(0, "Price must be positive").optional(),
-  currency: z.string().min(1).max(3).default("EUR"),
-  spotsLeft: z.number().int().positive("Spots must be positive").optional(),
-  description: z
-    .string()
-    .max(500, "Description must be less than 500 characters")
-    .optional(),
-});
 
 export const createEventSchema = z.object({
   title: z
@@ -272,14 +261,6 @@ export const createEventSchema = z.object({
     .string()
     .max(2000, "Additional info must be less than 2000 characters")
     .optional(),
-  meetingUrl: z
-    .string()
-    .url("Meeting URL must be a valid URL")
-    .optional(),
-  googleEventId: z
-    .string()
-    .optional(),
-  sessions: z.array(eventSessionSchema).optional(),
 });
 
 export const updateEventSchema = z.object({
@@ -342,7 +323,6 @@ export const updateEventSchema = z.object({
     .string()
     .max(2000, "Additional info must be less than 2000 characters")
     .optional(),
-  sessions: z.array(eventSessionSchema).optional(),
 });
 
 export function validateRequest<T>(schema: z.ZodSchema<T>, data: unknown): T {

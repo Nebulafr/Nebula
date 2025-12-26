@@ -14,17 +14,6 @@ export enum EventStatus {
 
 export type EventTypeString = keyof typeof EventType;
 
-export interface EventSession {
-  id: string;
-  eventId: string;
-  date: string;
-  time: string;
-  price?: number;
-  currency?: string;
-  spotsLeft?: number;
-  isActive: boolean;
-  description?: string;
-}
 
 export interface Event {
   id: string;
@@ -54,19 +43,10 @@ export interface Event {
   tags: string[];
   whatToBring?: string;
   additionalInfo?: string;
-  sessions?: EventSession[];
   createdAt: string;
   updatedAt: string;
 }
 
-export interface CreateEventSessionData {
-  date: string;
-  time: string;
-  price?: number;
-  currency?: string;
-  spotsLeft?: number;
-  description?: string;
-}
 
 export interface CreateEventData {
   title: string;
@@ -82,7 +62,6 @@ export interface CreateEventData {
   whatToBring?: string;
   additionalInfo?: string;
   organizerId?: string;
-  sessions?: CreateEventSessionData[];
 }
 
 export interface UpdateEventData extends Partial<CreateEventData> {}
