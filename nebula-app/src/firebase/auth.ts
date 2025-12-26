@@ -121,7 +121,7 @@ export async function handleGoogleRedirectResult(): Promise<{
         throw new Error(response.message || "Authentication failed");
       }
 
-      return response;
+      return response.data;
     }
     return null;
   } catch (error: any) {
