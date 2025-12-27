@@ -7,6 +7,9 @@ export * from "./use-programs-queries";
 // Coaches hooks
 export * from "./use-coaches-queries";
 
+// Schedule hooks (coach dashboard)
+export * from "./use-schedule-queries";
+
 // Events hooks
 export * from "./use-events-queries";
 
@@ -67,4 +70,9 @@ export const QUERY_KEYS = {
   ADMIN_RECENT_SIGNUPS: "admin-recent-signups",
   ADMIN_PLATFORM_ACTIVITY: "admin-platform-activity",
   ADMIN_EVENTS: "admin-events",
+
+  // Schedule (coach dashboard)
+  COACH_SESSIONS: "coach-sessions",
+  COACH_STATS: "coach-stats",
+  COACH_AVAILABILITY: "coach-availability",
 } as const;

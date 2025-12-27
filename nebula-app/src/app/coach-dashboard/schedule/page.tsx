@@ -1,71 +1,69 @@
-
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { ScheduleCalendar } from "./components/schedule-calendar";
-import { AppointmentsList } from "./components/appointments-list";
+import { SessionsList } from "./components/appointments-list";
 import { ScheduleStats } from "./components/schedule-stats";
-import { Appointment } from "./components/appointment-item";
-
-const mockAppointments: Record<string, Appointment[]> = {
-  "2024-08-20": [
-    {
-      id: "1",
-      time: "09:00 AM",
-      student: "Alex Thompson",
-      avatar: "https://i.pravatar.cc/40?u=alex",
-      type: "Career Coaching",
-      status: "confirmed",
-    },
-    {
-      id: "2", 
-      time: "11:00 AM",
-      student: "Sarah K.",
-      avatar: "https://i.pravatar.cc/40?u=sarah",
-      type: "Interview Prep",
-      status: "confirmed",
-    },
-  ],
-  "2024-08-22": [
-    {
-      id: "3",
-      time: "02:00 PM", 
-      student: "Michael T.",
-      avatar: "https://i.pravatar.cc/40?u=michael",
-      type: "Resume Review",
-      status: "pending",
-    },
-  ],
-};
-
-const mockStats = {
-  totalAppointments: 45,
-  todayAppointments: 3,
-  upcomingAppointments: 12,
-  completedToday: 2,
-};
+import { AvailabilitySettings } from "./components/availability-settings";
+import { Session } from "./components/appointment-item";
+import { useCoachSessions, useCoachStats } from "@/hooks/use-schedule-queries";
+import { toast } from "react-toastify";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Calendar, Settings } from "lucide-react";
 
 export default function SchedulePage() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
-    new Date("2024-08-20")
+    new Date()
   );
 
-  const selectedDateString = selectedDate
-    ? selectedDate.toISOString().split("T")[0]
-    : "";
-  const selectedAppointments =
-    mockAppointments[selectedDateString] || [];
+  // Fetch sessions and stats
+  const { data: sessionsData, isLoading: sessionsLoading } =
+    useCoachSessions("all");
+  const { data: statsData, isLoading: statsLoading } = useCoachStats();
 
-  const handleViewDetails = (appointment: Appointment) => {
-    console.log("View details for:", appointment);
+  const sessions: Session[] = useMemo(() => {
+    if (!sessionsData?.data?.sessions) return [];
+    return sessionsData.data.sessions;
+  }, [sessionsData]);
+
+  const stats = useMemo(() => {
+    return statsData?.data || {};
+  }, [statsData]);
+
+  // Filter sessions for selected date
+  const selectedDateSessions = useMemo(() => {
+    if (!selectedDate || !sessions.length) return [];
+    return sessions.filter((session) => {
+      const sessionDate = new Date(session.scheduledTime);
+      return sessionDate.toDateString() === selectedDate.toDateString();
+    });
+  }, [sessions, selectedDate]);
+
+  const handleViewDetails = (session: Session) => {
+    console.log("View details for:", session);
+    toast.info(`Viewing details for: ${session.title}`);
   };
 
-  const handleReschedule = (appointment: Appointment) => {
-    console.log("Reschedule:", appointment);
+  const handleStartSession = (session: Session) => {
+    if (session.meetLink) {
+      window.open(session.meetLink, "_blank");
+    } else {
+      toast.error("No meeting link available for this session.");
+    }
   };
 
-  const handleCancel = (appointment: Appointment) => {
-    console.log("Cancel:", appointment);
+  const handleReschedule = (session: Session) => {
+    console.log("Reschedule:", session);
+    toast.info("Reschedule functionality coming soon!");
+  };
+
+  const handleCancel = (session: Session) => {
+    console.log("Cancel:", session);
+    toast.info("Cancel functionality coming soon!");
+  };
+
+  const handleCreateSession = () => {
+    toast.info("Create session functionality coming soon!");
   };
 
   return (
@@ -73,30 +71,55 @@ export default function SchedulePage() {
       <div>
         <h2 className="text-3xl font-bold tracking-tight">Schedule</h2>
         <p className="text-muted-foreground">
-          Manage your coaching appointments and schedule
+          Manage your coaching sessions and availability
         </p>
       </div>
 
-      <ScheduleStats stats={mockStats} />
+      <ScheduleStats stats={stats} loading={statsLoading} />
 
-      <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-        <div className="md:col-span-2">
-          <ScheduleCalendar
-            selectedDate={selectedDate}
-            onDateSelect={setSelectedDate}
-            bookedDates={Object.keys(mockAppointments)}
-          />
-        </div>
-        <div className="md:col-span-1">
-          <AppointmentsList
-            appointments={selectedAppointments}
-            selectedDate={selectedDate}
-            onViewDetails={handleViewDetails}
-            onReschedule={handleReschedule}
-            onCancel={handleCancel}
-          />
-        </div>
-      </div>
+      <Tabs defaultValue="sessions" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="sessions" className="gap-2">
+            <Calendar className="h-4 w-4" />
+            Sessions
+          </TabsTrigger>
+          <TabsTrigger value="availability" className="gap-2">
+            <Settings className="h-4 w-4" />
+            Availability
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="sessions" className="space-y-6">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+            <div className="lg:col-span-2">
+              <ScheduleCalendar
+                selectedDate={selectedDate}
+                onDateSelect={setSelectedDate}
+                sessions={sessions}
+                loading={sessionsLoading}
+              />
+            </div>
+            <div className="lg:col-span-1">
+              <SessionsList
+                sessions={selectedDateSessions}
+                selectedDate={selectedDate}
+                onViewDetails={handleViewDetails}
+                onStartSession={handleStartSession}
+                onReschedule={handleReschedule}
+                onCancel={handleCancel}
+                onCreateSession={handleCreateSession}
+                loading={sessionsLoading}
+              />
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="availability">
+          <div className="max-w-2xl">
+            <AvailabilitySettings />
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

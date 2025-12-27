@@ -96,7 +96,15 @@ export function CreateEventDialog({
 
     const handleEventTypeSelect = (type: 'Webinar' | 'Social') => {
         setEventType(type);
-        setNewEvent(prev => ({...prev, eventType: type === 'Webinar' ? EventType.WEBINAR : EventType.SOCIAL}));
+        setNewEvent(prev => ({
+            ...prev, 
+            eventType: type === 'Webinar' ? EventType.WEBINAR : EventType.SOCIAL,
+            // Auto-set defaults for webinars
+            ...(type === 'Webinar' ? {
+                location: 'online',
+                isPublic: true
+            } : {})
+        }));
     };
 
     const handleNext = () => {
@@ -130,7 +138,7 @@ export function CreateEventDialog({
                     Create Event
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[625px]">
+            <DialogContent className="sm:max-w-[625px] max-h-[90vh] overflow-y-auto">
                 <form onSubmit={handleCreate}>
                     <DialogHeader>
                         <DialogTitle>Create New Event</DialogTitle>
@@ -149,7 +157,7 @@ export function CreateEventDialog({
                                 >
                                     <Video className="h-8 w-8 mb-2 text-primary" />
                                     <p className="font-semibold">Webinar</p>
-                                    <p className="text-xs text-muted-foreground text-center">Online educational sessions with Google Meet integration</p>
+                                    <p className="text-xs text-muted-foreground text-center">Free online educational sessions</p>
                                 </Card>
                                 <Card
                                     className={cn("p-6 flex flex-col items-center justify-center cursor-pointer", eventType === 'Social' && 'border-primary ring-2 ring-primary')}
@@ -220,7 +228,11 @@ export function CreateEventDialog({
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="location">Location</Label>
-                                    <Select onValueChange={(value) => setNewEvent(prev => ({...prev, location: value}))} required>
+                                    <Select 
+                                        onValueChange={(value) => setNewEvent(prev => ({...prev, location: value}))}
+                                        defaultValue={eventType === 'Webinar' ? 'online' : undefined}
+                                        required
+                                    >
                                         <SelectTrigger><SelectValue placeholder="Select location"/></SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="online">Online</SelectItem>
@@ -229,9 +241,12 @@ export function CreateEventDialog({
                                     </Select>
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="event-tag">Event Type</Label>
-                                     <Select required>
-                                        <SelectTrigger><SelectValue placeholder="Select type"/></SelectTrigger>
+                                    <Label htmlFor="event-tag">Access Type</Label>
+                                    <Select 
+                                        defaultValue={eventType === 'Webinar' ? 'free' : undefined}
+                                        required
+                                    >
+                                        <SelectTrigger><SelectValue placeholder="Select access type"/></SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="free">Free</SelectItem>
                                             <SelectItem value="premium">Premium</SelectItem>
@@ -259,10 +274,30 @@ export function CreateEventDialog({
                                 />
                             </div>
                             {eventType === 'Social' && (
-                                <div className="space-y-2">
-                                    <Label htmlFor="price">Price per Guest (EUR)</Label>
-                                    <Input id="price" type="number" placeholder="e.g., 25" required/>
-                                </div>
+                                <>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="price">Price per Guest (EUR)</Label>
+                                        <Input id="price" type="number" placeholder="e.g., 25" required/>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="whatToBring">What to Bring</Label>
+                                        <Textarea 
+                                            id="whatToBring" 
+                                            placeholder="What should attendees bring to this event?"
+                                            value={newEvent.whatToBring || ''}
+                                            onChange={(e) => setNewEvent(prev => ({...prev, whatToBring: e.target.value}))}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="additionalInfo">Additional Information</Label>
+                                        <Textarea 
+                                            id="additionalInfo" 
+                                            placeholder="Any additional information for attendees"
+                                            value={newEvent.additionalInfo || ''}
+                                            onChange={(e) => setNewEvent(prev => ({...prev, additionalInfo: e.target.value}))}
+                                        />
+                                    </div>
+                                </>
                             )}
                         </div>
                     )}

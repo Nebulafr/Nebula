@@ -7,7 +7,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import {
   ArrowRight,
   ChevronRight,
-  Linkedin,
   MessageCircle,
   PlusCircle,
   Star,
@@ -17,7 +16,7 @@ import {
   GraduationCap,
 } from "lucide-react";
 import Link from "next/link";
-import { Calendar } from "@/components/ui/calendar";
+import { WeeklyTimeSlotPicker } from "@/components/ui/weekly-time-slot-picker";
 import { cn } from "@/lib/utils";
 import { useParams, useRouter } from "next/navigation";
 import { Footer } from "@/components/layout/footer";
@@ -243,10 +242,6 @@ export default function CoachDetailPage() {
     setSelectedTime("");
   };
 
-  const handleDateSelect = () => {
-    setBookingStep(2);
-  };
-
   const handleTimeSelect = async () => {
     if (!date || !profile) {
       toast.error("Please select a date and ensure you're logged in.");
@@ -266,7 +261,7 @@ export default function CoachDetailPage() {
         toast.success(
           result.message || "Your session has been successfully booked."
         );
-        setBookingStep(3);
+        setBookingStep(2); // Go to success step
       } else {
         throw new Error(result.error || "Failed to book session");
       }
@@ -526,17 +521,13 @@ export default function CoachDetailPage() {
                   setSelectedDate={setDate}
                   selectedTime={selectedTime}
                   setSelectedTime={setSelectedTime}
-                  localSelectedTime={selectedTime}
                   onEnroll={handleBookClick}
                   onCancel={handleCancelBooking}
-                  onDateSelect={handleDateSelect}
                   onTimeSelect={handleTimeSelect}
-                  onLocalTimeSelect={handleTimeSelect}
                   title="Book a session"
                   subtitle="Find a time that works for you."
                   enrollButtonText="Book now"
-                  dateSelectTitle="Select a date"
-                  timeSelectTitle="Select a time"
+                  slotSelectTitle="Select a time slot"
                   successTitle="Session Booked!"
                   successMessage="Your session has been confirmed. You can view your booking details on your dashboard."
                   dashboardLink="/dashboard"
@@ -713,18 +704,15 @@ function EnrollmentForm({
   isEnrolled = false,
   selectedDate,
   selectedTime,
-  localSelectedTime,
   onEnroll,
   onCancel,
-  onDateSelect,
   setSelectedDate,
   setSelectedTime,
   onTimeSelect,
   title = "Ready to start?",
   subtitle = "Enroll in this program to get personalized coaching.",
   enrollButtonText = "Enroll now",
-  dateSelectTitle = "Select a start date",
-  timeSelectTitle = "Select a time",
+  slotSelectTitle = "Select a time slot",
   successTitle = "You're In!",
   successMessage = "Welcome to the program. You can view your enrollment details on your dashboard.",
   dashboardLink = "/dashboard",
@@ -736,19 +724,15 @@ function EnrollmentForm({
   isEnrolled?: boolean;
   selectedDate?: Date;
   selectedTime?: string;
-  localSelectedTime?: string;
   onEnroll: () => void;
   onCancel: () => void;
-  onDateSelect: () => void;
   setSelectedDate: (date: Date | undefined) => void;
   setSelectedTime: (time: string) => void;
   onTimeSelect: () => void;
-  onLocalTimeSelect: (time: string) => void;
   title?: string;
   subtitle?: string;
   enrollButtonText?: string;
-  dateSelectTitle?: string;
-  timeSelectTitle?: string;
+  slotSelectTitle?: string;
   successTitle?: string;
   successMessage?: string;
   dashboardLink?: string;
@@ -756,7 +740,11 @@ function EnrollmentForm({
   onMessageClick?: () => void;
 }) {
   const { isStudent } = useAuth();
-  const timeSlots = ["09:00", "11:00", "14:00", "16:00"];
+
+  const handleSlotSelect = (date: Date, time: string) => {
+    setSelectedDate(date);
+    setSelectedTime(time);
+  };
 
   if (step === 0) {
     if (isEnrolled) {
@@ -806,53 +794,14 @@ function EnrollmentForm({
     );
   }
 
+  // Step 1: Weekly time slot picker (combined date and time selection)
   if (step === 1) {
     return (
-      <Card className="rounded-xl border shadow-lg p-0">
-        <CardContent className="p-0">
-          <div className="flex justify-between items-center mb-4 px-4 pt-4">
-            <h3 className="font-headline text-lg font-bold">
-              {dateSelectTitle}
-            </h3>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onCancel}
-              className="-mr-2 -mt-2"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-          <div className="flex justify-center">
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={setSelectedDate}
-              className="p-0"
-              disabled={(date) => date < new Date()}
-            />
-          </div>
-          <div className="px-4 pb-4">
-            <Button
-              className="w-full mt-4"
-              disabled={!selectedDate}
-              onClick={onDateSelect}
-            >
-              Continue <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (step === 2) {
-    return (
-      <Card className="rounded-xl border shadow-lg p-4">
-        <CardContent className="p-0">
+      <Card className="rounded-xl border shadow-lg">
+        <CardContent className="p-4">
           <div className="flex justify-between items-center mb-4">
             <h3 className="font-headline text-lg font-bold">
-              {timeSelectTitle}
+              {slotSelectTitle}
             </h3>
             <Button
               variant="ghost"
@@ -863,28 +812,20 @@ function EnrollmentForm({
               <X className="h-4 w-4" />
             </Button>
           </div>
-          <div className="mt-4">
-            <h4 className="font-semibold text-sm mb-2">Available Slots</h4>
-            <div className="grid grid-cols-2 gap-2">
-              {timeSlots.map((time) => (
-                <Button
-                  key={time}
-                  variant="outline"
-                  className={cn(
-                    localSelectedTime === time &&
-                      "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
-                  )}
-                  onClick={() => setSelectedTime(time)}
-                >
-                  {time}
-                </Button>
-              ))}
-            </div>
-          </div>
-
+          <WeeklyTimeSlotPicker
+            selectedSlot={
+              selectedDate && selectedTime
+                ? { date: selectedDate, time: selectedTime }
+                : null
+            }
+            onSlotSelect={handleSlotSelect}
+            startHour={9}
+            endHour={18}
+            slotIntervalMinutes={30}
+          />
           <Button
-            className="w-full mt-6"
-            disabled={!localSelectedTime || loading}
+            className="w-full mt-4"
+            disabled={!selectedDate || !selectedTime || loading}
             onClick={onTimeSelect}
           >
             {loading ? "Processing..." : "Confirm Booking"}
@@ -894,7 +835,8 @@ function EnrollmentForm({
     );
   }
 
-  if (step === 3) {
+  // Step 2: Success state
+  if (step === 2) {
     return (
       <Card className="rounded-xl border-none bg-green-50 text-green-900">
         <CardContent className="p-6 text-center">

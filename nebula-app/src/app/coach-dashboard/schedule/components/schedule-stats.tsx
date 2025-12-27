@@ -1,45 +1,62 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, Clock, Users, CheckCircle } from "lucide-react";
+import {
+  Calendar,
+  Clock,
+  Users,
+  Star,
+  TrendingUp,
+  TrendingDown,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 
-interface ScheduleStatsData {
-  totalAppointments: number;
-  todayAppointments: number;
-  upcomingAppointments: number;
-  completedToday: number;
+export interface CoachStatsData {
+  totalRevenue?: number;
+  revenueChange?: number;
+  activeStudents?: number;
+  studentsChange?: number;
+  sessionsThisMonth?: number;
+  sessionsChange?: number;
+  averageRating?: number;
+  totalReviews?: number;
+  totalSessions?: number;
+  studentsCoached?: number;
 }
 
 interface ScheduleStatsProps {
-  stats: ScheduleStatsData;
+  stats: CoachStatsData;
   loading?: boolean;
 }
 
 export function ScheduleStats({ stats, loading = false }: ScheduleStatsProps) {
   const statsConfig = [
     {
-      title: "Total Appointments",
-      value: stats.totalAppointments,
+      title: "Sessions This Month",
+      value: stats.sessionsThisMonth ?? 0,
+      change: stats.sessionsChange,
       icon: Calendar,
-      description: "This month",
+      format: (v: number) => v.toString(),
     },
     {
-      title: "Today's Sessions",
-      value: stats.todayAppointments,
-      icon: Clock,
-      description: "Scheduled today",
-    },
-    {
-      title: "Upcoming",
-      value: stats.upcomingAppointments,
+      title: "Active Students",
+      value: stats.activeStudents ?? 0,
+      change: stats.studentsChange,
       icon: Users,
-      description: "Next 7 days",
+      format: (v: number) => v.toString(),
     },
     {
-      title: "Completed Today",
-      value: stats.completedToday,
-      icon: CheckCircle,
-      description: "Sessions finished",
+      title: "Total Sessions",
+      value: stats.totalSessions ?? 0,
+      icon: Clock,
+      format: (v: number) => v.toString(),
+    },
+    {
+      title: "Average Rating",
+      value: stats.averageRating ?? 0,
+      icon: Star,
+      format: (v: number) => v.toFixed(1),
+      suffix: stats.totalReviews ? `(${stats.totalReviews} reviews)` : "",
     },
   ];
 
@@ -49,12 +66,12 @@ export function ScheduleStats({ stats, loading = false }: ScheduleStatsProps) {
         {[1, 2, 3, 4].map((i) => (
           <Card key={i}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <div className="h-4 w-20 bg-gray-200 rounded animate-pulse" />
-              <div className="h-4 w-4 bg-gray-200 rounded animate-pulse" />
+              <div className="h-4 w-20 bg-muted rounded animate-pulse" />
+              <div className="h-4 w-4 bg-muted rounded animate-pulse" />
             </CardHeader>
             <CardContent>
-              <div className="h-8 w-16 bg-gray-200 rounded animate-pulse mb-2" />
-              <div className="h-3 w-24 bg-gray-200 rounded animate-pulse" />
+              <div className="h-8 w-16 bg-muted rounded animate-pulse mb-2" />
+              <div className="h-3 w-24 bg-muted rounded animate-pulse" />
             </CardContent>
           </Card>
         ))}
@@ -66,17 +83,48 @@ export function ScheduleStats({ stats, loading = false }: ScheduleStatsProps) {
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       {statsConfig.map((stat, index) => {
         const IconComponent = stat.icon;
+        const hasChange = stat.change !== undefined && stat.change !== 0;
+        const isPositive = (stat.change ?? 0) > 0;
+
         return (
           <Card key={index}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                {stat.title}
+              </CardTitle>
               <IconComponent className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
-              <p className="text-xs text-muted-foreground">
-                {stat.description}
-              </p>
+              <div className="text-2xl font-bold">
+                {stat.format(stat.value)}
+              </div>
+              <div className="flex items-center gap-1">
+                {hasChange && (
+                  <span
+                    className={cn(
+                      "text-xs flex items-center",
+                      isPositive ? "text-green-600" : "text-red-600"
+                    )}
+                  >
+                    {isPositive ? (
+                      <TrendingUp className="h-3 w-3 mr-0.5" />
+                    ) : (
+                      <TrendingDown className="h-3 w-3 mr-0.5" />
+                    )}
+                    {Math.abs(stat.change ?? 0).toFixed(1)}%
+                  </span>
+                )}
+                {stat.suffix && (
+                  <span className="text-xs text-muted-foreground">
+                    {stat.suffix}
+                  </span>
+                )}
+                {!hasChange && !stat.suffix && (
+                  <span className="text-xs text-muted-foreground">
+                    vs last month
+                  </span>
+                )}
+              </div>
             </CardContent>
           </Card>
         );

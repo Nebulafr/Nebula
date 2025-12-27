@@ -1,32 +1,38 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AppointmentItem, Appointment } from "./appointment-item";
+import { Button } from "@/components/ui/button";
+import { Session, SessionItem } from "./appointment-item";
+import { Plus, CalendarDays } from "lucide-react";
 
-interface AppointmentsListProps {
-  appointments: Appointment[];
+interface SessionsListProps {
+  sessions: Session[];
   selectedDate: Date | undefined;
-  onViewDetails?: (appointment: Appointment) => void;
-  onReschedule?: (appointment: Appointment) => void;
-  onCancel?: (appointment: Appointment) => void;
+  onViewDetails?: (session: Session) => void;
+  onStartSession?: (session: Session) => void;
+  onReschedule?: (session: Session) => void;
+  onCancel?: (session: Session) => void;
+  onCreateSession?: () => void;
   loading?: boolean;
 }
 
-export function AppointmentsList({
-  appointments,
+export function SessionsList({
+  sessions,
   selectedDate,
   onViewDetails,
+  onStartSession,
   onReschedule,
   onCancel,
+  onCreateSession,
   loading = false,
-}: AppointmentsListProps) {
+}: SessionsListProps) {
   const formatDate = (date: Date | undefined) => {
-    if (!date) return 'Select a date';
-    return date.toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
+    if (!date) return "Select a date";
+    return date.toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
@@ -34,18 +40,18 @@ export function AppointmentsList({
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Appointments</CardTitle>
+          <CardTitle>Sessions</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="flex items-center gap-3">
-                <div className="h-10 w-10 bg-gray-200 rounded-full animate-pulse" />
-                <div className="flex-1">
-                  <div className="h-4 w-24 bg-gray-200 rounded animate-pulse mb-2" />
-                  <div className="h-3 w-16 bg-gray-200 rounded animate-pulse" />
+              <div key={i} className="p-4 rounded-lg border">
+                <div className="h-5 w-32 bg-muted rounded animate-pulse mb-2" />
+                <div className="h-4 w-24 bg-muted rounded animate-pulse mb-2" />
+                <div className="flex gap-2">
+                  <div className="h-6 w-6 bg-muted rounded-full animate-pulse" />
+                  <div className="h-4 w-20 bg-muted rounded animate-pulse" />
                 </div>
-                <div className="h-8 w-16 bg-gray-200 rounded animate-pulse" />
               </div>
             ))}
           </div>
@@ -56,22 +62,34 @@ export function AppointmentsList({
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Appointments</CardTitle>
-        {selectedDate && (
-          <p className="text-sm text-muted-foreground">
-            {formatDate(selectedDate)}
-          </p>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+          <CardTitle className="flex items-center gap-2">
+            <CalendarDays className="h-5 w-5" />
+            Sessions
+          </CardTitle>
+          {selectedDate && (
+            <p className="text-sm text-muted-foreground mt-1">
+              {formatDate(selectedDate)}
+            </p>
+          )}
+        </div>
+        {onCreateSession && (
+          <Button size="sm" onClick={onCreateSession} className="gap-1 bg-green-500 hover:bg-green-600 text-white">
+            <Plus className="h-4 w-4" />
+            New Session
+          </Button>
         )}
       </CardHeader>
       <CardContent>
-        {appointments.length > 0 ? (
-          <ul className="space-y-4">
-            {appointments.map((appointment, i) => (
-              <AppointmentItem
-                key={appointment.id || i}
-                appointment={appointment}
+        {sessions.length > 0 ? (
+          <ul className="space-y-3">
+            {sessions.map((session) => (
+              <SessionItem
+                key={session.id}
+                session={session}
                 onViewDetails={onViewDetails}
+                onStartSession={onStartSession}
                 onReschedule={onReschedule}
                 onCancel={onCancel}
               />
@@ -79,15 +97,30 @@ export function AppointmentsList({
           </ul>
         ) : (
           <div className="text-center py-8">
-            <p className="text-muted-foreground">
-              No appointments for this day.
-            </p>
+            <CalendarDays className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
+            <p className="text-muted-foreground">No sessions for this day.</p>
             <p className="text-sm text-muted-foreground mt-1">
-              Select a different date to view appointments.
+              {selectedDate
+                ? "Select a different date or create a new session."
+                : "Select a date to view sessions."}
             </p>
+            {onCreateSession && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onCreateSession}
+                className="mt-4 gap-1 border-green-500 text-green-500 hover:bg-green-500 hover:text-white"
+              >
+                <Plus className="h-4 w-4" />
+                Create Session
+              </Button>
+            )}
           </div>
         )}
       </CardContent>
     </Card>
   );
 }
+
+// Legacy export for backward compatibility
+export { SessionsList as AppointmentsList };
