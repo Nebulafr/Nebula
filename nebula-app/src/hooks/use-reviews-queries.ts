@@ -5,6 +5,7 @@ import {
   getCoachReviews,
   getProgramReviews,
 } from "@/actions/reviews";
+import { toast } from "react-toastify";
 
 export const COACH_REVIEWS_QUERY_KEY = "coach-reviews";
 export const PROGRAM_REVIEWS_QUERY_KEY = "program-reviews";
@@ -54,16 +55,20 @@ export function useReviewCoach() {
     mutationFn: reviewCoach,
     onSuccess: (_, variables) => {
       // Invalidate coach reviews
-      queryClient.invalidateQueries({ 
-        queryKey: [COACH_REVIEWS_QUERY_KEY, variables.coachId] 
+      queryClient.invalidateQueries({
+        queryKey: [COACH_REVIEWS_QUERY_KEY, variables.coachId],
       });
       // Also invalidate coach data to update rating
-      queryClient.invalidateQueries({ 
-        queryKey: ["coach-by-slug"] 
+      queryClient.invalidateQueries({
+        queryKey: ["coach-by-slug"],
       });
-      queryClient.invalidateQueries({ 
-        queryKey: ["coach-by-id", variables.coachId] 
+      queryClient.invalidateQueries({
+        queryKey: ["coach-by-id", variables.coachId],
       });
+      toast.success("Review submitted successfully!");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to submit review.");
     },
   });
 }
@@ -73,15 +78,19 @@ export function useReviewProgram() {
 
   return useMutation({
     mutationFn: reviewProgram,
-    onSuccess: (_, variables) => {
+    onSuccess: () => {
       // Invalidate program reviews
-      queryClient.invalidateQueries({ 
-        queryKey: [PROGRAM_REVIEWS_QUERY_KEY] 
+      queryClient.invalidateQueries({
+        queryKey: [PROGRAM_REVIEWS_QUERY_KEY],
       });
       // Also invalidate program data to update rating
-      queryClient.invalidateQueries({ 
-        queryKey: ["program-by-slug"] 
+      queryClient.invalidateQueries({
+        queryKey: ["program-by-slug"],
       });
+      toast.success("Review submitted successfully!");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to submit review.");
     },
   });
 }

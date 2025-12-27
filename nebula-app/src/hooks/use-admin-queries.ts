@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { makeRequest } from "@/lib/utils";
+import { toast } from "react-toastify";
 
 export const ADMIN_REVIEWS_QUERY_KEY = "admin-reviews";
 export const ADMIN_USERS_QUERY_KEY = "admin-users";
@@ -145,6 +146,10 @@ export function useCreateUser() {
     onSuccess: () => {
       // Invalidate and refetch admin users
       queryClient.invalidateQueries({ queryKey: [ADMIN_USERS_QUERY_KEY] });
+      toast.success("User created successfully!");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to create user.");
     },
   });
 }

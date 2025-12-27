@@ -35,11 +35,7 @@ export default function AdminProgramsPage() {
   const { data: categoriesResponse } = useCategories();
   const publicCategories = categoriesResponse?.data?.categories || [];
 
-  const {
-    data: programsResponse,
-    isLoading: isLoading,
-    refetch: fetchPrograms,
-  } = useAdminPrograms({
+  const { data: programsResponse, isLoading: isLoading } = useAdminPrograms({
     search: debouncedSearch || undefined,
     status: statusFilter !== "all" ? statusFilter : undefined,
     category: categoryFilter !== "all" ? categoryFilter : undefined,
@@ -71,16 +67,10 @@ export default function AdminProgramsPage() {
         return;
       }
 
-      const response = await updateProgramStatusMutation.mutateAsync({
+      await updateProgramStatusMutation.mutateAsync({
         programId,
         action,
       });
-
-      if (!response.success) {
-        toast.error(response.message);
-      } else {
-        toast.success(response.message || `Program ${action}d successfully`);
-      }
 
       setLoadingActions((prev) => {
         const copy = { ...prev };
@@ -101,17 +91,9 @@ export default function AdminProgramsPage() {
       const exists = publicCategories.some((c: any) => c.name === categoryName);
       if (exists) return;
 
-      const response = await createCategoryMutation.mutateAsync({
+      await createCategoryMutation.mutateAsync({
         name: categoryName,
       });
-
-      if (!response.success) {
-        toast.error(response.message);
-      } else {
-        toast.success(
-          response.message || `Category "${categoryName}" added successfully.`
-        );
-      }
     },
     [publicCategories, createCategoryMutation]
   );
@@ -143,11 +125,7 @@ export default function AdminProgramsPage() {
    * Local reassignment only (UI update) - React Query will handle data updates
    */
   const handleReassignCategory = useCallback(
-    (programId: string, categoryName: string) => {
-      // With React Query, this would typically trigger a mutation
-      // For now, just show success message
-      toast.success(`Program category updated to "${categoryName}".`);
-    },
+    (_programId: string, categoryName: string) => {},
     []
   );
 

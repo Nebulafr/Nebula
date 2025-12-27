@@ -10,6 +10,7 @@ import {
   registerForEvent,
   unregisterFromEvent,
 } from "@/actions/events";
+import { toast } from "react-toastify";
 
 export const EVENTS_QUERY_KEY = "events";
 export const PUBLIC_EVENTS_QUERY_KEY = "public-events";
@@ -71,6 +72,10 @@ export function useCreateEvent() {
       // Invalidate events queries
       queryClient.invalidateQueries({ queryKey: [EVENTS_QUERY_KEY] });
       queryClient.invalidateQueries({ queryKey: [PUBLIC_EVENTS_QUERY_KEY] });
+      toast.success("Event created successfully!");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to create event.");
     },
   });
 }
@@ -85,8 +90,14 @@ export function useUpdateEvent() {
       // Invalidate related queries
       queryClient.invalidateQueries({ queryKey: [EVENTS_QUERY_KEY] });
       queryClient.invalidateQueries({ queryKey: [PUBLIC_EVENTS_QUERY_KEY] });
-      queryClient.invalidateQueries({ queryKey: [EVENT_BY_ID_QUERY_KEY, variables.id] });
+      queryClient.invalidateQueries({
+        queryKey: [EVENT_BY_ID_QUERY_KEY, variables.id],
+      });
       queryClient.invalidateQueries({ queryKey: [EVENT_BY_SLUG_QUERY_KEY] });
+      toast.success("Event updated successfully!");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to update event.");
     },
   });
 }
@@ -102,6 +113,10 @@ export function useDeleteEvent() {
       queryClient.invalidateQueries({ queryKey: [PUBLIC_EVENTS_QUERY_KEY] });
       queryClient.invalidateQueries({ queryKey: [EVENT_BY_ID_QUERY_KEY] });
       queryClient.invalidateQueries({ queryKey: [EVENT_BY_SLUG_QUERY_KEY] });
+      toast.success("Event deleted successfully!");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to delete event.");
     },
   });
 }
@@ -113,9 +128,15 @@ export function useRegisterForEvent() {
     mutationFn: (eventId: string) => registerForEvent(eventId),
     onSuccess: (_, eventId) => {
       // Invalidate specific event to update registration status
-      queryClient.invalidateQueries({ queryKey: [EVENT_BY_ID_QUERY_KEY, eventId] });
+      queryClient.invalidateQueries({
+        queryKey: [EVENT_BY_ID_QUERY_KEY, eventId],
+      });
       queryClient.invalidateQueries({ queryKey: [EVENT_BY_SLUG_QUERY_KEY] });
       queryClient.invalidateQueries({ queryKey: [EVENTS_QUERY_KEY] });
+      toast.success("Successfully registered for event!");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to register for event.");
     },
   });
 }
@@ -127,9 +148,15 @@ export function useUnregisterFromEvent() {
     mutationFn: (eventId: string) => unregisterFromEvent(eventId),
     onSuccess: (_, eventId) => {
       // Invalidate specific event to update registration status
-      queryClient.invalidateQueries({ queryKey: [EVENT_BY_ID_QUERY_KEY, eventId] });
+      queryClient.invalidateQueries({
+        queryKey: [EVENT_BY_ID_QUERY_KEY, eventId],
+      });
       queryClient.invalidateQueries({ queryKey: [EVENT_BY_SLUG_QUERY_KEY] });
       queryClient.invalidateQueries({ queryKey: [EVENTS_QUERY_KEY] });
+      toast.success("Successfully unregistered from event.");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to unregister from event.");
     },
   });
 }

@@ -62,7 +62,6 @@ function CoachOnboardingStep5Content() {
       const coachData = {
         email: profile.email as string,
         userId: profile.id,
-        fullName: profile.fullName as string,
         title: role || "",
         bio: motivation || "",
         style: style || "",

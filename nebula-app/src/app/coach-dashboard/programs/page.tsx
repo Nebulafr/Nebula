@@ -16,11 +16,8 @@ import {
 export default function CoachProgramsPage() {
   const { profile } = useAuth();
   const { data: categoriesResponse } = useCategories();
-  const { 
-    data: programsResponse, 
-    isLoading: loading 
-  } = usePrograms({ 
-    coachId: profile?.coach?.id 
+  const { data: programsResponse, isLoading: loading } = usePrograms({
+    coachId: profile?.coach?.id,
   });
   const createProgramMutation = useCreateProgram();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -30,7 +27,7 @@ export default function CoachProgramsPage() {
 
   const handleCreateProgram = async (
     programData: ProgramFormData
-  ): Promise<boolean> => {
+  ): Promise<any> => {
     if (!profile) {
       toast.error("You must be logged in.");
       return false;
@@ -44,14 +41,7 @@ export default function CoachProgramsPage() {
       modules: programData.modules,
     };
 
-    const response = await createProgramMutation.mutateAsync(createProgramData);
-
-    if (!response.success) {
-      toast.error(response.message);
-      return false;
-    }
-    toast.success(response.message || "Your new program has been created.");
-    return true;
+    return await createProgramMutation.mutateAsync(createProgramData);
   };
 
   if (loading) {

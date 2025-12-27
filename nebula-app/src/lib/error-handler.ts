@@ -7,7 +7,6 @@ export function handleAndToastError(error: unknown, defaultMessage: string) {
   } else if (typeof error === "string") {
     errorMessage = error;
   }
-
   console.error(error);
   toast.error(errorMessage);
 }

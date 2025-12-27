@@ -19,6 +19,7 @@ import { UserRole } from "@/generated/prisma";
 import { useAuth } from "@/hooks/use-auth";
 import { handleAndToastError } from "@/lib/error-handler";
 import { AuthPageGuard } from "@/components/auth/protected-route";
+import { toast } from "react-toastify";
 
 function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -64,7 +65,8 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      await signIn({ email, password });
+      const response = await signIn({ email, password });
+      toast.success(response.message);
     } catch (error) {
       handleAndToastError(error, "Failed to sign in");
     } finally {
@@ -78,7 +80,8 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      await signInWithGoogle(UserRole.STUDENT);
+      const response = await signInWithGoogle(UserRole.STUDENT);
+      toast.success(response.message);
     } catch (error) {
       if (
         error instanceof Error &&

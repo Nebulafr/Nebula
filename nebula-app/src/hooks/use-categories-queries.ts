@@ -6,6 +6,7 @@ import {
   updateCategory,
   deleteCategory,
 } from "@/actions/categories";
+import { toast } from "react-toastify";
 
 export const CATEGORIES_QUERY_KEY = "categories";
 export const ADMIN_CATEGORIES_QUERY_KEY = "admin-categories";
@@ -35,6 +36,10 @@ export function useCreateCategory() {
       // Invalidate both categories queries
       queryClient.invalidateQueries({ queryKey: [CATEGORIES_QUERY_KEY] });
       queryClient.invalidateQueries({ queryKey: [ADMIN_CATEGORIES_QUERY_KEY] });
+      toast.success("Category created successfully!");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to create category.");
     },
   });
 }
@@ -43,12 +48,21 @@ export function useUpdateCategory() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ categoryId, updateData }: { categoryId: string; updateData: any }) =>
-      updateCategory(categoryId, updateData),
+    mutationFn: ({
+      categoryId,
+      updateData,
+    }: {
+      categoryId: string;
+      updateData: any;
+    }) => updateCategory(categoryId, updateData),
     onSuccess: () => {
       // Invalidate both categories queries
       queryClient.invalidateQueries({ queryKey: [CATEGORIES_QUERY_KEY] });
       queryClient.invalidateQueries({ queryKey: [ADMIN_CATEGORIES_QUERY_KEY] });
+      toast.success("Category updated successfully!");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to update category.");
     },
   });
 }
@@ -62,6 +76,10 @@ export function useDeleteCategory() {
       // Invalidate both categories queries
       queryClient.invalidateQueries({ queryKey: [CATEGORIES_QUERY_KEY] });
       queryClient.invalidateQueries({ queryKey: [ADMIN_CATEGORIES_QUERY_KEY] });
+      toast.success("Category deleted successfully!");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to delete category.");
     },
   });
 }

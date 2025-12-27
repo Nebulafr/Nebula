@@ -17,7 +17,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { UserRole } from "@/generated/prisma";
 import { toast } from "react-toastify";
-import { storeAuthData } from "@/lib/auth-storage";
 import { AuthPageGuard } from "@/components/auth/protected-route";
 import { useAuthActions } from "@/hooks/use-auth";
 
@@ -72,13 +71,13 @@ export default function SignupPage() {
     setLoading(true);
 
     try {
-      await signUp({
+      const response = await signUp({
         email,
         password,
         fullName,
         role: UserRole.STUDENT,
       });
-      toast.success("Account created successfully!");
+      toast.success(response.message);
     } catch (error: any) {
       console.error("Signup error:", error);
       toast.error(error.message || "Failed to create account");
@@ -93,7 +92,8 @@ export default function SignupPage() {
     setLoading(true);
 
     try {
-      await signInWithGoogle(UserRole.STUDENT);
+      const response = await signInWithGoogle(UserRole.STUDENT);
+      toast.success(response.message);
     } catch (error: any) {
       console.error("Google signup error:", error);
       if (error?.message !== "Redirecting to Google sign-in...") {

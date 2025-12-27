@@ -8,16 +8,15 @@ import { AddUserDialog } from "./components/add-user-dialog";
 import { useAdminUsers, useCreateUser } from "@/hooks";
 import { toast } from "react-toastify";
 
-
 export default function UserManagementPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [activeTab, setActiveTab] = useState("all");
 
-  const { 
-    data: users = [], 
+  const {
+    data: users = [],
     isLoading: loading,
-    refetch: fetchUsers
+    refetch: fetchUsers,
   } = useAdminUsers({
     search: debouncedSearch || undefined,
     role: activeTab === "all" ? undefined : activeTab,
@@ -57,13 +56,7 @@ export default function UserManagementPage() {
     role: string;
     password: string;
   }) => {
-    const response = await createUserMutation.mutateAsync(userData);
-
-    if (!response.success) {
-      toast.error(response.message);
-      return;
-    }
-    toast.success(response.message || "User created successfully!");
+    return await createUserMutation.mutateAsync(userData);
   };
 
   const handleUserAction = (user: any, action: string) => {
@@ -82,7 +75,10 @@ export default function UserManagementPage() {
           loading={loading}
         />
         <div className="flex justify-end mb-4">
-          <AddUserDialog onAddUser={handleAddUser} loading={createUserMutation.isPending} />
+          <AddUserDialog
+            onAddUser={handleAddUser}
+            loading={createUserMutation.isPending}
+          />
         </div>
 
         <TabsContent value={activeTab} className="mt-6">

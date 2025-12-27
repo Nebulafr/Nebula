@@ -1,10 +1,15 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getUserProfile } from "@/actions/user";
-import { signUpWithEmail, signInWithEmail, resetPassword } from "@/actions/auth";
+import {
+  signUpWithEmail,
+  signInWithEmail,
+  resetPassword,
+} from "@/actions/auth";
 import { signInWithGoogle } from "@/firebase/auth";
 import { SignupData, SigninData } from "@/lib/validations";
 import { UserRole } from "@/generated/prisma";
 import { storeAuthData, clearAuthData } from "@/lib/auth-storage";
+import { toast } from "react-toastify";
 
 export const USER_PROFILE_QUERY_KEY = "user-profile";
 
@@ -27,11 +32,13 @@ export function useSignUp() {
         storeAuthData(result.data);
         // Update the user profile cache
         queryClient.setQueryData([USER_PROFILE_QUERY_KEY], result);
+        toast.success("Account created successfully!");
       }
     },
-    onError: () => {
+    onError: (error: Error) => {
       clearAuthData();
       queryClient.removeQueries({ queryKey: [USER_PROFILE_QUERY_KEY] });
+      toast.error(error.message || "Sign up failed. Please try again.");
     },
   });
 }
@@ -46,11 +53,13 @@ export function useSignIn() {
         storeAuthData(result.data);
         // Update the user profile cache
         queryClient.setQueryData([USER_PROFILE_QUERY_KEY], result);
+        toast.success("Signed in successfully!");
       }
     },
-    onError: () => {
+    onError: (error: Error) => {
       clearAuthData();
       queryClient.removeQueries({ queryKey: [USER_PROFILE_QUERY_KEY] });
+      toast.error(error.message || "Sign in failed. Please try again.");
     },
   });
 }
@@ -65,11 +74,13 @@ export function useGoogleSignIn() {
         storeAuthData(result.data);
         // Update the user profile cache
         queryClient.setQueryData([USER_PROFILE_QUERY_KEY], result);
+        toast.success("Signed in with Google successfully!");
       }
     },
-    onError: () => {
+    onError: (error: Error) => {
       clearAuthData();
       queryClient.removeQueries({ queryKey: [USER_PROFILE_QUERY_KEY] });
+      toast.error(error.message || "Google sign in failed. Please try again.");
     },
   });
 }
@@ -77,6 +88,14 @@ export function useGoogleSignIn() {
 export function useResetPassword() {
   return useMutation({
     mutationFn: (email: string) => resetPassword(email),
+    onSuccess: () => {
+      toast.success("Password reset email sent!");
+    },
+    onError: (error: Error) => {
+      toast.error(
+        error.message || "Failed to send reset email. Please try again."
+      );
+    },
   });
 }
 

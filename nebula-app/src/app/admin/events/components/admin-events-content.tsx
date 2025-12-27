@@ -48,39 +48,18 @@ export default function AdminEventsContent() {
   const deleteEventMutation = useDeleteEvent();
 
   const handleCreateEventAction = async (data: any) => {
-    const response = await createEventMutation.mutateAsync(data);
-
-    if (!response.success) {
-      toast.error(response.message);
-      return false;
-    }
-    toast.success(response.message || "Event created successfully");
-    return true;
+    return await createEventMutation.mutateAsync(data);
   };
 
   const handleUpdateEventAction = async (id: string, data: any) => {
-    const response = await updateEventMutation.mutateAsync({
+    return await updateEventMutation.mutateAsync({
       id,
       updateData: data,
     });
-
-    if (!response.success) {
-      toast.error(response.message);
-      return false;
-    }
-    toast.success(response.message || "Event updated successfully");
-    return true;
   };
 
   const handleDeleteEventAction = async (id: string) => {
-    const response = await deleteEventMutation.mutateAsync(id);
-
-    if (!response.success) {
-      toast.error(response.message);
-      return false;
-    }
-    toast.success(response.message || "Event deleted successfully");
-    return true;
+    return await deleteEventMutation.mutateAsync(id);
   };
 
   const actionLoading = {

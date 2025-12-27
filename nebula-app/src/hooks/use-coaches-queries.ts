@@ -8,6 +8,7 @@ import {
   getSuggestedCoaches,
 } from "@/actions/coaches";
 import { CoachUpdateData, CreateCoachData } from "@/lib/validations";
+import { toast } from "react-toastify";
 
 export const COACHES_QUERY_KEY = "coaches";
 export const COACH_BY_SLUG_QUERY_KEY = "coach-by-slug";
@@ -54,6 +55,10 @@ export function useCreateCoach() {
       queryClient.invalidateQueries({ queryKey: [COACHES_QUERY_KEY] });
       // Also invalidate user profile since coach profile was created
       queryClient.invalidateQueries({ queryKey: ["user-profile"] });
+      toast.success("Coach profile created successfully!");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to create coach profile.");
     },
   });
 }
@@ -70,6 +75,10 @@ export function useUpdateCoachProfile() {
       queryClient.invalidateQueries({ queryKey: [COACH_BY_ID_QUERY_KEY] });
       // Also invalidate user profile since coach profile was updated
       queryClient.invalidateQueries({ queryKey: ["user-profile"] });
+      toast.success("Profile updated successfully!");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to update profile.");
     },
   });
 }
