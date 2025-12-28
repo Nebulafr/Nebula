@@ -18,7 +18,7 @@ const nextConfig: NextConfig = {
     },
   },
   images: {
-    domains: ["firebasestorage.googleapis.com", "lh3.googleusercontent.com"],
+    domains: ["firebasestorage.googleapis.com", "lh3.googleusercontent.com", "res.cloudinary.com"],
     remotePatterns: [
       {
         protocol: "https",
@@ -65,6 +65,12 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "randomuser.me",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
         port: "",
         pathname: "/**",
       },

@@ -797,7 +797,7 @@ function EnrollmentForm({
   // Step 1: Weekly time slot picker (combined date and time selection)
   if (step === 1) {
     return (
-      <Card className="rounded-xl border shadow-lg">
+      <Card className="rounded-xl border shadow-lg w-[600px]">
         <CardContent className="p-4">
           <div className="flex justify-between items-center mb-4">
             <h3 className="font-headline text-lg font-bold">

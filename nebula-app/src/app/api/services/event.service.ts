@@ -320,6 +320,12 @@ export class EventService {
             id: true,
             fullName: true,
             avatarUrl: true,
+            coach: {
+              select: {
+                totalReviews: true,
+                rating: true,
+              },
+            },
           },
         },
         attendees: {

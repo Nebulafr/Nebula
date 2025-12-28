@@ -7,7 +7,6 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogTrigger,
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
@@ -30,7 +29,6 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { 
-  PlusCircle, 
   Video, 
   PartyPopper, 
   ArrowLeft, 
@@ -40,6 +38,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { EventType } from "@/types/event";
 import { UserSelect } from "@/components/ui/user-select";
+import { uploadImageToCloudinary } from "@/lib/cloudinary";
 
 interface NewEvent {
   title: string;
@@ -85,6 +84,7 @@ export function CreateEventDialog({
 }: CreateEventDialogProps) {
     const [eventType, setEventType] = useState<'Webinar' | 'Social' | null>(null);
     const [date, setDate] = useState<Date>();
+    const [uploading, setUploading] = useState(false);
 
     // Sync date with newEvent
     const handleDateChange = (selectedDate: Date | undefined) => {
@@ -130,14 +130,31 @@ export function CreateEventDialog({
         setNewEvent(prev => ({...prev, organizerId: userId || ""}));
     }
 
+    const handleFileUpload = async (files: FileList | null) => {
+        if (!files || files.length === 0) return;
+
+        setUploading(true);
+        try {
+            const uploadPromises = Array.from(files).map(uploadImageToCloudinary);
+            const uploadedUrls = await Promise.all(uploadPromises);
+            setNewEvent(prev => ({
+                ...prev, 
+                images: [...prev.images, ...uploadedUrls]
+            }));
+        } catch (error) {
+            console.error('Error uploading files:', error);
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    const removeImage = (index: number) => {
+        const updatedImages = newEvent.images.filter((_, i) => i !== index);
+        setNewEvent(prev => ({...prev, images: updatedImages}));
+    };
+
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogTrigger asChild>
-                <Button>
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Create Event
-                </Button>
-            </DialogTrigger>
             <DialogContent className="sm:max-w-[625px] max-h-[90vh] overflow-y-auto">
                 <form onSubmit={handleCreate}>
                     <DialogHeader>
@@ -188,12 +205,45 @@ export function CreateEventDialog({
                                     <label htmlFor="dropzone-file" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-muted hover:bg-muted/50">
                                         <div className="flex flex-col items-center justify-center pt-5 pb-6">
                                             <Upload className="w-8 h-8 mb-2 text-muted-foreground" />
-                                            <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span> or drag and drop</p>
+                                            <p className="mb-2 text-sm text-muted-foreground">
+                                                <span className="font-semibold">Click to upload</span> or drag and drop
+                                            </p>
                                             <p className="text-xs text-muted-foreground">SVG, PNG, JPG or GIF (MAX. 800x400px)</p>
+                                            {uploading && (
+                                                <p className="text-sm text-green-600 mt-2">Uploading images...</p>
+                                            )}
                                         </div>
-                                        <input id="dropzone-file" type="file" className="hidden" />
+                                        <input 
+                                            id="dropzone-file" 
+                                            type="file" 
+                                            multiple
+                                            accept="image/*"
+                                            className="hidden" 
+                                            onChange={(e) => handleFileUpload(e.target.files)}
+                                            disabled={uploading}
+                                        />
                                     </label>
-                                </div> 
+                                </div>
+                                {newEvent.images.length > 0 && (
+                                    <div className="grid grid-cols-3 gap-2 mt-4">
+                                        {newEvent.images.map((imageUrl: string, index: number) => (
+                                            <div key={index} className="relative">
+                                                <img
+                                                    src={imageUrl}
+                                                    alt={`Event image ${index + 1}`}
+                                                    className="w-full h-20 object-cover rounded"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeImage(index)}
+                                                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
+                                                >
+                                                    ×
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                              <div className="grid grid-cols-2 gap-4">
                                  <div className="space-y-2">

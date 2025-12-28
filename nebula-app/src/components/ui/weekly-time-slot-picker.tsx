@@ -133,7 +133,7 @@ export function WeeklyTimeSlotPicker({
 
       {/* Week grid */}
       <div className="overflow-x-auto">
-        <div className="min-w-[700px]">
+        <div className="min-w-[400px]">
           {/* Day headers */}
           <div className="grid grid-cols-7 gap-1 mb-2">
             {weekDays.map((day) => (

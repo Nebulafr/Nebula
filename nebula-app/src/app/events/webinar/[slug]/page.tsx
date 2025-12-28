@@ -9,7 +9,6 @@ import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
 import { useParams } from "next/navigation";
 import { useEventBySlug } from "@/hooks";
-import { Event } from "@/types/event";
 
 export default function WebinarPage() {
   const params = useParams<{ slug: string }>();
@@ -23,6 +22,8 @@ export default function WebinarPage() {
 
   const event = eventResponse?.data?.event || null;
   const error = queryError ? "Webinar not found" : null;
+
+  console.log({ event });
 
   if (loading) {
     return (
@@ -121,7 +122,10 @@ export default function WebinarPage() {
                     </h4>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
-                      <span>5.0 (150 reviews)</span>
+                      <span>
+                        {event.organizer?.coach?.rating || 0} (
+                        {event.organizer?.coach?.totalReviews || 0} reviews)
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -142,29 +146,6 @@ export default function WebinarPage() {
               <h1 className="font-headline text-4xl font-bold mt-4">
                 {event.title}
               </h1>
-
-              <div className="flex items-center gap-4 mt-4">
-                <div className="flex items-center">
-                  <div className="flex -space-x-2">
-                    {/* Mock attendee avatars */}
-                    <Avatar className="h-8 w-8 border-2 border-background">
-                      <AvatarImage src="https://i.pravatar.cc/40?u=1" />
-                      <AvatarFallback>A</AvatarFallback>
-                    </Avatar>
-                    <Avatar className="h-8 w-8 border-2 border-background">
-                      <AvatarImage src="https://i.pravatar.cc/40?u=2" />
-                      <AvatarFallback>B</AvatarFallback>
-                    </Avatar>
-                    <Avatar className="h-8 w-8 border-2 border-background">
-                      <AvatarImage src="https://i.pravatar.cc/40?u=3" />
-                      <AvatarFallback>C</AvatarFallback>
-                    </Avatar>
-                  </div>
-                  <span className="ml-3 text-sm font-medium text-muted-foreground">
-                    +{event.attendees || 32} people going
-                  </span>
-                </div>
-              </div>
 
               <Card className="my-8 rounded-xl p-6">
                 <div className="flex items-center gap-6">

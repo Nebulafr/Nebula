@@ -25,16 +25,6 @@ const typeFilters = [
     icon: <PartyPopper className="mr-2 h-4 w-4" />,
     tooltip: "Show only social events. Click again to clear.",
   },
-  {
-    name: "Workshop",
-    icon: <Users className="mr-2 h-4 w-4" />,
-    tooltip: "Show only workshops. Click again to clear.",
-  },
-  {
-    name: "Networking",
-    icon: <Star className="mr-2 h-4 w-4" />,
-    tooltip: "Show only networking events. Click again to clear.",
-  },
 ];
 
 export function EventFilters({
@@ -50,9 +40,7 @@ export function EventFilters({
             <TooltipTrigger asChild>
               <Button
                 variant="outline"
-                className={cn(
-                  activeTypeFilter === filter.name && "bg-muted"
-                )}
+                className={cn(activeTypeFilter === filter.name && "bg-muted")}
                 onClick={() => onTypeFilterClick(filter.name)}
                 disabled={loading && activeTypeFilter === filter.name}
               >

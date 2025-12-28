@@ -29,7 +29,7 @@ export function UserSelect({
 
   const options = React.useMemo(() => {
     return users
-      .filter((user: any) => user.role !== UserRole.ADMIN)
+      .filter((user: any) => user.role === UserRole.COACH)
       .map((user: any) => ({
         value: user.id,
         label: `${user.fullName || user.email} (${user.role.toLowerCase()})`,

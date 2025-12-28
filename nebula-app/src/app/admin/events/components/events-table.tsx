@@ -53,7 +53,17 @@ export function EventsTable({
         </TableRow>
       </TableHeader>
       <TableBody>
-        {events.map((event) => (
+        {events.length === 0 ? (
+          <TableRow>
+            <TableCell colSpan={6} className="text-center py-8">
+              <div className="space-y-2">
+                <p className="text-muted-foreground">No events found</p>
+                <p className="text-sm text-muted-foreground">Create your first event to get started</p>
+              </div>
+            </TableCell>
+          </TableRow>
+        ) : (
+          events.map((event) => (
           <TableRow key={event.id}>
             <TableCell className="font-medium">{event.title}</TableCell>
             <TableCell>
@@ -163,7 +173,7 @@ export function EventsTable({
               </DropdownMenu>
             </TableCell>
           </TableRow>
-        ))}
+        )))}
       </TableBody>
     </Table>
   );
