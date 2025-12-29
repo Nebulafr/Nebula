@@ -1,5 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
-import { apiGet } from "@/lib/utils";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiGet, apiPost } from "@/lib/utils";
 
 export function useCoachSessions(filter: "today" | "upcoming" | "past" | "all" = "upcoming") {
   return useQuery({
@@ -22,5 +22,37 @@ export function useStudentSessions(filter: "today" | "upcoming" | "past" | "all"
     queryKey: ["student-sessions", filter],
     queryFn: () => apiGet(`/students/sessions?filter=${filter}`),
     staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: true, // Always enabled, will be filtered client-side
+  });
+}
+
+interface BookSessionData {
+  coachId: string;
+  date: Date;
+  time: string;
+  duration?: number;
+}
+
+export function useBookCoachSession() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ coachId, date, time, duration = 60 }: BookSessionData) => {
+      return apiPost(`/coaches/${coachId}/book`, {
+        date: date.toISOString(),
+        startTime: time,
+        duration,
+      });
+    },
+    onSuccess: (data) => {
+      // Invalidate and refetch session-related queries
+      queryClient.invalidateQueries({ queryKey: ["student-sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["coach-sessions"] });
+      
+      return data;
+    },
+    onError: (error) => {
+      console.error("Session booking failed:", error);
+    },
   });
 }

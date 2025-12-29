@@ -666,6 +666,7 @@ export class AdminService {
       },
       orderBy: {
         date: "desc",
+        createdAt: "desc",
       },
     });
 

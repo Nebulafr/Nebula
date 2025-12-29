@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,17 +14,21 @@ import {
   CheckCircle,
   Briefcase,
   GraduationCap,
+  Calendar,
+  Clock,
+  ExternalLink,
 } from "lucide-react";
 import Link from "next/link";
 import { WeeklyTimeSlotPicker } from "@/components/ui/weekly-time-slot-picker";
 import { cn } from "@/lib/utils";
 import { useParams, useRouter } from "next/navigation";
 import { Footer } from "@/components/layout/footer";
-import { bookCoachSession } from "@/actions/session";
 import { toast } from "react-toastify";
-import { getCoachById } from "@/actions/coaches";
 import { useAuth } from "@/hooks/use-auth";
 import { Header } from "@/components/layout/header";
+import { useStudentSessions, useBookCoachSession } from "@/hooks/use-session-queries";
+import { useCoachById } from "@/hooks/use-coach-queries";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Dialog,
   DialogContent,
@@ -43,9 +47,6 @@ import { CoachWithRelations } from "@/types/coach";
 
 export default function CoachDetailPage() {
   const [bookingStep, setBookingStep] = useState(0);
-  const [isBooking, setIsBooking] = useState(false);
-  const [coach, setCoach] = useState<CoachWithRelations | null>(null);
-  const [loading, setLoading] = useState(true);
   const params = useParams<{ coachId: string }>();
   const router = useRouter();
   const { profile, isStudent } = useAuth();
@@ -58,173 +59,30 @@ export default function CoachDetailPage() {
   const [hoverRating, setHoverRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
 
+  // Fetch coach data
+  const { data: coach, isLoading: loading, error: coachError } = useCoachById(params.coachId);
+
+  // Query client for cache invalidation
+  const queryClient = useQueryClient();
+
+  // Book session mutation
+  const bookSessionMutation = useBookCoachSession();
+
+  // Fetch student's upcoming sessions with this coach (only if student is logged in)
+  const { data: studentSessionsData, isLoading: isLoadingStudentSessions } =
+    useStudentSessions("upcoming");
+
   console.log({ coach });
 
-  useEffect(() => {
-    const fetchCoach = async () => {
-      if (!params.coachId) return;
+  // Filter sessions to show only sessions with this coach
+  const upcomingSessionsWithCoach = useMemo(() => {
+    return (
+      studentSessionsData?.data?.sessions?.filter(
+        (session: any) => session.coach?.id === coach?.id
+      ) || []
+    );
+  }, [studentSessionsData?.data?.sessions, coach?.id]);
 
-      try {
-        setLoading(true);
-        const response = await getCoachById(params.coachId);
-
-        if (response.success && response.data?.coach) {
-          setCoach(response.data?.coach!);
-        } else {
-          setCoach({
-            id: "mock-coach",
-            userId: "mock-user-id",
-            email: "adrian@example.com",
-            fullName: "Adrian Cucurella",
-            title: "Partner, BCG",
-            avatarUrl: "https://i.pravatar.cc/150?u=adrian-cucurella",
-            rating: 4.9,
-            studentsCoached: 150,
-            totalSessions: 150,
-            specialties: ["Consulting", "Strategy"],
-            slug: params.coachId,
-            category: "Career Prep",
-            bio: "With over five years of experience at a leading global consulting firm, Adrian brings deep expertise in strategy and operations. Now a Consultant at BCG, they help Fortune 500 clients tackle complex business challenges. Their work spans multiple industries, with a focus on digital transformation and growth strategy. Passionate about talent development, they coach emerging professionals on a job immersion platform. Adrian holds a Master's degree in Business and thrives at the intersection of impact and innovation.",
-            style: "Professional",
-            pastCompanies: ["BCG", "PALIN"],
-            linkedinUrl: "",
-            availability: "Weekends",
-            hourlyRate: 100,
-            isActive: true,
-            isVerified: true,
-            totalReviews: 6,
-            qualifications: [],
-            languages: ["English"],
-            experience: "5+ years in consulting",
-            timezone: "PST",
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            hasUserReviewed: false,
-            programs: [
-              {
-                id: "mock-1",
-                title: "Consulting, Associate Level",
-                category: "Career Prep",
-                slug: "consulting-associate-level",
-                description: "Learn consulting fundamentals",
-                price: 299,
-                duration: "8 weeks",
-                rating: 4.8,
-                currentEnrollments: 15,
-                createdAt: new Date().toISOString(),
-              },
-              {
-                id: "mock-2",
-                title: "MBA Admissions Coaching",
-                category: "School Admissions",
-                slug: "mba-admissions",
-                description: "Get into top MBA programs",
-                price: 499,
-                duration: "12 weeks",
-                rating: 4.9,
-                currentEnrollments: 8,
-                createdAt: new Date().toISOString(),
-              },
-            ],
-            reviews: [
-              {
-                id: "review-1",
-                reviewerId: "student-1",
-                revieweeId: "mock-coach",
-                targetId: "mock-coach",
-                targetType: "COACH",
-                rating: 5,
-                title: "Excellent PM coaching",
-                content:
-                  "Sarah was incredibly insightful and supportive. Her real-world examples from Google made complex concepts easy to understand. I left the session feeling more confident and inspired.",
-                isVerified: false,
-                isPublic: true,
-                helpfulCount: 12,
-                tags: ["product-management", "interview-prep"],
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                reviewer: {
-                  id: "student-1",
-                  fullName: "Jessica Wang",
-                  avatarUrl: "https://i.pravatar.cc/40?u=jessica-wang",
-                },
-                reviewee: {
-                  id: "mock-coach",
-                  fullName: "Adrian Cucurella",
-                  avatarUrl: "https://i.pravatar.cc/150?u=adrian-cucurella",
-                },
-              },
-              {
-                id: "review-2",
-                reviewerId: "student-6",
-                revieweeId: "mock-coach",
-                targetId: "mock-coach",
-                targetType: "COACH",
-                rating: 5,
-                title: "Great mentor for PMs",
-                content:
-                  "As a current PM looking to level up, Sarah's insights were invaluable. She helped me identify gaps in my strategy thinking and provided actionable frameworks.",
-                isVerified: true,
-                isPublic: true,
-                helpfulCount: 8,
-                tags: ["career-advancement", "strategy"],
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                reviewer: {
-                  id: "student-6",
-                  fullName: "Ryan O'Connor",
-                  avatarUrl: "https://i.pravatar.cc/40?u=ryan-oconnor",
-                },
-                reviewee: {
-                  id: "mock-coach",
-                  fullName: "Adrian Cucurella",
-                  avatarUrl: "https://i.pravatar.cc/150?u=adrian-cucurella",
-                },
-              },
-            ],
-          });
-        }
-      } catch (error) {
-        console.error("Error fetching coach:", error);
-        setCoach({
-          id: "mock-coach",
-          userId: "mock-user-id",
-          email: "adrian@example.com",
-          fullName: "Adrian Cucurella",
-          title: "Partner, BCG",
-          avatarUrl: "https://i.pravatar.cc/150?u=adrian-cucurella",
-          rating: 4.9,
-          studentsCoached: 150,
-          totalSessions: 150,
-          specialties: ["Consulting", "Strategy"],
-          slug: params.coachId,
-          category: "Career Prep",
-          bio: "With over five years of experience at a leading global consulting firm, Adrian brings deep expertise in strategy and operations.",
-          style: "Professional",
-          pastCompanies: ["BCG", "PALIN"],
-          linkedinUrl: "",
-          availability: "Weekends",
-          hourlyRate: 100,
-          isActive: true,
-          isVerified: true,
-          totalReviews: 6,
-          qualifications: [],
-          languages: ["English"],
-          experience: "5+ years in consulting",
-          timezone: "PST",
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          hasUserReviewed: false,
-          programs: [],
-          reviews: [],
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCoach();
-  }, [params.coachId]);
 
   const handleBookClick = () => {
     console.log("Start Booking...");
@@ -248,32 +106,33 @@ export default function CoachDetailPage() {
       return;
     }
 
-    try {
-      setIsBooking(true);
-      const result = await bookCoachSession({
+    bookSessionMutation.mutate(
+      {
         coachId: params.coachId,
         date,
         time: selectedTime,
         duration: 60,
-      });
-
-      if (result.success) {
-        toast.success(
-          result.message || "Your session has been successfully booked."
-        );
-        setBookingStep(2); // Go to success step
-      } else {
-        throw new Error(result.error || "Failed to book session");
+      },
+      {
+        onSuccess: (result) => {
+          if (result.success) {
+            toast.success(
+              result.message || "Your session has been successfully booked."
+            );
+            setBookingStep(2); // Go to success step
+          } else {
+            toast.error(result.error || "Failed to book session");
+          }
+        },
+        onError: (error: any) => {
+          console.error("Booking failed:", error);
+          toast.error(
+            error.message ||
+              "There was an error booking your session. Please try again."
+          );
+        },
       }
-    } catch (error: any) {
-      console.error("Booking failed:", error);
-      toast.error(
-        error.message ||
-          "There was an error booking your session. Please try again."
-      );
-    } finally {
-      setIsBooking(false);
-    }
+    );
   };
 
   const handleMessageClick = async () => {
@@ -341,10 +200,8 @@ export default function CoachDetailPage() {
         toast.success(response.message || "Review submitted successfully!");
         setReviewSubmitted(true);
 
-        const updatedCoachResponse = await getCoachById(params.coachId);
-        if (updatedCoachResponse.success && updatedCoachResponse.data?.coach) {
-          setCoach(updatedCoachResponse.data.coach);
-        }
+        // Invalidate coach cache to refetch updated data
+        queryClient.invalidateQueries({ queryKey: ["coach", params.coachId] });
 
         setIsReviewDialogOpen(false);
       } else {
@@ -389,7 +246,7 @@ export default function CoachDetailPage() {
     );
   }
 
-  if (!coach) {
+  if (coachError || (!loading && !coach)) {
     return (
       <div className="flex min-h-screen flex-col bg-background">
         <Header />
@@ -473,7 +330,7 @@ export default function CoachDetailPage() {
                     Programs by {coach.fullName}
                   </h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    {coach.programs.map((program) => (
+                    {coach.programs.map((program: any) => (
                       <Link
                         href={
                           program.slug.startsWith("/")
@@ -510,13 +367,110 @@ export default function CoachDetailPage() {
                   </div>
                 </div>
               )}
+
+              {/* Upcoming Sessions Section - Only show for logged in students with sessions */}
+              {isStudent && upcomingSessionsWithCoach.length > 0 && (
+                <div className="my-12">
+                  <h2 className="mb-6 font-headline text-2xl font-bold">
+                    Your Upcoming Sessions with {coach.fullName}
+                  </h2>
+                  <div className="space-y-4">
+                    {upcomingSessionsWithCoach
+                      .slice(0, 3)
+                      .map((session: any) => (
+                        <Card key={session.id} className="p-6">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+                                <Calendar className="h-6 w-6 text-primary" />
+                              </div>
+                              <div>
+                                <h3 className="font-semibold">
+                                  {session.title}
+                                </h3>
+                                <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
+                                  <div className="flex items-center gap-1">
+                                    <Calendar className="h-4 w-4" />
+                                    {new Date(
+                                      session.scheduledTime
+                                    ).toLocaleDateString()}
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <Clock className="h-4 w-4" />
+                                    {new Date(
+                                      session.scheduledTime
+                                    ).toLocaleTimeString([], {
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    })}
+                                  </div>
+                                  <span>• {session.duration} min</span>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {session.meetLink && (
+                                <Button variant="outline" size="sm" asChild>
+                                  <Link href={session.meetLink} target="_blank">
+                                    <ExternalLink className="h-4 w-4 mr-2" />
+                                    Join Meeting
+                                  </Link>
+                                </Button>
+                              )}
+                              <Badge
+                                variant={
+                                  session.status === "SCHEDULED"
+                                    ? "default"
+                                    : "secondary"
+                                }
+                                className="text-xs"
+                              >
+                                {session.status.charAt(0) +
+                                  session.status.slice(1).toLowerCase()}
+                              </Badge>
+                            </div>
+                          </div>
+                        </Card>
+                      ))}
+                  </div>
+                  {upcomingSessionsWithCoach.length > 3 && (
+                    <Button variant="link" className="mt-4 px-0">
+                      View all upcoming sessions (
+                      {upcomingSessionsWithCoach.length})
+                    </Button>
+                  )}
+                </div>
+              )}
+
+              {/* Loading state for sessions */}
+              {isStudent && isLoadingStudentSessions && (
+                <div className="my-12">
+                  <h2 className="mb-6 font-headline text-2xl font-bold">
+                    Your Upcoming Sessions with {coach.fullName}
+                  </h2>
+                  <div className="space-y-4">
+                    {[...Array(2)].map((_, i) => (
+                      <Card key={i} className="p-6">
+                        <div className="animate-pulse flex items-center gap-4">
+                          <div className="h-12 w-12 bg-gray-200 rounded-full"></div>
+                          <div className="flex-1">
+                            <div className="h-4 bg-gray-200 rounded w-1/3 mb-2"></div>
+                            <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                          </div>
+                          <div className="h-8 bg-gray-200 rounded w-24"></div>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className={cn("md:col-span-1 relative pt-10")}>
               <div className="sticky top-24">
                 <EnrollmentForm
                   step={bookingStep}
-                  loading={isBooking}
+                  loading={bookSessionMutation.isPending}
                   selectedDate={date}
                   setSelectedDate={setDate}
                   selectedTime={selectedTime}
@@ -659,7 +613,7 @@ export default function CoachDetailPage() {
           </div>
           {coach.reviews && coach.reviews.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {coach.reviews.slice(0, 4).map((review, i) => (
+              {coach.reviews.slice(0, 4).map((review: any, i: number) => (
                 <Card
                   key={review.id || i}
                   className="rounded-xl border shadow-sm"
