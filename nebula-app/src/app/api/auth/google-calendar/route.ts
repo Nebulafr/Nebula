@@ -1,6 +1,5 @@
 import { google } from "googleapis";
 import { NextRequest, NextResponse } from "next/server";
-import { EventType } from "@/types/event";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -28,6 +27,8 @@ export async function GET(request: NextRequest) {
         "https://www.googleapis.com/auth/calendar.events",
       ],
       redirect_uri: `${process.env.NEXTAUTH_URL}/api/auth/google-calendar`,
+      prompt: "consent",
+      include_granted_scopes: true,
     });
 
     console.log({
@@ -45,6 +46,8 @@ export async function GET(request: NextRequest) {
     // Parse state to get eventType and step
     const state = searchParams.get("state");
     const stateData = state ? JSON.parse(state) : {};
+
+    console.log({ tokens, stateData });
 
     // Redirect back to admin events page with access token and form state
     const redirectUrl = new URL("/coach-dashboard", process.env.NEXTAUTH_URL);

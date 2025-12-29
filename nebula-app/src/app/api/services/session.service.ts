@@ -20,7 +20,7 @@ export class SessionService {
   static async bookSession(data: BookSessionData) {
     const { coachId, date, startTime, duration = 60, studentUserId } = data;
 
-    // Get coach with Google Calendar access token and user details
+    // Get coach with Google Calendar tokens and user details
     const coach = await prisma.coach.findUnique({
       where: {
         id: coachId,
@@ -202,8 +202,20 @@ export class SessionService {
       startTimeISO,
       endTimeISO,
       attendees,
-      coach.googleCalendarAccessToken
+      coach.googleCalendarAccessToken,
+      coach.googleCalendarRefreshToken
     );
+
+    // If we got a new access token, update it in the database
+    if (calendarEvent.newAccessToken) {
+      await prisma.coach.update({
+        where: { id: coach.id },
+        data: {
+          googleCalendarAccessToken: calendarEvent.newAccessToken,
+          updatedAt: new Date(),
+        },
+      });
+    }
 
     return {
       meetLink: calendarEvent.meetLink,

@@ -22,11 +22,8 @@ import Link from "next/link";
 import { CoachRoute } from "@/components/auth/protected-route";
 import { useAuth } from "@/hooks/use-auth";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState, Suspense } from "react";
-import {
-  storeGoogleAccessToken,
-  storeGoogleRefreshToken,
-} from "@/lib/auth-storage";
+import { useEffect, Suspense } from "react";
+
 import { toast } from "react-toastify";
 import { apiPost } from "@/lib/utils";
 import { useCoachSessions } from "@/hooks/use-session-queries";
@@ -43,12 +40,6 @@ function CoachDashboardContent() {
     const refreshToken = searchParams.get("refresh_token");
 
     if (accessToken) {
-      // Store tokens locally
-      storeGoogleAccessToken(accessToken);
-      if (refreshToken) {
-        storeGoogleRefreshToken(refreshToken);
-      }
-
       // Save tokens to database using apiPatch
       async function saveTokens() {
         try {
