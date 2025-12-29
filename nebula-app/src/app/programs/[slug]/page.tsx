@@ -516,7 +516,9 @@ export default function ProgramDetailPage({
                         variant="outline"
                         size="icon"
                         className="rounded-full"
-                        disabled={program.hasUserReviewed}
+                        disabled={
+                          program.hasUserReviewed || profile?.role !== "STUDENT"
+                        }
                         title={
                           program.hasUserReviewed
                             ? "You have already reviewed this program"

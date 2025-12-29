@@ -17,6 +17,12 @@ export const PUT = CatchError(
   )
 );
 
+export const PATCH = CatchError(
+  isAuthenticated(
+    async (req: NextRequest) => await coachController.updateCoach(req)
+  )
+);
+
 export const GET = CatchError(
   isAuthenticated(
     async (req: NextRequest) => await coachController.getProfile(req)

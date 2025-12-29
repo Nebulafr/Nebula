@@ -3,6 +3,7 @@ import Cookies from "universal-cookie";
 export const AUTH_TOKEN_KEY = "accessToken";
 export const USER_DATA_KEY = "userData";
 export const GOOGLE_ACCESS_TOKEN_KEY = "googleAccessToken";
+const GOOGLE_REFRESH_TOKEN_KEY = "googleRefreshToken";
 
 const cookies = new Cookies();
 
@@ -58,14 +59,27 @@ export function getGoogleAccessToken(): string | null {
   return cookies.get(GOOGLE_ACCESS_TOKEN_KEY) || null;
 }
 
+export function storeGoogleRefreshToken(token: string): void {
+  cookies.set(GOOGLE_REFRESH_TOKEN_KEY, token, cookieOptions);
+}
+
+export function getGoogleRefreshToken(): string | null {
+  return cookies.get(GOOGLE_REFRESH_TOKEN_KEY) || null;
+}
+
 export function removeGoogleAccessToken(): void {
   cookies.remove(GOOGLE_ACCESS_TOKEN_KEY, { path: "/" });
+}
+
+export function removeGoogleRefreshToken(): void {
+  cookies.remove(GOOGLE_REFRESH_TOKEN_KEY, { path: "/" });
 }
 
 export function clearAuthData(): void {
   cookies.remove(AUTH_TOKEN_KEY, { path: "/" });
   cookies.remove(USER_DATA_KEY, { path: "/" });
   cookies.remove(GOOGLE_ACCESS_TOKEN_KEY, { path: "/" });
+  cookies.remove(GOOGLE_REFRESH_TOKEN_KEY, { path: "/" });
   if (typeof window !== "undefined") {
     sessionStorage.removeItem("pendingGoogleSignInRole");
   }

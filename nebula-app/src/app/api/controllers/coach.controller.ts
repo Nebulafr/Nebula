@@ -115,4 +115,26 @@ export class CoachController {
 
     return await CoachService.getSuggestedCoaches(user.id, limit);
   }
+
+  async connectGoogleCalendar(request: NextRequest) {
+    const user = (request as any).user;
+
+    if (!user) {
+      throw new UnauthorizedException("Authentication required");
+    }
+
+    const body = await request.json();
+
+    const { googleCalendarAccessToken, googleCalendarRefreshToken } = body;
+
+    if (!googleCalendarAccessToken) {
+      throw new BadRequestException("Google Calendar access token is required");
+    }
+
+    return await CoachService.connectGoogleCalendar(
+      user.id,
+      googleCalendarAccessToken,
+      googleCalendarRefreshToken
+    );
+  }
 }

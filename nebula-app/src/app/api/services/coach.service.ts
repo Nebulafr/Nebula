@@ -523,4 +523,27 @@ export class CoachService {
       "Suggested coaches retrieved successfully"
     );
   }
+
+  static async connectGoogleCalendar(
+    userId: string,
+    accessToken: string,
+    refreshToken?: string
+  ) {
+    const coach = await this.findByUserId(userId);
+    if (!coach) {
+      throw new NotFoundException("Coach profile not found");
+    }
+
+    await prisma.coach.update({
+      where: { id: coach.id },
+      data: {
+        googleCalendarAccessToken: accessToken,
+        googleCalendarRefreshToken: refreshToken,
+        googleCalendarConnectedAt: new Date(),
+        updatedAt: new Date(),
+      },
+    });
+
+    return sendSuccess(null, "Google Calendar connected successfully");
+  }
 }

@@ -553,7 +553,9 @@ export default function CoachDetailPage() {
                   variant="outline"
                   size="icon"
                   className="rounded-full"
-                  disabled={coach.hasUserReviewed}
+                  disabled={
+                    coach.hasUserReviewed || profile?.role !== "STUDENT"
+                  }
                   title={
                     coach.hasUserReviewed
                       ? "You have already reviewed this coach"

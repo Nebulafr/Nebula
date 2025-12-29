@@ -170,6 +170,9 @@ model Coach {
   experience      String?
   timezone        String?
   languages       String[]
+  googleCalendarAccessToken   String?   @map("google_calendar_access_token")
+  googleCalendarRefreshToken  String?   @map("google_calendar_refresh_token")
+  googleCalendarConnectedAt   DateTime? @map("google_calendar_connected_at")
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
 

@@ -5,8 +5,6 @@ import { EventType } from "@/types/event";
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const code = searchParams.get("code");
-  const eventType = searchParams.get("eventType");
-  const step = searchParams.get("step");
 
   if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
     return NextResponse.json(
@@ -49,14 +47,11 @@ export async function GET(request: NextRequest) {
     const stateData = state ? JSON.parse(state) : {};
 
     // Redirect back to admin events page with access token and form state
-    const redirectUrl = new URL("/admin/events", process.env.NEXTAUTH_URL);
+    const redirectUrl = new URL("/coach-dashboard", process.env.NEXTAUTH_URL);
     redirectUrl.searchParams.set("access_token", tokens.access_token || "");
     if (tokens.refresh_token) {
       redirectUrl.searchParams.set("refresh_token", tokens.refresh_token);
     }
-    // Always redirect to WEBINAR step 2 after Google auth
-    redirectUrl.searchParams.set("eventType", EventType.WEBINAR);
-    redirectUrl.searchParams.set("step", "2");
 
     return NextResponse.redirect(redirectUrl.toString());
   } catch (error) {

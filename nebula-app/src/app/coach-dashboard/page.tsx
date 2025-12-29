@@ -8,7 +8,6 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -18,34 +17,68 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table";
-import {
-  MoreHorizontal,
-  ArrowUpRight,
-  Users,
-  Calendar,
-  Star,
-} from "lucide-react";
+import { Users, Calendar, Star, CalendarPlus, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { CoachRoute } from "@/components/auth/protected-route";
 import { useAuth } from "@/hooks/use-auth";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
+import {
+  storeGoogleAccessToken,
+  storeGoogleRefreshToken,
+} from "@/lib/auth-storage";
+import { toast } from "react-toastify";
+import { apiPost } from "@/lib/utils";
+import { useCoachSessions } from "@/hooks/use-session-queries";
 
-const upcomingSessions = [
-  {
-    studentName: "Alex Thompson",
-    studentAvatar: "https://i.pravatar.cc/40?u=alex",
-    program: "Consulting, Associate Level",
-    time: "4:00 PM",
-  },
-  {
-    studentName: "Sarah K.",
-    studentAvatar: "https://i.pravatar.cc/40?u=sarah",
-    program: "MBA Admissions Coaching",
-    time: "6:00 PM",
-  },
-];
-
-export default function CoachDashboardPage() {
+function CoachDashboardContent() {
   const { profile } = useAuth();
+  const searchParams = useSearchParams();
+  const { data: todaySessionsData, isLoading: isLoadingSessions } =
+    useCoachSessions("today");
+
+  // Handle OAuth redirect tokens
+  useEffect(() => {
+    const accessToken = searchParams.get("access_token");
+    const refreshToken = searchParams.get("refresh_token");
+
+    if (accessToken) {
+      // Store tokens locally
+      storeGoogleAccessToken(accessToken);
+      if (refreshToken) {
+        storeGoogleRefreshToken(refreshToken);
+      }
+
+      // Save tokens to database using apiPatch
+      async function saveTokens() {
+        try {
+          const result = await apiPost("/coaches/google-calendar", {
+            googleCalendarAccessToken: accessToken,
+            googleCalendarRefreshToken: refreshToken,
+          });
+
+          if (result.success) {
+            toast.success(
+              result?.message || "Google Calendar connected successfully!"
+            );
+          } else {
+            toast.error(
+              result?.message || "Failed to save calendar connection"
+            );
+          }
+        } catch (error) {
+          toast.error("Failed to save calendar connection");
+        }
+      }
+      saveTokens();
+
+      // Clean up URL params
+      const url = new URL(window.location.href);
+      url.searchParams.delete("access_token");
+      url.searchParams.delete("refresh_token");
+      window.history.replaceState({}, "", url.pathname);
+    }
+  }, [searchParams]);
 
   return (
     <CoachRoute>
@@ -54,6 +87,19 @@ export default function CoachDashboardPage() {
           <h3 className="text-3xl font-bold tracking-tight">
             Welcome back, {profile?.fullName || "Coach"}!
           </h3>
+          <Button
+            asChild
+            variant={
+              profile?.coach?.googleCalendarAccessToken ? "outline" : "default"
+            }
+          >
+            <Link href="/api/auth/google-calendar">
+              <CalendarPlus className="mr-2 h-4 w-4" />
+              {profile?.coach?.googleCalendarAccessToken
+                ? "Calendar Connected"
+                : "Connect Calendar"}
+            </Link>
+          </Button>
         </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
@@ -123,36 +169,83 @@ export default function CoachDashboardPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Student</TableHead>
-                    <TableHead>Program</TableHead>
                     <TableHead>Time</TableHead>
                     <TableHead></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {upcomingSessions.map((session, index) => (
-                    <TableRow key={index}>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <Avatar>
-                            <AvatarImage src={session.studentAvatar} />
-                            <AvatarFallback>
-                              {session.studentName.charAt(0)}
-                            </AvatarFallback>
-                          </Avatar>
-                          <span className="font-medium">
-                            {session.studentName}
-                          </span>
+                  {isLoadingSessions ? (
+                    <TableRow>
+                      <TableCell colSpan={3} className="text-center py-8">
+                        <div className="flex items-center justify-center gap-2">
+                          <Loader2 className="h-4 w-4 animate-spin" />
                         </div>
                       </TableCell>
-                      <TableCell>{session.program}</TableCell>
-                      <TableCell>{session.time}</TableCell>
-                      <TableCell>
-                        <Button variant="outline" size="sm">
-                          Join Call
-                        </Button>
+                    </TableRow>
+                  ) : todaySessionsData?.data?.sessions?.length > 0 ? (
+                    todaySessionsData?.data?.sessions?.map((session: any) => (
+                      <TableRow key={session.id}>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            {session.students?.[0] ? (
+                              <>
+                                <Avatar>
+                                  <AvatarImage
+                                    src={session.students[0].avatarUrl || ""}
+                                  />
+                                  <AvatarFallback>
+                                    {session.students[0].fullName?.charAt(0) ||
+                                      "S"}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <span className="font-medium">
+                                  {session.students[0].fullName || "Student"}
+                                </span>
+                              </>
+                            ) : (
+                              <>
+                                <Avatar>
+                                  <AvatarFallback>S</AvatarFallback>
+                                </Avatar>
+                                <span className="font-medium">Student</span>
+                              </>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {new Date(session.scheduledTime).toLocaleTimeString(
+                            [],
+                            {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            }
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {session.meetLink ? (
+                            <Button variant="outline" size="sm" asChild>
+                              <Link href={session.meetLink} target="_blank">
+                                Join Call
+                              </Link>
+                            </Button>
+                          ) : (
+                            <Button variant="outline" size="sm" disabled>
+                              No Link
+                            </Button>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell
+                        colSpan={3}
+                        className="text-center py-8 text-muted-foreground"
+                      >
+                        No sessions scheduled for today
                       </TableCell>
                     </TableRow>
-                  ))}
+                  )}
                 </TableBody>
               </Table>
             </CardContent>
@@ -227,5 +320,25 @@ export default function CoachDashboardPage() {
         </div>
       </div>
     </CoachRoute>
+  );
+}
+
+export default function CoachDashboardPage() {
+  return (
+    <Suspense
+      fallback={
+        <CoachRoute>
+          <div className="flex-1 space-y-4 p-4 md:p-8">
+            <div className="flex items-center justify-center h-64">
+              <div className="flex items-center gap-2">
+                <Loader2 className="h-6 w-6 animate-spin" />
+              </div>
+            </div>
+          </div>
+        </CoachRoute>
+      }
+    >
+      <CoachDashboardContent />
+    </Suspense>
   );
 }
