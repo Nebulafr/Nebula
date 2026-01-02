@@ -253,9 +253,7 @@ export default function CoachDashboardLayout({
         <SidebarInset>
           <TopBar />
           <main className="flex-1 overflow-auto">
-            <div className="h-full">
-              {children}
-            </div>
+            <div className="h-full">{children}</div>
           </main>
         </SidebarInset>
       </SidebarProvider>

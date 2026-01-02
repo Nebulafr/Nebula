@@ -147,7 +147,7 @@ function CoachesPageContent() {
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
                   {items.map((coach: any) => (
                     <Link key={coach.id} href={`/coaches/${coach.id}`}>
-                      <Card className="flex w-full flex-col rounded-xl border transition-all hover:shadow-lg">
+                      <Card className="flex w-full flex-col rounded-xl border transition-all hover:shadow-lg h-[375px]">
                         <CardContent className="flex flex-1 flex-col p-4">
                           <div className="flex flex-col items-center text-center">
                             <Avatar className="h-24 w-24">
