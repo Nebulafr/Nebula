@@ -10,9 +10,9 @@ import { usePublicEvents } from "@/hooks";
 import { Event } from "@/types/event";
 import { getEventBackgroundColor, getDefaultAvatar, getAccessTypeText } from "@/lib/event-utils";
 
-function EventCard({ event }: { event: Event }) {
+function EventCard({ event, index, previousIndex }: { event: Event; index: number; previousIndex?: number }) {
   const eventDate = new Date(event.date);
-  const color = getEventBackgroundColor(event.id, event.title);
+  const color = getEventBackgroundColor(index, previousIndex);
 
   const formatEventDate = (date: Date) => {
     return date.toLocaleDateString("en-US", {
@@ -175,7 +175,14 @@ export function UpcomingEventsSection() {
           ) : events.length > 0 ? (
             events
               .slice(0, 3)
-              .map((event: Event) => <EventCard key={event.id} event={event} />)
+              .map((event: Event, index: number) => (
+                <EventCard
+                  key={event.id}
+                  event={event}
+                  index={index}
+                  previousIndex={index > 0 ? index - 1 : undefined}
+                />
+              ))
           ) : (
             <div className="col-span-full text-center">
               <p className="text-muted-foreground">

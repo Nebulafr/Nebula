@@ -4,7 +4,6 @@ import { useState } from "react";
 import { usePublicEvents } from "@/hooks";
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
-import { Event } from "@/types/event";
 import {
   PriceFilters,
   SearchBar,
@@ -24,6 +23,8 @@ export default function EventsPage() {
   } = usePublicEvents({
     search: searchTerm || undefined,
     eventType: activeTypeFilter?.toUpperCase() || undefined,
+    accessType:
+      activePriceFilter === "All" ? undefined : activePriceFilter.toLowerCase(),
   });
   const events = eventsResponse?.data?.events || [];
 
@@ -37,18 +38,10 @@ export default function EventsPage() {
     e.preventDefault();
   };
 
-  const filteredEvents = events.filter((event: Event) => {
-    const priceMatch =
-      activePriceFilter === "All" ||
-      (activePriceFilter === "Free" && event.accessType === "free") ||
-      (activePriceFilter === "Premium" && event.accessType === "premium");
-    return priceMatch;
-  });
-
-  const webinarEvents = filteredEvents.filter(
+  const webinarEvents = events.filter(
     (event: any) => event.eventType === "WEBINAR"
   );
-  const socialEvents = filteredEvents.filter(
+  const socialEvents = events.filter(
     (event: any) => event.eventType === "SOCIAL"
   );
 
@@ -66,6 +59,7 @@ export default function EventsPage() {
           <PriceFilters
             activePriceFilter={activePriceFilter}
             onPriceFilterChange={setActivePriceFilter}
+            loading={loading}
           />
         </section>
 
@@ -74,7 +68,7 @@ export default function EventsPage() {
           onSearchChange={setSearchTerm}
           onSearchSubmit={handleSearch}
         />
-        
+
         <EventFilters
           activeTypeFilter={activeTypeFilter}
           onTypeFilterClick={handleTypeFilterClick}

@@ -90,16 +90,13 @@ export default function WebinarPage() {
             <div className="md:col-span-1 space-y-8">
               <Card className="overflow-hidden rounded-xl">
                 <div
-                  className={`relative h-56 ${getEventBackgroundColor(
-                    event.id,
-                    event.title
-                  )}`}
+                  className={`relative h-56 ${getEventBackgroundColor(0)}`}
                 >
                   <Image
                     src={
                       event.images && event.images.length > 0
                         ? event.images[0]
-                        : getDefaultBanner(event.title)
+                        : getDefaultBanner(0)
                     }
                     alt={event.title}
                     fill

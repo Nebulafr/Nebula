@@ -9,11 +9,13 @@ import { getEventBackgroundColor, getDefaultAvatar, getAccessTypeText } from "@/
 
 interface WebinarCardProps {
   event: Event;
+  index: number;
+  previousIndex?: number;
 }
 
-export function WebinarCard({ event }: WebinarCardProps) {
+export function WebinarCard({ event, index, previousIndex }: WebinarCardProps) {
   const eventDate = new Date(event.date);
-  const backgroundColor = getEventBackgroundColor(event.id, event.title);
+  const backgroundColor = getEventBackgroundColor(index, previousIndex);
 
   return (
     <Link href={`/events/webinar/${event.slug}`}>

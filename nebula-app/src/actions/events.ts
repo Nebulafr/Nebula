@@ -29,6 +29,7 @@ export async function getEvents(params?: {
 export async function getPublicEvents(params?: {
   search?: string;
   eventType?: string;
+  accessType?: string;
   limit?: number;
   offset?: number;
 }) {

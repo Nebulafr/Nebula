@@ -10,9 +10,11 @@ import { getEventGradientBackground, getDefaultAvatar, getDefaultBanner, getAcce
 
 interface SocialCardProps {
   event: Event;
+  index: number;
+  previousIndex?: number;
 }
 
-export function SocialCard({ event }: SocialCardProps) {
+export function SocialCard({ event, index, previousIndex }: SocialCardProps) {
   const eventDate = new Date(event.date);
 
 
@@ -20,9 +22,9 @@ export function SocialCard({ event }: SocialCardProps) {
     <Link href={`/events/social/${event.slug}`} className="block">
       <Card className="group flex flex-col overflow-hidden rounded-xl shadow-none transition-shadow hover:shadow-lg cursor-pointer">
         <div className="relative">
-          <div className={`w-full h-40 ${getEventGradientBackground(event.id, event.title)} flex items-center justify-center`}>
+          <div className={`w-full h-40 ${getEventGradientBackground(index, previousIndex)} flex items-center justify-center`}>
             <Image
-              src={event.images && event.images.length > 0 ? event.images[0] : getDefaultBanner(event.title)}
+              src={event.images && event.images.length > 0 ? event.images[0] : getDefaultBanner(index, previousIndex)}
               alt={event.title}
               width={400}
               height={160}

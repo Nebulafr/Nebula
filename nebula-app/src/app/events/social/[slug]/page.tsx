@@ -309,7 +309,7 @@ export default function SocialEventPage() {
                   src={
                     images.length > 0
                       ? images[0]
-                      : getDefaultBanner(event.title)
+                      : getDefaultBanner(0)
                   }
                   alt={event.title}
                   width={800}
@@ -322,7 +322,7 @@ export default function SocialEventPage() {
                       src={
                         images.length > 0
                           ? images[1]
-                          : getDefaultBanner(event.title)
+                          : getDefaultBanner(1, 0)
                       }
                       alt={`${event.title} - Image 2`}
                       width={128}
@@ -337,7 +337,7 @@ export default function SocialEventPage() {
                       src={
                         images.length > 0
                           ? images[2]
-                          : getDefaultBanner(event.title)
+                          : getDefaultBanner(2, 1)
                       }
                       alt={`${event.title} - Image 3`}
                       width={128}

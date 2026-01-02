@@ -35,14 +35,15 @@ export function Header() {
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex h-14 max-w-screen-2xl items-center px-header mx-auto">
         <div className="flex flex-1 items-center gap-10">
-          <Link href="/" className="flex items-center">
-            <Image
-              src="/logos/nebula.svg"
-              alt="Nebula Logo"
-              width={80}
-              height={80}
-              className="object-cover"
-            />
+          <Link href="/" className="flex items-center gap-2">
+            <div className="h-8 w-8 relative">
+              <Image
+                src="/logos/nebula.svg"
+                alt="Nebula Logo"
+                fill
+                className="object-contain"
+              />
+            </div>
             <span className="font-headline text-xl font-bold">Nebula</span>
           </Link>
           <nav className="hidden items-center gap-4 md:flex">

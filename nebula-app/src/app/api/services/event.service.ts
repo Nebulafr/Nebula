@@ -93,7 +93,7 @@ export class EventService {
     const search = searchParams.get("search") || undefined;
     const eventType = searchParams.get("eventType") || undefined;
     const status = searchParams.get("status") || undefined;
-    const isPublic = searchParams.get("isPublic");
+    const accessType = searchParams.get("accessType") || undefined;
     const limitParam = searchParams.get("limit");
     const offsetParam = searchParams.get("offset");
 
@@ -110,8 +110,8 @@ export class EventService {
       whereClause.status = status;
     }
 
-    if (isPublic !== null && isPublic !== undefined) {
-      whereClause.isPublic = isPublic === "true";
+    if (accessType) {
+      whereClause.accessType = accessType;
     }
 
     if (search) {

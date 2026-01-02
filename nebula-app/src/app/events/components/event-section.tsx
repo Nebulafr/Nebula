@@ -17,8 +17,13 @@ export function EventSection({ title, events }: EventSectionProps) {
         <Info className="h-4 w-4 text-muted-foreground" />
       </div>
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {events.map((event) => (
-          <EventCard key={event.id} event={event} />
+        {events.map((event, index) => (
+          <EventCard 
+            key={event.id} 
+            event={event} 
+            index={index}
+            previousIndex={index > 0 ? index - 1 : undefined}
+          />
         ))}
       </div>
     </section>

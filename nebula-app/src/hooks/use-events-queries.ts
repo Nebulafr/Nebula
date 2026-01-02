@@ -35,6 +35,7 @@ export function useEvents(params?: {
 export function usePublicEvents(params?: {
   search?: string;
   eventType?: string;
+  accessType?: string;
   limit?: number;
   offset?: number;
 }) {
