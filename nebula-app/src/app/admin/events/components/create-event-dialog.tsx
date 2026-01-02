@@ -54,6 +54,7 @@ interface NewEvent {
   maxAttendees: string;
   tags: string[];
   lumaEventLink: string;
+  accessType: string;
 }
 
 interface ActionLoading {
@@ -102,7 +103,8 @@ export function CreateEventDialog({
             // Auto-set defaults for webinars
             ...(type === 'Webinar' ? {
                 location: 'online',
-                isPublic: true
+                isPublic: true,
+                accessType: 'free'
             } : {})
         }));
     };
@@ -291,8 +293,9 @@ export function CreateEventDialog({
                                     </Select>
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="event-tag">Access Type</Label>
+                                    <Label htmlFor="access-type">Access Type</Label>
                                     <Select 
+                                        onValueChange={(value) => setNewEvent(prev => ({...prev, accessType: value}))}
                                         defaultValue={eventType === 'Webinar' ? 'free' : undefined}
                                         required
                                     >

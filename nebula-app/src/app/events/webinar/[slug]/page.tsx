@@ -9,6 +9,11 @@ import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
 import { useParams } from "next/navigation";
 import { useEventBySlug } from "@/hooks";
+import {
+  getDefaultAvatar,
+  getDefaultBanner,
+  getEventBackgroundColor,
+} from "@/lib/event-utils";
 
 export default function WebinarPage() {
   const params = useParams<{ slug: string }>();
@@ -84,19 +89,22 @@ export default function WebinarPage() {
             {/* Left Column */}
             <div className="md:col-span-1 space-y-8">
               <Card className="overflow-hidden rounded-xl">
-                <div className="relative h-56 bg-primary/10">
-                  {event.images && event.images.length > 0 ? (
-                    <Image
-                      src={event.images[0]}
-                      alt={event.title}
-                      fill
-                      className="object-cover"
-                    />
-                  ) : (
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center">
-                      <Video className="h-16 w-16 text-white opacity-80" />
-                    </div>
-                  )}
+                <div
+                  className={`relative h-56 ${getEventBackgroundColor(
+                    event.id,
+                    event.title
+                  )}`}
+                >
+                  <Image
+                    src={
+                      event.images && event.images.length > 0
+                        ? event.images[0]
+                        : getDefaultBanner(event.title)
+                    }
+                    alt={event.title}
+                    fill
+                    className="object-cover"
+                  />
                   <div className="absolute inset-0 bg-black/30 p-6 flex flex-col justify-end">
                     <h2 className="font-headline text-3xl font-bold text-white leading-tight">
                       {event.title}
@@ -111,7 +119,12 @@ export default function WebinarPage() {
                 <h3 className="font-semibold mb-4">Hosted by</h3>
                 <div className="flex items-center gap-4">
                   <Avatar className="h-12 w-12">
-                    <AvatarImage src={event.organizer?.avatarUrl} />
+                    <AvatarImage
+                      src={
+                        event.organizer?.avatarUrl ||
+                        getDefaultAvatar(event.organizer?.fullName)
+                      }
+                    />
                     <AvatarFallback>
                       {event.organizer?.fullName?.charAt(0) || "H"}
                     </AvatarFallback>

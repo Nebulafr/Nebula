@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ExternalLink, Star } from "lucide-react";
 import { Event } from "@/types/event";
+import { getEventGradientBackground, getDefaultAvatar, getDefaultBanner, getAccessTypeText } from "@/lib/event-utils";
 
 interface SocialCardProps {
   event: Event;
@@ -14,32 +15,22 @@ interface SocialCardProps {
 export function SocialCard({ event }: SocialCardProps) {
   const eventDate = new Date(event.date);
 
+
   return (
     <Link href={`/events/social/${event.slug}`} className="block">
       <Card className="group flex flex-col overflow-hidden rounded-xl shadow-none transition-shadow hover:shadow-lg cursor-pointer">
         <div className="relative">
-          {event.images && event.images.length > 0 ? (
-            <div className="w-full h-40 bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
-              <Image
-                src={event.images[0]}
-                alt={event.title}
-                width={400}
-                height={160}
-                className="object-cover w-full h-full"
-              />
-            </div>
-          ) : (
-            <div className="w-full h-40 bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
-              <div className="text-center">
-                <div className="text-2xl mb-2">🎉</div>
-                <p className="text-sm font-medium text-blue-800">
-                  {event.eventType.toLowerCase()}
-                </p>
-              </div>
-            </div>
-          )}
+          <div className={`w-full h-40 ${getEventGradientBackground(event.id, event.title)} flex items-center justify-center`}>
+            <Image
+              src={event.images && event.images.length > 0 ? event.images[0] : getDefaultBanner(event.title)}
+              alt={event.title}
+              width={400}
+              height={160}
+              className="object-cover w-full h-full"
+            />
+          </div>
           <Badge className="absolute top-2 left-2 bg-white text-gray-800 hover:bg-gray-200">
-            {event.isPublic ? "Free" : "Premium"}
+            {getAccessTypeText(event.accessType)}
           </Badge>
         </div>
         <CardContent className="flex flex-1 flex-col p-4">
@@ -48,7 +39,7 @@ export function SocialCard({ event }: SocialCardProps) {
           </h3>
           <div className="flex items-center gap-2 mt-2">
             <Avatar className="h-6 w-6">
-              <AvatarImage src={event.organizer?.avatarUrl} />
+              <AvatarImage src={event.organizer?.avatarUrl || getDefaultAvatar(event.organizer?.fullName)} />
               <AvatarFallback>
                 {event.organizer?.fullName?.charAt(0) || "A"}
               </AvatarFallback>

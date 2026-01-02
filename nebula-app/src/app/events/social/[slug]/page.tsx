@@ -26,6 +26,12 @@ import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
 import { useEventBySlug } from "@/hooks";
 import { Event } from "@/types/event";
+import {
+  getDefaultAvatar,
+  getDefaultBanner,
+  getEventGradientBackground,
+  getAccessTypeText,
+} from "@/lib/event-utils";
 
 export default function SocialEventPage() {
   const params = useParams<{ slug: string }>();
@@ -212,7 +218,12 @@ export default function SocialEventPage() {
           </h1>
           <div className="flex items-center gap-2 mt-4">
             <Avatar className="h-8 w-8">
-              <AvatarImage src={event.organizer?.avatarUrl} />
+              <AvatarImage
+                src={
+                  event.organizer?.avatarUrl ||
+                  getDefaultAvatar(event.organizer?.fullName)
+                }
+              />
               <AvatarFallback>
                 {event.organizer?.fullName?.charAt(0) || "O"}
               </AvatarFallback>
@@ -250,13 +261,7 @@ export default function SocialEventPage() {
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-semibold">
-                    {event.isPublic
-                      ? "Free"
-                      : new Intl.NumberFormat("en-US", {
-                          style: "currency",
-                          currency: "EUR",
-                        }).format(25)}{" "}
-                    / guest
+                    {getAccessTypeText(event.accessType)} / guest
                   </p>
                   <Badge variant="outline" className="mt-1">
                     {event.maxAttendees
@@ -299,48 +304,49 @@ export default function SocialEventPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:items-start">
             {/* Left side: Image Layout */}
             <div className="relative h-[500px] rounded-xl overflow-hidden">
-              {images.length > 0 ? (
-                <div className="w-full h-full">
-                  <Image
-                    src={images[0]}
-                    alt={event.title}
-                    width={800}
-                    height={600}
-                    className="object-cover w-full h-full"
-                  />
-                  {images.length > 1 && (
-                    <div className="absolute bottom-4 right-4 w-32 h-32 rounded-xl overflow-hidden border-4 border-white shadow-lg">
-                      <Image
-                        src={images[1]}
-                        alt={`${event.title} - Image 2`}
-                        width={128}
-                        height={128}
-                        className="object-cover w-full h-full"
-                      />
-                    </div>
-                  )}
-                  {images.length > 2 && (
-                    <div className="absolute bottom-4 right-40 w-32 h-32 rounded-xl overflow-hidden border-4 border-white shadow-lg">
-                      <Image
-                        src={images[2]}
-                        alt={`${event.title} - Image 3`}
-                        width={128}
-                        height={128}
-                        className="object-cover w-full h-full"
-                      />
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="text-6xl mb-4">🎉</div>
-                    <p className="text-lg font-medium text-blue-800">
-                      {event.eventType.toLowerCase()} event
-                    </p>
+              <div className="w-full h-full">
+                <Image
+                  src={
+                    images.length > 0
+                      ? images[0]
+                      : getDefaultBanner(event.title)
+                  }
+                  alt={event.title}
+                  width={800}
+                  height={600}
+                  className="object-cover w-full h-full"
+                />
+                {images.length > 1 && (
+                  <div className="absolute bottom-4 right-4 w-32 h-32 rounded-xl overflow-hidden border-4 border-white shadow-lg">
+                    <Image
+                      src={
+                        images.length > 0
+                          ? images[1]
+                          : getDefaultBanner(event.title)
+                      }
+                      alt={`${event.title} - Image 2`}
+                      width={128}
+                      height={128}
+                      className="object-cover w-full h-full"
+                    />
                   </div>
-                </div>
-              )}
+                )}
+                {images.length > 2 && (
+                  <div className="absolute bottom-4 right-40 w-32 h-32 rounded-xl overflow-hidden border-4 border-white shadow-lg">
+                    <Image
+                      src={
+                        images.length > 0
+                          ? images[2]
+                          : getDefaultBanner(event.title)
+                      }
+                      alt={`${event.title} - Image 3`}
+                      width={128}
+                      height={128}
+                      className="object-cover w-full h-full"
+                    />
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Right side: Event Details and Booking */}

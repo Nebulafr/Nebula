@@ -27,6 +27,7 @@ import { useEffect, Suspense } from "react";
 import { toast } from "react-toastify";
 import { apiPost } from "@/lib/utils";
 import { useCoachSessions } from "@/hooks/use-session-queries";
+import { getDefaultAvatar } from "@/lib/event-utils";
 
 function CoachDashboardContent() {
   const { profile } = useAuth();
@@ -178,11 +179,16 @@ function CoachDashboardContent() {
                       <TableRow key={session.id}>
                         <TableCell>
                           <div className="flex items-center gap-3">
-                            {session.students?.[0] ? (
+                            {
                               <>
                                 <Avatar>
                                   <AvatarImage
-                                    src={session.students[0].avatarUrl || ""}
+                                    src={
+                                      session.students[0].avatarUrl ||
+                                      getDefaultAvatar(
+                                        session.students[0]?.fullName
+                                      )
+                                    }
                                   />
                                   <AvatarFallback>
                                     {session.students[0].fullName?.charAt(0) ||
@@ -193,14 +199,7 @@ function CoachDashboardContent() {
                                   {session.students[0].fullName || "Student"}
                                 </span>
                               </>
-                            ) : (
-                              <>
-                                <Avatar>
-                                  <AvatarFallback>S</AvatarFallback>
-                                </Avatar>
-                                <span className="font-medium">Student</span>
-                              </>
-                            )}
+                            }
                           </div>
                         </TableCell>
                         <TableCell>

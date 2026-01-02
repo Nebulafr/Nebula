@@ -18,6 +18,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { getDefaultAvatar } from "@/lib/event-utils";
 
 export interface Student {
   id: string;
@@ -107,7 +108,9 @@ export function StudentsTable({
             <TableCell>
               <div className="flex items-center space-x-3">
                 <Avatar>
-                  <AvatarImage src={student.avatar} />
+                  <AvatarImage
+                    src={student.avatar || getDefaultAvatar(student.name)}
+                  />
                   <AvatarFallback>
                     {student.name
                       .split(" ")

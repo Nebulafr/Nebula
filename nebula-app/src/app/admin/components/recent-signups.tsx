@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { MoreHorizontal } from "lucide-react";
 import Link from "next/link";
 import { formatUserName, getUserInitials } from "@/lib/chat-utils";
+import { getDefaultAvatar } from "@/lib/event-utils";
 
 interface RecentSignup {
   name: string;
@@ -36,17 +37,19 @@ interface RecentSignupsProps {
   onUserAction?: (user: RecentSignup, action: string) => void;
 }
 
-export function RecentSignups({ 
-  signups, 
-  loading = false, 
-  onUserAction 
+export function RecentSignups({
+  signups,
+  loading = false,
+  onUserAction,
 }: RecentSignupsProps) {
   if (loading) {
     return (
       <Card className="col-span-4">
         <CardHeader>
           <CardTitle>Recent Sign-ups</CardTitle>
-          <CardDescription>A list of the newest users on the platform.</CardDescription>
+          <CardDescription>
+            A list of the newest users on the platform.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
@@ -88,7 +91,9 @@ export function RecentSignups({
     <Card className="col-span-4">
       <CardHeader>
         <CardTitle>Recent Sign-ups</CardTitle>
-        <CardDescription>A list of the newest users on the platform.</CardDescription>
+        <CardDescription>
+          A list of the newest users on the platform.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         {signups.length === 0 ? (
@@ -109,31 +114,41 @@ export function RecentSignups({
                 {signups.map((user, index) => {
                   const displayName = formatUserName(user.name);
                   const initials = getUserInitials(user.name);
-                  
+
                   return (
                     <TableRow key={index}>
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <Avatar>
-                            <AvatarImage src={user.avatar} />
+                            <AvatarImage
+                              src={user.avatar || getDefaultAvatar(user!.name)}
+                            />
                             <AvatarFallback>{initials}</AvatarFallback>
                           </Avatar>
                           <div>
                             <span className="font-medium">{displayName}</span>
-                            <p className="text-xs text-muted-foreground">{user.email}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {user.email}
+                            </p>
                           </div>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={user.role.toLowerCase() === 'coach' ? 'secondary' : 'outline'}>
+                        <Badge
+                          variant={
+                            user.role.toLowerCase() === "coach"
+                              ? "secondary"
+                              : "outline"
+                          }
+                        >
                           {user.role}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button 
-                          variant="ghost" 
+                        <Button
+                          variant="ghost"
                           size="icon"
-                          onClick={() => onUserAction?.(user, 'view')}
+                          onClick={() => onUserAction?.(user, "view")}
                         >
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>

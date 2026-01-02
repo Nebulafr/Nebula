@@ -44,6 +44,7 @@ export interface Event {
   whatToBring?: string;
   additionalInfo?: string;
   lumaEventLink: string;
+  accessType?: string;
   createdAt: string;
   updatedAt: string;
 }

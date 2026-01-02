@@ -113,6 +113,7 @@ export default function AdminEventsContent() {
     maxAttendees: "",
     tags: [] as string[],
     lumaEventLink: "",
+    accessType: "Free",
   });
 
   const handleEventAction = async (id: string, newStatus: string) => {
@@ -176,6 +177,7 @@ export default function AdminEventsContent() {
           maxAttendees: "",
           tags: [],
           lumaEventLink: "",
+          accessType: "Free",
         });
         setIsCreateDialogOpen(false);
       }

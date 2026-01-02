@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ExternalLink } from "lucide-react";
 import { Event } from "@/types/event";
+import { getEventBackgroundColor, getDefaultAvatar, getAccessTypeText } from "@/lib/event-utils";
 
 interface WebinarCardProps {
   event: Event;
@@ -12,13 +13,7 @@ interface WebinarCardProps {
 
 export function WebinarCard({ event }: WebinarCardProps) {
   const eventDate = new Date(event.date);
-  const colorMap = {
-    WEBINAR: "bg-yellow-50",
-    WORKSHOP: "bg-purple-50",
-  };
-
-  const backgroundColor =
-    colorMap[event.eventType as keyof typeof colorMap] || "bg-yellow-50";
+  const backgroundColor = getEventBackgroundColor(event.id, event.title);
 
   return (
     <Link href={`/events/webinar/${event.slug}`}>
@@ -27,26 +22,18 @@ export function WebinarCard({ event }: WebinarCardProps) {
           className={`${backgroundColor} p-4 relative rounded-xl transition-transform group-hover:-translate-y-1 flex flex-col flex-grow`}
         >
           <Badge className="absolute top-4 left-4 bg-white text-gray-800 hover:bg-gray-200 z-10">
-            {event.isPublic ? "Free" : "Premium"}
+            {getAccessTypeText(event.accessType)}
           </Badge>
           <div className="flex items-start gap-4 pt-6 pb-4 flex-grow">
             <div className="flex-shrink-0">
               <div className="w-[120px] h-[120px]">
-                {event.organizer?.avatarUrl ? (
-                  <Image
-                    src={event.organizer.avatarUrl}
-                    alt={event.organizer.fullName || "Organizer"}
-                    width={120}
-                    height={120}
-                    className="rounded-lg object-cover aspect-square w-full h-full"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gray-200 rounded-lg flex items-center justify-center">
-                    <span className="text-2xl text-gray-500">
-                      {event.organizer?.fullName?.charAt(0) || "A"}
-                    </span>
-                  </div>
-                )}
+                <Image
+                  src={event.organizer?.avatarUrl || getDefaultAvatar(event.organizer?.fullName)}
+                  alt={event.organizer?.fullName || "Organizer"}
+                  width={120}
+                  height={120}
+                  className="rounded-lg object-cover aspect-square w-full h-full"
+                />
               </div>
             </div>
             <div className="flex flex-col gap-2">

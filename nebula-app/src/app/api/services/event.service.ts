@@ -75,6 +75,7 @@ export class EventService {
       whatToBring: event.whatToBring,
       additionalInfo: event.additionalInfo,
       lumaEventLink: event.lumaEventLink,
+      accessType: event.accessType,
       createdAt: event.createdAt.toISOString(),
       updatedAt: event.updatedAt.toISOString(),
     };
@@ -205,6 +206,7 @@ export class EventService {
       whatToBring: event.whatToBring,
       additionalInfo: event.additionalInfo,
       lumaEventLink: event.lumaEventLink,
+      accessType: event.accessType,
       createdAt: event.createdAt.toISOString(),
       updatedAt: event.updatedAt.toISOString(),
     }));
@@ -302,6 +304,7 @@ export class EventService {
       whatToBring: event.whatToBring,
       additionalInfo: event.additionalInfo,
       lumaEventLink: event.lumaEventLink,
+      accessType: event.accessType,
       createdAt: event.createdAt.toISOString(),
       updatedAt: event.updatedAt.toISOString(),
     };
@@ -399,6 +402,7 @@ export class EventService {
       whatToBring: event.whatToBring,
       additionalInfo: event.additionalInfo,
       lumaEventLink: event.lumaEventLink,
+      accessType: event.accessType,
       createdAt: event.createdAt.toISOString(),
       updatedAt: event.updatedAt.toISOString(),
     };

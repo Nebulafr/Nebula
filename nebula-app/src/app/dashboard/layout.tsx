@@ -11,6 +11,7 @@ import {
   Bell,
   PanelLeft,
   ExternalLink,
+  Calendar,
 } from "lucide-react";
 import Link from "next/link";
 import {
@@ -41,6 +42,8 @@ function TopBar() {
     pageTitle = "Coaches";
   } else if (pathname.includes("/messaging")) {
     pageTitle = "Messaging";
+  } else if (pathname.includes("/my-sessions")) {
+    pageTitle = "My Sessions";
   }
 
   return (
@@ -151,6 +154,20 @@ export default function DashboardLayout({
                   <div>
                     <Users />
                     <span>Coaches</span>
+                  </div>
+                </SidebarMenuButton>
+              </Link>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <Link href="/dashboard/my-sessions">
+                <SidebarMenuButton
+                  tooltip="My Sessions"
+                  isActive={pathname.startsWith("/dashboard/my-sessions")}
+                  asChild
+                >
+                  <div>
+                    <Calendar />
+                    <span>My Sessions</span>
                   </div>
                 </SidebarMenuButton>
               </Link>

@@ -40,8 +40,8 @@ export default function EventsPage() {
   const filteredEvents = events.filter((event: Event) => {
     const priceMatch =
       activePriceFilter === "All" ||
-      (activePriceFilter === "Free" && event.isPublic) ||
-      (activePriceFilter === "Premium" && !event.isPublic);
+      (activePriceFilter === "Free" && event.accessType === "free") ||
+      (activePriceFilter === "Premium" && event.accessType === "premium");
     return priceMatch;
   });
 

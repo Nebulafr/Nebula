@@ -8,17 +8,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ExternalLink, Loader2 } from "lucide-react";
 import { usePublicEvents } from "@/hooks";
 import { Event } from "@/types/event";
-
-const eventTypeColors = {
-  WEBINAR: "bg-yellow-50",
-  SOCIAL: "bg-blue-50",
-  WORKSHOP: "bg-purple-50",
-  NETWORKING: "bg-green-50",
-};
+import { getEventBackgroundColor, getDefaultAvatar, getAccessTypeText } from "@/lib/event-utils";
 
 function EventCard({ event }: { event: Event }) {
   const eventDate = new Date(event.date);
-  const color = eventTypeColors[event.eventType] || "bg-gray-50";
+  const color = getEventBackgroundColor(event.id, event.title);
 
   const formatEventDate = (date: Date) => {
     return date.toLocaleDateString("en-US", {
@@ -48,25 +42,19 @@ function EventCard({ event }: { event: Event }) {
         className={`${color} p-4 relative rounded-xl transition-transform group-hover:-translate-y-1 flex flex-col flex-grow`}
       >
         <Badge className="absolute top-4 left-4 bg-white text-gray-800 hover:bg-gray-200 z-10">
-          {event.isPublic ? "Free" : "Premium"}
+          {getAccessTypeText(event.accessType)}
         </Badge>
         <div className="flex items-start gap-4 pt-6 pb-4 flex-grow">
           <div className="flex-shrink-0">
-            {event.organizer?.avatarUrl ? (
+            <div className="w-[120px] h-[120px]">
               <Image
-                src={event.organizer.avatarUrl}
-                alt={event.organizer.fullName || "Organizer"}
+                src={event.organizer?.avatarUrl || getDefaultAvatar(event.organizer?.fullName)}
+                alt={event.organizer?.fullName || "Organizer"}
                 width={120}
                 height={120}
-                className="rounded-lg object-cover aspect-square"
+                className="rounded-lg object-cover aspect-square w-full h-full"
               />
-            ) : (
-              <div className="w-[120px] h-[120px] bg-gray-200 rounded-lg flex items-center justify-center">
-                <span className="text-2xl text-gray-500">
-                  {event.organizer?.fullName?.charAt(0) || "E"}
-                </span>
-              </div>
-            )}
+            </div>
           </div>
           <div className="flex flex-col gap-2">
             <p className="text-xs text-gray-600">

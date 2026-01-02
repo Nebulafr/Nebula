@@ -538,6 +538,7 @@ model Event {
   whatToBring    String?  @db.Text @map("what_to_bring")
   additionalInfo String?  @db.Text @map("additional_info")
   lumaEventLink  String   @map("luma_event_link")
+  accessType     String?  @map("access_type")
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt @map("updated_at")
 

@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useMemo } from "react";
+import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,7 +26,7 @@ import { Footer } from "@/components/layout/footer";
 import { toast } from "react-toastify";
 import { useAuth } from "@/hooks/use-auth";
 import { Header } from "@/components/layout/header";
-import { useStudentSessions, useBookCoachSession } from "@/hooks/use-session-queries";
+import { useBookCoachSession } from "@/hooks/use-session-queries";
 import { useCoachById } from "@/hooks/use-coach-queries";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -68,20 +68,7 @@ export default function CoachDetailPage() {
   // Book session mutation
   const bookSessionMutation = useBookCoachSession();
 
-  // Fetch student's upcoming sessions with this coach (only if student is logged in)
-  const { data: studentSessionsData, isLoading: isLoadingStudentSessions } =
-    useStudentSessions("upcoming");
-
   console.log({ coach });
-
-  // Filter sessions to show only sessions with this coach
-  const upcomingSessionsWithCoach = useMemo(() => {
-    return (
-      studentSessionsData?.data?.sessions?.filter(
-        (session: any) => session.coach?.id === coach?.id
-      ) || []
-    );
-  }, [studentSessionsData?.data?.sessions, coach?.id]);
 
 
   const handleBookClick = () => {
@@ -368,102 +355,6 @@ export default function CoachDetailPage() {
                 </div>
               )}
 
-              {/* Upcoming Sessions Section - Only show for logged in students with sessions */}
-              {isStudent && upcomingSessionsWithCoach.length > 0 && (
-                <div className="my-12">
-                  <h2 className="mb-6 font-headline text-2xl font-bold">
-                    Your Upcoming Sessions with {coach.fullName}
-                  </h2>
-                  <div className="space-y-4">
-                    {upcomingSessionsWithCoach
-                      .slice(0, 3)
-                      .map((session: any) => (
-                        <Card key={session.id} className="p-6">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-4">
-                              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-                                <Calendar className="h-6 w-6 text-primary" />
-                              </div>
-                              <div>
-                                <h3 className="font-semibold">
-                                  {session.title}
-                                </h3>
-                                <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
-                                  <div className="flex items-center gap-1">
-                                    <Calendar className="h-4 w-4" />
-                                    {new Date(
-                                      session.scheduledTime
-                                    ).toLocaleDateString()}
-                                  </div>
-                                  <div className="flex items-center gap-1">
-                                    <Clock className="h-4 w-4" />
-                                    {new Date(
-                                      session.scheduledTime
-                                    ).toLocaleTimeString([], {
-                                      hour: "2-digit",
-                                      minute: "2-digit",
-                                    })}
-                                  </div>
-                                  <span>• {session.duration} min</span>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              {session.meetLink && (
-                                <Button variant="outline" size="sm" asChild>
-                                  <Link href={session.meetLink} target="_blank">
-                                    <ExternalLink className="h-4 w-4 mr-2" />
-                                    Join Meeting
-                                  </Link>
-                                </Button>
-                              )}
-                              <Badge
-                                variant={
-                                  session.status === "SCHEDULED"
-                                    ? "default"
-                                    : "secondary"
-                                }
-                                className="text-xs"
-                              >
-                                {session.status.charAt(0) +
-                                  session.status.slice(1).toLowerCase()}
-                              </Badge>
-                            </div>
-                          </div>
-                        </Card>
-                      ))}
-                  </div>
-                  {upcomingSessionsWithCoach.length > 3 && (
-                    <Button variant="link" className="mt-4 px-0">
-                      View all upcoming sessions (
-                      {upcomingSessionsWithCoach.length})
-                    </Button>
-                  )}
-                </div>
-              )}
-
-              {/* Loading state for sessions */}
-              {isStudent && isLoadingStudentSessions && (
-                <div className="my-12">
-                  <h2 className="mb-6 font-headline text-2xl font-bold">
-                    Your Upcoming Sessions with {coach.fullName}
-                  </h2>
-                  <div className="space-y-4">
-                    {[...Array(2)].map((_, i) => (
-                      <Card key={i} className="p-6">
-                        <div className="animate-pulse flex items-center gap-4">
-                          <div className="h-12 w-12 bg-gray-200 rounded-full"></div>
-                          <div className="flex-1">
-                            <div className="h-4 bg-gray-200 rounded w-1/3 mb-2"></div>
-                            <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                          </div>
-                          <div className="h-8 bg-gray-200 rounded w-24"></div>
-                        </div>
-                      </Card>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
 
             <div className={cn("md:col-span-1 relative pt-10")}>

@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Calendar, Clock, Video } from "lucide-react";
+import { getDefaultAvatar } from "@/lib/event-utils";
 
 interface Session {
   id: string;
@@ -15,7 +16,7 @@ interface Session {
   scheduledTime: string;
   duration: number; // in minutes
   meetLink?: string;
-  status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
+  status: "scheduled" | "in_progress" | "completed" | "cancelled";
 }
 
 interface UpcomingSessionsProps {
@@ -25,11 +26,11 @@ interface UpcomingSessionsProps {
   onRescheduleSession?: (sessionId: string) => void;
 }
 
-export function UpcomingSessions({ 
-  sessions, 
+export function UpcomingSessions({
+  sessions,
   loading = false,
   onJoinSession,
-  onRescheduleSession 
+  onRescheduleSession,
 }: UpcomingSessionsProps) {
   if (loading) {
     return (
@@ -40,7 +41,10 @@ export function UpcomingSessions({
         <CardContent>
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="flex items-center space-x-4 animate-pulse">
+              <div
+                key={i}
+                className="flex items-center space-x-4 animate-pulse"
+              >
                 <div className="h-10 w-10 rounded-full bg-gray-200" />
                 <div className="space-y-2 flex-1">
                   <div className="h-4 bg-gray-200 rounded w-3/4" />
@@ -68,8 +72,8 @@ export function UpcomingSessions({
             </p>
           ) : (
             sessions.map((session) => (
-              <SessionItem 
-                key={session.id} 
+              <SessionItem
+                key={session.id}
                 session={session}
                 onJoinSession={onJoinSession}
                 onRescheduleSession={onRescheduleSession}
@@ -82,18 +86,18 @@ export function UpcomingSessions({
   );
 }
 
-function SessionItem({ 
-  session, 
+function SessionItem({
+  session,
   onJoinSession,
-  onRescheduleSession 
-}: { 
+  onRescheduleSession,
+}: {
   session: Session;
   onJoinSession?: (sessionId: string, meetLink?: string) => void;
   onRescheduleSession?: (sessionId: string) => void;
 }) {
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
 
   const formatDate = (dateString: string) => {
@@ -103,11 +107,11 @@ function SessionItem({
     tomorrow.setDate(tomorrow.getDate() + 1);
 
     if (date.toDateString() === today.toDateString()) {
-      return 'Today';
+      return "Today";
     } else if (date.toDateString() === tomorrow.toDateString()) {
-      return 'Tomorrow';
+      return "Tomorrow";
     } else {
-      return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+      return date.toLocaleDateString([], { month: "short", day: "numeric" });
     }
   };
 
@@ -121,15 +125,22 @@ function SessionItem({
   return (
     <div className="flex items-center space-x-4 p-3 rounded-lg border">
       <Avatar>
-        <AvatarImage src={session.student.avatar} />
+        <AvatarImage
+          src={session.student.avatar || getDefaultAvatar(session.student.name)}
+        />
         <AvatarFallback>
-          {session.student.name.split(' ').map(n => n[0]).join('')}
+          {session.student.name
+            .split(" ")
+            .map((n) => n[0])
+            .join("")}
         </AvatarFallback>
       </Avatar>
-      
+
       <div className="flex-1">
         <h4 className="text-sm font-medium">{session.title}</h4>
-        <p className="text-sm text-muted-foreground">with {session.student.name}</p>
+        <p className="text-sm text-muted-foreground">
+          with {session.student.name}
+        </p>
         <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
           <div className="flex items-center gap-1">
             <Calendar className="h-3 w-3" />
@@ -144,8 +155,8 @@ function SessionItem({
 
       <div className="flex gap-2">
         {isSessionSoon() && session.meetLink && (
-          <Button 
-            size="sm" 
+          <Button
+            size="sm"
             onClick={() => onJoinSession?.(session.id, session.meetLink)}
             className="bg-green-600 hover:bg-green-700"
           >
@@ -153,8 +164,8 @@ function SessionItem({
             Join
           </Button>
         )}
-        <Button 
-          size="sm" 
+        <Button
+          size="sm"
           variant="outline"
           onClick={() => onRescheduleSession?.(session.id)}
         >

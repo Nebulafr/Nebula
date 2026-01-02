@@ -26,6 +26,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { formatUserName, getUserInitials } from "@/lib/chat-utils";
+import { getDefaultAvatar } from "@/lib/event-utils";
 
 interface User {
   name: string;
@@ -44,26 +45,32 @@ interface UsersTableProps {
 
 function getUserStatusVariant(status: string) {
   switch (status.toLowerCase()) {
-    case 'active':
-      return 'secondary';
-    case 'suspended':
-      return 'destructive';
+    case "active":
+      return "secondary";
+    case "suspended":
+      return "destructive";
     default:
-      return 'outline';
+      return "outline";
   }
 }
 
 function getUserStatusClassName(status: string) {
-  return status.toLowerCase() === 'active' ? 'bg-green-100 text-green-800' : '';
+  return status.toLowerCase() === "active" ? "bg-green-100 text-green-800" : "";
 }
 
-export function UsersTable({ users, loading = false, onUserAction }: UsersTableProps) {
+export function UsersTable({
+  users,
+  loading = false,
+  onUserAction,
+}: UsersTableProps) {
   if (loading) {
     return (
       <Card>
         <CardHeader>
           <CardTitle>User List</CardTitle>
-          <CardDescription>A list of all the users in the system.</CardDescription>
+          <CardDescription>
+            A list of all the users in the system.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
@@ -113,7 +120,9 @@ export function UsersTable({ users, loading = false, onUserAction }: UsersTableP
     <Card>
       <CardHeader>
         <CardTitle>User List</CardTitle>
-        <CardDescription>A list of all the users in the system.</CardDescription>
+        <CardDescription>
+          A list of all the users in the system.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         {users.length === 0 ? (
@@ -135,25 +144,29 @@ export function UsersTable({ users, loading = false, onUserAction }: UsersTableP
               {users.map((user) => {
                 const displayName = formatUserName(user.name);
                 const initials = getUserInitials(user.name);
-                
+
                 return (
                   <TableRow key={user.email}>
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar>
-                          <AvatarImage src={user.avatar} />
+                          <AvatarImage
+                            src={user.avatar || getDefaultAvatar(user!.name)}
+                          />
                           <AvatarFallback>{initials}</AvatarFallback>
                         </Avatar>
                         <div>
                           <span className="font-medium">{displayName}</span>
-                          <p className="text-xs text-muted-foreground">{user.email}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {user.email}
+                          </p>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>{user.role}</TableCell>
                     <TableCell>
-                      <Badge 
-                        variant={getUserStatusVariant(user.status)} 
+                      <Badge
+                        variant={getUserStatusVariant(user.status)}
                         className={getUserStatusClassName(user.status)}
                       >
                         {user.status}
@@ -168,15 +181,19 @@ export function UsersTable({ users, loading = false, onUserAction }: UsersTableP
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                          <DropdownMenuItem onClick={() => onUserAction?.(user, 'edit')}>
+                          <DropdownMenuItem
+                            onClick={() => onUserAction?.(user, "edit")}
+                          >
                             Edit
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => onUserAction?.(user, 'suspend')}>
-                            {user.status === 'Active' ? 'Suspend' : 'Activate'}
+                          <DropdownMenuItem
+                            onClick={() => onUserAction?.(user, "suspend")}
+                          >
+                            {user.status === "Active" ? "Suspend" : "Activate"}
                           </DropdownMenuItem>
-                          <DropdownMenuItem 
+                          <DropdownMenuItem
                             className="text-destructive"
-                            onClick={() => onUserAction?.(user, 'delete')}
+                            onClick={() => onUserAction?.(user, "delete")}
                           >
                             Delete
                           </DropdownMenuItem>
