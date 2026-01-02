@@ -1,15 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { ProfileAvatar } from "./components/profile-avatar";
 import { ProfileForm, ProfileFormData } from "./components/profile-form";
 import { updateCoachProfile } from "@/actions/coaches";
+import { uploadUserAvatar } from "@/actions/user";
 import { toast } from "react-toastify";
 import { useAuth } from "@/hooks/use-auth";
 
 export default function CoachProfilePage() {
-  const { profile } = useAuth();
+  const { profile, refreshUser } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState<ProfileFormData>({
     title: "",
     bio: "",
@@ -50,8 +53,49 @@ export default function CoachProfilePage() {
   };
 
   const handleChangePhoto = () => {
-    console.log("Change photo clicked");
-    toast.info("Photo upload functionality coming soon!");
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("Please select a valid image file (JPEG, PNG, or WebP)");
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      toast.error("File size must be less than 5MB");
+      return;
+    }
+
+    setIsUploadingAvatar(true);
+    try {
+      const response = await uploadUserAvatar(file);
+
+      if (response.success) {
+        toast.success("Avatar updated successfully!");
+        // Refresh the profile to get the new avatar URL
+        await refreshUser();
+      } else {
+        toast.error(response.message || "Failed to upload avatar");
+      }
+    } catch (error) {
+      toast.error("An unexpected error occurred while uploading");
+    } finally {
+      setIsUploadingAvatar(false);
+      // Clear the file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
   };
 
   const handleSave = async () => {
@@ -93,6 +137,14 @@ export default function CoachProfilePage() {
             fullName={profile?.fullName || ""}
             title={formData.title}
             onChangePhoto={handleChangePhoto}
+            isUploading={isUploadingAvatar}
+          />
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            style={{ display: "none" }}
           />
         </div>
         <div className="md:col-span-2">

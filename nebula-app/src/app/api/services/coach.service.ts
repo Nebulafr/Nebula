@@ -412,6 +412,14 @@ export class CoachService {
     reviews: any[],
     hasUserReviewed?: boolean
   ) {
+    // Parse availability JSON if it exists
+    let parsedAvailability = {};
+    try {
+      parsedAvailability = JSON.parse(coach.availability || "{}");
+    } catch {
+      parsedAvailability = {};
+    }
+
     return {
       id: coach.id,
       userId: coach.userId,
@@ -424,7 +432,7 @@ export class CoachService {
       specialties: coach.specialties,
       pastCompanies: coach.pastCompanies,
       linkedinUrl: coach.linkedinUrl,
-      availability: coach.availability,
+      availability: parsedAvailability,
       hourlyRate: coach.hourlyRate,
       rating: coach.rating,
       totalReviews: coach.totalReviews,

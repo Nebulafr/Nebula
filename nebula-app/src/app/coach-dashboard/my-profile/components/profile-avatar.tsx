@@ -3,12 +3,14 @@
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
 interface ProfileAvatarProps {
   avatarUrl?: string;
   fullName: string;
   title: string;
   onChangePhoto?: () => void;
+  isUploading?: boolean;
 }
 
 export function ProfileAvatar({
@@ -16,6 +18,7 @@ export function ProfileAvatar({
   fullName,
   title,
   onChangePhoto,
+  isUploading = false,
 }: ProfileAvatarProps) {
   return (
     <Card>
@@ -30,8 +33,19 @@ export function ProfileAvatar({
         <CardDescription>{title}</CardDescription>
       </CardHeader>
       <CardContent className="text-center">
-        <Button className="w-full" onClick={onChangePhoto}>
-          Change Photo
+        <Button 
+          className="w-full" 
+          onClick={onChangePhoto}
+          disabled={isUploading}
+        >
+          {isUploading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Uploading...
+            </>
+          ) : (
+            "Change Photo"
+          )}
         </Button>
       </CardContent>
     </Card>

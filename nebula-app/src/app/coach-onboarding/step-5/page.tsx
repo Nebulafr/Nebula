@@ -14,13 +14,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { Progress } from "@/components/ui/progress";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Input } from "@/components/ui/input";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useState } from "react";
 import { toast } from "react-toastify";
 import { createCoach } from "@/actions/coaches";
 import { useAuth } from "@/hooks/use-auth";
+import { AvailabilitySettings, DayAvailability } from "@/components/availability-settings";
 
 function CoachOnboardingStep5Content() {
   const image = PlaceHolderImages.find((img) => img.id === "benefit-schedule");
@@ -28,7 +28,7 @@ function CoachOnboardingStep5Content() {
   const searchParams = useSearchParams();
   const { profile, refreshUser } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  const [availability, setAvailability] = useState("1-3");
+  const [availability, setAvailability] = useState<Record<string, DayAvailability>>({});
   const [rate, setRate] = useState("");
 
   const role = searchParams.get("role");
@@ -68,7 +68,7 @@ function CoachOnboardingStep5Content() {
         specialties: specialties,
         pastCompanies: company ? [company] : [],
         linkedinUrl: linkedin || "",
-        availability: availability,
+        availability: JSON.stringify(availability),
         hourlyRate: Number(rate) || 0,
         experience: motivation || "",
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -133,52 +133,12 @@ function CoachOnboardingStep5Content() {
               <CardContent className="grid gap-6 p-0 mt-8">
                 <div className="grid gap-3">
                   <Label>Weekly Availability</Label>
-                  <RadioGroup
-                    value={availability}
-                    onValueChange={setAvailability}
+                  <AvailabilitySettings
+                    showHeader={false}
+                    showSaveButton={false}
+                    onAvailabilityChange={setAvailability}
                     disabled={isLoading}
-                    className="grid grid-cols-3 gap-4"
-                  >
-                    <div>
-                      <RadioGroupItem
-                        value="1-3"
-                        id="1-3"
-                        className="peer sr-only"
-                      />
-                      <Label
-                        htmlFor="1-3"
-                        className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
-                      >
-                        1-3 hours
-                      </Label>
-                    </div>
-                    <div>
-                      <RadioGroupItem
-                        value="3-5"
-                        id="3-5"
-                        className="peer sr-only"
-                      />
-                      <Label
-                        htmlFor="3-5"
-                        className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
-                      >
-                        3-5 hours
-                      </Label>
-                    </div>
-                    <div>
-                      <RadioGroupItem
-                        value="5+"
-                        id="5+"
-                        className="peer sr-only"
-                      />
-                      <Label
-                        htmlFor="5+"
-                        className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
-                      >
-                        5+ hours
-                      </Label>
-                    </div>
-                  </RadioGroup>
+                  />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="rate">Desired Hourly Rate (EUR)</Label>

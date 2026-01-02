@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import { ScheduleCalendar } from "./components/schedule-calendar";
 import { SessionsList } from "./components/appointments-list";
 import { ScheduleStats } from "./components/schedule-stats";
-import { AvailabilitySettings } from "./components/availability-settings";
+import { AvailabilitySettings } from "@/components/availability-settings";
 import { Session } from "./components/appointment-item";
 import { useCoachSessions, useCoachStats } from "@/hooks/use-schedule-queries";
 import { toast } from "react-toastify";

@@ -10,3 +10,9 @@ export const GET = CatchError(
     async (req: NextRequest) => await authController.getProfile(req)
   )
 );
+
+export const PUT = CatchError(
+  isAuthenticated(
+    async (req: NextRequest) => await authController.updateProfile(req)
+  )
+);

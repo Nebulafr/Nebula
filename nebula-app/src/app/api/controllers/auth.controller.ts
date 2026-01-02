@@ -97,4 +97,21 @@ export class AuthController {
 
     return await AuthService.getProfile(user.id);
   }
+
+  async updateProfile(request: NextRequest) {
+    const user = (request as any).user;
+    
+    if (!user) {
+      throw new UnauthorizedException("Authentication required");
+    }
+
+    let body;
+    try {
+      body = await request.json();
+    } catch (error) {
+      throw new BadRequestException("Invalid JSON body");
+    }
+
+    return await AuthService.updateProfile(user.id, body);
+  }
 }

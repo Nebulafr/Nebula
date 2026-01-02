@@ -37,28 +37,73 @@ const DEFAULT_AVAILABILITY: Record<string, DayAvailability> = {
   sunday: { enabled: false, startTime: "09:00", endTime: "17:00" },
 };
 
-export function AvailabilitySettings() {
-  const { data: availabilityData, isLoading: loadingData } =
-    useCoachAvailability();
-  const { mutate: saveAvailability, isPending: saving } =
-    useSaveCoachAvailability();
+interface AvailabilitySettingsProps {
+  /** Whether to show the header and description */
+  showHeader?: boolean;
+  /** Whether to show the save button */
+  showSaveButton?: boolean;
+  /** Custom title for the component */
+  title?: string;
+  /** Custom description for the component */
+  description?: string;
+  /** Callback when availability changes (useful for onboarding) */
+  onAvailabilityChange?: (availability: Record<string, DayAvailability>) => void;
+  /** Initial availability data (useful for onboarding) */
+  initialAvailability?: Record<string, DayAvailability>;
+  /** Whether the component is in loading state */
+  loading?: boolean;
+  /** Whether the component is disabled */
+  disabled?: boolean;
+}
+
+export function AvailabilitySettings({
+  showHeader = true,
+  showSaveButton = true,
+  title = "Availability Settings",
+  description = "Set your weekly availability for coaching sessions",
+  onAvailabilityChange,
+  initialAvailability,
+  loading = false,
+  disabled = false,
+}: AvailabilitySettingsProps) {
+  // Only use hooks if showSaveButton is true (dashboard mode)
+  const { data: availabilityData, isLoading: loadingData } = showSaveButton 
+    ? useCoachAvailability() 
+    : { data: null, isLoading: false };
+  const { mutate: saveAvailability, isPending: saving } = showSaveButton 
+    ? useSaveCoachAvailability() 
+    : { mutate: () => {}, isPending: false };
 
   const [availability, setAvailability] =
-    useState<Record<string, DayAvailability>>(DEFAULT_AVAILABILITY);
+    useState<Record<string, DayAvailability>>(initialAvailability || DEFAULT_AVAILABILITY);
 
-  // Initialize from fetched data
+  // Initialize from fetched data (dashboard mode)
   useEffect(() => {
-    if (availabilityData?.data?.availability) {
+    if (showSaveButton && availabilityData?.data?.availability) {
       const fetchedAvailability = availabilityData.data.availability;
-      // Merge fetched data with defaults to ensure all days exist
       setAvailability((prev) => ({
         ...prev,
         ...fetchedAvailability,
       }));
     }
-  }, [availabilityData]);
+  }, [availabilityData, showSaveButton]);
+
+  // Initialize from prop (onboarding mode)
+  useEffect(() => {
+    if (initialAvailability) {
+      setAvailability(initialAvailability);
+    }
+  }, [initialAvailability]);
+
+  // Notify parent of changes (onboarding mode)
+  useEffect(() => {
+    if (onAvailabilityChange) {
+      onAvailabilityChange(availability);
+    }
+  }, [availability, onAvailabilityChange]);
 
   const handleToggleDay = (day: string) => {
+    if (disabled) return;
     setAvailability((prev) => ({
       ...prev,
       [day]: { ...prev[day], enabled: !prev[day].enabled },
@@ -70,6 +115,7 @@ export function AvailabilitySettings() {
     field: "startTime" | "endTime",
     value: string
   ) => {
+    if (disabled) return;
     setAvailability((prev) => ({
       ...prev,
       [day]: { ...prev[day], [field]: value },
@@ -77,10 +123,14 @@ export function AvailabilitySettings() {
   };
 
   const handleSave = () => {
-    saveAvailability(availability);
+    if (showSaveButton) {
+      saveAvailability(availability);
+    }
   };
 
-  if (loadingData) {
+  const isLoading = loading || (showSaveButton && loadingData);
+
+  if (isLoading) {
     return (
       <Card>
         <CardContent className="py-8 flex items-center justify-center">
@@ -92,16 +142,18 @@ export function AvailabilitySettings() {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Settings className="h-5 w-5" />
-          Availability Settings
-        </CardTitle>
-        <p className="text-sm text-muted-foreground">
-          Set your weekly availability for coaching sessions
-        </p>
-      </CardHeader>
-      <CardContent>
+      {showHeader && (
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Settings className="h-5 w-5" />
+            {title}
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            {description}
+          </p>
+        </CardHeader>
+      )}
+      <CardContent className={showHeader ? "" : "pt-6"}>
         <div className="space-y-4">
           {DAYS.map(({ key, label }) => (
             <div
@@ -112,7 +164,7 @@ export function AvailabilitySettings() {
                 <Switch
                   checked={availability[key].enabled}
                   onCheckedChange={() => handleToggleDay(key)}
-                  disabled={saving}
+                  disabled={disabled || (showSaveButton && saving)}
                 />
                 <Label className="font-medium">{label}</Label>
               </div>
@@ -127,7 +179,7 @@ export function AvailabilitySettings() {
                       handleTimeChange(key, "startTime", e.target.value)
                     }
                     className="border rounded px-2 py-1 text-sm"
-                    disabled={saving}
+                    disabled={disabled || (showSaveButton && saving)}
                   />
                   <span className="text-muted-foreground">to</span>
                   <input
@@ -137,7 +189,7 @@ export function AvailabilitySettings() {
                       handleTimeChange(key, "endTime", e.target.value)
                     }
                     className="border rounded px-2 py-1 text-sm"
-                    disabled={saving}
+                    disabled={disabled || (showSaveButton && saving)}
                   />
                 </div>
               )}
@@ -151,18 +203,20 @@ export function AvailabilitySettings() {
           ))}
         </div>
 
-        <div className="mt-6 flex justify-end">
-          <Button onClick={handleSave} disabled={saving}>
-            {saving ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                Saving...
-              </>
-            ) : (
-              "Save Availability"
-            )}
-          </Button>
-        </div>
+        {showSaveButton && (
+          <div className="mt-6 flex justify-end">
+            <Button onClick={handleSave} disabled={saving || disabled}>
+              {saving ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Saving...
+                </>
+              ) : (
+                "Save Availability"
+              )}
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

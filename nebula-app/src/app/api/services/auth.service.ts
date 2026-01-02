@@ -171,4 +171,49 @@ export class AuthService {
       },
     });
   }
+
+  static async updateProfile(userId: string, data: any) {
+    try {
+      // Only allow updating specific fields for security
+      const allowedFields = ['fullName', 'avatarUrl'];
+      const updateData: any = {};
+      
+      for (const field of allowedFields) {
+        if (data[field] !== undefined) {
+          updateData[field] = data[field];
+        }
+      }
+
+      if (Object.keys(updateData).length === 0) {
+        throw new HttpException(
+          RESPONSE_CODE.VALIDATION_ERROR,
+          "No valid fields provided for update",
+          400
+        );
+      }
+
+      const updatedUser = await prisma.user.update({
+        where: { id: userId },
+        data: updateData,
+        select: {
+          id: true,
+          fullName: true,
+          email: true,
+          avatarUrl: true,
+          role: true,
+        }
+      });
+
+      return sendSuccess({ user: updatedUser }, "Profile updated successfully");
+    } catch (error: any) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(
+        RESPONSE_CODE.INTERNAL_SERVER_ERROR,
+        "Failed to update profile",
+        500
+      );
+    }
+  }
 }

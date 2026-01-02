@@ -60,7 +60,11 @@ export default function CoachDetailPage() {
   const [reviewText, setReviewText] = useState("");
 
   // Fetch coach data
-  const { data: coach, isLoading: loading, error: coachError } = useCoachById(params.coachId);
+  const {
+    data: coach,
+    isLoading: loading,
+    error: coachError,
+  } = useCoachById(params.coachId);
 
   // Query client for cache invalidation
   const queryClient = useQueryClient();
@@ -69,7 +73,6 @@ export default function CoachDetailPage() {
   const bookSessionMutation = useBookCoachSession();
 
   console.log({ coach });
-
 
   const handleBookClick = () => {
     console.log("Start Booking...");
@@ -296,15 +299,15 @@ export default function CoachDetailPage() {
                   <h4 className="text-sm font-semibold text-muted-foreground">
                     {coach.fullName?.split(" ")[0] || "Coach"} has worked at:
                   </h4>
-                  <div className="mt-4 flex items-center gap-4">
+                  <div className="mt-4 flex flex-wrap items-center gap-3">
                     {coach.pastCompanies
                       .slice(0, 3)
                       .map((company: string, index: number) => (
                         <div
                           key={company || index}
-                          className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-200 text-sm font-bold text-gray-700"
+                          className="flex items-center justify-center px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors text-sm font-medium text-gray-800 border border-gray-200"
                         >
-                          {(company || "Co").substring(0, 5)}
+                          {company || "Company"}
                         </div>
                       ))}
                   </div>
@@ -354,7 +357,6 @@ export default function CoachDetailPage() {
                   </div>
                 </div>
               )}
-
             </div>
 
             <div className={cn("md:col-span-1 relative pt-10")}>
@@ -378,6 +380,7 @@ export default function CoachDetailPage() {
                   dashboardLink="/dashboard"
                   showMessageButton={isStudent}
                   onMessageClick={handleMessageClick}
+                  coachAvailability={coach?.availability}
                 />
               </div>
             </div>
@@ -565,6 +568,7 @@ function EnrollmentForm({
   dashboardLink = "/dashboard",
   showMessageButton = false,
   onMessageClick,
+  coachAvailability,
 }: {
   step: number;
   loading?: boolean;
@@ -585,6 +589,7 @@ function EnrollmentForm({
   dashboardLink?: string;
   showMessageButton?: boolean;
   onMessageClick?: () => void;
+  coachAvailability?: Record<string, any>;
 }) {
   const { isStudent } = useAuth();
 
@@ -666,9 +671,10 @@ function EnrollmentForm({
                 : null
             }
             onSlotSelect={handleSlotSelect}
+            coachAvailability={coachAvailability}
             startHour={9}
             endHour={18}
-            slotIntervalMinutes={30}
+            slotIntervalMinutes={60}
           />
           <Button
             className="w-full mt-4"
