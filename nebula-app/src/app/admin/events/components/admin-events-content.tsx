@@ -158,6 +158,7 @@ export default function AdminEventsContent() {
         tags: newEvent.tags,
         organizerId: newEvent.organizerId || undefined,
         lumaEventLink: newEvent.lumaEventLink,
+        accessType: newEvent.accessType,
       };
 
       const success = await handleCreateEventAction(eventData);

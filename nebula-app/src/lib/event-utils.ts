@@ -37,11 +37,17 @@ export const gradientBackgrounds = [
  * @param previousIndex - Optional previous color index to avoid
  * @returns Tailwind CSS background color class
  */
-export function getEventBackgroundColor(index: number, previousIndex?: number): string {
+export function getEventBackgroundColor(
+  index: number,
+  previousIndex?: number
+): string {
   let colorIndex = index % backgroundColors.length;
 
   // If this would match the previous color, shift to the next one
-  if (previousIndex !== undefined && colorIndex === previousIndex % backgroundColors.length) {
+  if (
+    previousIndex !== undefined &&
+    colorIndex === previousIndex % backgroundColors.length
+  ) {
     colorIndex = (colorIndex + 1) % backgroundColors.length;
   }
 
@@ -54,11 +60,17 @@ export function getEventBackgroundColor(index: number, previousIndex?: number): 
  * @param previousIndex - Optional previous gradient index to avoid
  * @returns Tailwind CSS gradient background class
  */
-export function getEventGradientBackground(index: number, previousIndex?: number): string {
+export function getEventGradientBackground(
+  index: number,
+  previousIndex?: number
+): string {
   let gradientIndex = index % gradientBackgrounds.length;
 
   // If this would match the previous gradient, shift to the next one
-  if (previousIndex !== undefined && gradientIndex === previousIndex % gradientBackgrounds.length) {
+  if (
+    previousIndex !== undefined &&
+    gradientIndex === previousIndex % gradientBackgrounds.length
+  ) {
     gradientIndex = (gradientIndex + 1) % gradientBackgrounds.length;
   }
 
@@ -170,5 +182,5 @@ export function getDefaultBanners(count: number): string[] {
  * @returns Display text for the access type
  */
 export function getAccessTypeText(accessType?: string): string {
-  return accessType === "free" ? "Free" : "Premium";
+  return accessType?.toLowerCase() === "free" ? "Free" : "Premium";
 }
