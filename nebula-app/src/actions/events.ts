@@ -8,7 +8,7 @@ export async function getEvents(params?: {
   search?: string;
   eventType?: string;
   status?: string;
-  isPublic?: boolean;
+  accessType?: string;
   limit?: number;
   offset?: number;
 }) {
@@ -17,8 +17,7 @@ export async function getEvents(params?: {
   if (params?.search) searchParams.set("search", params.search);
   if (params?.eventType) searchParams.set("eventType", params.eventType);
   if (params?.status) searchParams.set("status", params.status);
-  if (params?.isPublic !== undefined)
-    searchParams.set("isPublic", params.isPublic.toString());
+  if (params?.accessType) searchParams.set("accessType", params.accessType);
   if (params?.limit) searchParams.set("limit", params.limit.toString());
   if (params?.offset) searchParams.set("offset", params.offset.toString());
 
@@ -35,7 +34,6 @@ export async function getPublicEvents(params?: {
 }) {
   return getEvents({
     ...params,
-    isPublic: true,
     status: "UPCOMING",
   });
 }
