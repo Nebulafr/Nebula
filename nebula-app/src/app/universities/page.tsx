@@ -17,34 +17,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
+import { universityLogosArray } from "@/lib/images/universities";
 
 export default function UniversitiesPage() {
-  const schoolLogos = [
-    {
-      name: "HEC Paris",
-      url: "/universities/hec_paris_logo.png",
-    },
-    {
-      name: "ESSEC",
-      url: "/universities/essec_logo.png",
-    },
-    {
-      name: "ESCP",
-      url: "/universities/escp_logo.png",
-    },
-    {
-      name: "emlyon",
-      url: "/universities/emlyon_logo.png",
-    },
-    {
-      name: "EDHEC",
-      url: "/universities/edhec-logo.png",
-    },
-    {
-      name: "Centrale Supélec",
-      url: "/universities/centrale_supelec_logo.png",
-    },
-  ];
+  const schoolLogos = universityLogosArray;
 
   const benefits = [
     {
@@ -120,7 +96,7 @@ export default function UniversitiesPage() {
   const solutionImage = PlaceHolderImages.find(
     (img: ImagePlaceholder) => img.id === "coach-network"
   );
-  
+
   // Add custom image for the learning path
   const learningPathImage = "/custom-images/learning-path.svg";
   const skillAssessmentImage = "/custom-images/skill-assessment.svg";

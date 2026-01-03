@@ -6,6 +6,7 @@ import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
+import { logos } from "@/lib/images/logos";
 
 export function Header() {
   const { profile, signOut } = useAuth();
@@ -38,7 +39,7 @@ export function Header() {
           <Link href="/" className="flex items-center gap-2">
             <div className="h-10 w-10 relative">
               <Image
-                src="/logos/nebula_logo.png"
+                src={logos.nebulaLogo}
                 alt="Nebula Logo"
                 fill
                 className="object-cover"

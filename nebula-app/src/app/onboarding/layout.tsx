@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { logos } from "@/lib/images/logos";
 
 export default function OnboardingLayout({
   children,
@@ -14,7 +15,7 @@ export default function OnboardingLayout({
             <Link href="/" className="flex items-center gap-2">
               <div className="h-10 w-10 relative">
                 <Image
-                  src="/logos/nebula_logo.png"
+                  src={logos.nebulaLogo}
                   alt="Nebula Logo"
                   fill
                   className="object-cover"
