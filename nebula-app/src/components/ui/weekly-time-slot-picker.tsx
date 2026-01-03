@@ -46,7 +46,7 @@ export function WeeklyTimeSlotPicker({
   coachAvailability,
   startHour = 9,
   endHour = 18,
-  slotIntervalMinutes = 60,
+  slotIntervalMinutes = 30,
   className,
 }: WeeklyTimeSlotPickerProps) {
   const [currentWeekStart, setCurrentWeekStart] = useState(() =>
@@ -56,53 +56,6 @@ export function WeeklyTimeSlotPicker({
   const weekDays = useMemo(() => {
     return Array.from({ length: 7 }, (_, i) => addDays(currentWeekStart, i));
   }, [currentWeekStart]);
-
-  const getTimeSlotsForDay = (date: Date): string[] => {
-    const dayName = format(date, "EEEE").toLowerCase();
-
-    // Check if coach has availability for this day
-    if (
-      coachAvailability &&
-      coachAvailability[dayName] &&
-      coachAvailability[dayName].enabled
-    ) {
-      const dayAvail = coachAvailability[dayName];
-      const [startHourNum, startMinute] = dayAvail.startTime
-        .split(":")
-        .map(Number);
-      const [endHourNum, endMinute] = dayAvail.endTime.split(":").map(Number);
-
-      const startTimeInMinutes = startHourNum * 60 + startMinute;
-      const endTimeInMinutes = endHourNum * 60 + endMinute;
-
-      const slots: string[] = [];
-      for (
-        let timeInMinutes = startTimeInMinutes;
-        timeInMinutes < endTimeInMinutes;
-        timeInMinutes += slotIntervalMinutes
-      ) {
-        const hour = Math.floor(timeInMinutes / 60);
-        const minute = timeInMinutes % 60;
-        const time = `${hour.toString().padStart(2, "0")}:${minute
-          .toString()
-          .padStart(2, "0")}`;
-        slots.push(time);
-      }
-      return slots;
-    }
-
-    // Fallback to default time slots if no coach availability
-    const slots: string[] = [];
-    for (let hour = startHour; hour < endHour; hour++) {
-      for (let minute = 0; minute < 60; minute += slotIntervalMinutes) {
-        const time = `${hour.toString().padStart(2, "0")}:${minute
-          .toString()
-          .padStart(2, "0")}`;
-        slots.push(time);
-      }
-    }
-    return slots;
-  };
 
   const allTimeSlots = useMemo(() => {
     // Calculate the actual time range from coach availability
@@ -118,12 +71,16 @@ export function WeeklyTimeSlotPicker({
       Object.values(coachAvailability).forEach((dayAvail) => {
         if (dayAvail.enabled) {
           hasAvailability = true;
-          const [startHourNum, startMinute] = dayAvail.startTime.split(':').map(Number);
-          const [endHourNum, endMinute] = dayAvail.endTime.split(':').map(Number);
-          
+          const [startHourNum, startMinute] = dayAvail.startTime
+            .split(":")
+            .map(Number);
+          const [endHourNum, endMinute] = dayAvail.endTime
+            .split(":")
+            .map(Number);
+
           const startInMinutes = startHourNum * 60 + startMinute;
           const endInMinutes = endHourNum * 60 + endMinute;
-          
+
           minStart = Math.min(minStart, startInMinutes);
           maxEnd = Math.max(maxEnd, endInMinutes);
         }
@@ -137,11 +94,18 @@ export function WeeklyTimeSlotPicker({
     }
 
     // Generate slots within the actual availability range
+    // The last slot should start at (latestEnd - slotIntervalMinutes) to end at latestEnd
     const slots: string[] = [];
-    for (let timeInMinutes = earliestStart; timeInMinutes < latestEnd; timeInMinutes += slotIntervalMinutes) {
+    for (
+      let timeInMinutes = earliestStart;
+      timeInMinutes + slotIntervalMinutes <= latestEnd;
+      timeInMinutes += slotIntervalMinutes
+    ) {
       const hour = Math.floor(timeInMinutes / 60);
       const minute = timeInMinutes % 60;
-      const time = `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`;
+      const time = `${hour.toString().padStart(2, "0")}:${minute
+        .toString()
+        .padStart(2, "0")}`;
       slots.push(time);
     }
     return slots;

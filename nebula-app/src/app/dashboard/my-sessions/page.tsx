@@ -35,6 +35,8 @@ function SessionCard({
   isNext?: boolean;
 }) {
   const sessionDate = new Date(session.scheduledTime);
+  const currentTime = new Date();
+  const isSessionPast = sessionDate < currentTime;
 
   return (
     <Card
@@ -90,14 +92,16 @@ function SessionCard({
           </div>
 
           <div className="md:col-span-1 flex items-center justify-end gap-2">
-            <Badge
-              variant={session.status === "SCHEDULED" ? "default" : "secondary"}
-              className="text-xs mr-2"
-            >
-              {session.status?.charAt(0) +
-                session.status?.slice(1).toLowerCase()}
-            </Badge>
-            {session.meetLink && session.status === "SCHEDULED" && (
+            {!isSessionPast && (
+              <Badge
+                variant={session.status === "SCHEDULED" ? "default" : "secondary"}
+                className="text-xs mr-2"
+              >
+                {session.status?.charAt(0) +
+                  session.status?.slice(1).toLowerCase()}
+              </Badge>
+            )}
+            {session.meetLink && session.status === "SCHEDULED" && !isSessionPast && (
               <Button asChild>
                 <Link href={session.meetLink} target="_blank">
                   <ExternalLink className="mr-2 h-4 w-4" />

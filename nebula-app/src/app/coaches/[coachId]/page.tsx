@@ -674,7 +674,7 @@ function EnrollmentForm({
             coachAvailability={coachAvailability}
             startHour={9}
             endHour={18}
-            slotIntervalMinutes={60}
+            slotIntervalMinutes={30}
           />
           <Button
             className="w-full mt-4"

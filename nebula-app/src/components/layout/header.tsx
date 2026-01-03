@@ -36,12 +36,12 @@ export function Header() {
       <div className="flex h-14 max-w-screen-2xl items-center px-header mx-auto">
         <div className="flex flex-1 items-center gap-10">
           <Link href="/" className="flex items-center gap-2">
-            <div className="h-8 w-8 relative">
+            <div className="h-10 w-10 relative">
               <Image
-                src="/logos/nebula.svg"
+                src="/logos/nebula_logo.png"
                 alt="Nebula Logo"
                 fill
-                className="object-contain"
+                className="object-cover"
               />
             </div>
             <span className="font-headline text-xl font-bold">Nebula</span>

@@ -8,14 +8,11 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { PlaceHolderImages } from "@/lib/images/placeholder-images";
 import {
-  ArrowRight,
-  Briefcase,
-  HeartHandshake,
-  PlayCircle,
-  Scaling,
-} from "lucide-react";
+  PlaceHolderImages,
+  type ImagePlaceholder,
+} from "@/lib/images/placeholder-images";
+import { PlayCircle } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { Footer } from "@/components/layout/footer";
@@ -25,43 +22,47 @@ export default function UniversitiesPage() {
   const schoolLogos = [
     {
       name: "HEC Paris",
-      url: "https://via.placeholder.com/150x50/FFFFFF/000000?text=HEC+Paris",
+      url: "/universities/hec_paris_logo.png",
     },
     {
       name: "ESSEC",
-      url: "https://via.placeholder.com/150x50/FFFFFF/000000?text=ESSEC",
+      url: "/universities/essec_logo.png",
     },
     {
       name: "ESCP",
-      url: "https://via.placeholder.com/150x50/FFFFFF/000000?text=ESCP",
+      url: "/universities/escp_logo.png",
     },
     {
       name: "emlyon",
-      url: "https://via.placeholder.com/150x50/FFFFFF/000000?text=emlyon",
+      url: "/universities/emlyon_logo.png",
     },
     {
       name: "EDHEC",
-      url: "https://via.placeholder.com/150x50/FFFFFF/000000?text=EDHEC",
+      url: "/universities/edhec-logo.png",
+    },
+    {
+      name: "Centrale Supélec",
+      url: "/universities/centrale_supelec_logo.png",
     },
   ];
 
   const benefits = [
     {
-      icon: <Briefcase className="h-6 w-6 text-primary" />,
+      icon: "/custom-images/career-prep.svg",
       title: "Enhance Employability",
       description:
         "Equip your students with the real-world skills and interview practice they need to stand out to top employers.",
       color: "bg-primary/10",
     },
     {
-      icon: <HeartHandshake className="h-6 w-6 text-blue-500" />,
+      icon: "/custom-images/school.svg",
       title: "Activate Your Alumni Network",
       description:
         "Transform your alumni from a passive resource into an active, engaged community of mentors, strengthening ties back to your institution.",
       color: "bg-blue-500/10",
     },
     {
-      icon: <Scaling className="h-6 w-6 text-purple-500" />,
+      icon: "/custom-images/get-matched.svg",
       title: "Scale Career Services",
       description:
         "Supplement your existing career services with on-demand, expert coaching from a global network of professionals.",
@@ -110,11 +111,19 @@ export default function UniversitiesPage() {
     },
   ];
 
-  const videoImage = PlaceHolderImages.find((img) => img.id === "program-1");
-  const ctaImage = PlaceHolderImages.find((img) => img.id === "coach-network");
-  const problemImage = PlaceHolderImages.find(
-    (img) => img.id === "university-problem"
+  const videoImage = PlaceHolderImages.find(
+    (img: ImagePlaceholder) => img.id === "about-story"
   );
+  const problemImage = PlaceHolderImages.find(
+    (img: ImagePlaceholder) => img.id === "about-hero"
+  );
+  const solutionImage = PlaceHolderImages.find(
+    (img: ImagePlaceholder) => img.id === "coach-network"
+  );
+  
+  // Add custom image for the learning path
+  const learningPathImage = "/custom-images/learning-path.svg";
+  const skillAssessmentImage = "/custom-images/skill-assessment.svg";
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -134,7 +143,7 @@ export default function UniversitiesPage() {
             <p className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
               IN CONVERSATION WITH LEADING BUSINESS SCHOOLS
             </p>
-            <div className="mt-8 grid grid-cols-2 md:grid-cols-5 gap-8 items-center">
+            <div className="mt-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 items-center">
               {schoolLogos.map((logo) => (
                 <div key={logo.name} className="flex justify-center">
                   <Image
@@ -183,16 +192,14 @@ export default function UniversitiesPage() {
         </section>
 
         <section className="pb-20 sm:pb-32">
-          <div className="container grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div className="md:col-span-1 py-12">
+          <div className="container grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
+            <div className="py-12">
               <h2 className="font-headline text-4xl">Our Solution</h2>
               <p className="mt-4 text-sm text-muted-foreground">
                 A powerful, internal ecosystem for practical skill-building.
               </p>
-            </div>
-            <div className="md:col-span-3">
-              <Card className="h-full rounded-xl">
-                <CardContent className="p-12">
+              <Card className="mt-8 rounded-xl">
+                <CardContent className="p-8">
                   <p className="text-lg text-muted-foreground">
                     Nebula partners with your institution to design a custom job
                     immersion program. We leverage your most valuable asset,
@@ -208,6 +215,17 @@ export default function UniversitiesPage() {
                 </CardContent>
               </Card>
             </div>
+            {solutionImage && (
+              <div className="relative aspect-video rounded-xl overflow-hidden">
+                <Image
+                  src={solutionImage.imageUrl}
+                  alt={solutionImage.description}
+                  fill
+                  className="object-cover"
+                  data-ai-hint={solutionImage.imageHint}
+                />
+              </div>
+            )}
           </div>
         </section>
 
@@ -228,7 +246,13 @@ export default function UniversitiesPage() {
                     <div
                       className={`flex h-12 w-12 items-center justify-center rounded-full ${benefit.color}`}
                     >
-                      {benefit.icon}
+                      <Image
+                        src={benefit.icon}
+                        alt={benefit.title}
+                        width={24}
+                        height={24}
+                        className="object-contain"
+                      />
                     </div>
                     <h3 className="mt-6 font-headline text-2xl font-semibold">
                       {benefit.title}

@@ -28,14 +28,15 @@ export function Footer() {
       <div className="container py-12">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           <div className="md:col-span-1">
-            <Link href="/" className="flex items-center">
-              <Image
-                src="/logos/nebula.svg"
-                alt="Nebula Logo"
-                width={80}
-                height={80}
-                className="object-cover"
-              />
+            <Link href="/" className="flex items-center gap-2">
+              <div className="h-10 w-10 relative">
+                <Image
+                  src="/logos/nebula_logo.png"
+                  alt="Nebula Logo"
+                  fill
+                  className="object-cover"
+                />
+              </div>
               <span className="font-headline text-2xl font-bold">Nebula</span>
             </Link>
             <p className="mt-4 text-xs text-secondary-foreground/70">
