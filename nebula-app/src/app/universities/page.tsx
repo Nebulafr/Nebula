@@ -168,14 +168,16 @@ export default function UniversitiesPage() {
         </section>
 
         <section className="pb-20 sm:pb-32">
-          <div className="container grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
-            <div className="py-12">
+          <div className="container grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div className="md:col-span-1 py-12">
               <h2 className="font-headline text-4xl">Our Solution</h2>
               <p className="mt-4 text-sm text-muted-foreground">
                 A powerful, internal ecosystem for practical skill-building.
               </p>
-              <Card className="mt-8 rounded-xl">
-                <CardContent className="p-8">
+            </div>
+            <div className="md:col-span-3">
+              <Card className="h-full rounded-xl">
+                <CardContent className="p-12">
                   <p className="text-lg text-muted-foreground">
                     Nebula partners with your institution to design a custom job
                     immersion program. We leverage your most valuable asset,
@@ -191,17 +193,6 @@ export default function UniversitiesPage() {
                 </CardContent>
               </Card>
             </div>
-            {solutionImage && (
-              <div className="relative aspect-video rounded-xl overflow-hidden">
-                <Image
-                  src={solutionImage.imageUrl}
-                  alt={solutionImage.description}
-                  fill
-                  className="object-cover"
-                  data-ai-hint={solutionImage.imageHint}
-                />
-              </div>
-            )}
           </div>
         </section>
 
