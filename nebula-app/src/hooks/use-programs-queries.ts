@@ -73,14 +73,14 @@ export function useCreateProgram() {
 
   return useMutation({
     mutationFn: (programData: CreateProgramData) => createProgram(programData),
-    onSuccess: () => {
+    onSuccess: (response) => {
       // Invalidate programs queries
       queryClient.invalidateQueries({ queryKey: [PROGRAMS_QUERY_KEY] });
       queryClient.invalidateQueries({
         queryKey: [RECOMMENDED_PROGRAMS_QUERY_KEY],
       });
       queryClient.invalidateQueries({ queryKey: [ADMIN_PROGRAMS_QUERY_KEY] });
-      toast.success("Program created successfully!");
+      toast.success(response.message || "Program created successfully!");
     },
     onError: (error: Error) => {
       toast.error(error.message || "Failed to create program.");
@@ -99,7 +99,7 @@ export function useUpdateProgram() {
       programId: string;
       updateData: Partial<CreateProgramData>;
     }) => updateProgram(programId, updateData),
-    onSuccess: () => {
+    onSuccess: (response) => {
       // Invalidate related queries
       queryClient.invalidateQueries({ queryKey: [PROGRAMS_QUERY_KEY] });
       queryClient.invalidateQueries({
@@ -108,7 +108,7 @@ export function useUpdateProgram() {
       queryClient.invalidateQueries({ queryKey: [ADMIN_PROGRAMS_QUERY_KEY] });
       // Invalidate specific program
       queryClient.invalidateQueries({ queryKey: [PROGRAM_BY_SLUG_QUERY_KEY] });
-      toast.success("Program updated successfully!");
+      toast.success(response.message || "Program updated successfully!");
     },
     onError: (error: Error) => {
       toast.error(error.message || "Failed to update program.");
@@ -121,7 +121,7 @@ export function useDeleteProgram() {
 
   return useMutation({
     mutationFn: (programId: string) => deleteProgram(programId),
-    onSuccess: () => {
+    onSuccess: (response) => {
       // Invalidate all programs queries
       queryClient.invalidateQueries({ queryKey: [PROGRAMS_QUERY_KEY] });
       queryClient.invalidateQueries({
@@ -129,7 +129,7 @@ export function useDeleteProgram() {
       });
       queryClient.invalidateQueries({ queryKey: [ADMIN_PROGRAMS_QUERY_KEY] });
       queryClient.invalidateQueries({ queryKey: [PROGRAM_BY_SLUG_QUERY_KEY] });
-      toast.success("Program deleted successfully!");
+      toast.success(response.message || "Program deleted successfully!");
     },
     onError: (error: Error) => {
       toast.error(error.message || "Failed to delete program.");
@@ -147,17 +147,26 @@ export function useUpdateProgramStatus() {
       reason,
     }: {
       programId: string;
-      action: "activate" | "deactivate";
+      action: "approve" | "reject" | "activate" | "deactivate";
       reason?: string;
     }) => updateProgramStatus(programId, action, reason),
-    onSuccess: (_, variables) => {
+    onSuccess: (response, variables) => {
       // Invalidate admin programs specifically
       queryClient.invalidateQueries({ queryKey: [ADMIN_PROGRAMS_QUERY_KEY] });
       queryClient.invalidateQueries({ queryKey: [PROGRAMS_QUERY_KEY] });
+
+      const actionLabels: Record<string, string> = {
+        approve: "approved",
+        reject: "rejected",
+        activate: "activated",
+        deactivate: "deactivated",
+      };
+
       toast.success(
-        `Program ${
-          variables.action === "activate" ? "activated" : "deactivated"
-        } successfully!`
+        response.message ||
+          `Program ${
+            actionLabels[variables.action] || variables.action
+          } successfully!`
       );
     },
     onError: (error: Error) => {

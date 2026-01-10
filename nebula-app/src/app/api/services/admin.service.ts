@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { AdminProgramQueryData, ProgramActionData } from "@/lib/validations";
 import { ProgramStatus } from "@/generated/prisma";
 import { sendSuccess } from "../utils/send-response";
+import { EmailService } from "./email.service";
 
 export class AdminService {
   static async getPrograms(params: AdminProgramQueryData) {
@@ -132,8 +133,22 @@ export class AdminService {
 
     let status: ProgramStatus;
     let isActive: boolean;
+    let emailTemplate: "APPLICATION_APPROVED" | "APPLICATION_DECLINED" | "PROGRAM_LIVE" | null = null;
 
     switch (action) {
+      case "approve":
+        status = "ACTIVE";
+        isActive = true;
+        // Send PROGRAM_LIVE email when approving from PENDING_APPROVAL
+        if (program.status === "PENDING_APPROVAL") {
+          emailTemplate = "PROGRAM_LIVE";
+        }
+        break;
+      case "reject":
+        status = "REJECTED";
+        isActive = false;
+        emailTemplate = "APPLICATION_DECLINED";
+        break;
       case "activate":
         status = "ACTIVE";
         isActive = true;
@@ -162,6 +177,20 @@ export class AdminService {
         },
       },
     });
+
+    // Send email notification if applicable
+    if (emailTemplate) {
+      try {
+        await EmailService.sendProgramProposalEmail(
+          program.coach.user.email,
+          emailTemplate,
+          program.coach.user.fullName || "Coach"
+        );
+      } catch (error) {
+        console.error("Failed to send program status email:", error);
+        // Don't fail the status update if email fails
+      }
+    }
 
     // Log the action with reason if provided
     if (reason) {

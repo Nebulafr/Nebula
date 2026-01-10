@@ -29,6 +29,11 @@ export const createProgramSchema = z.object({
   maxStudents: z.number().min(1, "Max students must be at least 1").optional(),
   tags: z.array(z.string()).optional(),
   prerequisites: z.array(z.string()).optional(),
+  targetAudience: z
+    .string()
+    .max(500, "Target audience description too long")
+    .optional(),
+  coCoachIds: z.array(z.string()).optional(),
 });
 
 export const updateProgramSchema = createProgramSchema.partial();
@@ -54,7 +59,7 @@ export const adminProgramQuerySchema = z.object({
 });
 
 export const programActionSchema = z.object({
-  action: z.enum(["activate", "deactivate"]),
+  action: z.enum(["approve", "reject", "activate", "deactivate"]),
   reason: z.string().optional(),
 });
 
@@ -263,9 +268,7 @@ export const createEventSchema = z.object({
     .string()
     .url("Luma event link must be a valid URL")
     .min(1, "Luma event link is required"),
-  accessType: z
-    .string()
-    .min(1, "Access type is required"),
+  accessType: z.string().min(1, "Access type is required"),
 });
 
 export const updateEventSchema = z.object({
@@ -328,10 +331,7 @@ export const updateEventSchema = z.object({
     .string()
     .max(2000, "Additional info must be less than 2000 characters")
     .optional(),
-  accessType: z
-    .string()
-    .min(1, "Access type is required")
-    .optional(),
+  accessType: z.string().min(1, "Access type is required").optional(),
 });
 
 export function validateRequest<T>(schema: z.ZodSchema<T>, data: unknown): T {

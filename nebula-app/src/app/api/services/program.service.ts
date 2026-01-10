@@ -9,6 +9,7 @@ import { prisma } from "@/lib/prisma";
 import { sendSuccess } from "../utils/send-response";
 import { generateSlug } from "@/lib/utils";
 import { extractUserFromRequest } from "../utils/extract-user";
+import { EmailService } from "./email.service";
 
 export class ProgramService {
   async createProgram(request: NextRequest) {
@@ -31,6 +32,8 @@ export class ProgramService {
       maxStudents,
       tags,
       prerequisites,
+      targetAudience,
+      coCoachIds,
     } = createProgramSchema.parse(body);
 
     const coachId = user.coach.id;
@@ -45,11 +48,26 @@ export class ProgramService {
     }
 
     const categoryRecord = await prisma.category.findUnique({
-      where: { name: category },
+      where: { id: category },
     });
 
     if (!categoryRecord) {
       throw new BadRequestException(`Category "${category}" not found`);
+    }
+
+    // Validate co-coaches if provided
+    if (coCoachIds && coCoachIds.length > 0) {
+      const validCoaches = await prisma.coach.findMany({
+        where: { id: { in: coCoachIds } },
+        select: { id: true },
+      });
+      const validCoachIds = validCoaches.map((c) => c.id);
+      const invalidIds = coCoachIds.filter((id) => !validCoachIds.includes(id));
+      if (invalidIds.length > 0) {
+        throw new BadRequestException(
+          `Invalid co-coach IDs: ${invalidIds.join(", ")}`
+        );
+      }
     }
 
     const program = await prisma.program.create({
@@ -68,9 +86,10 @@ export class ProgramService {
         maxStudents: maxStudents || 100,
         currentEnrollments: 0,
         isActive: false,
-        status: "INACTIVE",
+        status: "PENDING_APPROVAL",
         tags: tags || [],
         prerequisites: prerequisites || [],
+        targetAudience: targetAudience || null,
         modules: {
           create:
             modules?.map((module: any, index: number) => ({
@@ -79,13 +98,51 @@ export class ProgramService {
               description: module.description,
             })) || [],
         },
+        coCoaches:
+          coCoachIds && coCoachIds.length > 0
+            ? {
+                create: coCoachIds.map((coachId) => ({
+                  coachId,
+                })),
+              }
+            : undefined,
       },
       include: {
         category: true,
-        coach: true,
+        coach: {
+          include: {
+            user: true,
+          },
+        },
         modules: true,
+        coCoaches: {
+          include: {
+            coach: {
+              include: {
+                user: {
+                  select: {
+                    fullName: true,
+                    avatarUrl: true,
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     });
+
+    // Send APPLICATION_RECEIVED email to the coach
+    try {
+      await EmailService.sendProgramProposalEmail(
+        program.coach.user.email,
+        "APPLICATION_RECEIVED",
+        program.coach.user.fullName || "Coach"
+      );
+    } catch (error) {
+      console.error("Failed to send application received email:", error);
+      // Don't fail the program creation if email fails
+    }
 
     return sendSuccess(
       {
@@ -315,15 +372,32 @@ export class ProgramService {
       maxStudents,
       tags,
       prerequisites,
+      targetAudience,
+      coCoachIds,
     } = updateProgramSchema.parse(body);
 
     let categoryRecord;
     if (category) {
       categoryRecord = await prisma.category.findUnique({
-        where: { name: category },
+        where: { id: category },
       });
       if (!categoryRecord) {
         throw new BadRequestException(`Category "${category}" not found`);
+      }
+    }
+
+    // Validate co-coaches if provided
+    if (coCoachIds && coCoachIds.length > 0) {
+      const validCoaches = await prisma.coach.findMany({
+        where: { id: { in: coCoachIds } },
+        select: { id: true },
+      });
+      const validCoachIds = validCoaches.map((c) => c.id);
+      const invalidIds = coCoachIds.filter((id) => !validCoachIds.includes(id));
+      if (invalidIds.length > 0) {
+        throw new BadRequestException(
+          `Invalid co-coach IDs: ${invalidIds.join(", ")}`
+        );
       }
     }
 
@@ -341,6 +415,24 @@ export class ProgramService {
       newSlug = finalSlug;
     }
 
+    // Update co-coaches if provided
+    if (coCoachIds !== undefined) {
+      // Delete existing co-coaches
+      await prisma.programCoach.deleteMany({
+        where: { programId: program.id },
+      });
+
+      // Create new co-coaches
+      if (coCoachIds.length > 0) {
+        await prisma.programCoach.createMany({
+          data: coCoachIds.map((coachId) => ({
+            programId: program.id,
+            coachId,
+          })),
+        });
+      }
+    }
+
     const updatedProgram = await prisma.program.update({
       where: { slug },
       data: {
@@ -354,7 +446,24 @@ export class ProgramService {
         maxStudents,
         tags,
         prerequisites,
+        targetAudience,
         slug: newSlug,
+      },
+      include: {
+        coCoaches: {
+          include: {
+            coach: {
+              include: {
+                user: {
+                  select: {
+                    fullName: true,
+                    avatarUrl: true,
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     });
 
@@ -394,58 +503,76 @@ export class ProgramService {
 
     const interestedProgram = user.student.interestedProgram;
 
-    const programs = await prisma.program.findMany({
-      where: {
-        category: {
-          name: String(interestedProgram),
+    const includeOptions = {
+      category: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
         },
       },
-      include: {
-        category: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-          },
-        },
-        coach: {
-          select: {
-            id: true,
-            title: true,
-            user: {
-              select: {
-                fullName: true,
-                avatarUrl: true,
-              },
+      coach: {
+        select: {
+          id: true,
+          title: true,
+          user: {
+            select: {
+              fullName: true,
+              avatarUrl: true,
             },
           },
         },
-        enrollments: {
-          select: {
-            student: {
-              select: {
-                user: {
-                  select: {
-                    avatarUrl: true,
-                  },
+      },
+      enrollments: {
+        select: {
+          student: {
+            select: {
+              user: {
+                select: {
+                  avatarUrl: true,
                 },
               },
             },
           },
         },
-        modules: true,
-        _count: {
-          select: {
-            enrollments: true,
-            reviews: true,
-          },
+      },
+      modules: true,
+      _count: {
+        select: {
+          enrollments: true,
+          reviews: true,
         },
       },
+    };
+
+    // First, try to find programs matching user's interested category
+    let programs = await prisma.program.findMany({
+      where: {
+        isActive: true,
+        status: "ACTIVE",
+        category: {
+          name: String(interestedProgram),
+        },
+      },
+      include: includeOptions,
       orderBy: {
         createdAt: "desc",
       },
       take: 3,
     });
+
+    // If no programs found for interested category, fall back to popular programs
+    if (programs.length === 0) {
+      programs = await prisma.program.findMany({
+        where: {
+          isActive: true,
+          status: "ACTIVE",
+        },
+        include: includeOptions,
+        orderBy: [{ rating: "desc" }, { currentEnrollments: "desc" }],
+        take: 3,
+      });
+    }
 
     const transformedPrograms = programs.map((program) => ({
       id: program.id,
@@ -575,6 +702,10 @@ export class ProgramService {
       _count: program._count,
     }));
 
-    return sendSuccess({ programs: transformedPrograms }, "Popular programs fetched successfully");
+    return sendSuccess(
+      { programs: transformedPrograms },
+      "Popular programs fetched successfully"
+    );
   }
+
 }

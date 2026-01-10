@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { emailTemplates, EmailTemplateType } from "@/lib/email-templates";
 
 interface SendEmailOptions {
   to: string | string[];
@@ -340,6 +341,28 @@ export class EmailService {
     `;
 
     return this.sendEmail({ to: studentEmail, subject, html });
+  }
+
+  static async sendProgramProposalEmail(
+    recipientEmail: string,
+    templateType: EmailTemplateType,
+    firstName: string
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      const template = emailTemplates[templateType]({ firstName });
+
+      return this.sendEmail({
+        to: recipientEmail,
+        subject: template.subject,
+        html: template.html,
+      });
+    } catch (error: any) {
+      console.error("Failed to send program proposal email:", error);
+      return {
+        success: false,
+        error: error.message || "Failed to send program proposal email",
+      };
+    }
   }
 
   static validateConfiguration(): boolean {

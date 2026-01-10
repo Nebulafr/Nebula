@@ -4,7 +4,7 @@ import { StudentRoute } from "@/components/auth/protected-route";
 import { useAuth } from "@/hooks/use-auth";
 import { DashboardHeader } from "./components/dashboard-header";
 import { RecommendedPrograms } from "./components/recommended-programs";
-import { UpcomingSessions } from "./components/upcoming-sessions";
+import { UpcomingSessions } from "./components/upcoming-events";
 import { SuggestedCoaches } from "./components/suggested-coaches";
 import {
   usePublicEvents,
@@ -12,6 +12,7 @@ import {
   useSuggestedCoaches,
 } from "@/hooks";
 import { Event } from "@/types/event";
+import { ContactCard } from "./components/contact-card";
 
 export default function DashboardPage() {
   const { profile } = useAuth();
@@ -37,9 +38,10 @@ export default function DashboardPage() {
         <div className="mx-auto max-w-7xl space-y-8">
           <DashboardHeader user={profile} />
           <div className="space-y-12 md:space-y-16">
-            <RecommendedPrograms programs={programs} />
-            <UpcomingSessions sessions={upcomingEvents} />
             <SuggestedCoaches coaches={coaches} user={profile!} />
+            <RecommendedPrograms programs={programs} />
+            <ContactCard />
+            <UpcomingSessions sessions={upcomingEvents} />
           </div>
         </div>
       </div>

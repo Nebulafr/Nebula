@@ -464,34 +464,45 @@ export class CoachService {
       },
     });
 
-    // Build the where clause based on student interests
-    const whereClause: any = {
-      isActive: true,
-    };
-
-    // If student has an interested program, filter coaches by that specialty
-    if (student?.interestedProgram) {
-      whereClause.specialties = {
-        has: student.interestedProgram,
-      };
-    }
-
-    // Fetch suggested coaches
-    const coaches = await prisma.coach.findMany({
-      where: whereClause,
-      orderBy: [{ rating: "desc" }, { studentsCoached: "desc" }],
-      take: limit,
-      include: {
-        user: {
-          select: {
-            fullName: true,
-            email: true,
-            avatarUrl: true,
-            role: true,
-          },
+    const includeOptions = {
+      user: {
+        select: {
+          fullName: true,
+          email: true,
+          avatarUrl: true,
+          role: true,
         },
       },
-    });
+    };
+
+    let coaches;
+
+    // If student has an interested program, try to find coaches with that specialty
+    if (student?.interestedProgram) {
+      coaches = await prisma.coach.findMany({
+        where: {
+          isActive: true,
+          specialties: {
+            has: student.interestedProgram,
+          },
+        },
+        orderBy: [{ rating: "desc" }, { studentsCoached: "desc" }],
+        take: limit,
+        include: includeOptions,
+      });
+    }
+
+    // If no coaches found for interested program, fall back to top-rated coaches
+    if (!coaches || coaches.length === 0) {
+      coaches = await prisma.coach.findMany({
+        where: {
+          isActive: true,
+        },
+        orderBy: [{ rating: "desc" }, { studentsCoached: "desc" }],
+        take: limit,
+        include: includeOptions,
+      });
+    }
 
     // Transform coaches to match the expected format
     const transformedCoaches = coaches.map((coach) => ({

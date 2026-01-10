@@ -1,48 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import Link from "next/link";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, Briefcase } from "lucide-react";
-import { toast } from "react-toastify";
-import { useCategories, usePrograms, useCreateProgram } from "@/hooks";
+import { usePrograms } from "@/hooks";
 import { useAuth } from "@/hooks/use-auth";
 import { ProgramCard } from "./components/program-card";
-import {
-  CreateProgramDialog,
-  ProgramFormData,
-} from "./components/create-program-dialog";
 
 export default function CoachProgramsPage() {
   const { profile } = useAuth();
-  const { data: categoriesResponse } = useCategories();
   const { data: programsResponse, isLoading: loading } = usePrograms({
     coachId: profile?.coach?.id,
   });
-  const createProgramMutation = useCreateProgram();
-  const [dialogOpen, setDialogOpen] = useState(false);
 
-  const categories = categoriesResponse?.data?.categories || [];
   const programs = programsResponse?.data?.programs || [];
-
-  const handleCreateProgram = async (
-    programData: ProgramFormData
-  ): Promise<any> => {
-    if (!profile) {
-      toast.error("You must be logged in.");
-      return false;
-    }
-
-    const createProgramData = {
-      title: programData.title,
-      category: programData.category,
-      description: programData.description,
-      objectives: programData.objectives,
-      modules: programData.modules,
-    };
-
-    return await createProgramMutation.mutateAsync(createProgramData);
-  };
 
   if (loading) {
     return (
@@ -78,9 +50,11 @@ export default function CoachProgramsPage() {
     <div className="flex-1 space-y-4 p-4 md:p-8">
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold tracking-tight">My Programs</h2>
-        <Button onClick={() => setDialogOpen(true)}>
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Create New Program
+        <Button asChild>
+          <Link href="/coach-dashboard/programs/propose/step-1">
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Create New Program
+          </Link>
         </Button>
       </div>
 
@@ -97,9 +71,11 @@ export default function CoachProgramsPage() {
                   Create your first program to get started.
                 </p>
               </div>
-              <Button onClick={() => setDialogOpen(true)}>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Create New Program
+              <Button asChild>
+                <Link href="/coach-dashboard/programs/propose/step-1">
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Create New Program
+                </Link>
               </Button>
             </div>
           </CardContent>
@@ -111,14 +87,6 @@ export default function CoachProgramsPage() {
           ))}
         </div>
       )}
-
-      <CreateProgramDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        categories={categories.map((cat: any) => cat.name)}
-        onCreateProgram={handleCreateProgram}
-        loading={createProgramMutation.isPending}
-      />
     </div>
   );
 }

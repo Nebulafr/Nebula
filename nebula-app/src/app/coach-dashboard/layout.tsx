@@ -7,7 +7,6 @@ import {
   Settings,
   CircleHelp,
   Wallet,
-  User,
   Search,
   Bell,
   PanelLeft,
@@ -39,8 +38,8 @@ function TopBar() {
   const pathname = usePathname();
   let pageTitle = "Dashboard";
 
-  if (pathname.includes("/my-profile")) {
-    pageTitle = "My Profile";
+  if (pathname.includes("/settings")) {
+    pageTitle = "Settings";
   } else if (pathname.includes("/programs")) {
     pageTitle = "Programs";
   } else if (pathname.includes("/schedule")) {
@@ -153,20 +152,6 @@ export default function CoachDashboardLayout({
                 </Link>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <Link href="/coach-dashboard/my-profile">
-                  <SidebarMenuButton
-                    tooltip="My Profile"
-                    isActive={pathname === "/coach-dashboard/my-profile"}
-                    asChild
-                  >
-                    <div>
-                      <User />
-                      <span>My Profile</span>
-                    </div>
-                  </SidebarMenuButton>
-                </Link>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
                 <Link href="/coach-dashboard/schedule">
                   <SidebarMenuButton
                     tooltip="Schedule"
@@ -222,6 +207,20 @@ export default function CoachDashboardLayout({
                   </SidebarMenuButton>
                 </Link>
               </SidebarMenuItem>
+              <SidebarMenuItem>
+                <Link href="/coach-dashboard/settings">
+                  <SidebarMenuButton
+                    tooltip="Settings"
+                    isActive={pathname === "/coach-dashboard/settings"}
+                    asChild
+                  >
+                    <div>
+                      <Settings />
+                      <span>Settings</span>
+                    </div>
+                  </SidebarMenuButton>
+                </Link>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarContent>
           <SidebarFooter>
@@ -233,16 +232,6 @@ export default function CoachDashboardLayout({
                     <div>
                       <CircleHelp />
                       <span>Help</span>
-                    </div>
-                  </SidebarMenuButton>
-                </Link>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <Link href="#">
-                  <SidebarMenuButton tooltip="Settings" asChild>
-                    <div>
-                      <Settings />
-                      <span>Settings</span>
                     </div>
                   </SidebarMenuButton>
                 </Link>
