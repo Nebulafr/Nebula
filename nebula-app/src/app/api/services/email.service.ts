@@ -1,5 +1,6 @@
-import nodemailer from "nodemailer";
+import Nodemailer from "nodemailer";
 import { emailTemplates, EmailTemplateType } from "@/lib/email-templates";
+const { MailtrapTransport } = require("mailtrap");
 
 interface SendEmailOptions {
   to: string | string[];
@@ -24,10 +25,11 @@ interface SessionBookingEmailData {
   duration: number;
   meetLink?: string;
 }
+const TOKEN = process.env.MAILTRAP_TOKEN;
 
 export class EmailService {
   private static createTransporter() {
-    return nodemailer.createTransport({
+    return Nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: parseInt(process.env.SMTP_PORT || "587"),
       secure: process.env.SMTP_SECURE === "true",
@@ -38,15 +40,23 @@ export class EmailService {
     });
   }
 
+  private static mailTrapTransport() {
+    return Nodemailer.createTransport(
+      MailtrapTransport({
+        token: TOKEN,
+      })
+    );
+  }
+
   static async sendEmail(options: SendEmailOptions): Promise<{
     success: boolean;
     error?: string;
   }> {
     try {
-      const transporter = this.createTransporter();
+      const transporter = this.mailTrapTransport();
 
       await transporter.sendMail({
-        from: process.env.SMTP_FROM || process.env.SMTP_USER,
+        from: process.env.SMTP_FROM || "team@nebula.com",
         to: Array.isArray(options.to) ? options.to.join(", ") : options.to,
         subject: options.subject,
         html: options.html,
@@ -181,8 +191,8 @@ export class EmailService {
         coachEmail,
         data
       );
-      
-      // Send email to student  
+
+      // Send email to student
       const studentResult = await this.sendSessionBookingEmailToStudent(
         studentEmail,
         data
@@ -191,7 +201,9 @@ export class EmailService {
       if (!coachResult.success || !studentResult.success) {
         return {
           success: false,
-          error: `Failed to send emails: ${coachResult.error || ''} ${studentResult.error || ''}`.trim()
+          error: `Failed to send emails: ${coachResult.error || ""} ${
+            studentResult.error || ""
+          }`.trim(),
         };
       }
 
@@ -199,7 +211,7 @@ export class EmailService {
     } catch (error: any) {
       return {
         success: false,
-        error: error.message || "Failed to send session booking emails"
+        error: error.message || "Failed to send session booking emails",
       };
     }
   }
@@ -233,19 +245,27 @@ export class EmailService {
           <div class="content">
             <h2>Hi ${data.coachName}!</h2>
             
-            <p>Great news! ${data.studentName} has booked a coaching session with you.</p>
+            <p>Great news! ${
+              data.studentName
+            } has booked a coaching session with you.</p>
             
             <div class="session-info">
               <h3>Session Details</h3>
               <p><strong>Student:</strong> ${data.studentName}</p>
-              <p><strong>Date & Time:</strong> ${new Date(data.sessionDate).toLocaleString()}</p>
+              <p><strong>Date & Time:</strong> ${new Date(
+                data.sessionDate
+              ).toLocaleString()}</p>
               <p><strong>Duration:</strong> ${data.duration} minutes</p>
-              ${data.meetLink ? `
+              ${
+                data.meetLink
+                  ? `
                 <p><strong>Meeting Link:</strong> <a href="${data.meetLink}" target="_blank">${data.meetLink}</a></p>
                 <p style="text-align: center; margin: 20px 0;">
                   <a href="${data.meetLink}" class="button" target="_blank">Join Google Meet</a>
                 </p>
-              ` : ''}
+              `
+                  : ""
+              }
             </div>
             
             <h3>Preparation Tips</h3>
@@ -306,14 +326,20 @@ export class EmailService {
             <div class="session-info">
               <h3>Session Details</h3>
               <p><strong>Coach:</strong> ${data.coachName}</p>
-              <p><strong>Date & Time:</strong> ${new Date(data.sessionDate).toLocaleString()}</p>
+              <p><strong>Date & Time:</strong> ${new Date(
+                data.sessionDate
+              ).toLocaleString()}</p>
               <p><strong>Duration:</strong> ${data.duration} minutes</p>
-              ${data.meetLink ? `
+              ${
+                data.meetLink
+                  ? `
                 <p><strong>Meeting Link:</strong> <a href="${data.meetLink}" target="_blank">${data.meetLink}</a></p>
                 <p style="text-align: center; margin: 20px 0;">
                   <a href="${data.meetLink}" class="button" target="_blank">Join Google Meet</a>
                 </p>
-              ` : ''}
+              `
+                  : ""
+              }
             </div>
             
             <h3>What to Expect</h3>
