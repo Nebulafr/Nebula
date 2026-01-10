@@ -28,7 +28,6 @@ interface SessionBookingEmailData {
 
 export class EmailService {
   private static createTransporter() {
-    // Use Mailtrap if token is available, otherwise use SMTP
     const mailtrapToken = process.env.MAILTRAP_TOKEN;
 
     if (mailtrapToken) {
