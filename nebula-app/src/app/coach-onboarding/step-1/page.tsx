@@ -15,13 +15,32 @@ import { ArrowRight, Linkedin } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { Progress } from "@/components/ui/progress";
-import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  coachOnboardingStep1Schema,
+  type CoachOnboardingStep1Data,
+} from "@/lib/validations";
 
 export default function CoachOnboardingStep1() {
   const image = PlaceHolderImages.find((img) => img.id === "about-story");
-  const [role, setRole] = useState("");
-  const [company, setCompany] = useState("");
-  const [linkedin, setLinkedin] = useState("");
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isValid },
+    watch,
+  } = useForm<CoachOnboardingStep1Data>({
+    resolver: zodResolver(coachOnboardingStep1Schema),
+    mode: "onChange",
+    defaultValues: {
+      role: "",
+      company: "",
+      linkedin: "",
+    },
+  });
+
+  const formValues = watch();
 
   return (
     <div className="w-full min-h-[calc(100vh-3.5rem)] lg:grid lg:grid-cols-5">
@@ -60,48 +79,66 @@ export default function CoachOnboardingStep1() {
             </CardHeader>
             <CardContent className="grid gap-6 p-0 mt-6">
               <div className="grid gap-2">
-                <Label htmlFor="role">Current Role</Label>
+                <Label htmlFor="role">
+                  Current Role <span className="text-destructive">*</span>
+                </Label>
                 <Input
                   id="role"
                   placeholder="e.g., Senior Product Manager"
-                  className="h-14"
-                  value={role}
-                  onChange={(e) => setRole(e.target.value)}
+                  className={`h-14 ${errors.role ? "border-destructive" : ""}`}
+                  {...register("role")}
                 />
+                {errors.role && (
+                  <p className="text-sm text-destructive">{errors.role.message}</p>
+                )}
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="company">Company</Label>
+                <Label htmlFor="company">
+                  Company <span className="text-destructive">*</span>
+                </Label>
                 <Input
                   id="company"
                   placeholder="e.g., Google"
-                  className="h-14"
-                  value={company}
-                  onChange={(e) => setCompany(e.target.value)}
+                  className={`h-14 ${errors.company ? "border-destructive" : ""}`}
+                  {...register("company")}
                 />
+                {errors.company && (
+                  <p className="text-sm text-destructive">
+                    {errors.company.message}
+                  </p>
+                )}
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="linkedin">LinkedIn Profile URL</Label>
+                <Label htmlFor="linkedin">
+                  LinkedIn Profile URL <span className="text-destructive">*</span>
+                </Label>
                 <div className="relative">
                   <Linkedin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <Input
                     id="linkedin"
-                    placeholder="linkedin.com/in/your-profile"
-                    className="pl-10 h-14"
-                    value={linkedin}
-                    onChange={(e) => setLinkedin(e.target.value)}
+                    placeholder="https://linkedin.com/in/your-profile"
+                    className={`pl-10 h-14 ${
+                      errors.linkedin ? "border-destructive" : ""
+                    }`}
+                    {...register("linkedin")}
                   />
                 </div>
+                {errors.linkedin && (
+                  <p className="text-sm text-destructive">
+                    {errors.linkedin.message}
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>
           <div className="flex justify-end">
-            <Button size="lg" asChild>
+            <Button size="lg" asChild disabled={!isValid}>
               <Link
                 href={`/coach-onboarding/step-2?role=${encodeURIComponent(
-                  role
+                  formValues.role
                 )}&company=${encodeURIComponent(
-                  company
-                )}&linkedin=${encodeURIComponent(linkedin)}`}
+                  formValues.company
+                )}&linkedin=${encodeURIComponent(formValues.linkedin)}`}
               >
                 Continue <ArrowRight className="ml-2 h-5 w-5" />
               </Link>

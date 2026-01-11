@@ -8,16 +8,19 @@ import {
   PayoutSettingsData,
 } from "./components/payout-settings";
 import { updateCoachProfile } from "@/actions/coaches";
-import { uploadUserAvatar } from "@/actions/user";
+import { uploadUserAvatar, changePassword } from "@/actions/user";
 import { toast } from "react-toastify";
 import { useAuth } from "@/hooks/use-auth";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, CreditCard } from "lucide-react";
+import { User, CreditCard, Shield } from "lucide-react";
+import { SecuritySection } from "@/app/dashboard/settings/components/security-section";
+import { type ChangePasswordData } from "@/lib/validations";
 
 export default function CoachSettingsPage() {
   const { profile, refreshUser } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [isPayoutLoading, setIsPayoutLoading] = useState(false);
+  const [isPasswordLoading, setIsPasswordLoading] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState<ProfileFormData>({
@@ -138,9 +141,28 @@ export default function CoachSettingsPage() {
     }
   };
 
+  const handleChangePassword = async (data: ChangePasswordData) => {
+    setIsPasswordLoading(true);
+    try {
+      const response = await changePassword(data);
+
+      if (response.success) {
+        toast.success("Password changed successfully!");
+      } else {
+        toast.error(response.message || "Failed to change password");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "An unexpected error occurred");
+    } finally {
+      setIsPasswordLoading(false);
+    }
+  };
+
   if (!profile) {
     return <div>Loading...</div>;
   }
+
+  const isGoogleUser = !profile.hashedPassword && !!profile.googleId;
 
   return (
     <div className="flex-1 space-y-6 p-4 md:p-8">
@@ -160,6 +182,10 @@ export default function CoachSettingsPage() {
           <TabsTrigger value="payout" className="gap-2">
             <CreditCard className="h-4 w-4" />
             Payout Information
+          </TabsTrigger>
+          <TabsTrigger value="security" className="gap-2">
+            <Shield className="h-4 w-4" />
+            Security
           </TabsTrigger>
         </TabsList>
 
@@ -197,6 +223,16 @@ export default function CoachSettingsPage() {
             <PayoutSettings
               onSave={handlePayoutSave}
               isLoading={isPayoutLoading}
+            />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="security">
+          <div className="max-w-2xl">
+            <SecuritySection
+              onChangePassword={handleChangePassword}
+              isLoading={isPasswordLoading}
+              isGoogleUser={isGoogleUser}
             />
           </div>
         </TabsContent>

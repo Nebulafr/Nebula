@@ -96,6 +96,7 @@ export class ProgramService {
               title: module.title,
               week: module.week || index + 1,
               description: module.description,
+              materials: module.materials || [],
             })) || [],
         },
         coCoaches:

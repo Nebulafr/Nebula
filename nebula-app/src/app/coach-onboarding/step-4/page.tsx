@@ -15,11 +15,17 @@ import Link from "next/link";
 import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
 import { useSearchParams } from "next/navigation";
-import React, { useState } from "react";
+import React from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  coachOnboardingStep4Schema,
+  type CoachOnboardingStep4Data,
+} from "@/lib/validations";
+import { Label } from "@/components/ui/label";
 
 function CoachOnboardingStep4Content() {
   const image = PlaceHolderImages.find((img) => img.id === "coach-hero");
-  const [style, setStyle] = useState("");
 
   const searchParams = useSearchParams();
   const role = searchParams.get("role");
@@ -27,6 +33,21 @@ function CoachOnboardingStep4Content() {
   const linkedin = searchParams.get("linkedin");
   const specialties = searchParams.get("specialties");
   const motivation = searchParams.get("motivation");
+
+  const {
+    register,
+    formState: { errors, isValid },
+    watch,
+  } = useForm<CoachOnboardingStep4Data>({
+    resolver: zodResolver(coachOnboardingStep4Schema),
+    mode: "onChange",
+    defaultValues: {
+      style: "",
+    },
+  });
+
+  const style = watch("style");
+  const charCount = style.length;
 
   const nextStepUrl = `/coach-onboarding/step-5?role=${encodeURIComponent(
     role || ""
@@ -37,6 +58,7 @@ function CoachOnboardingStep4Content() {
   )}&motivation=${encodeURIComponent(
     motivation || ""
   )}&style=${encodeURIComponent(style)}`;
+
   const prevStepUrl = `/coach-onboarding/step-3?role=${encodeURIComponent(
     role || ""
   )}&company=${encodeURIComponent(company || "")}&linkedin=${encodeURIComponent(
@@ -75,18 +97,37 @@ function CoachOnboardingStep4Content() {
               </CardTitle>
               <CardDescription>
                 Briefly describe your coaching style. How do you help students
-                find solutions?
+                find solutions? <span className="text-destructive">*</span>
               </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4 p-0 mt-8">
               <div className="grid gap-2">
+                <div className="flex justify-between">
+                  <Label htmlFor="style">Coaching Style</Label>
+                  <span
+                    className={`text-xs ${
+                      charCount < 50
+                        ? "text-muted-foreground"
+                        : charCount > 1000
+                        ? "text-destructive"
+                        : "text-green-600"
+                    }`}
+                  >
+                    {charCount}/1000 characters (min: 50)
+                  </span>
+                </div>
                 <Textarea
                   id="style"
                   placeholder="e.g., 'I focus on asking powerful questions to help students uncover their own answers...'"
                   rows={6}
-                  value={style}
-                  onChange={(e) => setStyle(e.target.value)}
+                  className={errors.style ? "border-destructive" : ""}
+                  {...register("style")}
                 />
+                {errors.style && (
+                  <p className="text-sm text-destructive">
+                    {errors.style.message}
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -96,7 +137,7 @@ function CoachOnboardingStep4Content() {
                 <ArrowLeft className="mr-2 h-5 w-5" /> Back
               </Link>
             </Button>
-            <Button size="lg" asChild>
+            <Button size="lg" asChild disabled={!isValid}>
               <Link href={nextStepUrl}>
                 Continue <ArrowRight className="ml-2 h-5 w-5" />
               </Link>

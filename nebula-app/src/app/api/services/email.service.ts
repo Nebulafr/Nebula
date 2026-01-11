@@ -1,6 +1,5 @@
 import nodemailer from "nodemailer";
 import { emailTemplates, EmailTemplateType } from "@/lib/email-templates";
-import { MailtrapTransport } from "mailtrap";
 
 interface SendEmailOptions {
   to: string | string[];
@@ -28,21 +27,11 @@ interface SessionBookingEmailData {
 
 export class EmailService {
   private static createTransporter() {
-    const mailtrapToken = process.env.MAILTRAP_TOKEN;
-
-    if (mailtrapToken) {
-      return nodemailer.createTransport(
-        MailtrapTransport({
-          token: mailtrapToken,
-        })
-      );
-    }
-
-    // Fallback to regular SMTP
     return nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: parseInt(process.env.SMTP_PORT || "587"),
-      secure: process.env.SMTP_SECURE === "true",
+      // host: process.env.SMTP_HOST,
+      // port: parseInt(process.env.SMTP_PORT || "587"),
+      // secure: process.env.SMTP_SECURE === "true",
+      service: "gmail",
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASSWORD,
@@ -58,7 +47,7 @@ export class EmailService {
       const transporter = this.createTransporter();
 
       await transporter.sendMail({
-        from: process.env.SMTP_FROM || "team@nebula.com",
+        from: process.env.SMTP_FROM || process.env.SMTP_USER,
         to: Array.isArray(options.to) ? options.to.join(", ") : options.to,
         subject: options.subject,
         html: options.html,

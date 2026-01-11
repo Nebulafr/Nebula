@@ -5,12 +5,17 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, ArrowRight, BarChart3, Bot, Leaf } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/images/placeholder-images";
 import { useSearchParams } from "next/navigation";
 import React from "react";
 import { SkillLevel } from "@/generated/prisma";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  studentOnboardingStep2Schema,
+  type StudentOnboardingStep2Data,
+} from "@/lib/validations";
 
 const skillLevelConfig = {
   [SkillLevel.BEGINNER]: {
@@ -39,10 +44,23 @@ const skillLevels = Object.values(SkillLevel).map((level) => ({
 }));
 
 function OnboardingStep2Content() {
-  const [selectedLevel, setSelectedLevel] = useState<SkillLevel | null>(null);
   const image = PlaceHolderImages.find((img) => img.id === "about-hero");
   const searchParams = useSearchParams();
   const program = searchParams.get("program");
+
+  const {
+    setValue,
+    formState: { errors, isValid },
+    watch,
+  } = useForm<StudentOnboardingStep2Data>({
+    resolver: zodResolver(studentOnboardingStep2Schema),
+    mode: "onChange",
+    defaultValues: {
+      skillLevel: "" as any,
+    },
+  });
+
+  const selectedLevel = watch("skillLevel");
 
   return (
     <div className="w-full min-h-[calc(100vh-3.5rem)] lg:grid lg:grid-cols-5">
@@ -72,7 +90,8 @@ function OnboardingStep2Content() {
               What is your skill level?
             </h1>
             <p className="mt-2 text-lg text-muted-foreground">
-              This will help us match you with the right coaches and content.
+              This will help us match you with the right coaches and content.{" "}
+              <span className="text-destructive">*</span>
             </p>
           </div>
 
@@ -85,7 +104,9 @@ function OnboardingStep2Content() {
                     ? "border-primary shadow-lg"
                     : "border-border"
                 }`}
-                onClick={() => setSelectedLevel(level.value)}
+                onClick={() =>
+                  setValue("skillLevel", level.value, { shouldValidate: true })
+                }
               >
                 <CardContent className="flex items-center gap-6 p-0">
                   <div
@@ -106,13 +127,19 @@ function OnboardingStep2Content() {
             ))}
           </div>
 
+          {errors.skillLevel && (
+            <p className="text-sm text-destructive text-center">
+              {errors.skillLevel.message}
+            </p>
+          )}
+
           <div className="mt-6 flex justify-between">
             <Button size="lg" variant="outline" asChild>
               <Link href="/onboarding/step-1">
                 <ArrowLeft className="mr-2 h-5 w-5" /> Back
               </Link>
             </Button>
-            <Button size="lg" asChild disabled={!selectedLevel}>
+            <Button size="lg" asChild disabled={!isValid}>
               <Link
                 href={`/onboarding/step-3?program=${encodeURIComponent(
                   program || ""

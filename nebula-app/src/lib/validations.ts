@@ -6,6 +6,7 @@ export const moduleSchema = z.object({
   title: z.string().min(1, "Module title is required"),
   week: z.number().min(1, "Week number must be at least 1"),
   description: z.string().min(1, "Module description is required"),
+  materials: z.array(z.string().url("Material must be a valid URL")).optional(),
 });
 
 export const createProgramSchema = z.object({
@@ -348,6 +349,64 @@ export function validateRequest<T>(schema: z.ZodSchema<T>, data: unknown): T {
   }
 }
 
+// User profile update schema
+export const updateProfileSchema = z.object({
+  fullName: z.string().min(1, "Full name is required").max(100, "Name is too long"),
+  email: z.string().email("Invalid email address"),
+});
+
+// Password change schema
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, "Current password is required"),
+  newPassword: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+    .regex(/[0-9]/, "Password must contain at least one number"),
+  confirmPassword: z.string().min(1, "Please confirm your password"),
+}).refine((data) => data.newPassword === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
+});
+
+// Coach Onboarding validation schemas
+export const coachOnboardingStep1Schema = z.object({
+  role: z.string().min(2, "Role must be at least 2 characters").max(100, "Role is too long"),
+  company: z.string().min(2, "Company name must be at least 2 characters").max(100, "Company name is too long"),
+  linkedin: z.string().url("Please enter a valid LinkedIn URL").refine(
+    (url) => url.includes("linkedin.com"),
+    "Please enter a valid LinkedIn URL"
+  ),
+});
+
+export const coachOnboardingStep2Schema = z.object({
+  specialties: z.array(z.string()).min(1, "Please select at least one specialty"),
+});
+
+export const coachOnboardingStep3Schema = z.object({
+  motivation: z.string().min(50, "Please provide at least 50 characters").max(1000, "Motivation is too long"),
+});
+
+export const coachOnboardingStep4Schema = z.object({
+  style: z.string().min(50, "Please provide at least 50 characters").max(1000, "Description is too long"),
+});
+
+// Student Onboarding validation schemas
+export const studentOnboardingStep1Schema = z.object({
+  program: z.string().min(1, "Please select a program"),
+});
+
+export const studentOnboardingStep2Schema = z.object({
+  skillLevel: z.enum([SkillLevel.BEGINNER, SkillLevel.INTERMEDIATE, SkillLevel.ADVANCED], {
+    errorMap: () => ({ message: "Please select a skill level" }),
+  }),
+});
+
+export const studentOnboardingStep3Schema = z.object({
+  availability: z.string().min(1, "Please select your time commitment"),
+});
+
 export type CreateProgramData = z.infer<typeof createProgramSchema>;
 export type UpdateProgramData = z.infer<typeof updateProgramSchema>;
 export type ProgramsQueryParams = z.infer<typeof programsQuerySchema>;
@@ -372,3 +431,12 @@ export type CoachUpdateData = z.infer<typeof updateCoachProfileSchema>;
 export type AdminProgramQueryData = z.infer<typeof adminProgramQuerySchema>;
 export type ProgramActionData = z.infer<typeof programActionSchema>;
 export type BookSessionData = z.infer<typeof bookSessionSchema>;
+export type UpdateProfileData = z.infer<typeof updateProfileSchema>;
+export type ChangePasswordData = z.infer<typeof changePasswordSchema>;
+export type CoachOnboardingStep1Data = z.infer<typeof coachOnboardingStep1Schema>;
+export type CoachOnboardingStep2Data = z.infer<typeof coachOnboardingStep2Schema>;
+export type CoachOnboardingStep3Data = z.infer<typeof coachOnboardingStep3Schema>;
+export type CoachOnboardingStep4Data = z.infer<typeof coachOnboardingStep4Schema>;
+export type StudentOnboardingStep1Data = z.infer<typeof studentOnboardingStep1Schema>;
+export type StudentOnboardingStep2Data = z.infer<typeof studentOnboardingStep2Schema>;
+export type StudentOnboardingStep3Data = z.infer<typeof studentOnboardingStep3Schema>;

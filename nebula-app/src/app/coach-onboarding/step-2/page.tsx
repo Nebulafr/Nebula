@@ -19,10 +19,15 @@ import React, { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { useSearchParams } from "next/navigation";
 import { useCategories } from "@/hooks";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  coachOnboardingStep2Schema,
+  type CoachOnboardingStep2Data,
+} from "@/lib/validations";
 
 function CoachOnboardingStep2Content() {
   const image = PlaceHolderImages.find((img) => img.id === "about-hero");
-  const [specialties, setSpecialties] = useState<string[]>([]);
   const [inputValue, setInputValue] = useState("");
   const { data: categoriesResponse, isLoading: loading } = useCategories();
   const categories = categoriesResponse?.data?.categories || [];
@@ -31,6 +36,20 @@ function CoachOnboardingStep2Content() {
   const role = searchParams.get("role");
   const company = searchParams.get("company");
   const linkedin = searchParams.get("linkedin");
+
+  const {
+    setValue,
+    formState: { errors, isValid },
+    watch,
+  } = useForm<CoachOnboardingStep2Data>({
+    resolver: zodResolver(coachOnboardingStep2Schema),
+    mode: "onChange",
+    defaultValues: {
+      specialties: [],
+    },
+  });
+
+  const specialties = watch("specialties");
 
   if (loading) {
     return (
@@ -47,19 +66,27 @@ function CoachOnboardingStep2Content() {
     if (event.key === "Enter" && inputValue.trim()) {
       event.preventDefault();
       if (!specialties.includes(inputValue.trim())) {
-        setSpecialties([...specialties, inputValue.trim()]);
+        setValue("specialties", [...specialties, inputValue.trim()], {
+          shouldValidate: true,
+        });
       }
       setInputValue("");
     }
   };
 
   const removeSpecialty = (specToRemove: string) => {
-    setSpecialties(specialties.filter((spec) => spec !== specToRemove));
+    setValue(
+      "specialties",
+      specialties.filter((spec) => spec !== specToRemove),
+      { shouldValidate: true }
+    );
   };
 
   const addCategoryAsSpecialty = (categoryName: string) => {
     if (!specialties.includes(categoryName)) {
-      setSpecialties([...specialties, categoryName]);
+      setValue("specialties", [...specialties, categoryName], {
+        shouldValidate: true,
+      });
     }
   };
 
@@ -99,7 +126,8 @@ function CoachOnboardingStep2Content() {
               </CardTitle>
               <CardDescription>
                 What are your key areas of expertise? Add a few tags that best
-                describe your skills.
+                describe your skills.{" "}
+                <span className="text-destructive">*</span>
               </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4 p-0 mt-6">
@@ -152,6 +180,11 @@ function CoachOnboardingStep2Content() {
                     </div>
                   </div>
                 )}
+                {errors.specialties && (
+                  <p className="text-sm text-destructive">
+                    {errors.specialties.message}
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -167,7 +200,7 @@ function CoachOnboardingStep2Content() {
                 <ArrowLeft className="mr-2 h-5 w-5" /> Back
               </Link>
             </Button>
-            <Button size="lg" asChild disabled={specialties.length === 0}>
+            <Button size="lg" asChild disabled={!isValid}>
               <Link href={nextStepUrl}>
                 Continue <ArrowRight className="ml-2 h-5 w-5" />
               </Link>

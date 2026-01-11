@@ -5,6 +5,7 @@ import {
   type RegisterData,
   type SigninData,
   type GoogleAuthData,
+  type ChangePasswordData,
 } from "@/lib/validations";
 import HttpException, {
   UnauthorizedException,
@@ -177,7 +178,7 @@ export class AuthService {
       // Only allow updating specific fields for security
       const allowedFields = ['fullName', 'avatarUrl'];
       const updateData: any = {};
-      
+
       for (const field of allowedFields) {
         if (data[field] !== undefined) {
           updateData[field] = data[field];
@@ -212,6 +213,63 @@ export class AuthService {
       throw new HttpException(
         RESPONSE_CODE.INTERNAL_SERVER_ERROR,
         "Failed to update profile",
+        500
+      );
+    }
+  }
+
+  static async changePassword(userId: string, data: ChangePasswordData) {
+    try {
+      const { currentPassword, newPassword } = data;
+
+      // Get user with password
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          id: true,
+          hashedPassword: true,
+        }
+      });
+
+      if (!user) {
+        throw new NotFoundException("User not found");
+      }
+
+      if (!user.hashedPassword) {
+        throw new HttpException(
+          RESPONSE_CODE.VALIDATION_ERROR,
+          "Cannot change password for accounts signed in with Google",
+          400
+        );
+      }
+
+      // Verify current password
+      const isValidPassword = await this.verifyPassword(
+        currentPassword,
+        user.hashedPassword
+      );
+
+      if (!isValidPassword) {
+        throw new UnauthorizedException("Current password is incorrect");
+      }
+
+      // Hash new password
+      const hashedPassword = await this.hashPassword(newPassword);
+
+      // Update password
+      await prisma.user.update({
+        where: { id: userId },
+        data: { hashedPassword }
+      });
+
+      return sendSuccess(null, "Password changed successfully");
+    } catch (error: any) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(
+        RESPONSE_CODE.INTERNAL_SERVER_ERROR,
+        "Failed to change password",
         500
       );
     }

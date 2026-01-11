@@ -53,6 +53,7 @@ export type ProgramWithRelations = Program & {
     title: string;
     week: number;
     description?: string;
+    materials?: string[];
   }[];
   reviews: Array<{
     id: string;

@@ -197,11 +197,10 @@ export class AdminService {
       console.log(`Program ${programId} ${action}ed with reason: ${reason}`);
     }
 
-    return {
-      success: true,
-      program: updatedProgram,
-      message: `Program ${action}ed successfully`,
-    };
+    return sendSuccess(
+      { program: updatedProgram },
+      `Program ${action}ed successfully`
+    );
   }
 
   static async getUsers(params?: {

@@ -10,6 +10,8 @@ import { Stepper } from '../components/stepper';
 import { useProposeProgramContext } from '../context/propose-program-context';
 import { useCreateProgram } from '@/hooks';
 import { useRouter } from 'next/navigation';
+import { uploadMultipleFilesToCloudinary } from '@/lib/cloudinary';
+import { toast } from 'react-toastify';
 
 export default function ProposeStep5Page() {
     const [isClient, setIsClient] = useState(false);
@@ -33,16 +35,40 @@ export default function ProposeStep5Page() {
     const submitProgram = async () => {
         setIsSubmitting(true);
         try {
+            // Upload materials for each module
+            const modulesWithMaterialUrls = await Promise.all(
+                formData.modules.map(async (mod) => {
+                    let materialUrls: string[] = [];
+
+                    // Upload files if there are any
+                    if (mod.materials && mod.materials.length > 0) {
+                        try {
+                            materialUrls = await uploadMultipleFilesToCloudinary(
+                                mod.materials,
+                                `nebula-materials/${formData.title.replace(/\s+/g, '-').toLowerCase()}`
+                            );
+                        } catch (error) {
+                            console.error(`Failed to upload materials for ${mod.title}:`, error);
+                            toast.error(`Failed to upload materials for ${mod.title}`);
+                            // Continue with empty materials array
+                        }
+                    }
+
+                    return {
+                        title: mod.title,
+                        week: mod.week,
+                        description: mod.description,
+                        materials: materialUrls,
+                    };
+                })
+            );
+
             const programData = {
                 title: formData.title,
                 category: formData.category,
                 description: formData.description,
                 objectives: formData.objectives,
-                modules: formData.modules.map(mod => ({
-                    title: mod.title,
-                    week: mod.week,
-                    description: mod.description,
-                })),
+                modules: modulesWithMaterialUrls,
                 price: formData.price,
                 duration: `${formData.duration} weeks`,
                 difficultyLevel: formData.difficultyLevel,
@@ -57,6 +83,7 @@ export default function ProposeStep5Page() {
             setSubmissionComplete(true);
         } catch (error) {
             console.error('Failed to submit program:', error);
+            toast.error('Failed to submit program. Please try again.');
             // Redirect back to step 4 on error
             router.push('/coach-dashboard/programs/propose/step-4');
         } finally {
@@ -97,7 +124,10 @@ export default function ProposeStep5Page() {
                         <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
                         <h1 className="text-2xl font-bold">Submitting Your Proposal...</h1>
                         <p className="mt-2 text-muted-foreground">
-                            Please wait while we process your application.
+                            Please wait while we upload your materials and process your application.
+                        </p>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                            This may take a moment if you have uploaded files.
                         </p>
                     </div>
                 </CardContent>

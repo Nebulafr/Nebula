@@ -15,17 +15,38 @@ import Link from "next/link";
 import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
 import { useSearchParams } from "next/navigation";
-import React, { useState } from "react";
+import React from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  coachOnboardingStep3Schema,
+  type CoachOnboardingStep3Data,
+} from "@/lib/validations";
+import { Label } from "@/components/ui/label";
 
 function CoachOnboardingStep3Content() {
   const image = PlaceHolderImages.find((img) => img.id === "benefit-impact");
-  const [motivation, setMotivation] = useState("");
 
   const searchParams = useSearchParams();
   const role = searchParams.get("role");
   const company = searchParams.get("company");
   const linkedin = searchParams.get("linkedin");
   const specialties = searchParams.get("specialties");
+
+  const {
+    register,
+    formState: { errors, isValid },
+    watch,
+  } = useForm<CoachOnboardingStep3Data>({
+    resolver: zodResolver(coachOnboardingStep3Schema),
+    mode: "onChange",
+    defaultValues: {
+      motivation: "",
+    },
+  });
+
+  const motivation = watch("motivation");
+  const charCount = motivation.length;
 
   const nextStepUrl = `/coach-onboarding/step-4?role=${encodeURIComponent(
     role || ""
@@ -34,6 +55,7 @@ function CoachOnboardingStep3Content() {
   )}&specialties=${encodeURIComponent(
     specialties || ""
   )}&motivation=${encodeURIComponent(motivation)}`;
+
   const prevStepUrl = `/coach-onboarding/step-2?role=${encodeURIComponent(
     role || ""
   )}&company=${encodeURIComponent(company || "")}&linkedin=${encodeURIComponent(
@@ -69,18 +91,38 @@ function CoachOnboardingStep3Content() {
                 Your "Why"
               </CardTitle>
               <CardDescription>
-                What motivates you to coach and mentor others?
+                What motivates you to coach and mentor others?{" "}
+                <span className="text-destructive">*</span>
               </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4 p-0 mt-8">
               <div className="grid gap-2">
+                <div className="flex justify-between">
+                  <Label htmlFor="motivation">Motivation</Label>
+                  <span
+                    className={`text-xs ${
+                      charCount < 50
+                        ? "text-muted-foreground"
+                        : charCount > 1000
+                        ? "text-destructive"
+                        : "text-green-600"
+                    }`}
+                  >
+                    {charCount}/1000 characters (min: 50)
+                  </span>
+                </div>
                 <Textarea
                   id="motivation"
                   placeholder="Share a brief summary of why you're passionate about coaching..."
                   rows={6}
-                  value={motivation}
-                  onChange={(e) => setMotivation(e.target.value)}
+                  className={errors.motivation ? "border-destructive" : ""}
+                  {...register("motivation")}
                 />
+                {errors.motivation && (
+                  <p className="text-sm text-destructive">
+                    {errors.motivation.message}
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -90,7 +132,7 @@ function CoachOnboardingStep3Content() {
                 <ArrowLeft className="mr-2 h-5 w-5" /> Back
               </Link>
             </Button>
-            <Button size="lg" asChild>
+            <Button size="lg" asChild disabled={!isValid}>
               <Link href={nextStepUrl}>
                 Continue <ArrowRight className="ml-2 h-5 w-5" />
               </Link>

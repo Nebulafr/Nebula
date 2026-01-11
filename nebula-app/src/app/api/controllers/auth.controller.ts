@@ -4,6 +4,7 @@ import {
   googleAuthSchema,
   signinSchema,
   signupSchema,
+  changePasswordSchema,
 } from "@/lib/validations";
 import {
   BadRequestException,
@@ -100,7 +101,7 @@ export class AuthController {
 
   async updateProfile(request: NextRequest) {
     const user = (request as any).user;
-    
+
     if (!user) {
       throw new UnauthorizedException("Authentication required");
     }
@@ -113,5 +114,36 @@ export class AuthController {
     }
 
     return await AuthService.updateProfile(user.id, body);
+  }
+
+  async changePassword(request: NextRequest) {
+    const user = (request as any).user;
+
+    if (!user) {
+      throw new UnauthorizedException("Authentication required");
+    }
+
+    let body;
+    try {
+      body = await request.json();
+    } catch (error) {
+      throw new BadRequestException("Invalid JSON body");
+    }
+
+    let payload;
+    try {
+      payload = changePasswordSchema.parse(body);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        throw new ValidationException(
+          `Validation failed: ${error.errors
+            .map((e) => `${e.path.join(".")}: ${e.message}`)
+            .join(", ")}`
+        );
+      }
+      throw error;
+    }
+
+    return await AuthService.changePassword(user.id, payload);
   }
 }

@@ -5,7 +5,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, CheckCircle, Clock, Zap } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/images/placeholder-images";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -13,6 +12,13 @@ import React from "react";
 import { createStudent } from "@/actions/student";
 import { toast } from "react-toastify";
 import { useAuth } from "@/hooks/use-auth";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  studentOnboardingStep3Schema,
+  type StudentOnboardingStep3Data,
+} from "@/lib/validations";
 
 const availabilities = [
   {
@@ -36,9 +42,6 @@ const availabilities = [
 ];
 
 function OnboardingStep3Content() {
-  const [selectedAvailability, setSelectedAvailability] = useState<
-    string | null
-  >(null);
   const [isLoading, setIsLoading] = useState(false);
   const image = PlaceHolderImages.find((img) => img.id === "benefit-schedule");
   const searchParams = useSearchParams();
@@ -47,6 +50,20 @@ function OnboardingStep3Content() {
 
   const program = searchParams.get("program");
   const skillLevel = searchParams.get("skillLevel");
+
+  const {
+    setValue,
+    formState: { errors, isValid },
+    watch,
+  } = useForm<StudentOnboardingStep3Data>({
+    resolver: zodResolver(studentOnboardingStep3Schema),
+    mode: "onChange",
+    defaultValues: {
+      availability: "",
+    },
+  });
+
+  const selectedAvailability = watch("availability");
 
   const handleFinish = async () => {
     if (!profile || !program || !skillLevel || !selectedAvailability) {
@@ -117,7 +134,8 @@ function OnboardingStep3Content() {
             </h1>
             <p className="mt-2 text-lg text-muted-foreground">
               This will help us find the perfect time for your coaching
-              sessions.
+              sessions.{" "}
+              <span className="text-destructive">*</span>
             </p>
           </div>
 
@@ -130,7 +148,11 @@ function OnboardingStep3Content() {
                     ? "border-primary shadow-lg"
                     : "border-border"
                 }`}
-                onClick={() => setSelectedAvailability(availability.title)}
+                onClick={() =>
+                  setValue("availability", availability.title, {
+                    shouldValidate: true,
+                  })
+                }
               >
                 <CardContent className="flex items-center gap-6 p-0">
                   <div
@@ -151,6 +173,12 @@ function OnboardingStep3Content() {
             ))}
           </div>
 
+          {errors.availability && (
+            <p className="text-sm text-destructive text-center">
+              {errors.availability.message}
+            </p>
+          )}
+
           <div className="mt-6 flex justify-between">
             <Button size="lg" variant="outline" asChild>
               <Link
@@ -164,7 +192,7 @@ function OnboardingStep3Content() {
             <Button
               size="lg"
               onClick={handleFinish}
-              disabled={!selectedAvailability || isLoading}
+              disabled={!isValid || isLoading}
             >
               {isLoading ? "Creating Profile..." : "Finish"}
               {!isLoading && <CheckCircle className="ml-2 h-5 w-5" />}

@@ -5,11 +5,16 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/images/placeholder-images";
 import { useCategories } from "@/hooks";
 import { Loader2 } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  studentOnboardingStep1Schema,
+  type StudentOnboardingStep1Data,
+} from "@/lib/validations";
 
 const categoryIcons: Record<string, string> = {
   "Career Prep": "/custom-images/career-prep.svg",
@@ -28,10 +33,22 @@ const categoryColors: Record<string, string> = {
 };
 
 export default function OnboardingStep1() {
-  const [selectedProgram, setSelectedProgram] = useState<string | null>(null);
   const { data: categoriesResponse, isLoading: loading } = useCategories();
   const categories = categoriesResponse?.data?.categories || [];
 
+  const {
+    setValue,
+    formState: { errors, isValid },
+    watch,
+  } = useForm<StudentOnboardingStep1Data>({
+    resolver: zodResolver(studentOnboardingStep1Schema),
+    mode: "onChange",
+    defaultValues: {
+      program: "",
+    },
+  });
+
+  const selectedProgram = watch("program");
   const image = PlaceHolderImages.find((img) => img.id === "about-story");
 
   if (loading) {
@@ -74,7 +91,8 @@ export default function OnboardingStep1() {
             </h1>
             <p className="mt-2 text-lg text-muted-foreground">
               Let&apos;s personalize your experience. To start, which program
-              are you interested in?
+              are you interested in?{" "}
+              <span className="text-destructive">*</span>
             </p>
           </div>
 
@@ -88,7 +106,9 @@ export default function OnboardingStep1() {
                       ? "border-primary shadow-lg"
                       : "border-border"
                   }`}
-                  onClick={() => setSelectedProgram(category.name)}
+                  onClick={() =>
+                    setValue("program", category.name, { shouldValidate: true })
+                  }
                 >
                   <CardContent className="flex items-center gap-4 p-0">
                     <div
@@ -120,8 +140,14 @@ export default function OnboardingStep1() {
             </div>
           </div>
 
+          {errors.program && (
+            <p className="text-sm text-destructive text-center">
+              {errors.program.message}
+            </p>
+          )}
+
           <div className="flex justify-end pt-4">
-            <Button size="lg" asChild disabled={!selectedProgram}>
+            <Button size="lg" asChild disabled={!isValid}>
               <Link
                 href={`/onboarding/step-2?program=${encodeURIComponent(
                   selectedProgram || ""

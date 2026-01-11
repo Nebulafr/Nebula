@@ -15,6 +15,7 @@ import {
   Upload,
   Edit,
   File,
+  Download,
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -244,17 +245,27 @@ export default function ProgramDetailsPage({
                       <h5 className="font-medium text-xs text-muted-foreground">
                         Uploaded Materials:
                       </h5>
-                      {mod.materials.map((file: any) => (
-                        <div
-                          key={file.name}
-                          className="flex items-center justify-between gap-2 p-2 rounded-md bg-muted/50"
-                        >
-                          <div className="flex items-center gap-2">
-                            {getFileIcon(file.type)}
-                            <span className="text-xs">{file.name}</span>
-                          </div>
-                        </div>
-                      ))}
+                      {mod.materials.map((materialUrl: string, idx: number) => {
+                        const fileName = materialUrl.split('/').pop() || `Material ${idx + 1}`;
+                        const decodedFileName = decodeURIComponent(fileName.split('?')[0]);
+                        const extension = decodedFileName.split('.').pop()?.toLowerCase() || '';
+
+                        return (
+                          <a
+                            key={idx}
+                            href={materialUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-between gap-2 p-2 rounded-md bg-muted/50 hover:bg-muted transition-colors"
+                          >
+                            <div className="flex items-center gap-2">
+                              {getFileIcon(extension)}
+                              <span className="text-xs">{decodedFileName}</span>
+                            </div>
+                            <Download className="h-3 w-3 text-muted-foreground" />
+                          </a>
+                        );
+                      })}
                     </div>
                   )}
                 </div>

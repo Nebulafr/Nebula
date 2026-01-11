@@ -1,22 +1,27 @@
-import { apiGet, apiPut } from "@/lib/utils";
+import { apiGet, apiPut, apiPost } from "@/lib/utils";
 import { uploadAvatarToCloudinary } from "@/lib/cloudinary";
+import { ChangePasswordData, UpdateProfileData } from "@/lib/validations";
 
 export async function getUserProfile() {
   return apiGet("/users/profile");
 }
 
-export async function updateUserProfile(data: any) {
+export async function updateUserProfile(data: UpdateProfileData) {
   return apiPut("/users/profile", data);
+}
+
+export async function changePassword(data: ChangePasswordData) {
+  return apiPost("/users/change-password", data);
 }
 
 export async function uploadUserAvatar(file: File) {
   try {
     // Upload to Cloudinary
     const avatarUrl = await uploadAvatarToCloudinary(file);
-    
+
     // Update user profile with new avatar URL
-    const response = await updateUserProfile({ avatarUrl });
-    
+    const response = await updateUserProfile({ avatarUrl } as any);
+
     if (response.success) {
       return {
         success: true,

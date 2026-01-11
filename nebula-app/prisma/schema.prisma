@@ -300,11 +300,12 @@ model ProgramCoach {
 }
 
 model Module {
-  id          String  @id @default(cuid())
-  programId   String  @map("program_id")
+  id          String   @id @default(cuid())
+  programId   String   @map("program_id")
   title       String
   week        Int
-  description String? @db.Text
+  description String?  @db.Text
+  materials   String[] @default([])
 
   // Relationships
   program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
