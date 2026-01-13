@@ -1,6 +1,4 @@
-import Image from "next/image";
-import Link from "next/link";
-import { logos } from "@/lib/images/logos";
+
 
 export default function CoachOnboardingLayout({
   children,

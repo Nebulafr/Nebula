@@ -364,7 +364,9 @@ export function CreateEventDialog({
                 <Label>Event Host</Label>
                 <UserSelect
                   value={newEvent.organizerId}
-                  onChange={handleSelectOrganizer}
+                  onChange={(user: any) => {
+                    handleSelectOrganizer(user.id);
+                  }}
                   placeholder="Select event organizer"
                 />
               </div>

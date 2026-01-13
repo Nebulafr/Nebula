@@ -38,7 +38,7 @@ export default function ProgramsPage() {
             more characters to fill this space.
           </p>
 
-          <div className="mx-auto mt-8 flex max-w-lg flex-wrap justify-center gap-4">
+          <div className="mx-auto mt-8 flex max-w-2xl flex-wrap justify-center gap-4">
             <Button
               variant="outline"
               className={cn(

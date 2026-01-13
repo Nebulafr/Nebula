@@ -38,14 +38,7 @@ export class ProgramService {
 
     const coachId = user.coach.id;
 
-    let baseSlug = generateSlug(title);
-    let finalSlug = baseSlug;
-    let counter = 1;
-
-    while (await prisma.program.findUnique({ where: { slug: finalSlug } })) {
-      finalSlug = `${baseSlug}-${counter}`;
-      counter++;
-    }
+    const slug = generateSlug(title);
 
     const categoryRecord = await prisma.category.findUnique({
       where: { id: category },
@@ -54,14 +47,14 @@ export class ProgramService {
     if (!categoryRecord) {
       throw new BadRequestException(`Category "${category}" not found`);
     }
-
-    // Validate co-coaches if provided
+    let validCoCoachIds: string[] = [];
     if (coCoachIds && coCoachIds.length > 0) {
       const validCoaches = await prisma.coach.findMany({
-        where: { id: { in: coCoachIds } },
-        select: { id: true },
+        where: { userId: { in: coCoachIds } },
+        select: { id: true, userId: true },
       });
-      const validCoachIds = validCoaches.map((c) => c.id);
+      const validCoachIds = validCoaches.map((c) => c.userId);
+      validCoCoachIds = validCoaches.map((coach) => coach.id);
       const invalidIds = coCoachIds.filter((id) => !validCoachIds.includes(id));
       if (invalidIds.length > 0) {
         throw new BadRequestException(
@@ -77,7 +70,7 @@ export class ProgramService {
         description,
         objectives,
         coachId: coachId,
-        slug: finalSlug,
+        slug,
         rating: 0,
         totalReviews: 0,
         price: price || 0,
@@ -100,9 +93,9 @@ export class ProgramService {
             })) || [],
         },
         coCoaches:
-          coCoachIds && coCoachIds.length > 0
+          validCoCoachIds.length > 0
             ? {
-                create: coCoachIds.map((coachId) => ({
+                create: validCoCoachIds.map((coachId) => ({
                   coachId,
                 })),
               }
@@ -387,7 +380,6 @@ export class ProgramService {
       }
     }
 
-    // Validate co-coaches if provided
     if (coCoachIds && coCoachIds.length > 0) {
       const validCoaches = await prisma.coach.findMany({
         where: { id: { in: coCoachIds } },
@@ -401,29 +393,15 @@ export class ProgramService {
         );
       }
     }
-
-    let newSlug = slug;
-    if (title && title !== program.title) {
-      let baseSlug = generateSlug(title);
-      let finalSlug = baseSlug;
-      let counter = 1;
-
-      while (await prisma.program.findUnique({ where: { slug: finalSlug } })) {
-        finalSlug = `${baseSlug}-${counter}`;
-        counter++;
-      }
-
-      newSlug = finalSlug;
+    let newSlug;
+    if (title) {
+      newSlug = generateSlug(title as string);
     }
-
-    // Update co-coaches if provided
     if (coCoachIds !== undefined) {
-      // Delete existing co-coaches
       await prisma.programCoach.deleteMany({
         where: { programId: program.id },
       });
 
-      // Create new co-coaches
       if (coCoachIds.length > 0) {
         await prisma.programCoach.createMany({
           data: coCoachIds.map((coachId) => ({
@@ -708,5 +686,4 @@ export class ProgramService {
       "Popular programs fetched successfully"
     );
   }
-
 }

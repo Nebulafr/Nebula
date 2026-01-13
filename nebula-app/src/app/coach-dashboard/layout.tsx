@@ -207,20 +207,6 @@ export default function CoachDashboardLayout({
                   </SidebarMenuButton>
                 </Link>
               </SidebarMenuItem>
-              <SidebarMenuItem>
-                <Link href="/coach-dashboard/settings">
-                  <SidebarMenuButton
-                    tooltip="Settings"
-                    isActive={pathname === "/coach-dashboard/settings"}
-                    asChild
-                  >
-                    <div>
-                      <Settings />
-                      <span>Settings</span>
-                    </div>
-                  </SidebarMenuButton>
-                </Link>
-              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarContent>
           <SidebarFooter>
@@ -232,6 +218,20 @@ export default function CoachDashboardLayout({
                     <div>
                       <CircleHelp />
                       <span>Help</span>
+                    </div>
+                  </SidebarMenuButton>
+                </Link>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <Link href="/coach-dashboard/settings">
+                  <SidebarMenuButton
+                    tooltip="Settings"
+                    isActive={pathname === "/coach-dashboard/settings"}
+                    asChild
+                  >
+                    <div>
+                      <Settings />
+                      <span>Settings</span>
                     </div>
                   </SidebarMenuButton>
                 </Link>

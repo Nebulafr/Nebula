@@ -106,7 +106,7 @@ function OnboardingStep3Content() {
   };
 
   return (
-    <div className="w-full min-h-[calc(100vh-3.5rem)] lg:grid lg:grid-cols-5">
+    <div className="w-full min-h-screen lg:grid lg:grid-cols-5">
       <div className="relative hidden h-full bg-muted lg:col-span-3 lg:block">
         {image && (
           <Image
@@ -134,8 +134,7 @@ function OnboardingStep3Content() {
             </h1>
             <p className="mt-2 text-lg text-muted-foreground">
               This will help us find the perfect time for your coaching
-              sessions.{" "}
-              <span className="text-destructive">*</span>
+              sessions. <span className="text-destructive">*</span>
             </p>
           </div>
 

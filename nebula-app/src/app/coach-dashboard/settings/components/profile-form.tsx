@@ -1,12 +1,19 @@
 "use client";
 
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardDescription,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { TagInputField } from "./tag-input-field";
+import { AvailabilitySettings } from "@/components/availability-settings";
 
 export interface ProfileFormData {
   title: string;
@@ -65,7 +72,9 @@ export function ProfileForm({
               id="hourlyRate"
               type="number"
               value={formData.hourlyRate}
-              onChange={(e) => handleInputChange("hourlyRate", Number(e.target.value))}
+              onChange={(e) =>
+                handleInputChange("hourlyRate", Number(e.target.value))
+              }
               placeholder="150"
             />
           </div>
@@ -82,26 +91,16 @@ export function ProfileForm({
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="style">Coaching Style</Label>
-            <Input
-              id="style"
-              value={formData.style}
-              onChange={(e) => handleInputChange("style", e.target.value)}
-              placeholder="e.g., Hands-on, Mentoring, Strategic"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="availability">Availability</Label>
-            <Input
-              id="availability"
-              value={formData.availability}
-              onChange={(e) => handleInputChange("availability", e.target.value)}
-              placeholder="e.g., Weekdays 9-5 EST"
-            />
-          </div>
+        <div className="space-y-2">
+          <Label htmlFor="style">Coaching Style</Label>
+          <Input
+            id="style"
+            value={formData.style}
+            onChange={(e) => handleInputChange("style", e.target.value)}
+            placeholder="e.g., Hands-on, Mentoring, Strategic"
+          />
         </div>
+        <div className="space-y-2"></div>
 
         <div className="space-y-2">
           <Label htmlFor="linkedinUrl">LinkedIn URL</Label>
@@ -174,6 +173,12 @@ export function ProfileForm({
           </Button>
         </div>
       </CardContent>
+      <AvailabilitySettings
+        showHeader={true}
+        showSaveButton={true}
+        title="Availability Settings"
+        description="Set your weekly availability for coaching sessions"
+      />
     </Card>
   );
 }

@@ -178,20 +178,6 @@ export default function AdminLayout({
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
-            <SidebarMenuItem>
-              <Link href="/admin/settings">
-                <SidebarMenuButton
-                  tooltip="Settings"
-                  isActive={pathname.startsWith("/admin/settings")}
-                  asChild
-                >
-                  <div>
-                    <Settings />
-                    <span>Settings</span>
-                  </div>
-                </SidebarMenuButton>
-              </Link>
-            </SidebarMenuItem>
           </SidebarMenu>
         </SidebarContent>
         <SidebarFooter>
@@ -207,15 +193,27 @@ export default function AdminLayout({
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
+            <SidebarMenuItem>
+              <Link href="/admin/settings">
+                <SidebarMenuButton
+                  tooltip="Settings"
+                  isActive={pathname.startsWith("/admin/settings")}
+                  asChild
+                >
+                  <div>
+                    <Settings />
+                    <span>Settings</span>
+                  </div>
+                </SidebarMenuButton>
+              </Link>
+            </SidebarMenuItem>
           </SidebarMenu>
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>
         <TopBar />
         <main className="flex-1 overflow-auto">
-          <div className="h-full">
-            {children}
-          </div>
+          <div className="h-full">{children}</div>
         </main>
       </SidebarInset>
     </SidebarProvider>

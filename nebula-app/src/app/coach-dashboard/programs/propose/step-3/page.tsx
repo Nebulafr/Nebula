@@ -24,6 +24,10 @@ import {
 } from "@/components/ui/accordion";
 import { Stepper } from "../components/stepper";
 import { useProposeProgramContext } from "../context/propose-program-context";
+import { toast } from "react-toastify";
+
+const MAX_FILE_SIZE = 3 * 1024 * 1024; // 3MB in bytes
+const MAX_FILES_PER_MODULE = 2;
 
 const getFileIcon = (fileName: string) => {
   const extension = fileName.split(".").pop()?.toLowerCase();
@@ -49,55 +53,121 @@ function ModuleUploader({
   onRemove,
 }: ModuleUploaderProps) {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop: (acceptedFiles) => onDrop(acceptedFiles),
+    onDrop: (acceptedFiles) => {
+      // Check if adding these files would exceed the limit
+      const remainingSlots = MAX_FILES_PER_MODULE - files.length;
+
+      if (remainingSlots <= 0) {
+        toast.error(
+          `Maximum ${MAX_FILES_PER_MODULE} documents allowed per module`
+        );
+        return;
+      }
+
+      // Validate file sizes
+      const invalidFiles = acceptedFiles.filter(
+        (file) => file.size > MAX_FILE_SIZE
+      );
+
+      if (invalidFiles.length > 0) {
+        toast.error(
+          `Some files exceed the 3MB limit: ${invalidFiles
+            .map((f) => f.name)
+            .join(", ")}`
+        );
+        return;
+      }
+
+      // Only take files up to the remaining slots
+      const filesToAdd = acceptedFiles.slice(0, remainingSlots);
+
+      if (filesToAdd.length < acceptedFiles.length) {
+        toast.warning(
+          `Only ${remainingSlots} file(s) can be added. Maximum ${MAX_FILES_PER_MODULE} documents per module.`
+        );
+      }
+
+      onDrop(filesToAdd);
+    },
+    maxSize: MAX_FILE_SIZE,
   });
+
+  const remainingSlots = MAX_FILES_PER_MODULE - files.length;
+  const isMaxReached = remainingSlots <= 0;
 
   return (
     <div>
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-sm text-muted-foreground">
+          {files.length} / {MAX_FILES_PER_MODULE} documents
+        </p>
+        <p className="text-xs text-muted-foreground">Max 3MB per file</p>
+      </div>
       <div
         {...getRootProps()}
         className={cn(
-          "mt-4 flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer",
-          isDragActive
+          "mt-4 flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg",
+          isMaxReached
+            ? "cursor-not-allowed opacity-50 bg-muted"
+            : "cursor-pointer",
+          isDragActive && !isMaxReached
             ? "border-primary bg-primary/10"
             : "bg-muted hover:bg-muted/50"
         )}
       >
-        <input {...getInputProps()} />
+        <input {...getInputProps()} disabled={isMaxReached} />
         <div className="flex flex-col items-center justify-center pt-5 pb-6">
           <Upload className="w-8 h-8 mb-4 text-muted-foreground" />
           <p className="mb-2 text-sm text-muted-foreground">
-            <span className="font-semibold">Click to upload</span> or drag and
-            drop
+            {isMaxReached ? (
+              <span>Maximum documents reached</span>
+            ) : (
+              <>
+                <span className="font-semibold">Click to upload</span> or drag
+                and drop
+              </>
+            )}
           </p>
-          <p className="text-xs text-muted-foreground">PDF, PPT, DOC, etc.</p>
+          {!isMaxReached && (
+            <p className="text-xs text-muted-foreground">
+              PDF, PPT, DOC, etc. (Max 3MB)
+            </p>
+          )}
         </div>
       </div>
 
       {files.length > 0 && (
         <div className="mt-4 space-y-2">
-          {files.map((file, index) => (
-            <Card key={index} className="p-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  {getFileIcon(file.name)}
-                  <div className="flex flex-col">
-                    <span className="text-sm font-medium">{file.name}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {(file.size / 1024).toFixed(2)} KB
-                    </span>
+          {files.map((file, index) => {
+            const sizeInMB = file.size / (1024 * 1024);
+            const sizeDisplay =
+              sizeInMB >= 1
+                ? `${sizeInMB.toFixed(2)} MB`
+                : `${(file.size / 1024).toFixed(2)} KB`;
+
+            return (
+              <Card key={index} className="p-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    {getFileIcon(file.name)}
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium">{file.name}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {sizeDisplay}
+                      </span>
+                    </div>
                   </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onRemove(file)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => onRemove(file)}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            </Card>
-          ))}
+              </Card>
+            );
+          })}
         </div>
       )}
     </div>

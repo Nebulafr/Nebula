@@ -63,7 +63,7 @@ function CoachOnboardingStep3Content() {
   )}&specialties=${encodeURIComponent(specialties || "")}`;
 
   return (
-    <div className="w-full min-h-[calc(100vh-3.5rem)] lg:grid lg:grid-cols-5">
+    <div className="w-full min-h-screen lg:grid lg:grid-cols-5">
       <div className="relative hidden h-full bg-muted lg:col-span-3 lg:block">
         {image && (
           <Image

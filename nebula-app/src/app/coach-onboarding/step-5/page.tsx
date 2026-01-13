@@ -20,7 +20,10 @@ import React, { useState } from "react";
 import { toast } from "react-toastify";
 import { createCoach } from "@/actions/coaches";
 import { useAuth } from "@/hooks/use-auth";
-import { AvailabilitySettings, DayAvailability } from "@/components/availability-settings";
+import {
+  AvailabilitySettings,
+  DayAvailability,
+} from "@/components/availability-settings";
 
 function CoachOnboardingStep5Content() {
   const image = PlaceHolderImages.find((img) => img.id === "benefit-schedule");
@@ -28,7 +31,9 @@ function CoachOnboardingStep5Content() {
   const searchParams = useSearchParams();
   const { profile, refreshUser } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  const [availability, setAvailability] = useState<Record<string, DayAvailability>>({});
+  const [availability, setAvailability] = useState<
+    Record<string, DayAvailability>
+  >({});
   const [rate, setRate] = useState("");
 
   const role = searchParams.get("role");
@@ -98,7 +103,7 @@ function CoachOnboardingStep5Content() {
   };
 
   return (
-    <div className="w-full min-h-[calc(100vh-3.5rem)] lg:grid lg:grid-cols-5">
+    <div className="w-full min-h-screen lg:grid lg:grid-cols-5">
       <div className="relative hidden h-full bg-muted lg:col-span-3 lg:block">
         {image && (
           <Image

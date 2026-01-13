@@ -1,5 +1,6 @@
 import { ApiResponse } from "@/types";
 import { clsx, type ClassValue } from "clsx";
+import { v4 as uuidv4 } from "uuid";
 import { twMerge } from "tailwind-merge";
 import { getAccessToken } from "./auth-storage";
 
@@ -132,13 +133,17 @@ export const apiDelete = <T = any>(endpoint: string, options?: any) =>
 export const capitalize = (str: string) =>
   str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 
-export const generateSlug = (text: string): string =>
-  text
-    .toLowerCase()
-    .trim()
-    .replace(/[^\w\s-]/g, "")
-    .replace(/[\s_-]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+export const generateSlug = (text: string): string => {
+  const id = uuidv4().split("-")[0];
+  const slug =
+    text
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-]/g, "")
+      .replace(/[\s_-]+/g, "-")
+      .replace(/^-+|-+$/g, "") + id;
+  return slug;
+};
 
 // Date utilities
 export const getStartOfWeek = (date: Date): Date => {

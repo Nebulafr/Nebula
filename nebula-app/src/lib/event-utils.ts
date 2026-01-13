@@ -136,6 +136,16 @@ export function getDefaultAvatar(name?: string): string {
 }
 
 /**
+ * Get a default avatar URL using pravatar.cc with consistent seeding
+ * @param name - The person's name
+ * @returns Pravatar.cc URL with consistent seed
+ */
+export function getDefaultCategoryImage(name?: string): string {
+  const seed = name ? name.replace(/\s/g, "").toLowerCase() : "default";
+  return `https://picsum.photos/400/400?random=${seed}`;
+}
+
+/**
  * Get a default banner image URL using picsum.photos, ensuring no sequential duplicates
  * @param index - The index of the event in the list
  * @param previousSeed - Optional previous seed to avoid

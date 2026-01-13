@@ -25,10 +25,14 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Switch } from "@/components/ui/switch";
 import { Stepper } from "../components/stepper";
-import { useProposeProgramContext } from "../context/propose-program-context";
+import {
+  CoCoach,
+  useProposeProgramContext,
+} from "../context/propose-program-context";
 import { DifficultyLevel } from "@/generated/prisma";
 import { Badge } from "@/components/ui/badge";
 import { useCategories } from "@/hooks";
+import { UserSelect } from "@/components/ui/user-select";
 
 const DIFFICULTY_OPTIONS = [
   { value: DifficultyLevel.BEGINNER, label: "Beginner" },
@@ -53,6 +57,7 @@ export default function ProposeStep2Page() {
     removePrerequisite,
     removeCoCoach,
     isStep2Valid,
+    addCoCoach,
   } = useProposeProgramContext();
 
   const [newObjective, setNewObjective] = useState("");
@@ -78,6 +83,12 @@ export default function ProposeStep2Page() {
     if (newPrerequisite.trim()) {
       addPrerequisite(newPrerequisite);
       setNewPrerequisite("");
+    }
+  };
+
+  const handleSelectCoCoach = (coach: CoCoach) => {
+    if (coach) {
+      addCoCoach(coach);
     }
   };
 
@@ -389,9 +400,9 @@ export default function ProposeStep2Page() {
                     >
                       <div className="flex items-center gap-3">
                         <Avatar>
-                          <AvatarImage src={coach.avatar} />
+                          <AvatarImage src={coach?.avatar} />
                           <AvatarFallback>
-                            {coach.name.charAt(0)}
+                            {coach?.name?.charAt(0) || "C"}
                           </AvatarFallback>
                         </Avatar>
                         <span className="font-medium">{coach.name}</span>
@@ -405,10 +416,21 @@ export default function ProposeStep2Page() {
                       </Button>
                     </div>
                   ))}
-                  <Button variant="outline" className="w-full">
-                    <UserPlus className="mr-2 h-4 w-4" /> Add Coach from Nebula
-                    Platform
-                  </Button>
+
+                  <UserSelect
+                    onChange={(coach: any) => {
+                      if (coach) {
+                        const isAlreadyAdded = formData.coCoaches.some(
+                          (existingCoach) => existingCoach.id === coach.id
+                        );
+
+                        if (!isAlreadyAdded) {
+                          handleSelectCoCoach(coach);
+                        }
+                      }
+                    }}
+                    placeholder="Select Coach"
+                  />
                 </div>
               </Card>
             )}

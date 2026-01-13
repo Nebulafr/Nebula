@@ -678,42 +678,12 @@ export default function ProgramDetailPage({
                   <div className="flex items-center gap-4">
                     <span>{mod.title}</span>
                     <Badge variant="secondary">Week {mod.week}</Badge>
-                    {mod.materials && mod.materials.length > 0 && (
-                      <Badge variant="outline" className="gap-1">
-                        <FileText className="h-3 w-3" />
-                        {mod.materials.length} {mod.materials.length === 1 ? "file" : "files"}
-                      </Badge>
-                    )}
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="text-base text-muted-foreground pl-4 pb-4">
-                  <p className="mb-4">{mod.description || "No description available"}</p>
-                  {mod.materials && mod.materials.length > 0 && (
-                    <div className="mt-4">
-                      <h4 className="text-sm font-semibold mb-2 text-foreground">Course Materials</h4>
-                      <div className="space-y-2">
-                        {mod.materials.map((materialUrl: string, idx: number) => {
-                          const fileName = materialUrl.split('/').pop() || `Material ${idx + 1}`;
-                          const decodedFileName = decodeURIComponent(fileName.split('?')[0]);
-                          return (
-                            <a
-                              key={idx}
-                              href={materialUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center gap-2 p-2 rounded-md hover:bg-muted transition-colors group"
-                            >
-                              <FileText className="h-4 w-4 text-muted-foreground" />
-                              <span className="text-sm flex-1 group-hover:text-foreground">
-                                {decodedFileName}
-                              </span>
-                              <Download className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-                            </a>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
+                  <p className="mb-4">
+                    {mod.description || "No description available"}
+                  </p>
                 </AccordionContent>
               </AccordionItem>
             ))}

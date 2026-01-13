@@ -2,8 +2,9 @@
 
 import React from "react";
 import ReactSelect, { SingleValue, Props as SelectProps } from "react-select";
-import { useAdminUsers } from "@/hooks";
+import { useAdminUsers, useAuth } from "@/hooks";
 import { UserRole } from "@/enums";
+import { CoCoach } from "@/app/coach-dashboard/programs/propose/context/propose-program-context";
 
 // Type assertion for react-select to fix TypeScript compatibility
 const Select = ReactSelect as React.ComponentType<SelectProps<any, false>>;
@@ -14,8 +15,8 @@ export interface UserSelectOption {
 }
 
 interface UserSelectProps {
-  value?: string;
-  onChange: (userId: string | null) => void;
+  value?: string | CoCoach;
+  onChange: (userId: string | CoCoach | null) => void;
   placeholder?: string;
   className?: string;
 }
@@ -26,18 +27,28 @@ export function UserSelect({
   placeholder = "Select a user...",
 }: UserSelectProps) {
   const { data: users = [], isLoading: loading } = useAdminUsers();
-
+  const { profile } = useAuth();
   const options = React.useMemo(() => {
     return users
-      .filter((user: any) => user.role === UserRole.COACH)
+      .filter(
+        (user: any) => user.role === UserRole.COACH && user.id !== profile?.id
+      )
       .map((user: any) => ({
-        value: user.id,
+        value: {
+          id: user.id,
+          name: user.fullName || user.email,
+          avatar: user.avatarUrl,
+        },
         label: `${user.fullName || user.email} (${user.role.toLowerCase()})`,
+        avatar: user.avatarUrl,
       }));
   }, [users]);
 
   const selectedOption = value
-    ? options.find((option: any) => option.value === value) || null
+    ? options.find(
+        (option: any) =>
+          option.value.id === (typeof value === "string" ? value : value.id)
+      ) || null
     : null;
 
   const handleChange = (option: SingleValue<UserSelectOption>) => {

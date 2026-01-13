@@ -15,6 +15,7 @@ import {
   studentOnboardingStep1Schema,
   type StudentOnboardingStep1Data,
 } from "@/lib/validations";
+import { getDefaultCategoryImage } from "@/lib/event-utils";
 
 const categoryIcons: Record<string, string> = {
   "Career Prep": "/custom-images/career-prep.svg",
@@ -53,7 +54,7 @@ export default function OnboardingStep1() {
 
   if (loading) {
     return (
-      <div className="w-full min-h-[calc(100vh-3.5rem)] flex items-center justify-center">
+      <div className="w-full min-h-screen flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
           <p className="text-lg">Loading categories...</p>
@@ -63,7 +64,7 @@ export default function OnboardingStep1() {
   }
 
   return (
-    <div className="w-full min-h-[calc(100vh-3.5rem)] lg:grid lg:grid-cols-5">
+    <div className="w-full min-h-screen lg:grid lg:grid-cols-5">
       <div className="relative hidden h-full bg-muted lg:col-span-3 lg:block">
         {image && (
           <Image
@@ -91,8 +92,7 @@ export default function OnboardingStep1() {
             </h1>
             <p className="mt-2 text-lg text-muted-foreground">
               Let&apos;s personalize your experience. To start, which program
-              are you interested in?{" "}
-              <span className="text-destructive">*</span>
+              are you interested in? <span className="text-destructive">*</span>
             </p>
           </div>
 
@@ -118,7 +118,7 @@ export default function OnboardingStep1() {
                     >
                       <Image
                         src={
-                          categoryIcons[category.name] ||
+                          getDefaultCategoryImage(category.name) ||
                           "/custom-images/skills-assessment.svg"
                         }
                         alt={category.name}
