@@ -202,10 +202,10 @@ export default function DashboardLayout({
               </Link>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <Link href="/settings">
+              <Link href="/dashboard/settings">
                 <SidebarMenuButton
                   tooltip="Settings"
-                  isActive={pathname === "/dashboard/messaging"}
+                  isActive={pathname === "/dashboard/settings"}
                   asChild
                 >
                   <div>

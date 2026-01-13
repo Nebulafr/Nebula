@@ -246,9 +246,13 @@ export default function ProgramDetailsPage({
                         Uploaded Materials:
                       </h5>
                       {mod.materials.map((materialUrl: string, idx: number) => {
-                        const fileName = materialUrl.split('/').pop() || `Material ${idx + 1}`;
-                        const decodedFileName = decodeURIComponent(fileName.split('?')[0]);
-                        const extension = decodedFileName.split('.').pop()?.toLowerCase() || '';
+                        const fileName =
+                          materialUrl.split("/").pop() || `Material ${idx + 1}`;
+                        const decodedFileName = decodeURIComponent(
+                          fileName.split("?")[0]
+                        );
+                        const extension =
+                          decodedFileName.split(".").pop()?.toLowerCase() || "";
 
                         return (
                           <a
@@ -257,6 +261,7 @@ export default function ProgramDetailsPage({
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex items-center justify-between gap-2 p-2 rounded-md bg-muted/50 hover:bg-muted transition-colors"
+                            download
                           >
                             <div className="flex items-center gap-2">
                               {getFileIcon(extension)}

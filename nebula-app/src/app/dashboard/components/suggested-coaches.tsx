@@ -107,7 +107,7 @@ export function SuggestedCoaches({
                 key={coach.id}
                 className="p-2 md:basis-1/2 lg:basis-1/3"
               >
-                <Link href={`/coaches/${coach.slug}`} className="flex h-full">
+                <Link href={`/coaches/${coach.id}`} className="flex h-full">
                   <Card className="flex flex-col w-full rounded-xl border transition-all hover:shadow-lg">
                     <CardContent className="flex flex-1 flex-col p-4">
                       <div className="flex flex-col items-center text-center">
