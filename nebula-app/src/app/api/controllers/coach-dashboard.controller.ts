@@ -26,5 +26,12 @@ export class CoachDashboardController {
     const status = searchParams.get("status") || "all";
     return await CoachDashboardService.getPrograms(user.id, status);
   }
+
+  async getPayouts(req: NextRequest) {
+    const user = (req as any).user;
+    const { searchParams } = new URL(req.url);
+    const limit = parseInt(searchParams.get("limit") || "5");
+    return await CoachDashboardService.getRecentPayouts(user.id, limit);
+  }
 }
 

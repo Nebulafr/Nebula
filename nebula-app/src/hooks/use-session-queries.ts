@@ -1,7 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiGet, apiPost } from "@/lib/utils";
 
-export function useCoachSessions(filter: "today" | "upcoming" | "past" | "all" = "upcoming") {
+export function useCoachSessions(
+  filter: "today" | "upcoming" | "past" | "all" = "upcoming"
+) {
   return useQuery({
     queryKey: ["coach-sessions", filter],
     queryFn: () => apiGet(`/coaches/sessions?filter=${filter}`),
@@ -17,7 +19,9 @@ export function useCoachStats() {
   });
 }
 
-export function useStudentSessions(filter: "today" | "upcoming" | "past" | "all" = "upcoming") {
+export function useStudentSessions(
+  filter: "today" | "upcoming" | "past" | "all" = "upcoming"
+) {
   return useQuery({
     queryKey: ["student-sessions", filter],
     queryFn: () => apiGet(`/students/sessions?filter=${filter}`),
@@ -37,7 +41,12 @@ export function useBookCoachSession() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ coachId, date, time, duration = 60 }: BookSessionData) => {
+    mutationFn: async ({
+      coachId,
+      date,
+      time,
+      duration = 60,
+    }: BookSessionData) => {
       return apiPost(`/coaches/${coachId}/book`, {
         date: date.toISOString(),
         startTime: time,
@@ -48,7 +57,7 @@ export function useBookCoachSession() {
       // Invalidate and refetch session-related queries
       queryClient.invalidateQueries({ queryKey: ["student-sessions"] });
       queryClient.invalidateQueries({ queryKey: ["coach-sessions"] });
-      
+
       return data;
     },
     onError: (error) => {

@@ -145,11 +145,13 @@ export function useUpdateProgramStatus() {
       programId,
       action,
       reason,
+      startDate,
     }: {
       programId: string;
       action: "approve" | "reject" | "activate" | "deactivate";
       reason?: string;
-    }) => updateProgramStatus(programId, action, reason),
+      startDate?: string;
+    }) => updateProgramStatus(programId, action, reason, startDate),
     onSuccess: (response, variables) => {
       // Invalidate admin programs specifically
       queryClient.invalidateQueries({ queryKey: [ADMIN_PROGRAMS_QUERY_KEY] });

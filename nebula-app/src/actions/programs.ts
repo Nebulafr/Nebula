@@ -74,7 +74,8 @@ export async function getAdminPrograms(filters?: {
 export async function updateProgramStatus(
   programId: string,
   action: "approve" | "reject" | "activate" | "deactivate",
-  reason?: string
+  reason?: string,
+  startDate?: string
 ) {
-  return apiPost(`/admin/programs/${programId}/actions`, { action, reason });
+  return apiPost(`/admin/programs/${programId}/actions`, { action, reason, startDate });
 }

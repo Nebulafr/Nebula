@@ -62,6 +62,7 @@ export const adminProgramQuerySchema = z.object({
 export const programActionSchema = z.object({
   action: z.enum(["approve", "reject", "activate", "deactivate"]),
   reason: z.string().optional(),
+  startDate: z.string().optional(),
 });
 
 export const programStatusUpdateSchema = z.object({

@@ -26,16 +26,20 @@ import { useEffect, Suspense } from "react";
 
 import { toast } from "react-toastify";
 import { apiPost } from "@/lib/utils";
-import { useCoachSessions } from "@/hooks/use-session-queries";
+import { useCoachSessions, useCoachStats } from "@/hooks/use-session-queries";
 import { getDefaultAvatar } from "@/lib/event-utils";
 
 function CoachDashboardContent() {
   const { profile } = useAuth();
   const searchParams = useSearchParams();
   const { data: todaySessionsData, isLoading: isLoadingSessions } =
-    useCoachSessions("today");
+    useCoachSessions("upcoming");
+  const { data: statsData } = useCoachStats();
 
-  // Handle OAuth redirect tokens
+  const stats = statsData?.data;
+
+  console.log({ todaySessionsData, statsData });
+
   useEffect(() => {
     const accessToken = searchParams.get("access_token");
     const refreshToken = searchParams.get("refresh_token");
@@ -102,9 +106,11 @@ function CoachDashboardContent() {
               <span className="text-muted-foreground">$</span>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">$4,231.89</div>
+              <div className="text-2xl font-bold">
+                ${stats?.totalRevenue || 0}
+              </div>
               <p className="text-xs text-muted-foreground">
-                +20.1% from last month
+                +{stats?.revenueChange || 0}% from last month
               </p>
             </CardContent>
           </Card>
@@ -116,9 +122,11 @@ function CoachDashboardContent() {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">+23</div>
+              <div className="text-2xl font-bold">
+                +{stats?.activeStudents || 0}
+              </div>
               <p className="text-xs text-muted-foreground">
-                +5 from last month
+                +{stats?.studentsChange || 0} from last month
               </p>
             </CardContent>
           </Card>
@@ -130,9 +138,11 @@ function CoachDashboardContent() {
               <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">12</div>
+              <div className="text-2xl font-bold">
+                {stats?.sessionsThisMonth}
+              </div>
               <p className="text-xs text-muted-foreground">
-                +1 since last month
+                +{stats.sessionsChange || 0} since last month
               </p>
             </CardContent>
           </Card>
@@ -144,7 +154,9 @@ function CoachDashboardContent() {
               <Star className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">4.9/5</div>
+              <div className="text-2xl font-bold">
+                {stats?.averageRating / 5}
+              </div>
               <p className="text-xs text-muted-foreground">
                 Consistent high performance
               </p>

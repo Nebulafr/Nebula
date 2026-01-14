@@ -113,7 +113,7 @@ export class AdminService {
   }
 
   static async updateProgramStatus(programId: string, data: ProgramActionData) {
-    const { action, reason } = data;
+    const { action, startDate } = data;
 
     const program = await prisma.program.findUnique({
       where: { id: programId },
@@ -133,13 +133,16 @@ export class AdminService {
 
     let status: ProgramStatus;
     let isActive: boolean;
-    let emailTemplate: "APPLICATION_APPROVED" | "APPLICATION_DECLINED" | "PROGRAM_LIVE" | null = null;
+    let emailTemplate:
+      | "APPLICATION_APPROVED"
+      | "APPLICATION_DECLINED"
+      | "PROGRAM_LIVE"
+      | null = null;
 
     switch (action) {
       case "approve":
         status = "ACTIVE";
         isActive = true;
-        // Send PROGRAM_LIVE email when approving from PENDING_APPROVAL
         if (program.status === "PENDING_APPROVAL") {
           emailTemplate = "PROGRAM_LIVE";
         }
@@ -178,7 +181,15 @@ export class AdminService {
       },
     });
 
-    // Send email notification if applicable
+    if (action === "approve" && startDate) {
+      await prisma.programSchedule.create({
+        data: {
+          programId: programId,
+          startDate: new Date(startDate),
+        },
+      });
+    }
+
     if (emailTemplate) {
       try {
         await EmailService.sendProgramProposalEmail(
@@ -188,13 +199,7 @@ export class AdminService {
         );
       } catch (error) {
         console.error("Failed to send program status email:", error);
-        // Don't fail the status update if email fails
       }
-    }
-
-    // Log the action with reason if provided
-    if (reason) {
-      console.log(`Program ${programId} ${action}ed with reason: ${reason}`);
     }
 
     return sendSuccess(

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { use } from "react";
+import React, { use, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,6 +16,7 @@ import {
   Edit,
   File,
   Download,
+  Calendar as CalendarIcon,
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -30,9 +31,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { useProgramBySlug, useUpdateProgramStatus } from "@/hooks";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 const getFileIcon = (type: string) => {
   if (type === "pdf") return <Book className="h-5 w-5 text-red-500" />;
@@ -68,12 +77,19 @@ export default function ProgramDetailsPage({
   const { data: programResponse, isLoading } = useProgramBySlug(slug);
   const program = programResponse?.data?.program;
   const updateProgramStatusMutation = useUpdateProgramStatus();
+  const [startDate, setStartDate] = useState<Date>();
 
   const handleApprove = async () => {
+    if (!startDate) {
+      toast.error("Please select a start date for the program");
+      return;
+    }
+
     try {
       await updateProgramStatusMutation.mutateAsync({
         programId: program.id,
         action: "approve",
+        startDate: startDate.toISOString(),
       });
       toast.success("Program approved successfully");
       router.push("/admin/programs");
@@ -126,6 +142,55 @@ export default function ProgramDetailsPage({
         <div className="flex items-center gap-2">
           {program.status === "PENDING_APPROVAL" && (
             <>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-[280px] justify-start text-left font-normal",
+                      !startDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {startDate ? (
+                      format(startDate, "PPP 'at' p")
+                    ) : (
+                      <span>Select start date & time</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="end">
+                  <Calendar
+                    mode="single"
+                    selected={startDate}
+                    onSelect={(date) => {
+                      if (date) {
+                        const currentTime = startDate || new Date();
+                        date.setHours(currentTime.getHours(), currentTime.getMinutes());
+                        setStartDate(date);
+                      }
+                    }}
+                    disabled={(date) =>
+                      date < new Date(new Date().setHours(0, 0, 0, 0))
+                    }
+                    initialFocus
+                  />
+                  <div className="p-3 border-t">
+                    <Label className="text-sm font-medium">Time</Label>
+                    <Input
+                      type="time"
+                      className="mt-2"
+                      value={startDate ? format(startDate, "HH:mm") : "09:00"}
+                      onChange={(e) => {
+                        const [hours, minutes] = e.target.value.split(":").map(Number);
+                        const newDate = startDate ? new Date(startDate) : new Date();
+                        newDate.setHours(hours, minutes);
+                        setStartDate(newDate);
+                      }}
+                    />
+                  </div>
+                </PopoverContent>
+              </Popover>
               <Button variant="outline" onClick={handleReject}>
                 Reject
               </Button>
@@ -253,15 +318,17 @@ export default function ProgramDetailsPage({
                         );
                         const extension =
                           decodedFileName.split(".").pop()?.toLowerCase() || "";
+                        const downloadUrl = materialUrl.includes("cloudinary")
+                          ? materialUrl.replace("/upload/", "/upload/fl_attachment/")
+                          : materialUrl;
 
                         return (
                           <a
                             key={idx}
-                            href={materialUrl}
+                            href={downloadUrl}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex items-center justify-between gap-2 p-2 rounded-md bg-muted/50 hover:bg-muted transition-colors"
-                            download
                           >
                             <div className="flex items-center gap-2">
                               {getFileIcon(extension)}

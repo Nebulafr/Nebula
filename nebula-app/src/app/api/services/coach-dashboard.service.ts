@@ -402,4 +402,74 @@ export class CoachDashboardService {
       "Programs fetched successfully"
     );
   }
+
+  static async getRecentPayouts(userId: string, limit: number = 5) {
+    const coach = await prisma.coach.findUnique({
+      where: { userId },
+      select: { id: true },
+    });
+
+    if (!coach) {
+      throw new NotFoundException("Coach profile not found");
+    }
+
+    const paidEnrollments = await prisma.enrollment.findMany({
+      where: {
+        coachId: coach.id,
+        paymentStatus: "PAID",
+      },
+      include: {
+        program: {
+          select: { price: true },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    // Group enrollments by month
+    const monthlyEarnings = new Map<
+      string,
+      { month: string; year: number; amount: number; date: Date }
+    >();
+
+    paidEnrollments.forEach((enrollment) => {
+      const date = new Date(enrollment.createdAt);
+      const monthYear = `${date.getFullYear()}-${date.getMonth()}`;
+      const monthName = date.toLocaleString("default", { month: "long" });
+
+      if (monthlyEarnings.has(monthYear)) {
+        const existing = monthlyEarnings.get(monthYear)!;
+        existing.amount += enrollment.program.price || 0;
+      } else {
+        monthlyEarnings.set(monthYear, {
+          month: monthName,
+          year: date.getFullYear(),
+          amount: enrollment.program.price || 0,
+          date: date,
+        });
+      }
+    });
+
+    const payouts = Array.from(monthlyEarnings.values())
+      .sort((a, b) => b.date.getTime() - a.date.getTime())
+      .slice(0, limit)
+      .map((p) => ({
+        id: `${p.year}-${p.month}`,
+        month: `${p.month} ${p.year}`,
+        amount: p.amount,
+        method: "Bank Transfer",
+        date: p.date.toISOString(),
+      }));
+
+    const now = new Date();
+    const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const payoutsThisMonth = paidEnrollments.filter(
+      (e) => new Date(e.createdAt) >= thisMonthStart
+    ).length;
+
+    return sendSuccess(
+      { payouts, payoutsThisMonth },
+      "Recent payouts fetched successfully"
+    );
+  }
 }
