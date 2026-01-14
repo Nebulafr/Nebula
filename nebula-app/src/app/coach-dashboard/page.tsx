@@ -142,7 +142,7 @@ function CoachDashboardContent() {
                 {stats?.sessionsThisMonth}
               </div>
               <p className="text-xs text-muted-foreground">
-                +{stats.sessionsChange || 0} since last month
+                +{stats?.sessionsChange || 0} since last month
               </p>
             </CardContent>
           </Card>
