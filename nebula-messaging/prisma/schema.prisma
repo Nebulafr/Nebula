@@ -34,8 +34,10 @@ enum SkillLevel {
 }
 
 enum ProgramStatus {
+  PENDING_APPROVAL
   ACTIVE
   INACTIVE
+  REJECTED
 }
 
 enum DifficultyLevel {
@@ -147,41 +149,42 @@ model Category {
 }
 
 model Coach {
-  id              String   @id @default(cuid())
-  userId          String   @unique @map("user_id")
+  id                         String    @id @default(cuid())
+  userId                     String    @unique @map("user_id")
   // Removed: email, fullName, avatarUrl (use user.email, user.fullName, user.avatarUrl instead)
-  title           String
-  bio             String   @db.Text
-  style           String
-  specialties     String[]
-  pastCompanies   String[] @map("past_companies")
-  linkedinUrl     String?  @map("linkedin_url")
-  availability    String
-  hourlyRate      Int      @map("hourly_rate")
-  rating          Float?   @default(0)
-  totalReviews    Int?     @default(0) @map("total_reviews")
-  totalSessions   Int?     @default(0) @map("total_sessions")
-  studentsCoached Int?     @default(0) @map("students_coached")
-  isActive        Boolean  @default(true) @map("is_active")
-  isVerified      Boolean  @default(false) @map("is_verified")
-  slug            String?  @unique
-  category        String?
-  qualifications  String[]
-  experience      String?
-  timezone        String?
-  languages       String[]
-  googleCalendarAccessToken   String?   @map("google_calendar_access_token")
-  googleCalendarRefreshToken  String?   @map("google_calendar_refresh_token")
-  googleCalendarConnectedAt   DateTime? @map("google_calendar_connected_at")
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @updatedAt @map("updated_at")
+  title                      String
+  bio                        String    @db.Text
+  style                      String
+  specialties                String[]
+  pastCompanies              String[]  @map("past_companies")
+  linkedinUrl                String?   @map("linkedin_url")
+  availability               String
+  hourlyRate                 Int       @map("hourly_rate")
+  rating                     Float?    @default(0)
+  totalReviews               Int?      @default(0) @map("total_reviews")
+  totalSessions              Int?      @default(0) @map("total_sessions")
+  studentsCoached            Int?      @default(0) @map("students_coached")
+  isActive                   Boolean   @default(true) @map("is_active")
+  isVerified                 Boolean   @default(false) @map("is_verified")
+  slug                       String?   @unique
+  category                   String?
+  qualifications             String[]
+  experience                 String?
+  timezone                   String?
+  languages                  String[]
+  googleCalendarAccessToken  String?   @map("google_calendar_access_token")
+  googleCalendarRefreshToken String?   @map("google_calendar_refresh_token")
+  googleCalendarConnectedAt  DateTime? @map("google_calendar_connected_at")
+  createdAt                  DateTime  @default(now()) @map("created_at")
+  updatedAt                  DateTime  @updatedAt @map("updated_at")
 
   // Relationships
-  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  programs    Program[]
-  sessions    Session[]
-  enrollments Enrollment[]
-  reviews     Review[]     @relation("ReviewCoach")
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  programs      Program[]
+  sessions      Session[]
+  enrollments   Enrollment[]
+  reviews       Review[]       @relation("ReviewCoach")
+  coachPrograms ProgramCoach[]
 
   // Indexes for performance
   @@index([slug])
@@ -255,15 +258,18 @@ model Program {
   status             ProgramStatus   @default(INACTIVE)
   tags               String[]
   prerequisites      String[]
+  targetAudience     String?         @map("target_audience")
   createdAt          DateTime        @default(now()) @map("created_at")
   updatedAt          DateTime        @updatedAt @map("updated_at")
 
   // Relationships
-  category    Category     @relation(fields: [categoryId], references: [id])
-  coach       Coach        @relation(fields: [coachId], references: [id])
+  category    Category          @relation(fields: [categoryId], references: [id])
+  coach       Coach             @relation(fields: [coachId], references: [id])
   modules     Module[]
   enrollments Enrollment[]
-  reviews     Review[]     @relation("ReviewProgram")
+  reviews     Review[]          @relation("ReviewProgram")
+  coCoaches   ProgramCoach[]
+  schedules   ProgramSchedule[]
 
   // Indexes for performance
   @@index([slug])
@@ -276,12 +282,45 @@ model Program {
   @@map("programs")
 }
 
+model ProgramSchedule {
+  id        String    @id @default(cuid())
+  programId String    @map("program_id")
+  program   Program   @relation(fields: [programId], references: [id], onDelete: Cascade)
+  startDate DateTime  @map("start_date")
+  endDate   DateTime? @map("end_date")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  @@unique([programId, startDate])
+  @@index([programId])
+  @@map("program_schedules")
+}
+
+// Join table for co-coaches on programs
+model ProgramCoach {
+  id        String   @id @default(cuid())
+  programId String   @map("program_id")
+  coachId   String   @map("coach_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relationships
+  program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+  coach   Coach   @relation(fields: [coachId], references: [id], onDelete: Cascade)
+
+  // Unique constraint to prevent duplicate coach assignments
+  @@unique([programId, coachId])
+  @@index([programId])
+  @@index([coachId])
+  @@map("program_coaches")
+}
+
 model Module {
-  id          String  @id @default(cuid())
-  programId   String  @map("program_id")
+  id          String   @id @default(cuid())
+  programId   String   @map("program_id")
   title       String
   week        Int
-  description String? @db.Text
+  description String?  @db.Text
+  materials   String[] @default([])
 
   // Relationships
   program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
@@ -535,8 +574,8 @@ model Event {
   tags           String[]
   meetLink       String?  @map("meet_link")
   googleEventId  String?  @map("google_event_id")
-  whatToBring    String?  @db.Text @map("what_to_bring")
-  additionalInfo String?  @db.Text @map("additional_info")
+  whatToBring    String?  @map("what_to_bring") @db.Text
+  additionalInfo String?  @map("additional_info") @db.Text
   lumaEventLink  String   @map("luma_event_link")
   accessType     String?  @map("access_type")
   createdAt      DateTime @default(now()) @map("created_at")
@@ -554,7 +593,6 @@ model Event {
   @@index([status])
   @@map("events")
 }
-
 
 model EventAttendee {
   id           String              @id @default(cuid())
