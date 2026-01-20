@@ -18,7 +18,7 @@ export async function bookCoachSession({
     duration,
   };
 
-  return apiPost(`/coaches/${coachId}/book`, sessionData);
+  return apiPost(`/coaches/${coachId}/book`, sessionData, { throwOnError: true });
 }
 
 // Coach dashboard session actions
@@ -40,7 +40,7 @@ export async function createCoachSession(data: {
   studentIds?: string[];
   meetLink?: string;
 }) {
-  return apiPost("/coaches/sessions", data);
+  return apiPost("/coaches/sessions", data, { throwOnError: true });
 }
 
 export async function updateCoachSession(
@@ -55,11 +55,11 @@ export async function updateCoachSession(
     notes?: string;
   }
 ) {
-  return apiPut(`/coaches/sessions/${sessionId}`, data);
+  return apiPut(`/coaches/sessions/${sessionId}`, data, { throwOnError: true });
 }
 
 export async function cancelCoachSession(sessionId: string, reason?: string) {
-  return apiPut(`/coaches/sessions/${sessionId}/cancel`, { reason });
+  return apiPut(`/coaches/sessions/${sessionId}/cancel`, { reason }, { throwOnError: true });
 }
 
 // Coach availability actions
@@ -76,7 +76,7 @@ export interface DayAvailability {
 export async function saveCoachAvailability(
   availability: Record<string, DayAvailability>
 ) {
-  return apiPut("/coaches/availability", { availability });
+  return apiPut("/coaches/availability", { availability }, { throwOnError: true });
 }
 
 export async function updateAvailabilitySlot(
@@ -87,9 +87,9 @@ export async function updateAvailabilitySlot(
     isAvailable?: boolean;
   }
 ) {
-  return apiPut(`/coaches/availability/${slotId}`, data);
+  return apiPut(`/coaches/availability/${slotId}`, data, { throwOnError: true });
 }
 
 export async function deleteAvailabilitySlot(slotId: string) {
-  return apiDelete(`/coaches/availability/${slotId}`);
+  return apiDelete(`/coaches/availability/${slotId}`, { throwOnError: true });
 }

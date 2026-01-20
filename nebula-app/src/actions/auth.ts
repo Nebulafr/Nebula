@@ -3,11 +3,17 @@ import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { apiPost } from "@/lib/utils";
 
 export async function signUpWithEmail(data: any) {
-  return apiPost("/auth/register", data, { requireAuth: false });
+  return apiPost("/auth/register", data, {
+    requireAuth: false,
+    throwOnError: true,
+  });
 }
 
 export async function signInWithEmail(data: any) {
-  return apiPost("/auth/signin", data, { requireAuth: false });
+  return apiPost("/auth/signin", data, {
+    requireAuth: false,
+    throwOnError: true,
+  });
 }
 
 export async function signUpWithGoogle(role: string = "student") {
@@ -29,7 +35,7 @@ export async function signUpWithGoogle(role: string = "student") {
         role,
         avatarUrl: user.photoURL,
       },
-      { requireAuth: false }
+      { requireAuth: false, throwOnError: true }
     );
   } catch (error: any) {
     if (error.code === "auth/popup-blocked") {
@@ -41,5 +47,8 @@ export async function signUpWithGoogle(role: string = "student") {
 }
 
 export async function resetPassword(email: string) {
-  return apiPost("/auth/reset-password", { email }, { requireAuth: false });
+  return apiPost("/auth/reset-password", { email }, {
+    requireAuth: false,
+    throwOnError: true,
+  });
 }

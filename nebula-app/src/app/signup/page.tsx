@@ -19,6 +19,7 @@ import { UserRole } from "@/generated/prisma";
 import { toast } from "react-toastify";
 import { AuthPageGuard } from "@/components/auth/protected-route";
 import { useAuthActions } from "@/hooks/use-auth";
+import { handleAndToastError } from "@/lib/error-handler";
 
 function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -77,10 +78,9 @@ export default function SignupPage() {
         fullName,
         role: UserRole.STUDENT,
       });
-      toast.success(response.message);
+      toast.success(response.message || "Account created successfully!");
     } catch (error: any) {
-      console.error("Signup error:", error);
-      toast.error(error.message || "Failed to create account");
+      handleAndToastError(error, "Failed to create account");
     } finally {
       setLoading(false);
     }
@@ -93,11 +93,10 @@ export default function SignupPage() {
 
     try {
       const response = await signInWithGoogle(UserRole.STUDENT);
-      toast.success(response.message);
+      toast.success(response.message || "Signed in with Google successfully!");
     } catch (error: any) {
-      console.error("Google signup error:", error);
       if (error?.message !== "Redirecting to Google sign-in...") {
-        toast.error(error.message || "Failed to sign in with Google");
+        handleAndToastError(error, "Failed to sign in with Google");
       }
     } finally {
       setLoading(false);

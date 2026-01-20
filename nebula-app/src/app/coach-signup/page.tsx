@@ -19,6 +19,7 @@ import { UserRole } from "@/generated/prisma";
 import { toast } from "react-toastify";
 import { useAuthActions } from "@/hooks/use-auth";
 import { AuthPageGuard } from "@/components/auth/protected-route";
+import { handleAndToastError } from "@/lib/error-handler";
 
 function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -65,16 +66,15 @@ export default function CoachSignupPage() {
     setLoading(true);
 
     try {
-      await signUp({
+      const response = await signUp({
         email,
         password,
         fullName,
         role: UserRole.COACH,
       });
-      toast.success("Account created successfully!");
+      toast.success(response.message || "Account created successfully!");
     } catch (error: any) {
-      console.error("Coach signup error:", error);
-      toast.error(error.message || "Failed to create account");
+      handleAndToastError(error, "Failed to create account");
     } finally {
       setLoading(false);
     }
@@ -86,12 +86,11 @@ export default function CoachSignupPage() {
     setLoading(true);
 
     try {
-      await signInWithGoogle(UserRole.COACH);
-      toast.success("Account created successfully!");
+      const response = await signInWithGoogle(UserRole.COACH);
+      toast.success(response.message || "Signed in with Google successfully!");
     } catch (error: any) {
-      console.error("Coach Google signup error:", error);
       if (error?.message !== "Redirecting to Google sign-in...") {
-        toast.error(error.message || "Failed to sign in with Google");
+        handleAndToastError(error, "Failed to sign in with Google");
       }
     } finally {
       setLoading(false);
@@ -210,7 +209,7 @@ export default function CoachSignupPage() {
             </Card>
             <div className="mt-4 text-center text-sm">
               Already have a coach account?{" "}
-              <Link href="/coach-login" className="underline">
+              <Link href="/login" className="underline">
                 Log in
               </Link>
             </div>

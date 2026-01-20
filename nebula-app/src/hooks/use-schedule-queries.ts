@@ -10,6 +10,7 @@ import {
   DayAvailability,
 } from "@/actions/session";
 import { toast } from "react-toastify";
+import { handleAndToastError } from "@/lib/error-handler";
 
 export const COACH_SESSIONS_QUERY_KEY = "coach-sessions";
 export const COACH_STATS_QUERY_KEY = "coach-stats";
@@ -52,8 +53,8 @@ export function useCreateCoachSession() {
       queryClient.invalidateQueries({ queryKey: [COACH_STATS_QUERY_KEY] });
       toast.success("Session created successfully!");
     },
-    onError: (error: Error) => {
-      toast.error(error.message || "Failed to create session.");
+    onError: (error: any) => {
+      handleAndToastError(error, "Failed to create session.");
     },
   });
 }
@@ -81,8 +82,8 @@ export function useUpdateCoachSession() {
       queryClient.invalidateQueries({ queryKey: [COACH_SESSIONS_QUERY_KEY] });
       toast.success("Session updated successfully!");
     },
-    onError: (error: Error) => {
-      toast.error(error.message || "Failed to update session.");
+    onError: (error: any) => {
+      handleAndToastError(error, "Failed to update session.");
     },
   });
 }
@@ -103,8 +104,8 @@ export function useCancelCoachSession() {
       queryClient.invalidateQueries({ queryKey: [COACH_STATS_QUERY_KEY] });
       toast.success("Session cancelled successfully.");
     },
-    onError: (error: Error) => {
-      toast.error(error.message || "Failed to cancel session.");
+    onError: (error: any) => {
+      handleAndToastError(error, "Failed to cancel session.");
     },
   });
 }
@@ -131,8 +132,8 @@ export function useSaveCoachAvailability() {
       });
       toast.success("Availability updated successfully!");
     },
-    onError: (error: Error) => {
-      toast.error(error.message || "Failed to update availability.");
+    onError: (error: any) => {
+      handleAndToastError(error, "Failed to update availability.");
     },
   });
 }

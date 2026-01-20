@@ -53,7 +53,7 @@ export default function CoachProgramsPage() {
         <Button asChild>
           <Link href="/coach-dashboard/programs/propose/step-1">
             <PlusCircle className="mr-2 h-4 w-4" />
-            Create New Program
+            Propose a Program
           </Link>
         </Button>
       </div>
@@ -68,13 +68,13 @@ export default function CoachProgramsPage() {
               <div>
                 <h3 className="text-lg font-semibold">No programs yet</h3>
                 <p className="text-muted-foreground">
-                  Create your first program to get started.
+                  Propose your first program to get started.
                 </p>
               </div>
               <Button asChild>
                 <Link href="/coach-dashboard/programs/propose/step-1">
                   <PlusCircle className="mr-2 h-4 w-4" />
-                  Create New Program
+                  Propose a Program
                 </Link>
               </Button>
             </div>

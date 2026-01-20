@@ -19,6 +19,7 @@ import { UserRole } from "@/generated/prisma";
 import { toast } from "react-toastify";
 import { useAuthActions } from "@/hooks/use-auth";
 import { AuthPageGuard } from "@/components/auth/protected-route";
+import { handleAndToastError } from "@/lib/error-handler";
 
 function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -67,10 +68,11 @@ export default function CoachLoginPage() {
     setLoading(true);
 
     try {
-      await signIn({ email, password });
+      const response = await signIn({ email, password });
+      toast.success(response.message || "Logged in successfully!");
     } catch (error: any) {
       console.error("Coach login error:", error);
-      toast.error(error.message || "Failed to sign in");
+      handleAndToastError(error, "Failed to sign in");
     } finally {
       setLoading(false);
     }
@@ -82,11 +84,12 @@ export default function CoachLoginPage() {
     setLoading(true);
 
     try {
-      await signInWithGoogle(UserRole.COACH);
+      const response = await signInWithGoogle(UserRole.COACH);
+      toast.success(response.message || "Signed in with Google successfully!");
     } catch (error: any) {
       console.error("Coach Google login error:", error);
       if (error?.message !== "Redirecting to Google sign-in...") {
-        toast.error(error.message || "Failed to sign in with Google");
+        handleAndToastError(error, "Failed to sign in with Google");
       }
     } finally {
       setLoading(false);

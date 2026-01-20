@@ -10,22 +10,44 @@ import {
   Computer,
   ArrowRight,
   CheckCircle,
-  ExternalLink,
+  Download,
+  BookOpen,
+  Video,
+  FileText,
+  File,
   Calendar,
   Loader2,
-  Briefcase,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
-import { Progress } from "@/components/ui/progress";
 import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { useStudentSessions } from "@/hooks/use-session-queries";
 import { getDefaultAvatar } from "@/lib/event-utils";
 import {
   useActiveEnrollments,
   useCompletedEnrollments,
 } from "@/hooks/use-enrollment-queries";
+
+function getMaterialIcon(type: string) {
+  switch (type.toLowerCase()) {
+    case "pdf":
+      return <BookOpen className="h-4 w-4 text-red-500" />;
+    case "video":
+      return <Video className="h-4 w-4 text-blue-500" />;
+    case "doc":
+    case "docx":
+      return <FileText className="h-4 w-4 text-indigo-500" />;
+    default:
+      return <File className="h-4 w-4 text-muted-foreground" />;
+  }
+}
 
 function SessionCard({
   session,
@@ -65,9 +87,7 @@ function SessionCard({
               <h3 className="font-bold text-lg">
                 {session.coach?.fullName || "Unknown Coach"}
               </h3>
-              <Badge variant="outline">
-                {session.title || "1-on-1 Session"}
-              </Badge>
+              <Badge variant="outline">{session.title || "1-on-1 Session"}</Badge>
             </div>
           </div>
 
@@ -86,28 +106,22 @@ function SessionCard({
               <p>{sessionDate.toLocaleDateString()}</p>
             </div>
             <div>
-              <p className="text-muted-foreground font-semibold">Duration</p>
-              <p>{session.duration} min</p>
+              <p className="text-muted-foreground font-semibold">Session</p>
+              <p>{session.status?.charAt(0) + session.status?.slice(1).toLowerCase()}</p>
             </div>
           </div>
 
           <div className="md:col-span-1 flex items-center justify-end gap-2">
-            {!isSessionPast && (
-              <Badge
-                variant={session.status === "SCHEDULED" ? "default" : "secondary"}
-                className="text-xs mr-2"
-              >
-                {session.status?.charAt(0) +
-                  session.status?.slice(1).toLowerCase()}
-              </Badge>
-            )}
-            {session.meetLink && session.status === "SCHEDULED" && !isSessionPast && (
+            {!isSessionPast && session.status === "SCHEDULED" && session.meetLink && (
               <Button asChild>
                 <Link href={session.meetLink} target="_blank">
-                  <ExternalLink className="mr-2 h-4 w-4" />
+                  <Computer className="mr-2 h-4 w-4" />
                   Join Meeting
                 </Link>
               </Button>
+            )}
+            {isSessionPast && (
+               <Badge variant="secondary">Completed</Badge>
             )}
           </div>
         </div>
@@ -116,86 +130,239 @@ function SessionCard({
   );
 }
 
-function ProgramCard({ program }: { program: any }) {
+const CircularProgress = ({
+  progress,
+  size = 60,
+  strokeWidth = 4,
+}: {
+  progress: number;
+  size?: number;
+  strokeWidth?: number;
+}) => {
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (progress / 100) * circumference;
+
+  return (
+    <div
+      className="relative flex-shrink-0"
+      style={{ height: size, width: size }}
+    >
+      <svg className="h-full w-full -rotate-90" viewBox={`0 0 ${size} ${size}`}>
+        <circle
+          className="text-muted/20"
+          stroke="currentColor"
+          strokeWidth={strokeWidth}
+          fill="transparent"
+          r={radius}
+          cx={size / 2}
+          cy={size / 2}
+        />
+        <circle
+          className="text-primary"
+          stroke="currentColor"
+          strokeWidth={strokeWidth}
+          fill="transparent"
+          r={radius}
+          cx={size / 2}
+          cy={size / 2}
+          strokeDasharray={`${circumference} ${circumference}`}
+          strokeDashoffset={offset}
+          strokeLinecap="round"
+          style={{ transition: "stroke-dashoffset 0.3s ease" }}
+        />
+      </svg>
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span className="text-base font-bold">{Math.round(progress)}%</span>
+      </div>
+    </div>
+  );
+};
+
+function UpcomingProgramCard({ program }: { program: any }) {
   return (
     <Card>
       <CardContent className="p-6">
         <div className="flex flex-col gap-6">
-          <div className="flex items-center gap-6">
+          <div className="flex items-start gap-6">
             <div className="flex-1">
               <h3 className="font-bold text-lg">{program.title}</h3>
               <div className="flex items-center gap-2 mt-2">
                 <Avatar className="h-6 w-6">
                   <AvatarImage
-                    src={
-                      program.coach.avatar ||
-                      getDefaultAvatar(program.coach.name)
-                    }
+                    src={program.coach?.avatarUrl || getDefaultAvatar(program.coach?.fullName)}
                   />
-                  <AvatarFallback>
-                    {program.coach.name?.charAt(0) || "C"}
-                  </AvatarFallback>
+                  <AvatarFallback>{program.coach?.fullName?.charAt(0) || "C"}</AvatarFallback>
                 </Avatar>
                 <p className="text-sm text-muted-foreground">
-                  with {program.coach.name}
+                  with {program.coach?.fullName || program.coach?.name || "Unknown Coach"}
                 </p>
               </div>
             </div>
-            <Button asChild>
-              <Link href={`/programs/${program.slug}`}>
-                Continue Program <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
+            <Link href={`/programs/${program.slug}`}>
+              <Button>
+                View Program Details <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
           </div>
-          <div>
-            <div className="flex justify-between items-center mb-1">
-              <p className="text-sm text-muted-foreground">Progress</p>
-              <p className="text-sm font-semibold">{program.progress}%</p>
+
+          <div className="flex items-center gap-4 rounded-lg border p-4">
+            <CircularProgress progress={program.progress} />
+            <div>
+              <p className="font-semibold">Your Progress</p>
+              <p className="text-sm text-muted-foreground">
+                You've completed {Math.round(program.progress)}% of the program.
+              </p>
             </div>
-            <Progress value={program.progress} className="h-2" />
           </div>
           <Separator />
-          <div>
-            <h4 className="font-semibold text-muted-foreground mb-4">
-              Sessions
-            </h4>
-            <ul className="space-y-3">
-              {program.sessions.map((session: any, index: number) => (
-                <li key={index} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    {session.status === "Completed" ? (
-                      <CheckCircle className="h-5 w-5 text-green-500" />
+
+          <Accordion type="multiple" className="w-full space-y-4">
+            <Card className="p-0">
+              <AccordionItem value="objectives" className="border-none">
+                <AccordionTrigger className="p-4 font-semibold text-base hover:no-underline">
+                  Learning Objectives
+                </AccordionTrigger>
+                <AccordionContent className="px-4 pb-4">
+                  <ul className="space-y-3 list-disc list-inside text-muted-foreground">
+                    {program.objectives?.length > 0 ? (
+                      program.objectives.map((obj: string, i: number) => (
+                        <li key={i}>{obj}</li>
+                      ))
                     ) : (
-                      <Clock className="h-5 w-5 text-muted-foreground" />
+                      <li>Master the core concepts of this program.</li>
                     )}
-                    <span
-                      className={cn(
-                        session.status === "Completed" &&
-                          "text-muted-foreground line-through"
-                      )}
-                    >
-                      {session.title}
-                    </span>
-                  </div>
-                  {session.status === "Upcoming" ? (
-                    <Button variant="secondary" size="sm">
-                      <Computer className="mr-2 h-4 w-4" />
-                      Join Meeting
-                    </Button>
-                  ) : (
-                    <Badge
-                      variant="secondary"
-                      className={cn(
-                        session.status === "Completed" &&
-                          "bg-green-100 text-green-800"
-                      )}
-                    >
-                      {session.status}
-                    </Badge>
-                  )}
-                </li>
-              ))}
-            </ul>
+                  </ul>
+                </AccordionContent>
+              </AccordionItem>
+            </Card>
+
+            <Card className="p-0">
+              <AccordionItem value="modules" className="border-none">
+                <AccordionTrigger className="p-4 font-semibold text-base hover:no-underline">
+                  Program Modules
+                </AccordionTrigger>
+                <AccordionContent className="px-4 pb-4 space-y-4">
+                  <Accordion type="multiple" className="w-full space-y-2">
+                    {program.modules?.map((module: any, i: number) => (
+                      <Card key={i} className="bg-muted/50">
+                        <AccordionItem
+                          value={`module-${i}`}
+                          className="border-none"
+                        >
+                          <AccordionTrigger className="p-3 font-medium hover:no-underline">
+                            <div className="flex items-center gap-3">
+                              {module.status === "Completed" ? (
+                                <CheckCircle className="h-5 w-5 text-green-500" />
+                              ) : (
+                                <Clock className="h-5 w-5 text-muted-foreground" />
+                              )}
+                              <span
+                                className={cn(
+                                  module.status === "Completed" &&
+                                    "text-muted-foreground line-through"
+                                )}
+                              >
+                                {module.title}
+                              </span>
+                            </div>
+                          </AccordionTrigger>
+                          <AccordionContent className="px-3 pb-3">
+                            <p className="text-sm text-muted-foreground mb-4">
+                              {module.description}
+                            </p>
+                            {module.materials?.length > 0 && (
+                              <div className="mb-4">
+                                <h4 className="text-xs font-semibold uppercase text-muted-foreground mb-2">
+                                  Materials
+                                </h4>
+                                <div className="space-y-2">
+                                  {module.materials.map((mat: any, idx: number) => {
+                                      // If it's a string, we assume it's a link and try to guess type
+                                      const isString = typeof mat === 'string';
+                                      const name = isString ? mat.split('/').pop() : mat.name;
+                                      const link = isString ? mat : mat.link;
+                                      const type = isString ? (mat.endsWith('.pdf') ? 'pdf' : 'doc') : mat.type;
+                                      
+                                      return (
+                                        <a
+                                          key={idx}
+                                          href={link}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="flex items-center gap-2 text-sm hover:underline"
+                                        >
+                                          {getMaterialIcon(type)}
+                                          <span>{name}</span>
+                                        </a>
+                                      );
+                                  })}
+                                </div>
+                              </div>
+                            )}
+                            {/* In a real scenario, we might have session details per module */}
+                            {module.nextSession && (
+                              <div>
+                                <h4 className="text-xs font-semibold uppercase text-muted-foreground mb-2">
+                                  Next Session
+                                </h4>
+                                <div className="flex items-center justify-between p-3 rounded-md border bg-background">
+                                  <div className="flex items-center gap-2">
+                                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                                    <span className="text-sm">
+                                      {new Date(module.nextSession.date).toLocaleDateString()} at {module.nextSession.time}
+                                    </span>
+                                  </div>
+                                  <Button size="sm" asChild>
+                                    <Link href={module.nextSession.meetLink || "#"} target="_blank">
+                                        <Computer className="mr-2 h-4 w-4" />
+                                        Join Meeting
+                                    </Link>
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
+                          </AccordionContent>
+                        </AccordionItem>
+                      </Card>
+                    ))}
+                  </Accordion>
+                </AccordionContent>
+              </AccordionItem>
+            </Card>
+          </Accordion>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function CompletedProgramCard({ program }: { program: any }) {
+  return (
+    <Card className="bg-muted/50">
+      <CardContent className="p-6">
+        <div className="grid md:grid-cols-3 gap-6 items-center">
+          <div className="md:col-span-2">
+            <h3 className="font-bold text-lg">{program.title}</h3>
+            <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
+              <Avatar className="h-6 w-6">
+                <AvatarImage src={program.coach?.avatarUrl || getDefaultAvatar(program.coach?.fullName)} />
+                <AvatarFallback>{program.coach?.fullName?.charAt(0) || "C"}</AvatarFallback>
+              </Avatar>
+              <span>with {program.coach?.fullName || program.coach?.name}</span>
+            </div>
+            <div className="flex items-center gap-4 mt-4 text-sm text-muted-foreground">
+              <span>Enrolled: {new Date(program.enrollmentDate).toLocaleDateString()}</span>
+              {program.completionDate && (
+                  <span>Completed: {new Date(program.completionDate).toLocaleDateString()}</span>
+              )}
+            </div>
+          </div>
+          <div className="md:col-span-1 flex justify-start md:justify-end">
+            <Button variant="outline">
+              <Download className="mr-2 h-4 w-4" />
+              Completion Certificate
+            </Button>
           </div>
         </div>
       </CardContent>
@@ -208,13 +375,12 @@ export default function MySessionsPage() {
   const [activeProgramSubTab, setActiveProgramSubTab] =
     React.useState("Upcoming");
 
-  // Fetch real session data
+  // Fetch real data
   const { data: upcomingSessionsData, isLoading: loadingUpcoming } =
     useStudentSessions("upcoming");
   const { data: completedSessionsData, isLoading: loadingCompleted } =
     useStudentSessions("past");
 
-  // Fetch real enrollment data
   const { data: activeEnrollmentsData, isLoading: loadingActiveEnrollments } =
     useActiveEnrollments();
   const {
@@ -230,229 +396,190 @@ export default function MySessionsPage() {
 
   return (
     <div className="flex-1 space-y-8 p-4 md:p-8">
-      <Tabs defaultValue="individual" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 max-w-sm">
-          <TabsTrigger value="individual">Individual sessions</TabsTrigger>
-          <TabsTrigger value="group">My Programs</TabsTrigger>
-        </TabsList>
-        <TabsContent value="individual">
-          <div className="mt-6">
-            <div className="flex items-center gap-2 mb-6">
-              <Button
-                variant={activeSubTab === "Upcoming" ? "secondary" : "outline"}
-                onClick={() => setActiveSubTab("Upcoming")}
-              >
-                Upcoming
-              </Button>
-              <Button
-                variant={activeSubTab === "Previous" ? "secondary" : "outline"}
-                onClick={() => setActiveSubTab("Previous")}
-              >
-                Previous
-              </Button>
-            </div>
-            {activeSubTab === "Upcoming" && (
-              <div className="space-y-6">
-                {loadingUpcoming ? (
-                  <div className="space-y-4">
-                    {[...Array(3)].map((_, i) => (
-                      <Card key={i} className="p-6">
-                        <div className="animate-pulse flex items-center gap-4">
-                          <div className="h-16 w-16 bg-gray-200 rounded-full"></div>
-                          <div className="flex-1">
-                            <div className="h-4 bg-gray-200 rounded w-1/3 mb-2"></div>
-                            <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                          </div>
-                          <div className="h-8 bg-gray-200 rounded w-24"></div>
-                        </div>
-                      </Card>
-                    ))}
-                  </div>
-                ) : realUpcomingSessions.length > 0 ? (
-                  <div className="space-y-4">
-                    {realUpcomingSessions.map((session: any, index: number) => (
-                      <SessionCard
-                        key={session.id || index}
-                        session={session}
-                        isNext={index === 0}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-16">
-                    <Calendar className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-                    <h3 className="text-lg font-semibold mb-2">
-                      No Upcoming Sessions
-                    </h3>
-                    <p className="text-muted-foreground mb-6">
-                      You don't have any sessions scheduled yet. Book a session
-                      with one of our coaches to get started.
-                    </p>
-                    <Button asChild>
-                      <Link href="/coaches">Browse Coaches</Link>
-                    </Button>
-                  </div>
-                )}
+      <div className="container mx-auto max-w-5xl">
+        <Tabs defaultValue="individual" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 max-w-sm">
+            <TabsTrigger value="individual">Individual sessions</TabsTrigger>
+            <TabsTrigger value="group">My Programs</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="individual">
+            <div className="mt-6">
+              <div className="flex items-center gap-2 mb-6">
+                <Button
+                  variant={activeSubTab === "Upcoming" ? "secondary" : "outline"}
+                  onClick={() => setActiveSubTab("Upcoming")}
+                >
+                  Upcoming
+                </Button>
+                <Button
+                  variant={activeSubTab === "Previous" ? "secondary" : "outline"}
+                  onClick={() => setActiveSubTab("Previous")}
+                >
+                  Previous
+                </Button>
               </div>
-            )}
-            {activeSubTab === "Previous" && (
-              <div className="space-y-6">
-                {loadingCompleted ? (
-                  <div className="space-y-4">
-                    {[...Array(3)].map((_, i) => (
-                      <Card key={i} className="p-6">
-                        <div className="animate-pulse flex items-center gap-4">
-                          <div className="h-16 w-16 bg-gray-200 rounded-full"></div>
-                          <div className="flex-1">
-                            <div className="h-4 bg-gray-200 rounded w-1/3 mb-2"></div>
-                            <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+              
+              {activeSubTab === "Upcoming" && (
+                <div className="space-y-6">
+                  {loadingUpcoming ? (
+                    <div className="space-y-4">
+                      {[1, 2, 3].map((i) => (
+                        <Card key={i} className="p-6">
+                          <div className="animate-pulse flex items-center gap-4">
+                            <div className="h-16 w-16 bg-muted rounded-full" />
+                            <div className="flex-1 space-y-2">
+                              <div className="h-4 bg-muted rounded w-1/4" />
+                              <div className="h-4 bg-muted rounded w-1/2" />
+                            </div>
+                            <div className="h-10 bg-muted rounded w-32" />
                           </div>
-                          <div className="h-8 bg-gray-200 rounded w-24"></div>
-                        </div>
-                      </Card>
-                    ))}
-                  </div>
-                ) : realCompletedSessions.length > 0 ? (
-                  <div className="space-y-4">
-                    {realCompletedSessions.map(
-                      (session: any, index: number) => (
+                        </Card>
+                      ))}
+                    </div>
+                  ) : realUpcomingSessions.length > 0 ? (
+                    <div className="space-y-4">
+                      {realUpcomingSessions.map((session: any, index: number) => (
                         <SessionCard
                           key={session.id || index}
                           session={session}
+                          isNext={index === 0}
                         />
-                      )
-                    )}
-                  </div>
-                ) : (
-                  <div className="text-center py-16 text-muted-foreground">
-                    <CheckCircle className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-                    <h3 className="text-lg font-semibold mb-2">
-                      No Previous Sessions
-                    </h3>
-                    <p className="text-muted-foreground">
-                      Your completed sessions will appear here.
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </TabsContent>
-        <TabsContent value="group">
-          <div className="mt-6">
-            <div className="flex items-center gap-2 mb-6">
-              <Button
-                variant={
-                  activeProgramSubTab === "Upcoming" ? "secondary" : "outline"
-                }
-                onClick={() => setActiveProgramSubTab("Upcoming")}
-              >
-                Upcoming
-              </Button>
-              <Button
-                variant={
-                  activeProgramSubTab === "Previous" ? "secondary" : "outline"
-                }
-                onClick={() => setActiveProgramSubTab("Previous")}
-              >
-                Previous
-              </Button>
-            </div>
-
-            {activeProgramSubTab === "Upcoming" && (
-              <div className="space-y-4">
-                {loadingActiveEnrollments ? (
-                  <div className="space-y-4">
-                    {[...Array(3)].map((_, i) => (
-                      <Card key={i} className="p-6">
-                        <div className="animate-pulse">
-                          <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center gap-4">
-                              <div className="h-6 w-6 bg-gray-200 rounded-full"></div>
-                              <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-16">
+                      <Calendar className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+                      <h3 className="text-lg font-semibold mb-2">No Upcoming Sessions</h3>
+                      <p className="text-muted-foreground mb-6">
+                        You don't have any sessions scheduled yet.
+                      </p>
+                      <Button asChild>
+                        <Link href="/coaches">Browse Coaches</Link>
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              {activeSubTab === "Previous" && (
+                <div className="space-y-6">
+                  {loadingCompleted ? (
+                    <div className="space-y-4">
+                      {[1, 2, 3].map((i) => (
+                         <Card key={i} className="p-6">
+                            <div className="animate-pulse flex items-center gap-4">
+                              <div className="h-16 w-16 bg-muted rounded-full" />
+                              <div className="flex-1 space-y-2">
+                                <div className="h-4 bg-muted rounded w-1/4" />
+                                <div className="h-4 bg-muted rounded w-1/2" />
+                              </div>
                             </div>
-                            <div className="h-8 bg-gray-200 rounded w-32"></div>
-                          </div>
-                          <div className="h-2 bg-gray-200 rounded mb-4"></div>
-                          <div className="space-y-2">
-                            <div className="h-4 bg-gray-200 rounded w-1/3"></div>
-                            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                          </div>
-                        </div>
-                      </Card>
-                    ))}
-                  </div>
-                ) : activeEnrollments.length > 0 ? (
-                  activeEnrollments
-                    .filter((program: any) =>
-                      program.sessions.some((s: any) => s.status === "Upcoming")
-                    )
-                    .map((program: any, index: number) => (
-                      <ProgramCard
-                        key={program.id || index}
-                        program={program}
+                         </Card>
+                      ))}
+                    </div>
+                  ) : realCompletedSessions.length > 0 ? (
+                    <div className="space-y-4">
+                      {realCompletedSessions.map((session: any, index: number) => (
+                        <SessionCard key={session.id || index} session={session} />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-16 text-muted-foreground">
+                       <CheckCircle className="h-16 w-16 mx-auto mb-4" />
+                       <p>No previous sessions.</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="group">
+            <div className="mt-6">
+              <div className="flex items-center gap-2 mb-6">
+                <Button
+                  variant={activeProgramSubTab === "Upcoming" ? "secondary" : "outline"}
+                  onClick={() => setActiveProgramSubTab("Upcoming")}
+                >
+                  Upcoming
+                </Button>
+                <Button
+                  variant={activeProgramSubTab === "Previous" ? "secondary" : "outline"}
+                  onClick={() => setActiveProgramSubTab("Previous")}
+                >
+                  Previous
+                </Button>
+              </div>
+
+              {activeProgramSubTab === "Upcoming" && (
+                <div className="space-y-4">
+                  {loadingActiveEnrollments ? (
+                    <div className="space-y-4">
+                       {[1, 2].map(i => (
+                           <Card key={i} className="p-6 animate-pulse">
+                               <div className="h-6 w-1/3 bg-muted rounded mb-4" />
+                               <div className="h-20 bg-muted rounded mb-4" />
+                           </Card>
+                       ))}
+                    </div>
+                  ) : activeEnrollments.length > 0 ? (
+                    activeEnrollments.map((enrollment: any, index: number) => (
+                      <UpcomingProgramCard
+                        key={enrollment.id || index}
+                        program={{
+                          ...enrollment.program,
+                          progress: enrollment.progress,
+                          enrollmentDate: enrollment.enrollmentDate,
+                          coach: enrollment.coach?.user || enrollment.coach, // Adjust based on API structure
+                        }}
                       />
                     ))
-                ) : (
-                  <div className="text-center py-16">
-                    <Briefcase className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-                    <h3 className="text-lg font-semibold mb-2">
-                      No Active Programs
-                    </h3>
-                    <p className="text-muted-foreground mb-6">
-                      You're not currently enrolled in any programs. Browse our
-                      catalog to get started.
-                    </p>
-                    <Button asChild>
-                      <Link href="/programs">Browse Programs</Link>
-                    </Button>
-                  </div>
-                )}
-              </div>
-            )}
-            {activeProgramSubTab === "Previous" && (
-              <div className="space-y-4">
-                {loadingCompletedEnrollments ? (
-                  <div className="space-y-4">
-                    {[...Array(3)].map((_, i) => (
-                      <Card key={i} className="p-6">
-                        <div className="animate-pulse">
-                          <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center gap-4">
-                              <div className="h-6 w-6 bg-gray-200 rounded-full"></div>
-                              <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-                            </div>
-                            <div className="h-8 bg-gray-200 rounded w-32"></div>
-                          </div>
-                          <div className="h-2 bg-gray-200 rounded mb-4"></div>
-                          <div className="space-y-2">
-                            <div className="h-4 bg-gray-200 rounded w-1/3"></div>
-                            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                          </div>
-                        </div>
-                      </Card>
-                    ))}
-                  </div>
-                ) : completedEnrollments.length > 0 ? (
-                  completedEnrollments.map((program: any, index: number) => (
-                    <ProgramCard key={program.id || index} program={program} />
-                  ))
-                ) : (
-                  <div className="text-center py-16 text-muted-foreground">
-                    <CheckCircle className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-                    <h3 className="text-lg font-semibold mb-2">
-                      No Completed Programs
-                    </h3>
-                    <p className="text-muted-foreground">
-                      Your completed programs will appear here.
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </TabsContent>
-      </Tabs>
+                  ) : (
+                    <div className="text-center py-16">
+                       <BookOpen className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+                       <h3 className="text-lg font-semibold mb-2">No Active Programs</h3>
+                       <p className="text-muted-foreground mb-6">
+                          You're not currently enrolled in any programs.
+                       </p>
+                       <Button asChild>
+                          <Link href="/programs">Browse Programs</Link>
+                       </Button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {activeProgramSubTab === "Previous" && (
+                <div className="space-y-4">
+                   {loadingCompletedEnrollments ? (
+                     <div className="space-y-4">
+                         <Card className="p-6 animate-pulse h-24 bg-muted" />
+                     </div>
+                   ) : completedEnrollments.length > 0 ? (
+                     completedEnrollments.map((enrollment: any, index: number) => (
+                       <CompletedProgramCard
+                         key={enrollment.id || index}
+                         program={{
+                            ...enrollment.program,
+                            enrollmentDate: enrollment.enrollmentDate,
+                            completionDate: enrollment.completionDate,
+                            coach: enrollment.coach?.user || enrollment.coach,
+                         }}
+                       />
+                     ))
+                   ) : (
+                     <div className="text-center py-16 text-muted-foreground">
+                        <CheckCircle className="h-16 w-16 mx-auto mb-4" />
+                        <p>No previously completed programs.</p>
+                     </div>
+                   )}
+                </div>
+              )}
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 }

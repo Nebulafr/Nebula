@@ -75,4 +75,9 @@ export type ProgramWithRelations = Program & {
     reviews: number;
   };
   hasUserReviewed: boolean;
+  schedules?: Array<{
+    id: string;
+    startDate: Date;
+    endDate?: Date;
+  }>;
 };

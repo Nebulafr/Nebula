@@ -141,10 +141,10 @@ export class AdminService {
 
     switch (action) {
       case "approve":
-        status = "ACTIVE";
-        isActive = true;
+        status = "APPROVED";
+        isActive = false;
         if (program.status === "PENDING_APPROVAL") {
-          emailTemplate = "PROGRAM_LIVE";
+          emailTemplate = "APPLICATION_APPROVED";
         }
         break;
       case "reject":
@@ -155,6 +155,7 @@ export class AdminService {
       case "activate":
         status = "ACTIVE";
         isActive = true;
+        emailTemplate = "PROGRAM_LIVE";
         break;
       case "deactivate":
         status = "INACTIVE";

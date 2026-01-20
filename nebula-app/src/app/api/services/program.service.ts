@@ -157,11 +157,12 @@ export class ProgramService {
     const limit = limitParam ? parseInt(limitParam) : 10;
 
     const whereClause: any = {
-      isActive: coachId ? false : true,
+      isActive: true,
     };
 
     if (coachId) {
       whereClause.coachId = coachId;
+      whereClause.status = "ACTIVE";
     }
 
     if (category) {
@@ -290,6 +291,7 @@ export class ProgramService {
             reviewer: true,
           },
         },
+        schedules: true,
       },
     });
 

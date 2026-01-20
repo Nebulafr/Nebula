@@ -27,7 +27,7 @@ import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { Footer } from "@/components/layout/footer";
 import { getProgramBySlug } from "@/actions/programs";
-import { enrollInProgram } from "@/actions/enrollment";
+import { enrollInProgram, getEnrollments } from "@/actions/enrollment";
 import { toast } from "react-toastify";
 import { Header } from "@/components/layout/header";
 import { useAuth } from "@/hooks/use-auth";
@@ -98,19 +98,46 @@ export default function ProgramDetailPage({
 
   useEffect(() => {
     const checkEnrollmentStatus = async () => {
-      if (!profile || !program?.id) return;
-
-      try {
-        // For now, we'll use a simple check based on user's profile
-        // In a real implementation, this would be an API call to check enrollments
-        setIsEnrolled(false); // Placeholder - will be replaced with proper enrollment API
-      } catch (error) {
-        console.error("Error checking enrollment status:", error);
+      if (profile && program) {
+        try {
+          const response = await getEnrollments();
+          if (response && response.success) {
+            const isStudentEnrolled = response.data!.enrollments.some(
+              (en: any) => en.programId === program.id
+            );
+            setIsEnrolled(isStudentEnrolled);
+          }
+        } catch (error) {
+          console.error("Error checking enrollment status:", error);
+        }
       }
     };
 
     checkEnrollmentStatus();
   }, [profile, program]);
+
+  // Handle program schedule selection automatically
+  useEffect(() => {
+    if (program && program.schedules && program.schedules.length > 0) {
+      const now = new Date();
+      const futureSchedules = program.schedules
+        .map((s) => ({ ...s, startDate: new Date(s.startDate) }))
+        .filter((s) => s.startDate > now)
+        .sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
+
+      if (futureSchedules.length > 0) {
+        const bestSchedule = futureSchedules[0];
+        setSelectedDate(bestSchedule.startDate);
+        const timeStr = bestSchedule.startDate.toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+        });
+        setSelectedTime(timeStr);
+        setLocalSelectedTime(timeStr);
+      }
+    }
+  }, [program]);
 
   if (loading) {
     return (
@@ -175,7 +202,13 @@ export default function ProgramDetailPage({
       router.replace("/login");
       return;
     }
-    setEnrollmentStep(1);
+    // If we have a selected date/time from the program schedule, go straight to confirmation (step 2)
+    if (selectedDate && selectedTime) {
+      setEnrollmentStep(2);
+    } else {
+      // Fallback if no schedule is found (shouldn't happen with user's new requirement)
+      setEnrollmentStep(1);
+    }
   };
 
   const handleCancelEnrollment = () => {
@@ -327,7 +360,7 @@ export default function ProgramDetailPage({
                 Programs
               </Link>
               <ChevronRight className="h-4 w-4" />
-              <span>{program.category?.name!}</span>
+              <span>{program.category?.name || "Program"}</span>
             </div>
             <h1 className="font-headline text-5xl font-bold tracking-tighter text-primary md:text-6xl">
               {program.title}
@@ -336,13 +369,20 @@ export default function ProgramDetailPage({
               {program.description}
             </p>
             <div className="mt-8 flex items-center gap-4">
-              {isStudent && (
+              {isStudent && !isEnrolled && (
                 <Button
                   size="lg"
                   onClick={handleEnrollClick}
                   variant={enrollmentStep > 0 ? "outline" : "default"}
                 >
                   <PlusCircle className="mr-2 h-5 w-5" /> Enroll now
+                </Button>
+              )}
+              {isEnrolled && (
+                <Button size="lg" variant="outline" asChild>
+                  <Link href="/dashboard">
+                    <CheckCircle className="mr-2 h-5 w-5" /> Access Dashboard
+                  </Link>
                 </Button>
               )}
               <Button
@@ -360,13 +400,13 @@ export default function ProgramDetailPage({
         </section>
 
         <section className="container pb-20">
-          <div className="grid grid-cols-1 md:grid-cols-3 md:gap-12">
-            <div className="md:col-span-2">
+          <div className="grid grid-cols-1 md:grid-cols-5 md:gap-12">
+            <div className="md:col-span-3">
               <div className="mb-12">
-                <h2 className="mb-6 font-headline text-3xl font-bold">
-                  What you'll learn
+                <h2 className="mb-6 font-headline text-2xl font-bold">
+                  Learning Objectives
                 </h2>
-                <ul className="space-y-3 text-muted-foreground">
+                <ul className="space-y-4 text-muted-foreground">
                   {program.objectives.map((obj, i) => (
                     <li key={i} className="flex items-start gap-3">
                       <CheckCircle className="h-5 w-5 text-primary mt-1 flex-shrink-0" />
@@ -377,13 +417,49 @@ export default function ProgramDetailPage({
               </div>
             </div>
 
-            <div
-              className={cn(
-                "hidden md:block md:col-span-1",
-                enrollmentStep > 0 && "pt-10"
-              )}
-            >
-              <div className="sticky top-24">
+            <div className="hidden md:block md:col-span-2 relative">
+              <div className="sticky top-24 max-h-[calc(100vh-6rem)] overflow-y-auto">
+                {enrollmentStep > 0 || isEnrolled ? (
+                  <EnrollmentForm
+                    step={enrollmentStep}
+                    loading={enrolling}
+                    isEnrolled={isEnrolled}
+                    selectedDate={selectedDate}
+                    selectedTime={selectedTime}
+                    localSelectedTime={localSelectedTime}
+                    onEnroll={handleEnrollClick}
+                    onCancel={handleCancelEnrollment}
+                    onDateSelect={handleDateSelect}
+                    onTimeSelect={handleTimeSelect}
+                    onLocalTimeSelect={handleLocalTimeSelect}
+                  />
+                ) : (
+                  <>
+                    <h2 className="mb-4 font-headline text-lg font-bold text-center">
+                      {program.currentEnrollments || 0} students enrolled so far
+                    </h2>
+                    <Card className="rounded-xl bg-secondary text-secondary-foreground min-h-48 flex flex-col justify-center">
+                      <CardContent className="p-6 text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          <Star className="h-8 w-8 fill-yellow-400 text-yellow-400" />
+                          <span className="font-headline text-6xl font-bold">
+                            {Number(program.rating || 0).toFixed(1)}
+                          </span>
+                        </div>
+                        <p className="mt-2 text-sm text-secondary-foreground/80">
+                          Rated {Number(program.rating || 0).toFixed(1)}/5 by{" "}
+                          {program.totalReviews || 0} students
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Enrollment form for mobile screens */}
+            <div className="md:hidden mt-8">
+              {enrollmentStep > 0 || isEnrolled ? (
                 <EnrollmentForm
                   step={enrollmentStep}
                   loading={enrolling}
@@ -396,294 +472,247 @@ export default function ProgramDetailPage({
                   onDateSelect={handleDateSelect}
                   onTimeSelect={handleTimeSelect}
                   onLocalTimeSelect={handleLocalTimeSelect}
-                  title="Ready to start?"
-                  subtitle="Enroll in this program to get personalized coaching."
-                  enrollButtonText="Enroll now"
-                  dateSelectTitle="Select a start date"
-                  timeSelectTitle="Select a time"
-                  successTitle="You're In!"
-                  successMessage="Welcome to the program. You can view your enrollment details on your dashboard."
-                  dashboardLink="/dashboard"
                 />
-              </div>
-            </div>
-
-            <div className="md:hidden mt-8">
-              <EnrollmentForm
-                step={enrollmentStep}
-                loading={enrolling}
-                isEnrolled={isEnrolled}
-                selectedDate={selectedDate}
-                selectedTime={selectedTime}
-                localSelectedTime={localSelectedTime}
-                onEnroll={handleEnrollClick}
-                onCancel={handleCancelEnrollment}
-                onDateSelect={handleDateSelect}
-                onTimeSelect={handleTimeSelect}
-                onLocalTimeSelect={handleLocalTimeSelect}
-                title="Ready to start?"
-                subtitle="Enroll in this program to get personalized coaching."
-                enrollButtonText="Enroll now"
-                dateSelectTitle="Select a start date"
-                timeSelectTitle="Select a time"
-                successTitle="You're In!"
-                successMessage="Welcome to the program. You can view your enrollment details on your dashboard."
-                dashboardLink="/dashboard"
-              />
+              ) : (
+                isStudent && (
+                  <Button
+                    size="lg"
+                    className="w-full"
+                    onClick={handleEnrollClick}
+                  >
+                    <PlusCircle className="mr-2 h-5 w-5" /> Enroll Now
+                  </Button>
+                )
+              )}
             </div>
           </div>
         </section>
 
-        <section className="bg-muted/50 py-20">
-          <div className="container">
-            <div className="grid grid-cols-1 gap-16 md:grid-cols-3">
-              <div className="md:col-span-2">
-                <h2 className="mb-4 font-headline text-xl font-bold">
-                  This program is run by
-                </h2>
-                <div className="flex items-center gap-4">
-                  <Avatar className="h-20 w-20">
-                    <AvatarImage
-                      src={program.coach.user.avatarUrl || undefined}
-                    />
-                    <AvatarFallback>
-                      {program.coach.user.fullName?.charAt(0) || "C"}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <h3 className="font-headline text-2xl font-semibold">
-                      {program.coach.user.fullName || "Unknown Coach"}
-                    </h3>
-                    <p className="text-muted-foreground">
-                      {program.coach.title || "Coach"}
-                    </p>
-                  </div>
-                  <Badge
-                    variant="outline"
-                    className="flex items-center gap-1 border-yellow-400 bg-yellow-50/50 text-yellow-700 ml-auto"
-                  >
-                    <Star className="h-4 w-4 fill-current text-yellow-500" />
-                    <span className="font-semibold">
-                      {program.coach.rating || 0}
-                    </span>
-                  </Badge>
+        <section className="container py-20">
+          <div className="grid grid-cols-1 gap-16 md:grid-cols-3">
+            <div className="md:col-span-2">
+              <h2 className="mb-4 font-headline text-xl font-bold">
+                This program is run by
+              </h2>
+              <div className="flex items-center gap-4">
+                <Avatar className="h-20 w-20">
+                  <AvatarImage src={program.coach.user.avatarUrl || undefined} />
+                  <AvatarFallback>
+                    {program.coach.user.fullName?.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <h3 className="font-headline text-2xl font-semibold">
+                    {program.coach.user.fullName}
+                  </h3>
+                  <p className="text-muted-foreground">{program.coach.title}</p>
                 </div>
-                <p className="mt-6 text-base text-muted-foreground">
-                  {program.coach.bio || "No bio available"}
-                </p>
+                <Badge
+                  variant="outline"
+                  className="flex items-center gap-1 border-yellow-400 bg-yellow-50/50 text-yellow-700 ml-auto px-2 py-0.5"
+                >
+                  <Star className="h-4 w-4 fill-current text-yellow-500" />
+                  <span className="font-semibold">
+                    {Number(program.coach.rating || 0).toFixed(1)}
+                  </span>
+                </Badge>
+              </div>
+              <p className="mt-6 text-base text-muted-foreground">
+                {program.coach.bio}
+              </p>
+              <div className="flex items-center gap-4 mt-6">
+                <Button asChild>
+                  <Link href={`/coaches/${program.coach.user.id}`}>
+                    View Profile
+                  </Link>
+                </Button>
                 {isStudent && (
-                  <Button
-                    variant="outline"
-                    className="mt-6"
-                    onClick={handleMessageClick}
-                  >
+                  <Button variant="outline" onClick={handleMessageClick}>
                     <MessageCircle className="mr-2 h-4 w-4" />
-                    Message{" "}
-                    {program.coach.user.fullName?.split(" ")[0] || "Coach"}
+                    Message {program.coach.user.fullName?.split(" ")[0]}
                   </Button>
                 )}
-                {program.coach.pastCompanies &&
-                  program.coach.pastCompanies.length > 0 && (
-                    <div className="mt-12">
-                      <h4 className="text-sm font-semibold text-muted-foreground">
-                        {program.coach.user.fullName?.split(" ")[0] || "Coach"}{" "}
-                        has worked at:
-                      </h4>
-                      <div className="mt-4 flex items-center gap-6">
-                        {program.coach.pastCompanies
-                          .slice(0, 3)
-                          .map((company, index) => (
-                            <div
-                              key={index}
-                              className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-200 text-sm font-bold text-gray-700"
-                            >
-                              {company.substring(0, 5)}
-                            </div>
-                          ))}
-                      </div>
-                    </div>
-                  )}
               </div>
-              <div className="md:col-span-1">
-                <div className="flex items-center justify-between mb-8">
-                  <h2 className="mb-4 font-headline text-xl font-bold">
-                    Reviews ({program.totalReviews || 0})
-                  </h2>
-                  <Dialog
-                    open={isReviewDialogOpen}
-                    onOpenChange={setIsReviewDialogOpen}
-                  >
-                    <DialogTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="rounded-full"
-                        disabled={
-                          program.hasUserReviewed || profile?.role !== "STUDENT"
-                        }
-                        title={
-                          program.hasUserReviewed
-                            ? "You have already reviewed this program"
-                            : "Add a review"
-                        }
-                      >
-                        <PlusCircle className="h-5 w-5" />
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent
-                      className="sm:max-w-[625px]"
-                      onInteractOutside={(e) => {
-                        if (reviewSubmitted) {
-                          e.preventDefault();
-                        }
-                      }}
-                    >
-                      {!reviewSubmitted ? (
-                        <>
-                          <DialogHeader>
-                            <DialogTitle>Share your review</DialogTitle>
-                            <DialogDescription>
-                              Let others know about your experience with{" "}
-                              {program.title}.
-                            </DialogDescription>
-                          </DialogHeader>
-                          <form
-                            onSubmit={handleReviewSubmit}
-                            className="grid gap-6 py-4"
-                          >
-                            <div className="grid gap-2">
-                              <Label>Your Rating</Label>
-                              <div className="flex items-center gap-1">
-                                {[...Array(5)].map((_, i) => {
-                                  const starValue = i + 1;
-                                  return (
-                                    <Star
-                                      key={i}
-                                      className={cn(
-                                        "h-6 w-6 cursor-pointer",
-                                        starValue <= (hoverRating || rating)
-                                          ? "text-yellow-400 fill-yellow-400"
-                                          : "text-gray-300"
-                                      )}
-                                      onClick={() => setRating(starValue)}
-                                      onMouseEnter={() =>
-                                        setHoverRating(starValue)
-                                      }
-                                      onMouseLeave={() => setHoverRating(0)}
-                                    />
-                                  );
-                                })}
-                              </div>
-                            </div>
-                            <div className="grid gap-2">
-                              <Label htmlFor="review-text">
-                                Share your thoughts
-                              </Label>
-                              <Textarea
-                                id="review-text"
-                                placeholder="What did you like or dislike? What should other students know?"
-                                rows={4}
-                                value={reviewText}
-                                onChange={(e) => setReviewText(e.target.value)}
-                                required
-                              />
-                            </div>
-                            <DialogFooter>
-                              <Button
-                                type="submit"
-                                disabled={
-                                  rating === 0 ||
-                                  !reviewText.trim() ||
-                                  isSubmittingReview
-                                }
-                              >
-                                {isSubmittingReview
-                                  ? "Submitting..."
-                                  : "Submit Review"}
-                              </Button>
-                            </DialogFooter>
-                          </form>
-                        </>
-                      ) : (
-                        <>
-                          <DialogHeader>
-                            <VisuallyHidden>
-                              <DialogTitle>Review Submitted</DialogTitle>
-                            </VisuallyHidden>
-                          </DialogHeader>
-                          <div className="text-center py-8">
-                            <CheckCircle className="h-16 w-16 mx-auto mb-4 text-green-500" />
-                            <h3 className="text-xl font-semibold">
-                              Thank You!
-                            </h3>
-                            <p className="text-muted-foreground mt-2">
-                              Your review has been submitted successfully.
-                            </p>
-                            <Button onClick={resetReviewForm} className="mt-6">
-                              Close
-                            </Button>
-                          </div>
-                        </>
-                      )}
-                    </DialogContent>
-                  </Dialog>
-                </div>
+            </div>
+            <div className="md:col-span-1">
+              <h2 className="mb-4 font-headline text-xl font-bold">Reviews</h2>
+              {program.reviews.length > 0 ? (
                 <Card className="rounded-xl border shadow-sm">
                   <CardContent className="p-6">
                     <div className="flex items-center gap-1">
-                      {[...Array(Math.floor(program.rating))].map((_, i) => (
+                      {[...Array(5)].map((_, i) => (
                         <Star
                           key={i}
-                          className="h-5 w-5 fill-yellow-400 text-yellow-400"
+                          className={cn(
+                            "h-5 w-5",
+                            i < Math.round(program.rating || 0)
+                              ? "fill-yellow-400 text-yellow-400"
+                              : "text-muted opacity-30"
+                          )}
                         />
                       ))}
                     </div>
-                    {program.reviews.length > 0 ? (
-                      <>
-                        <p className="font-serif mt-4 text-sm text-muted-foreground">
-                          &quot;{program.reviews[0].content}&quot;
-                        </p>
-                        <p className="mt-4 text-sm font-semibold">
-                          {program.reviews[0].reviewer.fullName || "Anonymous"},{" "}
-                          <span className="font-normal text-muted-foreground">
-                            Verified Student
-                          </span>
-                        </p>
-                      </>
-                    ) : (
-                      <p className="font-serif mt-4 text-sm text-muted-foreground">
-                        No reviews yet. Be the first to share your experience!
-                      </p>
-                    )}
+                    <p className="font-serif mt-4 text-base text-muted-foreground">
+                      &quot;{program.reviews[0].content}&quot;
+                    </p>
+                    <p className="mt-4 text-sm font-semibold">
+                      {program.reviews[0].reviewer.fullName},{" "}
+                      <span className="font-normal text-muted-foreground">
+                        Student
+                      </span>
+                    </p>
 
-                    <Button variant="link" className="mt-4 px-0" asChild>
-                      <Link href={`/programs/${slug}/reviews`}>
-                        View more reviews{" "}
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </Link>
-                    </Button>
+                    <div className="mt-4 flex items-center justify-between">
+                      <Dialog
+                        open={isReviewDialogOpen}
+                        onOpenChange={setIsReviewDialogOpen}
+                      >
+                        <DialogTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="rounded-full"
+                            disabled={
+                              program.hasUserReviewed ||
+                              profile?.role !== "STUDENT"
+                            }
+                          >
+                            <PlusCircle className="h-5 w-5" />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent
+                          className="sm:max-w-[625px]"
+                          onInteractOutside={(e) => {
+                            if (reviewSubmitted) {
+                              e.preventDefault();
+                            }
+                          }}
+                        >
+                          {!reviewSubmitted ? (
+                            <>
+                              <DialogHeader>
+                                <DialogTitle>Share your review</DialogTitle>
+                                <DialogDescription>
+                                  Let others know about your experience with
+                                  this program.
+                                </DialogDescription>
+                              </DialogHeader>
+                              <form
+                                onSubmit={handleReviewSubmit}
+                                className="grid gap-6 py-4"
+                              >
+                                <div className="grid gap-2">
+                                  <Label>Your Rating</Label>
+                                  <div className="flex items-center gap-1">
+                                    {[...Array(5)].map((_, i) => {
+                                      const starValue = i + 1;
+                                      return (
+                                        <Star
+                                          key={i}
+                                          className={cn(
+                                            "h-6 w-6 cursor-pointer",
+                                            starValue <= (hoverRating || rating)
+                                              ? "text-yellow-400 fill-yellow-400"
+                                              : "text-gray-300"
+                                          )}
+                                          onClick={() => setRating(starValue)}
+                                          onMouseEnter={() =>
+                                            setHoverRating(starValue)
+                                          }
+                                          onMouseLeave={() => setHoverRating(0)}
+                                        />
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                                <div className="grid gap-2">
+                                  <Label htmlFor="review-text">
+                                    Share your thoughts
+                                  </Label>
+                                  <Textarea
+                                    id="review-text"
+                                    placeholder="What did you like or dislike? What should other students know?"
+                                    rows={4}
+                                    value={reviewText}
+                                    onChange={(e) =>
+                                      setReviewText(e.target.value)
+                                    }
+                                    required
+                                  />
+                                </div>
+                                <DialogFooter>
+                                  <Button
+                                    type="submit"
+                                    disabled={
+                                      rating === 0 ||
+                                      !reviewText.trim() ||
+                                      isSubmittingReview
+                                    }
+                                  >
+                                    {isSubmittingReview
+                                      ? "Submitting..."
+                                      : "Submit Review"}
+                                  </Button>
+                                </DialogFooter>
+                              </form>
+                            </>
+                          ) : (
+                            <div className="text-center py-8">
+                              <CheckCircle className="h-16 w-16 mx-auto mb-4 text-green-500" />
+                              <h3 className="text-xl font-semibold">
+                                Thank You!
+                              </h3>
+                              <p className="text-muted-foreground mt-2">
+                                Your review has been submitted successfully.
+                              </p>
+                              <Button
+                                onClick={resetReviewForm}
+                                className="mt-6"
+                              >
+                                Close
+                              </Button>
+                            </div>
+                          )}
+                        </DialogContent>
+                      </Dialog>
+                      <Button variant="link" className="px-0" asChild>
+                        <Link href={`/programs/${slug}/reviews`}>
+                          View more reviews{" "}
+                          <ArrowRight className="ml-2 h-4 w-4" />
+                        </Link>
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
-              </div>
+              ) : (
+                <p className="text-muted-foreground text-sm">
+                  No reviews yet for this new program.
+                </p>
+              )}
             </div>
           </div>
         </section>
 
         <section id="modules" className="container py-20">
-          <h2 className="mb-8 font-headline text-3xl font-bold">Modules</h2>
-          <Accordion type="single" collapsible className="w-full">
+          <h2 className="mb-8 font-headline text-3xl font-bold">
+            Program Modules
+          </h2>
+          <Accordion
+            type="single"
+            collapsible
+            className="w-full"
+            defaultValue="item-0"
+          >
             {program.modules.map((mod, i) => (
               <AccordionItem key={mod.id} value={`item-${i}`}>
-                <AccordionTrigger className="text-lg font-semibold hover:no-underline">
+                <AccordionTrigger className="text-lg font-semibold hover:no-underline text-left">
                   <div className="flex items-center gap-4">
                     <span>{mod.title}</span>
                     <Badge variant="secondary">Week {mod.week}</Badge>
                   </div>
                 </AccordionTrigger>
-                <AccordionContent className="text-base text-muted-foreground pl-4 pb-4">
-                  <p className="mb-4">
-                    {mod.description || "No description available"}
-                  </p>
+                <AccordionContent className="text-base text-muted-foreground pl-4 pb-4 font-normal">
+                  {mod.description}
                 </AccordionContent>
               </AccordionItem>
             ))}
@@ -707,16 +736,6 @@ function EnrollmentForm({
   onDateSelect,
   onTimeSelect,
   onLocalTimeSelect,
-  title = "Ready to start?",
-  subtitle = "Enroll in this program to get personalized coaching.",
-  enrollButtonText = "Enroll now",
-  dateSelectTitle = "Select a start date",
-  timeSelectTitle = "Select a time",
-  successTitle = "You're In!",
-  successMessage = "Welcome to the program. You can view your enrollment details on your dashboard.",
-  dashboardLink = "/dashboard",
-  showMessageButton = false,
-  onMessageClick,
 }: {
   step: number;
   loading?: boolean;
@@ -729,16 +748,6 @@ function EnrollmentForm({
   onDateSelect: (date: Date | undefined) => void;
   onTimeSelect: (time: string) => void;
   onLocalTimeSelect: (time: string) => void;
-  title?: string;
-  subtitle?: string;
-  enrollButtonText?: string;
-  dateSelectTitle?: string;
-  timeSelectTitle?: string;
-  successTitle?: string;
-  successMessage?: string;
-  dashboardLink?: string;
-  showMessageButton?: boolean;
-  onMessageClick?: () => void;
 }) {
   const { isStudent } = useAuth();
   const timeSlots = ["09:00", "11:00", "14:00", "16:00"];
@@ -758,7 +767,7 @@ function EnrollmentForm({
             </p>
             <div className="space-y-2">
               <Button size="lg" className="w-full" asChild>
-                <Link href={dashboardLink}>Go to Dashboard</Link>
+                <Link href="/dashboard">Go to Dashboard</Link>
               </Button>
             </div>
           </CardContent>
@@ -769,63 +778,13 @@ function EnrollmentForm({
     return (
       <Card className="rounded-xl border shadow-lg">
         <CardContent className="p-6 text-center">
-          <h3 className="font-headline text-2xl font-bold">{title}</h3>
-          <p className="text-muted-foreground mt-2 mb-6">{subtitle}</p>
+          <h3 className="font-headline text-2xl font-bold font-headline">Ready to start?</h3>
+          <p className="text-muted-foreground mt-2 mb-6 text-sm">Enroll in this program to get personalized coaching.</p>
           {isStudent && (
             <Button size="lg" className="w-full" onClick={onEnroll}>
-              <PlusCircle className="mr-2 h-5 w-5" /> {enrollButtonText}
+              <PlusCircle className="mr-2 h-5 w-5" /> Enroll now
             </Button>
           )}
-          {showMessageButton && onMessageClick && (
-            <Button
-              size="lg"
-              variant="outline"
-              className="w-full mt-2"
-              onClick={onMessageClick}
-            >
-              <MessageCircle className="mr-2 h-5 w-5" /> Message
-            </Button>
-          )}
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (step === 1) {
-    return (
-      <Card className="rounded-xl border shadow-lg p-0">
-        <CardContent className="p-0">
-          <div className="flex justify-between items-center mb-4 px-4 pt-4">
-            <h3 className="font-headline text-lg font-bold">
-              {dateSelectTitle}
-            </h3>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onCancel}
-              className="-mr-2 -mt-2"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-          <div className="flex justify-center">
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={onDateSelect}
-              className="p-0"
-              disabled={(date) => date < new Date()}
-            />
-          </div>
-          <div className="px-4 pb-4">
-            <Button
-              className="w-full mt-4"
-              disabled={!selectedDate}
-              onClick={() => onDateSelect(selectedDate)}
-            >
-              Continue <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </div>
         </CardContent>
       </Card>
     );
@@ -833,12 +792,10 @@ function EnrollmentForm({
 
   if (step === 2) {
     return (
-      <Card className="rounded-xl border shadow-lg p-4">
-        <CardContent className="p-0">
+      <Card className="rounded-xl border border-border shadow-lg">
+        <CardContent className="p-6">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="font-headline text-lg font-bold">
-              {timeSelectTitle}
-            </h3>
+            <h3 className="font-headline text-lg font-bold text-left">Confirm Schedule</h3>
             <Button
               variant="ghost"
               size="icon"
@@ -848,30 +805,25 @@ function EnrollmentForm({
               <X className="h-4 w-4" />
             </Button>
           </div>
-          <div className="mt-4">
-            <h4 className="font-semibold text-sm mb-2">Available Slots</h4>
-            <div className="grid grid-cols-2 gap-2">
-              {timeSlots.map((time) => (
-                <Button
-                  key={time}
-                  variant="outline"
-                  className={cn(
-                    localSelectedTime === time &&
-                      "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
-                  )}
-                  onClick={() => onLocalTimeSelect(time)}
-                >
-                  {time}
-                </Button>
-              ))}
+          
+          <div className="mt-6 p-4 bg-secondary/30 rounded-xl border border-border text-left">
+            <p className="text-xs font-bold uppercase text-muted-foreground tracking-wider mb-2">Program Schedule</p>
+            <div className="flex justify-between text-sm py-2 border-b border-border/50">
+              <span className="text-muted-foreground">Start Date:</span>
+              <span className="font-semibold">{selectedDate?.toLocaleDateString()}</span>
+            </div>
+            <div className="flex justify-between text-sm py-2">
+              <span className="text-muted-foreground">Start Time:</span>
+              <span className="font-semibold">{selectedTime}</span>
             </div>
           </div>
 
           <Button
-            className="w-full mt-6"
-            disabled={!localSelectedTime || loading}
+            className="w-full mt-8"
+            size="lg"
+            disabled={loading}
             onClick={() => {
-              onTimeSelect(localSelectedTime || "");
+              onTimeSelect(selectedTime || "");
             }}
           >
             {loading ? "Processing..." : "Confirm Enrollment"}
@@ -883,32 +835,36 @@ function EnrollmentForm({
 
   if (step === 3) {
     return (
-      <Card className="rounded-xl border-none bg-green-50 text-green-900">
+      <Card className="rounded-xl border-none bg-green-50 text-green-900 shadow-lg">
         <CardContent className="p-6 text-center">
-          <CheckCircle className="h-12 w-12 mx-auto mb-4" />
-          <h3 className="font-headline text-xl font-bold">{successTitle}</h3>
-          <p className="text-sm mt-2">{successMessage}</p>
+          <CheckCircle className="h-12 w-12 mx-auto mb-4 text-green-600" />
+          <h3 className="font-headline text-xl font-bold">You're In!</h3>
+          <p className="text-sm mt-2 text-green-800/80">
+            Welcome to the program. You can view your enrollment details on your dashboard.
+          </p>
           {selectedDate && selectedTime && (
-            <div className="mt-4 p-3 bg-white/50 rounded-lg">
-              <p className="text-sm font-medium">Details:</p>
-              <p className="text-xs text-muted-foreground">
-                Date: {selectedDate.toLocaleDateString()}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Time: {selectedTime}
-              </p>
+            <div className="mt-6 p-4 bg-white/60 rounded-xl border border-green-200 text-left">
+              <p className="text-xs font-bold uppercase text-green-800 tracking-wider mb-2">Schedule Detail</p>
+              <div className="flex justify-between text-sm py-1 border-b border-green-200/50">
+                <span className="text-green-700/70">Date:</span>
+                <span className="font-semibold">{selectedDate.toLocaleDateString()}</span>
+              </div>
+              <div className="flex justify-between text-sm py-1">
+                <span className="text-green-700/70">Time:</span>
+                <span className="font-semibold">{selectedTime}</span>
+              </div>
             </div>
           )}
-          <div className="flex gap-2 mt-6">
+          <div className="flex gap-2 mt-8">
             <Button
               variant="outline"
-              className="w-full bg-transparent border-green-700 text-green-700 hover:bg-green-100 hover:text-green-800"
+              className="w-full bg-green-100 border-green-600 text-green-800 hover:bg-green-200"
               onClick={onCancel}
             >
               Close
             </Button>
-            <Button className="w-full bg-green-700 hover:bg-green-800" asChild>
-              <Link href={dashboardLink}>Go to Dashboard</Link>
+            <Button className="w-full bg-green-700 hover:bg-green-800 text-white" asChild>
+              <Link href="/dashboard">Dashboard</Link>
             </Button>
           </div>
         </CardContent>

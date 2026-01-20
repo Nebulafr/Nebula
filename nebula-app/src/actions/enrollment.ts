@@ -1,4 +1,4 @@
-import { apiPost } from "@/lib/utils";
+import { apiGet, apiPost } from "@/lib/utils";
 
 export async function enrollInProgram({
   programSlug,
@@ -22,3 +22,9 @@ export async function enrollInProgram({
 
   return apiPost(`/programs/${programSlug}/enroll`, enrollmentData);
 }
+
+export async function getEnrollments(status?: string) {
+  const query = status ? `?status=${status}` : "";
+  return apiGet(`/students/enrollments${query}`);
+}
+  

@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { ArrowLeft, Mail } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/hooks/use-auth";
+import { handleAndToastError } from "@/lib/error-handler";
 
 export default function ForgotPasswordPage() {
   const { resetPassword } = useAuth();
@@ -31,7 +32,7 @@ export default function ForgotPasswordPage() {
       await resetPassword(email);
       setEmailSent(true);
     } catch (error) {
-      // Error handled by auth provider
+      handleAndToastError(error, "Failed to send reset email");
     } finally {
       setLoading(false);
     }

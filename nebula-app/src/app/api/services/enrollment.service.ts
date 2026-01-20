@@ -18,6 +18,11 @@ export const enrollmentService = {
           program: {
             include: {
               category: true,
+              modules: {
+                orderBy: {
+                  week: "asc",
+                },
+              },
               coach: {
                 include: {
                   user: {
@@ -48,38 +53,56 @@ export const enrollmentService = {
         },
       });
 
-      // Transform the data to match frontend expectations (my-sessions page structure)
-      return enrollments.map((enrollment) => ({
-        title: enrollment.program.title,
-        coach: {
-          name: enrollment.coach.user.fullName,
-          avatar: enrollment.coach.user.avatarUrl,
-        },
-        progress: enrollment.progress,
-        slug: enrollment.program.slug,
-        sessions: [
-          // Note: This would need to be populated from actual program modules/sessions
-          // For now, we'll create mock sessions based on program modules if available
-          {
-            title: "Program Introduction",
-            status: enrollment.progress > 0 ? "Completed" : "Upcoming",
+      return enrollments.map((enrollment) => {
+        const totalModules = enrollment.program.modules.length;
+        
+        return {
+          id: enrollment.id,
+          status: enrollment.status,
+          enrollmentDate: enrollment.enrollmentDate,
+          completionDate: enrollment.completionDate,
+          progress: enrollment.progress,
+          paymentStatus: enrollment.paymentStatus,
+          coach: {
+            id: enrollment.coach.id,
+            fullName: enrollment.coach.user.fullName,
+            avatarUrl: enrollment.coach.user.avatarUrl,
+            name: enrollment.coach.user.fullName, 
+            avatar: enrollment.coach.user.avatarUrl,  
           },
-          {
-            title: "Core Concepts",
-            status: enrollment.progress > 33 ? "Completed" : "Upcoming",
+          program: {
+            id: enrollment.program.id,
+            title: enrollment.program.title,
+            slug: enrollment.program.slug,
+            description: enrollment.program.description,
+            objectives: enrollment.program.objectives,
+            category: enrollment.program.category.name,
+            modules: enrollment.program.modules.map((module, index) => {
+              const moduleThreshold = ((index + 1) / totalModules) * 100;
+              const isCompleted = enrollment.progress >= moduleThreshold;
+              
+              return {
+                id: module.id,
+                title: module.title,
+                description: module.description,
+                week: module.week,
+                materials: module.materials,
+                status: isCompleted ? "Completed" : "Upcoming",
+              };
+            }),
           },
-          {
-            title: "Advanced Techniques",
-            status: enrollment.progress > 66 ? "Completed" : "Upcoming",
-          },
-        ],
-        // Additional fields for internal use
-        id: enrollment.id,
-        status: enrollment.status,
-        enrollmentDate: enrollment.enrollmentDate,
-        completionDate: enrollment.completionDate,
-        paymentStatus: enrollment.paymentStatus,
-      }));
+          title: enrollment.program.title,
+          slug: enrollment.program.slug,
+          sessions: enrollment.program.modules.map((module, index) => {
+            const moduleThreshold = ((index + 1) / totalModules) * 100;
+            const isCompleted = enrollment.progress >= moduleThreshold;
+            return {
+              title: module.title,
+              status: isCompleted ? "Completed" : "Upcoming",
+            };
+          }),
+        };
+      });
     } catch (error) {
       console.error("Error fetching student enrollments:", error);
       throw error;

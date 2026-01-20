@@ -7,6 +7,7 @@ import {
   deleteCategory,
 } from "@/actions/categories";
 import { toast } from "react-toastify";
+import { handleAndToastError } from "@/lib/error-handler";
 
 export const CATEGORIES_QUERY_KEY = "categories";
 export const ADMIN_CATEGORIES_QUERY_KEY = "admin-categories";
@@ -38,8 +39,8 @@ export function useCreateCategory() {
       queryClient.invalidateQueries({ queryKey: [ADMIN_CATEGORIES_QUERY_KEY] });
       toast.success("Category created successfully!");
     },
-    onError: (error: Error) => {
-      toast.error(error.message || "Failed to create category.");
+    onError: (error: any) => {
+      handleAndToastError(error, "Failed to create category.");
     },
   });
 }
@@ -61,8 +62,8 @@ export function useUpdateCategory() {
       queryClient.invalidateQueries({ queryKey: [ADMIN_CATEGORIES_QUERY_KEY] });
       toast.success("Category updated successfully!");
     },
-    onError: (error: Error) => {
-      toast.error(error.message || "Failed to update category.");
+    onError: (error: any) => {
+      handleAndToastError(error, "Failed to update category.");
     },
   });
 }
@@ -78,8 +79,8 @@ export function useDeleteCategory() {
       queryClient.invalidateQueries({ queryKey: [ADMIN_CATEGORIES_QUERY_KEY] });
       toast.success("Category deleted successfully!");
     },
-    onError: (error: Error) => {
-      toast.error(error.message || "Failed to delete category.");
+    onError: (error: any) => {
+      handleAndToastError(error, "Failed to delete category.");
     },
   });
 }

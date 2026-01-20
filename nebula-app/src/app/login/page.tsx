@@ -66,7 +66,7 @@ export default function LoginPage() {
 
     try {
       const response = await signIn({ email, password });
-      toast.success(response.message);
+      toast.success(response.message || "Logged in successfully!");
     } catch (error) {
       handleAndToastError(error, "Failed to sign in");
     } finally {
@@ -81,7 +81,7 @@ export default function LoginPage() {
 
     try {
       const response = await signInWithGoogle(UserRole.STUDENT);
-      toast.success(response.message);
+      toast.success(response.message || "Signed in with Google successfully!");
     } catch (error) {
       if (
         error instanceof Error &&

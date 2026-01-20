@@ -11,6 +11,7 @@ import {
   unregisterFromEvent,
 } from "@/actions/events";
 import { toast } from "react-toastify";
+import { handleAndToastError } from "@/lib/error-handler";
 
 export const EVENTS_QUERY_KEY = "events";
 export const PUBLIC_EVENTS_QUERY_KEY = "public-events";
@@ -75,8 +76,8 @@ export function useCreateEvent() {
       queryClient.invalidateQueries({ queryKey: [PUBLIC_EVENTS_QUERY_KEY] });
       toast.success("Event created successfully!");
     },
-    onError: (error: Error) => {
-      toast.error(error.message || "Failed to create event.");
+    onError: (error: any) => {
+      handleAndToastError(error, "Failed to create event.");
     },
   });
 }
@@ -97,8 +98,8 @@ export function useUpdateEvent() {
       queryClient.invalidateQueries({ queryKey: [EVENT_BY_SLUG_QUERY_KEY] });
       toast.success("Event updated successfully!");
     },
-    onError: (error: Error) => {
-      toast.error(error.message || "Failed to update event.");
+    onError: (error: any) => {
+      handleAndToastError(error, "Failed to update event.");
     },
   });
 }
@@ -116,8 +117,8 @@ export function useDeleteEvent() {
       queryClient.invalidateQueries({ queryKey: [EVENT_BY_SLUG_QUERY_KEY] });
       toast.success("Event deleted successfully!");
     },
-    onError: (error: Error) => {
-      toast.error(error.message || "Failed to delete event.");
+    onError: (error: any) => {
+      handleAndToastError(error, "Failed to delete event.");
     },
   });
 }
@@ -136,8 +137,8 @@ export function useRegisterForEvent() {
       queryClient.invalidateQueries({ queryKey: [EVENTS_QUERY_KEY] });
       toast.success("Successfully registered for event!");
     },
-    onError: (error: Error) => {
-      toast.error(error.message || "Failed to register for event.");
+    onError: (error: any) => {
+      handleAndToastError(error, "Failed to register for event.");
     },
   });
 }
@@ -156,8 +157,8 @@ export function useUnregisterFromEvent() {
       queryClient.invalidateQueries({ queryKey: [EVENTS_QUERY_KEY] });
       toast.success("Successfully unregistered from event.");
     },
-    onError: (error: Error) => {
-      toast.error(error.message || "Failed to unregister from event.");
+    onError: (error: any) => {
+      handleAndToastError(error, "Failed to unregister from event.");
     },
   });
 }

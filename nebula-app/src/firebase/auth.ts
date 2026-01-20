@@ -49,7 +49,12 @@ export async function signInWithGoogle(role: UserRole = UserRole.STUDENT) {
         throw new Error(response.message || "Authentication failed");
       }
 
-      toast.success(response.message || "Authentication successful!");
+      console.log("Firebase auth response:", { response });
+
+      if (!response.success) {
+        throw new Error(response.message || "Authentication failed");
+      }
+
       return response;
     } catch (popupError: any) {
       if (
@@ -79,10 +84,8 @@ export async function signInWithGoogle(role: UserRole = UserRole.STUDENT) {
       throw error;
     }
     if (error instanceof Error) {
-      toast.error(error.message);
       throw error;
     }
-    toast.error("An unexpected error occurred");
     throw new Error("An unexpected error occurred");
   }
 }

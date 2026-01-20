@@ -2,7 +2,7 @@ import { apiDelete, apiGet, apiPost, apiPut } from "@/lib/utils";
 import { CreateProgramData } from "@/lib/validations";
 
 export async function createProgram(programData: CreateProgramData) {
-  return apiPost("/programs", programData);
+  return apiPost("/programs", programData, { throwOnError: true });
 }
 
 export async function getPrograms(params?: {
@@ -41,11 +41,11 @@ export async function updateProgram(
   programId: string,
   updateData: Partial<CreateProgramData>
 ) {
-  return apiPut(`/programs/${programId}`, updateData);
+  return apiPut(`/programs/${programId}`, updateData, { throwOnError: true });
 }
 
 export async function deleteProgram(programId: string) {
-  return apiDelete(`/programs/${programId}`);
+  return apiDelete(`/programs/${programId}`, { throwOnError: true });
 }
 
 export async function getAdminPrograms(filters?: {
@@ -77,5 +77,5 @@ export async function updateProgramStatus(
   reason?: string,
   startDate?: string
 ) {
-  return apiPost(`/admin/programs/${programId}/actions`, { action, reason, startDate });
+  return apiPost(`/admin/programs/${programId}/actions`, { action, reason, startDate }, { throwOnError: true });
 }

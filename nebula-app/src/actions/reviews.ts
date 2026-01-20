@@ -20,7 +20,7 @@ export async function reviewCoach({
     sessionId: sessionId || undefined,
   };
 
-  return apiPost(`/coaches/${coachId}/review`, reviewData);
+  return apiPost(`/coaches/${coachId}/review`, reviewData, { throwOnError: true });
 }
 
 export async function reviewProgram({
@@ -40,7 +40,7 @@ export async function reviewProgram({
     content: content.trim(),
   };
 
-  return apiPost(`/programs/${programId}/review`, reviewData);
+  return apiPost(`/programs/${programId}/review`, reviewData, { throwOnError: true });
 }
 
 export async function getCoachReviews({

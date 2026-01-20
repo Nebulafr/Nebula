@@ -76,9 +76,8 @@ export default function AdminProgramsPage() {
     if (newCategory.trim() && !categories.includes(newCategory.trim())) {
       try {
         await createCategoryMutation.mutateAsync({ name: newCategory.trim() });
-        toast.success("Category added successfully");
       } catch (error) {
-        toast.error("Failed to add category");
+        // Error handled by hook
       }
     }
     setNewCategory("");
@@ -112,9 +111,8 @@ export default function AdminProgramsPage() {
   ) => {
     try {
       await updateProgramStatusMutation.mutateAsync({ programId, action });
-      toast.success(`Program ${action}d successfully`);
     } catch (error) {
-      toast.error(`Failed to ${action} program`);
+      // Error handled by hook
     }
   };
 

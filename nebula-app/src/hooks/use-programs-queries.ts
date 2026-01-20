@@ -12,6 +12,7 @@ import {
 } from "@/actions/programs";
 import { CreateProgramData } from "@/lib/validations";
 import { toast } from "react-toastify";
+import { handleAndToastError } from "@/lib/error-handler";
 
 export const PROGRAMS_QUERY_KEY = "programs";
 export const RECOMMENDED_PROGRAMS_QUERY_KEY = "recommended-programs";
@@ -82,8 +83,8 @@ export function useCreateProgram() {
       queryClient.invalidateQueries({ queryKey: [ADMIN_PROGRAMS_QUERY_KEY] });
       toast.success(response.message || "Program created successfully!");
     },
-    onError: (error: Error) => {
-      toast.error(error.message || "Failed to create program.");
+    onError: (error: any) => {
+      handleAndToastError(error, "Failed to create program.");
     },
   });
 }
@@ -110,8 +111,8 @@ export function useUpdateProgram() {
       queryClient.invalidateQueries({ queryKey: [PROGRAM_BY_SLUG_QUERY_KEY] });
       toast.success(response.message || "Program updated successfully!");
     },
-    onError: (error: Error) => {
-      toast.error(error.message || "Failed to update program.");
+    onError: (error: any) => {
+      handleAndToastError(error, "Failed to update program.");
     },
   });
 }
@@ -131,8 +132,8 @@ export function useDeleteProgram() {
       queryClient.invalidateQueries({ queryKey: [PROGRAM_BY_SLUG_QUERY_KEY] });
       toast.success(response.message || "Program deleted successfully!");
     },
-    onError: (error: Error) => {
-      toast.error(error.message || "Failed to delete program.");
+    onError: (error: any) => {
+      handleAndToastError(error, "Failed to delete program.");
     },
   });
 }
@@ -171,8 +172,8 @@ export function useUpdateProgramStatus() {
           } successfully!`
       );
     },
-    onError: (error: Error) => {
-      toast.error(error.message || "Failed to update program status.");
+    onError: (error: any) => {
+      handleAndToastError(error, "Failed to update program status.");
     },
   });
 }

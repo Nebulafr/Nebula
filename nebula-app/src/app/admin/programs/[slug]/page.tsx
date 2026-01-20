@@ -91,10 +91,9 @@ export default function ProgramDetailsPage({
         action: "approve",
         startDate: startDate.toISOString(),
       });
-      toast.success("Program approved successfully");
       router.push("/admin/programs");
     } catch (error) {
-      toast.error("Failed to approve program");
+      // Error handled by hook
     }
   };
 
@@ -104,10 +103,9 @@ export default function ProgramDetailsPage({
         programId: program.id,
         action: "reject",
       });
-      toast.success("Program rejected successfully");
       router.push("/admin/programs");
     } catch (error) {
-      toast.error("Failed to reject program");
+      // Error handled by hook
     }
   };
 

@@ -9,13 +9,13 @@ export async function getAdminCategories() {
 }
 
 export async function createCategory(categoryData: any) {
-  return apiPost("/admin/categories", categoryData);
+  return apiPost("/admin/categories", categoryData, { throwOnError: true });
 }
 
 export async function updateCategory(categoryId: string, updateData: any) {
-  return apiPut(`/admin/categories/${categoryId}`, updateData);
+  return apiPut(`/admin/categories/${categoryId}`, updateData, { throwOnError: true });
 }
 
 export async function deleteCategory(categoryId: string) {
-  return apiDelete(`/admin/categories/${categoryId}`);
+  return apiDelete(`/admin/categories/${categoryId}`, { throwOnError: true });
 }

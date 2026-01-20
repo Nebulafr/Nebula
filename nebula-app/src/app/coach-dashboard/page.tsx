@@ -139,7 +139,7 @@ function CoachDashboardContent() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {stats?.sessionsThisMonth}
+                {stats?.sessionsThisMonth || 0}
               </div>
               <p className="text-xs text-muted-foreground">
                 +{stats?.sessionsChange || 0} since last month
@@ -155,7 +155,7 @@ function CoachDashboardContent() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {stats?.averageRating / 5}
+                {Number(stats?.averageRating || 0).toFixed(1)}
               </div>
               <p className="text-xs text-muted-foreground">
                 Consistent high performance
@@ -196,19 +196,19 @@ function CoachDashboardContent() {
                                 <Avatar>
                                   <AvatarImage
                                     src={
-                                      session.students[0].avatarUrl ||
+                                      session.students[0]?.avatarUrl ||
                                       getDefaultAvatar(
                                         session.students[0]?.fullName
                                       )
                                     }
                                   />
                                   <AvatarFallback>
-                                    {session.students[0].fullName?.charAt(0) ||
+                                    {session.students[0]?.fullName?.charAt(0) ||
                                       "S"}
                                   </AvatarFallback>
                                 </Avatar>
                                 <span className="font-medium">
-                                  {session.students[0].fullName || "Student"}
+                                  {session.students[0]?.fullName || "Student"}
                                 </span>
                               </>
                             }

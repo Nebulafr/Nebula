@@ -31,11 +31,11 @@ export async function getCoachById(coachId: string) {
 }
 
 export async function createCoach(coachData: CreateCoachData) {
-  return apiPost("/coaches/profile", coachData);
+  return apiPost("/coaches/profile", coachData, { throwOnError: true });
 }
 
 export async function updateCoachProfile(coachData: CoachUpdateData) {
-  return apiPut("/coaches/profile", coachData);
+  return apiPut("/coaches/profile", coachData, { throwOnError: true });
 }
 
 export async function getSuggestedCoaches(limit?: number) {

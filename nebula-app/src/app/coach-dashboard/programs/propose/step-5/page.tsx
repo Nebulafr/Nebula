@@ -83,7 +83,6 @@ export default function ProposeStep5Page() {
             setSubmissionComplete(true);
         } catch (error) {
             console.error('Failed to submit program:', error);
-            toast.error('Failed to submit program. Please try again.');
             // Redirect back to step 4 on error
             router.push('/coach-dashboard/programs/propose/step-4');
         } finally {

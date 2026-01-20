@@ -38,9 +38,10 @@ export async function makeRequest<T = any>(
     body?: any;
     headers?: Record<string, string>;
     requireAuth?: boolean;
+    throwOnError?: boolean;
   } = {}
 ): Promise<ApiResponse<T>> {
-  const { body, headers = {}, requireAuth = true } = options;
+  const { body, headers = {}, requireAuth = true, throwOnError = false } = options;
 
   const requestHeaders: Record<string, string> = {
     "Content-Type": "application/json",
@@ -50,11 +51,13 @@ export async function makeRequest<T = any>(
   if (requireAuth) {
     const token = getAccessToken();
     if (!token) {
-      return {
+      const errorResponse = {
         success: false,
         error: "Authentication required",
         message: "Please log in to continue",
       };
+      if (throwOnError) throw new Error(errorResponse.message);
+      return errorResponse;
     }
     requestHeaders.Authorization = `Bearer ${token}`;
   }
@@ -72,27 +75,42 @@ export async function makeRequest<T = any>(
   try {
     const response = await fetch(`/api${endpoint}`, config);
 
-    if (response.status === 401) {
+    if (response.status === 401 && requireAuth) {
       if (typeof window !== "undefined") {
         localStorage.removeItem("accessToken");
         sessionStorage.removeItem("accessToken");
       }
-      return {
+      const errorResponse = {
         success: false,
         error: "Session expired",
         message: "Your session has expired. Please log in again.",
       };
+      if (throwOnError) throw new Error(errorResponse.message);
+      return errorResponse;
     }
 
     const result = await response.json();
 
     if (!response.ok) {
-      return {
+      const errorResponse = {
         success: false,
         error: result.error || result.message || `HTTP ${response.status}`,
         message: result.message || "Request failed",
         code: result.code,
       };
+      if (throwOnError) throw new Error(errorResponse.message);
+      return errorResponse;
+    }
+
+    if (result.success === false) {
+      const errorResponse = {
+        success: false,
+        error: result.error || result.message || "Request failed",
+        message: result.message || "Request failed",
+        code: result.code,
+      };
+      if (throwOnError) throw new Error(errorResponse.message);
+      return errorResponse;
     }
 
     return {
@@ -104,11 +122,13 @@ export async function makeRequest<T = any>(
   } catch (error: any) {
     console.error(`API request failed [${method} /api${endpoint}]:`, error);
 
-    return {
+    const errorResponse = {
       success: false,
       error: "Network error",
       message: error.message || "Failed to connect to server",
     };
+    if (throwOnError) throw error;
+    return errorResponse;
   }
 }
 

@@ -1,7 +1,7 @@
 import { apiDelete, apiGet, apiPost, apiPut } from "@/lib/utils";
 
 export async function createEvent(eventData: any) {
-  return apiPost("/events", eventData);
+  return apiPost("/events", eventData, { throwOnError: true });
 }
 
 export async function getEvents(params?: {
@@ -47,17 +47,17 @@ export async function getEventBySlug(slug: string) {
 }
 
 export async function updateEvent(id: string, updateData: any) {
-  return apiPut(`/events/${id}`, updateData);
+  return apiPut(`/events/${id}`, updateData, { throwOnError: true });
 }
 
 export async function deleteEvent(id: string) {
-  return apiDelete(`/events/${id}`);
+  return apiDelete(`/events/${id}`, { throwOnError: true });
 }
 
 export async function registerForEvent(eventId: string) {
-  return apiPost(`/events/${eventId}/register`);
+  return apiPost(`/events/${eventId}/register`, {}, { throwOnError: true });
 }
 
 export async function unregisterFromEvent(eventId: string) {
-  return apiDelete(`/events/${eventId}/register`);
+  return apiDelete(`/events/${eventId}/register`, { throwOnError: true });
 }

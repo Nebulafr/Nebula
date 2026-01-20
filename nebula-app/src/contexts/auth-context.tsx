@@ -85,7 +85,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
       try {
         const result = await action();
         console.log("Auth result:", { result });
-        console.log("Auth result.data:", { data: result.data });
+        
+        if (!result.success) {
+          throw result;
+        }
+
         if (result.data) {
           storeAuthData(result.data);
           updateUserState(result.data.user);

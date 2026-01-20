@@ -6,6 +6,7 @@ import {
   getProgramReviews,
 } from "@/actions/reviews";
 import { toast } from "react-toastify";
+import { handleAndToastError } from "@/lib/error-handler";
 
 export const COACH_REVIEWS_QUERY_KEY = "coach-reviews";
 export const PROGRAM_REVIEWS_QUERY_KEY = "program-reviews";
@@ -67,8 +68,8 @@ export function useReviewCoach() {
       });
       toast.success("Review submitted successfully!");
     },
-    onError: (error: Error) => {
-      toast.error(error.message || "Failed to submit review.");
+    onError: (error: any) => {
+      handleAndToastError(error, "Failed to submit review.");
     },
   });
 }
@@ -89,8 +90,8 @@ export function useReviewProgram() {
       });
       toast.success("Review submitted successfully!");
     },
-    onError: (error: Error) => {
-      toast.error(error.message || "Failed to submit review.");
+    onError: (error: any) => {
+      handleAndToastError(error, "Failed to submit review.");
     },
   });
 }

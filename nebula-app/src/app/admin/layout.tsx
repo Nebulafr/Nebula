@@ -49,26 +49,28 @@ function TopBar() {
   }
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:px-6 backdrop-blur-sm bg-background/95">
-      <div className="flex items-center gap-2">
-        <SidebarTrigger className="md:hidden" />
-        <h1 className="text-xl font-bold">{pageTitle}</h1>
-      </div>
-
-      <div className="ml-auto flex items-center gap-4">
-        <Button variant="ghost" size="sm" asChild>
-          <Link href="/">
-            <ExternalLink className="mr-2 h-4 w-4" />
-            Go to Homepage
-          </Link>
-        </Button>
-        <div className="relative hidden md:block">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input placeholder="Search..." className="pl-9 w-64" />
+    <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background backdrop-blur-sm bg-background/95">
+      <div className="dashboard-container flex h-full items-center gap-4">
+        <div className="flex items-center gap-2">
+          <SidebarTrigger className="md:hidden" />
+          <h1 className="text-xl font-bold">{pageTitle}</h1>
         </div>
-        <Button variant="ghost" size="icon">
-          <Bell className="h-5 w-5" />
-        </Button>
+
+        <div className="ml-auto flex items-center gap-4">
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/">
+              <ExternalLink className="mr-2 h-4 w-4" />
+              Go to Homepage
+            </Link>
+          </Button>
+          <div className="relative hidden md:block">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input placeholder="Search..." className="pl-9 w-64" />
+          </div>
+          <Button variant="ghost" size="icon">
+            <Bell className="h-5 w-5" />
+          </Button>
+        </div>
       </div>
     </header>
   );
@@ -213,7 +215,7 @@ export default function AdminLayout({
       <SidebarInset>
         <TopBar />
         <main className="flex-1 overflow-auto">
-          <div className="h-full">{children}</div>
+          <div className="h-full dashboard-container py-6">{children}</div>
         </main>
       </SidebarInset>
     </SidebarProvider>
