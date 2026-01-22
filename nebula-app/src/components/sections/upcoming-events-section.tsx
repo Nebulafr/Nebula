@@ -123,8 +123,7 @@ export function UpcomingEventsSection() {
 
   const allEvents = eventsResponse?.data?.events || [];
   const upcomingEvents = allEvents.filter((event: Event) => {
-    // const eventDate = new Date(event.date);
-    // const now = new Date();
+
     return event.status === "UPCOMING";
   });
 

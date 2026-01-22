@@ -4,9 +4,7 @@ import { SessionService } from "../services/session.service";
 import {
   BadRequestException,
   UnauthorizedException,
-  ValidationException,
 } from "../utils/http-exception";
-import { z } from "zod";
 
 export class SessionController {
   async bookSession(
@@ -32,22 +30,10 @@ export class SessionController {
 
     const { coachId } = await context.params;
 
-    let payload;
-    try {
-      payload = bookSessionSchema.parse({
-        ...body,
-        coachId,
-      });
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        throw new ValidationException(
-          `Validation failed: ${error.errors
-            .map((e) => `${e.path.join(".")}: ${e.message}`)
-            .join(", ")}`
-        );
-      }
-      throw error;
-    }
+    const payload = bookSessionSchema.parse({
+      ...body,
+      coachId,
+    });
 
     return await SessionService.bookSession({
       coachId,

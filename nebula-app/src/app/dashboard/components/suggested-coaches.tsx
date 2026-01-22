@@ -105,10 +105,10 @@ export function SuggestedCoaches({
             {coaches.slice(0, 3).map((coach) => (
               <CarouselItem
                 key={coach.id}
-                className="p-2 md:basis-1/2 lg:basis-1/3"
+                className="p-2 md:basis-1/2 lg:basis-1/3 h-full"
               >
                 <Link href={`/coaches/${coach.id}`} className="flex h-full">
-                  <Card className="flex flex-col w-full rounded-xl border transition-all hover:shadow-lg">
+                  <Card className="flex flex-col w-full rounded-xl border transition-all hover:shadow-lg h-full">
                     <CardContent className="flex flex-1 flex-col p-4">
                       <div className="flex flex-col items-center text-center">
                         <Avatar className="h-24 w-24">

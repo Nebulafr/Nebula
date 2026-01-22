@@ -41,4 +41,25 @@ export class ProgramController {
     }
     return await programService.deleteProgram(request, slug);
   }
+
+  async submitProgram(request: NextRequest, programId: string) {
+    if (!programId) {
+      throw new BadRequestException("Program ID is required");
+    }
+    return await programService.submitProgram(request, programId);
+  }
+
+  async getById(request: NextRequest, id: string) {
+    if (!id) {
+      throw new BadRequestException("Program ID is required");
+    }
+    return await programService.getById(request, id);
+  }
+
+  async updateById(request: NextRequest, id: string) {
+    if (!id) {
+      throw new BadRequestException("Program ID is required");
+    }
+    return await programService.updateById(request, id);
+  }
 }

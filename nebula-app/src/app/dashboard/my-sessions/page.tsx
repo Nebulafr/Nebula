@@ -87,7 +87,9 @@ function SessionCard({
               <h3 className="font-bold text-lg">
                 {session.coach?.fullName || "Unknown Coach"}
               </h3>
-              <Badge variant="outline">{session.title || "1-on-1 Session"}</Badge>
+              <Badge variant="outline">
+                {session.title || "1-on-1 Session"}
+              </Badge>
             </div>
           </div>
 
@@ -107,22 +109,25 @@ function SessionCard({
             </div>
             <div>
               <p className="text-muted-foreground font-semibold">Session</p>
-              <p>{session.status?.charAt(0) + session.status?.slice(1).toLowerCase()}</p>
+              <p>
+                {session.status?.charAt(0) +
+                  session.status?.slice(1).toLowerCase()}
+              </p>
             </div>
           </div>
 
           <div className="md:col-span-1 flex items-center justify-end gap-2">
-            {!isSessionPast && session.status === "SCHEDULED" && session.meetLink && (
-              <Button asChild>
-                <Link href={session.meetLink} target="_blank">
-                  <Computer className="mr-2 h-4 w-4" />
-                  Join Meeting
-                </Link>
-              </Button>
-            )}
-            {isSessionPast && (
-               <Badge variant="secondary">Completed</Badge>
-            )}
+            {!isSessionPast &&
+              session.status === "SCHEDULED" &&
+              session.meetLink && (
+                <Button asChild>
+                  <Link href={session.meetLink} target="_blank">
+                    <Computer className="mr-2 h-4 w-4" />
+                    Join Meeting
+                  </Link>
+                </Button>
+              )}
+            {isSessionPast && <Badge variant="secondary">Completed</Badge>}
           </div>
         </div>
       </CardContent>
@@ -190,12 +195,20 @@ function UpcomingProgramCard({ program }: { program: any }) {
               <div className="flex items-center gap-2 mt-2">
                 <Avatar className="h-6 w-6">
                   <AvatarImage
-                    src={program.coach?.avatarUrl || getDefaultAvatar(program.coach?.fullName)}
+                    src={
+                      program.coach?.avatarUrl ||
+                      getDefaultAvatar(program.coach?.fullName)
+                    }
                   />
-                  <AvatarFallback>{program.coach?.fullName?.charAt(0) || "C"}</AvatarFallback>
+                  <AvatarFallback>
+                    {program.coach?.fullName?.charAt(0) || "C"}
+                  </AvatarFallback>
                 </Avatar>
                 <p className="text-sm text-muted-foreground">
-                  with {program.coach?.fullName || program.coach?.name || "Unknown Coach"}
+                  with{" "}
+                  {program.coach?.fullName ||
+                    program.coach?.name ||
+                    "Unknown Coach"}
                 </p>
               </div>
             </div>
@@ -260,7 +273,7 @@ function UpcomingProgramCard({ program }: { program: any }) {
                               <span
                                 className={cn(
                                   module.status === "Completed" &&
-                                    "text-muted-foreground line-through"
+                                    "text-muted-foreground line-through",
                                 )}
                               >
                                 {module.title}
@@ -277,13 +290,19 @@ function UpcomingProgramCard({ program }: { program: any }) {
                                   Materials
                                 </h4>
                                 <div className="space-y-2">
-                                  {module.materials.map((mat: any, idx: number) => {
-                                      // If it's a string, we assume it's a link and try to guess type
-                                      const isString = typeof mat === 'string';
-                                      const name = isString ? mat.split('/').pop() : mat.name;
+                                  {module.materials.map(
+                                    (mat: any, idx: number) => {
+                                      const isString = typeof mat === "string";
+                                      const name = isString
+                                        ? mat.split("/").pop()
+                                        : mat.name;
                                       const link = isString ? mat : mat.link;
-                                      const type = isString ? (mat.endsWith('.pdf') ? 'pdf' : 'doc') : mat.type;
-                                      
+                                      const type = isString
+                                        ? mat.endsWith(".pdf")
+                                          ? "pdf"
+                                          : "doc"
+                                        : mat.type;
+
                                       return (
                                         <a
                                           key={idx}
@@ -296,11 +315,11 @@ function UpcomingProgramCard({ program }: { program: any }) {
                                           <span>{name}</span>
                                         </a>
                                       );
-                                  })}
+                                    },
+                                  )}
                                 </div>
                               </div>
                             )}
-                            {/* In a real scenario, we might have session details per module */}
                             {module.nextSession && (
                               <div>
                                 <h4 className="text-xs font-semibold uppercase text-muted-foreground mb-2">
@@ -310,13 +329,19 @@ function UpcomingProgramCard({ program }: { program: any }) {
                                   <div className="flex items-center gap-2">
                                     <Calendar className="h-4 w-4 text-muted-foreground" />
                                     <span className="text-sm">
-                                      {new Date(module.nextSession.date).toLocaleDateString()} at {module.nextSession.time}
+                                      {new Date(
+                                        module.nextSession.date,
+                                      ).toLocaleDateString()}{" "}
+                                      at {module.nextSession.time}
                                     </span>
                                   </div>
                                   <Button size="sm" asChild>
-                                    <Link href={module.nextSession.meetLink || "#"} target="_blank">
-                                        <Computer className="mr-2 h-4 w-4" />
-                                        Join Meeting
+                                    <Link
+                                      href={module.nextSession.meetLink || "#"}
+                                      target="_blank"
+                                    >
+                                      <Computer className="mr-2 h-4 w-4" />
+                                      Join Meeting
                                     </Link>
                                   </Button>
                                 </div>
@@ -346,15 +371,28 @@ function CompletedProgramCard({ program }: { program: any }) {
             <h3 className="font-bold text-lg">{program.title}</h3>
             <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
               <Avatar className="h-6 w-6">
-                <AvatarImage src={program.coach?.avatarUrl || getDefaultAvatar(program.coach?.fullName)} />
-                <AvatarFallback>{program.coach?.fullName?.charAt(0) || "C"}</AvatarFallback>
+                <AvatarImage
+                  src={
+                    program.coach?.avatarUrl ||
+                    getDefaultAvatar(program.coach?.fullName)
+                  }
+                />
+                <AvatarFallback>
+                  {program.coach?.fullName?.charAt(0) || "C"}
+                </AvatarFallback>
               </Avatar>
               <span>with {program.coach?.fullName || program.coach?.name}</span>
             </div>
             <div className="flex items-center gap-4 mt-4 text-sm text-muted-foreground">
-              <span>Enrolled: {new Date(program.enrollmentDate).toLocaleDateString()}</span>
+              <span>
+                Enrolled:{" "}
+                {new Date(program.enrollmentDate).toLocaleDateString()}
+              </span>
               {program.completionDate && (
-                  <span>Completed: {new Date(program.completionDate).toLocaleDateString()}</span>
+                <span>
+                  Completed:{" "}
+                  {new Date(program.completionDate).toLocaleDateString()}
+                </span>
               )}
             </div>
           </div>
@@ -402,24 +440,28 @@ export default function MySessionsPage() {
             <TabsTrigger value="individual">Individual sessions</TabsTrigger>
             <TabsTrigger value="group">My Programs</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="individual">
             <div className="mt-6">
               <div className="flex items-center gap-2 mb-6">
                 <Button
-                  variant={activeSubTab === "Upcoming" ? "secondary" : "outline"}
+                  variant={
+                    activeSubTab === "Upcoming" ? "secondary" : "outline"
+                  }
                   onClick={() => setActiveSubTab("Upcoming")}
                 >
                   Upcoming
                 </Button>
                 <Button
-                  variant={activeSubTab === "Previous" ? "secondary" : "outline"}
+                  variant={
+                    activeSubTab === "Previous" ? "secondary" : "outline"
+                  }
                   onClick={() => setActiveSubTab("Previous")}
                 >
                   Previous
                 </Button>
               </div>
-              
+
               {activeSubTab === "Upcoming" && (
                 <div className="space-y-6">
                   {loadingUpcoming ? (
@@ -439,18 +481,22 @@ export default function MySessionsPage() {
                     </div>
                   ) : realUpcomingSessions.length > 0 ? (
                     <div className="space-y-4">
-                      {realUpcomingSessions.map((session: any, index: number) => (
-                        <SessionCard
-                          key={session.id || index}
-                          session={session}
-                          isNext={index === 0}
-                        />
-                      ))}
+                      {realUpcomingSessions.map(
+                        (session: any, index: number) => (
+                          <SessionCard
+                            key={session.id || index}
+                            session={session}
+                            isNext={index === 0}
+                          />
+                        ),
+                      )}
                     </div>
                   ) : (
                     <div className="text-center py-16">
                       <Calendar className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-                      <h3 className="text-lg font-semibold mb-2">No Upcoming Sessions</h3>
+                      <h3 className="text-lg font-semibold mb-2">
+                        No Upcoming Sessions
+                      </h3>
                       <p className="text-muted-foreground mb-6">
                         You don't have any sessions scheduled yet.
                       </p>
@@ -461,33 +507,38 @@ export default function MySessionsPage() {
                   )}
                 </div>
               )}
-              
+
               {activeSubTab === "Previous" && (
                 <div className="space-y-6">
                   {loadingCompleted ? (
                     <div className="space-y-4">
                       {[1, 2, 3].map((i) => (
-                         <Card key={i} className="p-6">
-                            <div className="animate-pulse flex items-center gap-4">
-                              <div className="h-16 w-16 bg-muted rounded-full" />
-                              <div className="flex-1 space-y-2">
-                                <div className="h-4 bg-muted rounded w-1/4" />
-                                <div className="h-4 bg-muted rounded w-1/2" />
-                              </div>
+                        <Card key={i} className="p-6">
+                          <div className="animate-pulse flex items-center gap-4">
+                            <div className="h-16 w-16 bg-muted rounded-full" />
+                            <div className="flex-1 space-y-2">
+                              <div className="h-4 bg-muted rounded w-1/4" />
+                              <div className="h-4 bg-muted rounded w-1/2" />
                             </div>
-                         </Card>
+                          </div>
+                        </Card>
                       ))}
                     </div>
                   ) : realCompletedSessions.length > 0 ? (
                     <div className="space-y-4">
-                      {realCompletedSessions.map((session: any, index: number) => (
-                        <SessionCard key={session.id || index} session={session} />
-                      ))}
+                      {realCompletedSessions.map(
+                        (session: any, index: number) => (
+                          <SessionCard
+                            key={session.id || index}
+                            session={session}
+                          />
+                        ),
+                      )}
                     </div>
                   ) : (
                     <div className="text-center py-16 text-muted-foreground">
-                       <CheckCircle className="h-16 w-16 mx-auto mb-4" />
-                       <p>No previous sessions.</p>
+                      <CheckCircle className="h-16 w-16 mx-auto mb-4" />
+                      <p>No previous sessions.</p>
                     </div>
                   )}
                 </div>
@@ -499,13 +550,17 @@ export default function MySessionsPage() {
             <div className="mt-6">
               <div className="flex items-center gap-2 mb-6">
                 <Button
-                  variant={activeProgramSubTab === "Upcoming" ? "secondary" : "outline"}
+                  variant={
+                    activeProgramSubTab === "Upcoming" ? "secondary" : "outline"
+                  }
                   onClick={() => setActiveProgramSubTab("Upcoming")}
                 >
                   Upcoming
                 </Button>
                 <Button
-                  variant={activeProgramSubTab === "Previous" ? "secondary" : "outline"}
+                  variant={
+                    activeProgramSubTab === "Previous" ? "secondary" : "outline"
+                  }
                   onClick={() => setActiveProgramSubTab("Previous")}
                 >
                   Previous
@@ -516,12 +571,12 @@ export default function MySessionsPage() {
                 <div className="space-y-4">
                   {loadingActiveEnrollments ? (
                     <div className="space-y-4">
-                       {[1, 2].map(i => (
-                           <Card key={i} className="p-6 animate-pulse">
-                               <div className="h-6 w-1/3 bg-muted rounded mb-4" />
-                               <div className="h-20 bg-muted rounded mb-4" />
-                           </Card>
-                       ))}
+                      {[1, 2].map((i) => (
+                        <Card key={i} className="p-6 animate-pulse">
+                          <div className="h-6 w-1/3 bg-muted rounded mb-4" />
+                          <div className="h-20 bg-muted rounded mb-4" />
+                        </Card>
+                      ))}
                     </div>
                   ) : activeEnrollments.length > 0 ? (
                     activeEnrollments.map((enrollment: any, index: number) => (
@@ -537,14 +592,16 @@ export default function MySessionsPage() {
                     ))
                   ) : (
                     <div className="text-center py-16">
-                       <BookOpen className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-                       <h3 className="text-lg font-semibold mb-2">No Active Programs</h3>
-                       <p className="text-muted-foreground mb-6">
-                          You're not currently enrolled in any programs.
-                       </p>
-                       <Button asChild>
-                          <Link href="/programs">Browse Programs</Link>
-                       </Button>
+                      <BookOpen className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+                      <h3 className="text-lg font-semibold mb-2">
+                        No Active Programs
+                      </h3>
+                      <p className="text-muted-foreground mb-6">
+                        You're not currently enrolled in any programs.
+                      </p>
+                      <Button asChild>
+                        <Link href="/programs">Browse Programs</Link>
+                      </Button>
                     </div>
                   )}
                 </div>
@@ -552,28 +609,30 @@ export default function MySessionsPage() {
 
               {activeProgramSubTab === "Previous" && (
                 <div className="space-y-4">
-                   {loadingCompletedEnrollments ? (
-                     <div className="space-y-4">
-                         <Card className="p-6 animate-pulse h-24 bg-muted" />
-                     </div>
-                   ) : completedEnrollments.length > 0 ? (
-                     completedEnrollments.map((enrollment: any, index: number) => (
-                       <CompletedProgramCard
-                         key={enrollment.id || index}
-                         program={{
+                  {loadingCompletedEnrollments ? (
+                    <div className="space-y-4">
+                      <Card className="p-6 animate-pulse h-24 bg-muted" />
+                    </div>
+                  ) : completedEnrollments.length > 0 ? (
+                    completedEnrollments.map(
+                      (enrollment: any, index: number) => (
+                        <CompletedProgramCard
+                          key={enrollment.id || index}
+                          program={{
                             ...enrollment.program,
                             enrollmentDate: enrollment.enrollmentDate,
                             completionDate: enrollment.completionDate,
                             coach: enrollment.coach?.user || enrollment.coach,
-                         }}
-                       />
-                     ))
-                   ) : (
-                     <div className="text-center py-16 text-muted-foreground">
-                        <CheckCircle className="h-16 w-16 mx-auto mb-4" />
-                        <p>No previously completed programs.</p>
-                     </div>
-                   )}
+                          }}
+                        />
+                      ),
+                    )
+                  ) : (
+                    <div className="text-center py-16 text-muted-foreground">
+                      <CheckCircle className="h-16 w-16 mx-auto mb-4" />
+                      <p>No previously completed programs.</p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

@@ -1,23 +1,11 @@
 import { NextRequest } from "next/server";
 import { MessagingService } from "../services/messaging.service";
-import { z } from "zod";
+import {
+  conversationCreateSchema,
+  messageSendSchema,
+  markMessageReadSchema
+} from "@/lib/validations";
 import { BadRequestException } from "../utils/http-exception";
-
-const createConversationSchema = z.object({
-  participants: z.array(z.string()).min(2),
-  type: z.enum(["DIRECT", "GROUP", "SUPPORT"]).optional().default("DIRECT"),
-  title: z.string().optional(),
-});
-
-const sendMessageSchema = z.object({
-  senderId: z.string(),
-  content: z.string().min(1),
-  type: z.enum(["TEXT", "IMAGE", "FILE", "LINK"]).optional().default("TEXT"),
-});
-
-const markReadSchema = z.object({
-  userId: z.string(),
-});
 
 export class MessagingController {
   async getConversations(request: NextRequest) {
@@ -34,7 +22,7 @@ export class MessagingController {
 
   async createConversation(request: NextRequest) {
     const body = await request.json();
-    const payload = createConversationSchema.parse(body);
+    const payload = conversationCreateSchema.parse(body);
 
     return await MessagingService.createConversation(
       payload.participants,
@@ -71,7 +59,7 @@ export class MessagingController {
     }
 
     const body = await request.json();
-    const payload = sendMessageSchema.parse(body);
+    const payload = messageSendSchema.parse(body);
 
     return await MessagingService.sendMessage(
       conversationId,
@@ -87,7 +75,7 @@ export class MessagingController {
     }
 
     const body = await request.json();
-    const payload = markReadSchema.parse(body);
+    const payload = markMessageReadSchema.parse(body);
 
     return await MessagingService.markMessagesAsRead(
       conversationId,

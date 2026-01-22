@@ -1,21 +1,26 @@
-export const uploadImageToCloudinary = async (
+/**
+ * Client-side Cloudinary utilities (safe for browser)
+ * For server-side operations, use cloudinary.server.ts
+ */
+
+/**
+ * Upload image from client-side (unsigned upload with preset)
+ */
+export const uploadImageFromClient = async (
   file: File,
-  folder: string = "nebula-events"
+  folder: string = "nebula-images",
 ): Promise<string> => {
   const formData = new FormData();
   formData.append("file", file);
   formData.append(
     "upload_preset",
-    process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!
+    process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!,
   );
   formData.append("folder", folder);
 
   const response = await fetch(
     `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
-    {
-      method: "POST",
-      body: formData,
-    }
+    { method: "POST", body: formData },
   );
 
   if (!response.ok) {
@@ -26,44 +31,39 @@ export const uploadImageToCloudinary = async (
   return data.secure_url;
 };
 
-export const uploadAvatarToCloudinary = async (file: File): Promise<string> => {
-  return uploadImageToCloudinary(file, "nebula-avatars");
-};
-
 /**
- * Upload a file (document, PDF, PPT, etc.) to Cloudinary
- * @param file - The file to upload
- * @param folder - The folder in Cloudinary (default: "nebula-materials")
- * @returns The secure URL of the uploaded file
+ * Upload any file from client-side (unsigned upload with preset)
  */
-export const uploadFileToCloudinary = async (
+export const uploadFileFromClient = async (
   file: File,
-  folder: string = "nebula-materials"
-): Promise<{ url: string; fileName: string; fileType: string; fileSize: number }> => {
+  folder: string = "nebula-materials",
+): Promise<{
+  url: string;
+  fileName: string;
+  fileType: string;
+  fileSize: number;
+}> => {
   const formData = new FormData();
   formData.append("file", file);
   formData.append(
     "upload_preset",
-    process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!
+    process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!,
   );
   formData.append("folder", folder);
-  formData.append("resource_type", "auto"); // Allows any file type
 
   const response = await fetch(
     `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/auto/upload`,
-    {
-      method: "POST",
-      body: formData,
-    }
+    { method: "POST", body: formData },
   );
 
   if (!response.ok) {
     const errorData = await response.json();
-    throw new Error(`File upload failed: ${errorData.error?.message || "Unknown error"}`);
+    throw new Error(
+      `File upload failed: ${errorData.error?.message || "Unknown error"}`,
+    );
   }
 
   const data = await response.json();
-
   return {
     url: data.secure_url,
     fileName: file.name,
@@ -73,23 +73,22 @@ export const uploadFileToCloudinary = async (
 };
 
 /**
- * Upload multiple files to Cloudinary
- * @param files - Array of files to upload
- * @param folder - The folder in Cloudinary
- * @returns Array of secure URLs
+ * Upload multiple files from client-side
  */
-export const uploadMultipleFilesToCloudinary = async (
+export const uploadMultipleFilesFromClient = async (
   files: File[],
-  folder: string = "nebula-materials"
+  folder: string = "nebula-materials",
 ): Promise<string[]> => {
-  try {
-    const uploadPromises = files.map((file) =>
-      uploadFileToCloudinary(file, folder)
-    );
-    const results = await Promise.all(uploadPromises);
-    return results.map((result) => result.url);
-  } catch (error) {
-    console.error("Error uploading files:", error);
-    throw error;
-  }
+  const uploadPromises = files.map((file) =>
+    uploadFileFromClient(file, folder),
+  );
+  const results = await Promise.all(uploadPromises);
+  return results.map((result) => result.url);
 };
+
+// Legacy exports for backward compatibility
+export const uploadImageToCloudinary = uploadImageFromClient;
+export const uploadAvatarToCloudinary = (file: File) =>
+  uploadImageFromClient(file, "nebula-avatars");
+export const uploadFileToCloudinary = uploadFileFromClient;
+export const uploadMultipleFilesToCloudinary = uploadMultipleFilesFromClient;

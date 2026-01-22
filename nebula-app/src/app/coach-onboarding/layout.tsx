@@ -7,7 +7,7 @@ export default function CoachOnboardingLayout({
 }) {
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <main className="flex-1 dashboard-container">{children}</main>
+      <main className="flex-1">{children}</main>
     </div>
   );
 }

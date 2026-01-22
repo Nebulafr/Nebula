@@ -7,10 +7,8 @@ import {
 } from "@/lib/validations";
 import {
   BadRequestException,
-  ValidationException,
   UnauthorizedException,
 } from "../utils/http-exception";
-import { z } from "zod";
 
 export class CoachController {
   async getAll(request: NextRequest) {
@@ -22,19 +20,7 @@ export class CoachController {
       limit: searchParams.get("limit") || undefined,
     };
 
-    let payload;
-    try {
-      payload = coachQuerySchema.parse(queryParams);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        throw new ValidationException(
-          `Invalid query parameters: ${error.errors
-            .map((e) => `${e.path.join(".")}: ${e.message}`)
-            .join(", ")}`
-        );
-      }
-      throw error;
-    }
+    const payload = coachQuerySchema.parse(queryParams);
 
     return await CoachService.getCoaches(payload);
   }
@@ -55,19 +41,7 @@ export class CoachController {
       throw new BadRequestException("Invalid JSON body");
     }
 
-    let payload;
-    try {
-      payload = createCoachSchema.parse(body);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        throw new ValidationException(
-          `Validation failed: ${error.errors
-            .map((e) => `${e.path.join(".")}: ${e.message}`)
-            .join(", ")}`
-        );
-      }
-      throw error;
-    }
+    const payload = createCoachSchema.parse(body);
 
     return await CoachService.createCoach(user.id, payload);
   }
@@ -82,19 +56,7 @@ export class CoachController {
       throw new BadRequestException("Invalid JSON body");
     }
 
-    let payload;
-    try {
-      payload = updateCoachProfileSchema.parse(body);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        throw new ValidationException(
-          `Validation failed: ${error.errors
-            .map((e) => `${e.path.join(".")}: ${e.message}`)
-            .join(", ")}`
-        );
-      }
-      throw error;
-    }
+    const payload = updateCoachProfileSchema.parse(body);
 
     return await CoachService.updateCoach(user.id, payload);
   }

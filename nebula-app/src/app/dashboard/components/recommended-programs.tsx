@@ -105,7 +105,7 @@ export function RecommendedPrograms({
                     href={`/programs/${program.slug}`}
                     className="flex h-full"
                   >
-                    <Card className="flex h-full flex-col overflow-hidden rounded-xl shadow-none transition-shadow hover:shadow-lg">
+                    <Card className="flex h-full w-full flex-col overflow-hidden rounded-xl shadow-none transition-shadow hover:shadow-lg">
                       <CardContent className="flex flex-1 flex-col justify-between p-6">
                         <div className="flex-1">
                           <Badge

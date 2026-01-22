@@ -47,8 +47,8 @@ function TopBar() {
   }
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background backdrop-blur-sm">
-      <div className="dashboard-container flex h-full items-center gap-4">
+    <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background backdrop-blur-sm px-4">
+      <div className="flex h-full w-full justify-between items-center gap-4">
         <div className="flex items-center gap-2">
           <SidebarTrigger className="md:hidden" />
           <h1 className="text-xl font-bold">{pageTitle}</h1>

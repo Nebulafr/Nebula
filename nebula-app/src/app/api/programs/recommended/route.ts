@@ -6,7 +6,8 @@ import { NextRequest } from "next/server";
 const programController = new ProgramController();
 
 export const GET = CatchError(
-  isAuthenticated(async (request: NextRequest) => {
-    return await programController.getRecommendedPrograms(request);
-  })
+  isAuthenticated(
+    async (request: NextRequest) =>
+      await programController.getRecommendedPrograms(request)
+  )
 );

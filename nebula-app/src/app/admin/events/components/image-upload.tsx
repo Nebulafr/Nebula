@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { uploadFile } from "@/firebase/storage";
+import { uploadImageFromClient } from "@/lib/cloudinary";
 
 interface ImageUploadProps {
   images: string[];
@@ -17,7 +17,7 @@ export function ImageUpload({
   images,
   onImagesChange,
   onNext,
-  onBack
+  onBack,
 }: ImageUploadProps) {
   const [uploading, setUploading] = useState(false);
 
@@ -26,14 +26,14 @@ export function ImageUpload({
 
     setUploading(true);
     try {
-      const uploadPromises = Array.from(files).map(file => 
-        uploadFile(file, 'events', `event-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`)
+      const uploadPromises = Array.from(files).map((file) =>
+        uploadImageFromClient(file, "nebula-events"),
       );
-      
+
       const uploadedUrls = await Promise.all(uploadPromises);
       onImagesChange([...images, ...uploadedUrls]);
     } catch (error) {
-      console.error('Error uploading files:', error);
+      console.error("Error uploading files:", error);
     } finally {
       setUploading(false);
     }
@@ -52,7 +52,7 @@ export function ImageUpload({
           Add images to showcase your social event
         </p>
       </div>
-      
+
       <div className="space-y-4">
         <div>
           <Label htmlFor="images">Event Images</Label>
@@ -70,7 +70,7 @@ export function ImageUpload({
             </p>
           )}
         </div>
-        
+
         {images.length > 0 && (
           <div className="grid grid-cols-3 gap-2 mt-4">
             {images.map((imageUrl: string, index: number) => (
@@ -92,19 +92,12 @@ export function ImageUpload({
           </div>
         )}
       </div>
-      
+
       <div className="flex justify-between pt-4">
-        <Button
-          variant="outline"
-          onClick={onBack}
-        >
+        <Button variant="outline" onClick={onBack}>
           Back
         </Button>
-        <Button
-          onClick={onNext}
-        >
-          Next
-        </Button>
+        <Button onClick={onNext}>Next</Button>
       </div>
     </div>
   );

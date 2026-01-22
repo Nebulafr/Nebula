@@ -75,9 +75,15 @@ export type ProgramWithRelations = Program & {
     reviews: number;
   };
   hasUserReviewed: boolean;
-  schedules?: Array<{
+  cohorts?: Array<{
     id: string;
+    name?: string;
     startDate: Date;
     endDate?: Date;
+    maxStudents: number;
+    status: string;
+    _count?: {
+      enrollments: number;
+    };
   }>;
 };

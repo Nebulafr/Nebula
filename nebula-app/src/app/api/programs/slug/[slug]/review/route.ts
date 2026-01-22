@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
-import { isAuthenticated } from "../../../middleware/auth";
-import CatchError from "../../../utils/catch-error";
-import { ReviewController } from "../../../controllers/review.controller";
+import { isAuthenticated } from "../../../../middleware/auth";
+import CatchError from "../../../../utils/catch-error";
+import { ReviewController } from "../../../../controllers/review.controller";
 
 const reviewController = new ReviewController();
 

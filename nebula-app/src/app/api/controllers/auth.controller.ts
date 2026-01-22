@@ -8,10 +8,8 @@ import {
 } from "@/lib/validations";
 import {
   BadRequestException,
-  ValidationException,
   UnauthorizedException,
 } from "../utils/http-exception";
-import { z } from "zod";
 
 export class AuthController {
   async register(request: NextRequest) {
@@ -22,19 +20,7 @@ export class AuthController {
       throw new BadRequestException("Invalid JSON body");
     }
 
-    let payload;
-    try {
-      payload = signupSchema.parse(body);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        throw new ValidationException(
-          `Validation failed: ${error.errors
-            .map((e) => `${e.path.join(".")}: ${e.message}`)
-            .join(", ")}`
-        );
-      }
-      throw error;
-    }
+    const payload = signupSchema.parse(body);
 
     return await AuthService.register(payload);
   }
@@ -47,19 +33,7 @@ export class AuthController {
       throw new BadRequestException("Invalid JSON body");
     }
 
-    let payload;
-    try {
-      payload = signinSchema.parse(body);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        throw new ValidationException(
-          `Validation failed: ${error.errors
-            .map((e) => `${e.path.join(".")}: ${e.message}`)
-            .join(", ")}`
-        );
-      }
-      throw error;
-    }
+    const payload = signinSchema.parse(body);
 
     return await AuthService.signin(payload);
   }
@@ -72,19 +46,7 @@ export class AuthController {
       throw new BadRequestException("Invalid JSON body");
     }
 
-    let payload;
-    try {
-      payload = googleAuthSchema.parse(body);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        throw new ValidationException(
-          `Validation failed: ${error.errors
-            .map((e) => `${e.path.join(".")}: ${e.message}`)
-            .join(", ")}`
-        );
-      }
-      throw error;
-    }
+    const payload = googleAuthSchema.parse(body);
 
     return await AuthService.googleAuth(payload);
   }
@@ -130,19 +92,7 @@ export class AuthController {
       throw new BadRequestException("Invalid JSON body");
     }
 
-    let payload;
-    try {
-      payload = changePasswordSchema.parse(body);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        throw new ValidationException(
-          `Validation failed: ${error.errors
-            .map((e) => `${e.path.join(".")}: ${e.message}`)
-            .join(", ")}`
-        );
-      }
-      throw error;
-    }
+    const payload = changePasswordSchema.parse(body);
 
     return await AuthService.changePassword(user.id, payload);
   }

@@ -6,6 +6,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ExternalLink, Loader2, ArrowRight } from "lucide-react";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 import { Event } from "@/types/event";
 import {
   getEventBackgroundColor,
@@ -133,6 +140,8 @@ interface UpcomingSessionsProps {
   loading?: boolean;
 }
 
+
+
 export function UpcomingSessions({
   sessions,
   loading = false,
@@ -147,37 +156,57 @@ export function UpcomingSessions({
           </Link>
         </Button>
       </div>
-      <div className="mt-6 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-6">
         {loading ? (
-          Array.from({ length: 3 }).map((_, index) => (
-            <div
-              key={index}
-              className="flex flex-col gap-[5px] h-full animate-pulse"
-            >
-              <div className="bg-gray-200 p-4 rounded-xl h-64">
-                <div className="flex items-center justify-center h-full">
-                  <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+          <div className="flex gap-4">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <div
+                key={index}
+                className="w-full md:w-1/2 lg:w-1/3 flex flex-col gap-[5px] h-full animate-pulse"
+              >
+                <div className="bg-gray-200 p-4 rounded-xl h-64">
+                  <div className="flex items-center justify-center h-full">
+                    <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+                  </div>
                 </div>
+                <div className="bg-gray-200 py-4 rounded-xl h-16"></div>
               </div>
-              <div className="bg-gray-200 py-4 rounded-xl h-16"></div>
-            </div>
-          ))
+            ))}
+          </div>
         ) : sessions.length > 0 ? (
-          sessions
-            .slice(0, 3)
-            .map((event: Event, index: number) => (
-              <EventCard
-                key={event.id}
-                event={event}
-                index={index}
-                previousIndex={index > 0 ? index - 1 : undefined}
-              />
-            ))
+          <Carousel
+            opts={{
+              align: "start",
+            }}
+            className="w-full"
+          >
+            <CarouselContent className="-ml-2">
+              {sessions.slice(0, 6).map((event: Event, index: number) => (
+                <CarouselItem
+                  key={event.id}
+                  className="p-2 md:basis-1/2 lg:basis-1/3 h-full"
+                >
+                  <EventCard
+                    event={event}
+                    index={index}
+                    previousIndex={index > 0 ? index - 1 : undefined}
+                  />
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <div className="mt-4 flex justify-start gap-2">
+              <CarouselPrevious className="relative -left-0 top-0 translate-y-0" />
+              <CarouselNext className="relative -right-0 top-0 translate-y-0" />
+            </div>
+          </Carousel>
         ) : (
-          <div className="col-span-full text-center py-12">
-            <p className="text-muted-foreground">
+          <div className="text-center py-12">
+            <p className="text-muted-foreground my-4">
               No upcoming events at the moment.
             </p>
+             <Button asChild>
+                  <Link href="/events">Browse All Events</Link>
+              </Button>
           </div>
         )}
       </div>

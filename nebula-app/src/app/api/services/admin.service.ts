@@ -3,6 +3,10 @@ import { AdminProgramQueryData, ProgramActionData } from "@/lib/validations";
 import { ProgramStatus } from "@/generated/prisma";
 import { sendSuccess } from "../utils/send-response";
 import { EmailService } from "./email.service";
+import {
+  NotFoundException,
+  BadRequestException,
+} from "../utils/http-exception";
 
 export class AdminService {
   static async getPrograms(params: AdminProgramQueryData) {
@@ -128,7 +132,7 @@ export class AdminService {
     });
 
     if (!program) {
-      throw new Error("Program not found");
+      throw new NotFoundException("Program not found");
     }
 
     let status: ProgramStatus;
@@ -141,28 +145,38 @@ export class AdminService {
 
     switch (action) {
       case "approve":
+        if (program.status !== "PENDING_APPROVAL") {
+          throw new BadRequestException("Only pending programs can be approved");
+        }
         status = "APPROVED";
         isActive = false;
-        if (program.status === "PENDING_APPROVAL") {
-          emailTemplate = "APPLICATION_APPROVED";
-        }
+        emailTemplate = "APPLICATION_APPROVED";
         break;
       case "reject":
+        if (program.status !== "PENDING_APPROVAL") {
+          throw new BadRequestException("Only pending programs can be rejected");
+        }
         status = "REJECTED";
         isActive = false;
         emailTemplate = "APPLICATION_DECLINED";
         break;
       case "activate":
+        if (program.status !== "SUBMITTED") {
+          throw new BadRequestException("Only submitted programs can be activated");
+        }
         status = "ACTIVE";
         isActive = true;
         emailTemplate = "PROGRAM_LIVE";
         break;
       case "deactivate":
+        if (program.status !== "ACTIVE") {
+          throw new BadRequestException("Only active programs can be deactivated");
+        }
         status = "INACTIVE";
         isActive = false;
         break;
       default:
-        throw new Error("Invalid action");
+        throw new BadRequestException("Invalid action");
     }
 
     const updatedProgram = await prisma.program.update({
@@ -183,10 +197,13 @@ export class AdminService {
     });
 
     if (action === "approve" && startDate) {
-      await prisma.programSchedule.create({
+      await prisma.cohort.create({
         data: {
           programId: programId,
           startDate: new Date(startDate),
+          name: "Inaugural Cohort",
+          status: "UPCOMING",
+          maxStudents: program.maxStudents || 30,
         },
       });
     }
@@ -705,6 +722,88 @@ export class AdminService {
     });
 
     return sendSuccess({ events }, "Events fetched successfully");
+  }
+
+  static async updateCohort(
+    cohortId: string,
+    data: { name?: string; startDate?: string; endDate?: string; maxStudents?: number }
+  ) {
+    const cohort = await prisma.cohort.findUnique({
+      where: { id: cohortId },
+      include: { program: true },
+    });
+
+    if (!cohort) {
+      throw new NotFoundException("Cohort not found");
+    }
+
+    const updatedCohort = await prisma.cohort.update({
+      where: { id: cohortId },
+      data: {
+        name: data.name,
+        startDate: data.startDate ? new Date(data.startDate) : undefined,
+        endDate: data.endDate ? new Date(data.endDate) : undefined,
+        maxStudents: data.maxStudents,
+        updatedAt: new Date(),
+      },
+      include: {
+        program: {
+          select: { id: true, title: true, slug: true },
+        },
+        _count: {
+          select: { enrollments: true },
+        },
+      },
+    });
+
+    return sendSuccess(
+      { cohort: updatedCohort },
+      "Cohort updated successfully"
+    );
+  }
+
+  static async getCohortsByProgram(programId: string) {
+    const cohorts = await prisma.cohort.findMany({
+      where: { programId },
+      include: {
+        _count: {
+          select: { enrollments: true },
+        },
+      },
+      orderBy: { startDate: "asc" },
+    });
+
+    return sendSuccess({ cohorts }, "Cohorts fetched successfully");
+  }
+
+  static async createCohort(
+    programId: string,
+    data: { name?: string; startDate: string; maxStudents?: number }
+  ) {
+    const program = await prisma.program.findUnique({
+      where: { id: programId },
+    });
+
+    if (!program) {
+      throw new NotFoundException("Program not found");
+    }
+
+    const cohort = await prisma.cohort.create({
+      data: {
+        programId,
+        name: data.name || "New Cohort",
+        startDate: new Date(data.startDate),
+        maxStudents: data.maxStudents || program.maxStudents || 30,
+        status: "UPCOMING",
+      },
+      include: {
+        _count: {
+          select: { enrollments: true },
+        },
+      },
+    });
+
+    return sendSuccess({ cohort }, "Cohort created successfully", 201);
   }
 }
 

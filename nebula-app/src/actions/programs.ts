@@ -21,31 +21,37 @@ export async function getPrograms(params?: {
 }
 
 export async function getRecommendedPrograms() {
-  return apiGet("/programs/recommended", { requireAuth: false });
+  return apiGet("/programs/recommended", { requireAuth: true });
 }
 
 export async function getPopularPrograms(params?: { limit?: number }) {
   const searchParams = new URLSearchParams();
-  
+
   if (params?.limit) searchParams.set("limit", params.limit.toString());
-  
+
   const query = searchParams.toString() ? `?${searchParams}` : "";
   return apiGet(`/programs/popular${query}`, { requireAuth: false });
 }
 
 export async function getProgramBySlug(slug: string) {
-  return apiGet(`/programs/${slug}`);
+  return apiGet(`/programs/slug/${slug}`);
+}
+
+export async function getProgramById(programId: string) {
+  return apiGet(`/programs/id/${programId}`);
 }
 
 export async function updateProgram(
   programId: string,
-  updateData: Partial<CreateProgramData>
+  updateData: Partial<CreateProgramData>,
 ) {
-  return apiPut(`/programs/${programId}`, updateData, { throwOnError: true });
+  return apiPut(`/programs/id/${programId}`, updateData, {
+    throwOnError: true,
+  });
 }
 
 export async function deleteProgram(programId: string) {
-  return apiDelete(`/programs/${programId}`, { throwOnError: true });
+  return apiDelete(`/programs/id/${programId}`, { throwOnError: true });
 }
 
 export async function getAdminPrograms(filters?: {
@@ -75,7 +81,11 @@ export async function updateProgramStatus(
   programId: string,
   action: "approve" | "reject" | "activate" | "deactivate",
   reason?: string,
-  startDate?: string
+  startDate?: string,
 ) {
-  return apiPost(`/admin/programs/${programId}/actions`, { action, reason, startDate }, { throwOnError: true });
+  return apiPost(
+    `/admin/programs/${programId}/actions`,
+    { action, reason, startDate },
+    { throwOnError: true },
+  );
 }

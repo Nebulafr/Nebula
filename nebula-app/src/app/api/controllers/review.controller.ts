@@ -1,26 +1,10 @@
 import { NextRequest } from "next/server";
 import { ReviewService } from "../services/review.service";
-import { z } from "zod";
 import {
-  BadRequestException,
-  UnauthorizedException,
-  ValidationException,
-} from "../utils/http-exception";
+  targetReviewSchema,
+  reviewQuerySchema
+} from "@/lib/validations";
 
-const createReviewSchema = z.object({
-  targetType: z.enum(["COACH", "PROGRAM"]),
-  targetId: z.string().cuid(),
-  rating: z.number().min(1).max(5),
-  title: z.string().optional(),
-  content: z.string().min(1).max(2000),
-  sessionId: z.string().cuid().optional(),
-});
-
-const getReviewsSchema = z.object({
-  page: z.number().min(1).default(1),
-  limit: z.number().min(1).max(50).default(10),
-  sortBy: z.enum(["recent", "rating", "oldest"]).default("recent"),
-});
 
 export class ReviewController {
   async createReview(
@@ -31,7 +15,7 @@ export class ReviewController {
     const body = await request.json();
     const user = (request as any).user;
 
-    const payload = createReviewSchema.parse({
+    const payload = targetReviewSchema.parse({
       ...body,
       targetType,
       targetId,
@@ -52,7 +36,7 @@ export class ReviewController {
       sortBy: searchParams.get("sortBy") || "recent",
     };
 
-    let validatedParams = getReviewsSchema.parse(queryParams);
+    let validatedParams = reviewQuerySchema.parse(queryParams);
 
     const sortOptions = {
       sortBy: validatedParams.sortBy as "recent" | "rating" | "oldest",
@@ -76,7 +60,7 @@ export class ReviewController {
       sortBy: searchParams.get("sortBy") || "recent",
     };
 
-    let validatedParams = getReviewsSchema.parse(queryParams);
+    let validatedParams = reviewQuerySchema.parse(queryParams);
 
     const sortOptions = {
       sortBy: validatedParams.sortBy as "recent" | "rating" | "oldest",

@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { EnrollmentStatus } from "@/generated/prisma";
+import { NotFoundException, BadRequestException } from "../utils/http-exception";
 
 export const enrollmentService = {
   async getStudentEnrollments(studentId: string, status?: EnrollmentStatus) {
@@ -109,88 +110,7 @@ export const enrollmentService = {
     }
   },
 
-  // async getEnrollmentById(enrollmentId: string, studentId: string) {
-  //   try {
-  //     const enrollment = await prisma.enrollment.findFirst({
-  //       where: {
-  //         id: enrollmentId,
-  //         studentId,
-  //       },
-  //       include: {
-  //         program: {
-  //           include: {
-  //             category: true,
-  //             coach: {
-  //               include: {
-  //                 user: {
-  //                   select: {
-  //                     id: true,
-  //                     fullName: true,
-  //                     avatarUrl: true,
-  //                   },
-  //                 },
-  //               },
-  //             },
-  //             modules: {
-  //               orderBy: {
-  //                 week: 'asc',
-  //               },
-  //             },
-  //           },
-  //         },
-  //         coach: {
-  //           include: {
-  //             user: {
-  //               select: {
-  //                 id: true,
-  //                 fullName: true,
-  //                 avatarUrl: true,
-  //               },
-  //             },
-  //           },
-  //         },
-  //       },
-  //     });
-
-  //     if (!enrollment) {
-  //       throw new Error("Enrollment not found");
-  //     }
-
-  //     return {
-  //       id: enrollment.id,
-  //       status: enrollment.status,
-  //       enrollmentDate: enrollment.enrollmentDate,
-  //       completionDate: enrollment.completionDate,
-  //       progress: enrollment.progress,
-  //       paymentStatus: enrollment.paymentStatus,
-  //       program: {
-  //         id: enrollment.program.id,
-  //         title: enrollment.program.title,
-  //         slug: enrollment.program.slug,
-  //         description: enrollment.program.description,
-  //         category: enrollment.program.category?.name || "General",
-  //         difficulty: enrollment.program.difficulty,
-  //         duration: enrollment.program.duration,
-  //         price: enrollment.program.price,
-  //         imageUrl: enrollment.program.imageUrl,
-  //         modules: enrollment.program.modules,
-  //       },
-  //       coach: {
-  //         id: enrollment.coach.id,
-  //         fullName: enrollment.coach.user.fullName,
-  //         avatarUrl: enrollment.coach.user.avatarUrl,
-  //         rating: enrollment.coach.rating,
-  //         totalReviews: enrollment.coach.totalReviews,
-  //       },
-  //       createdAt: enrollment.createdAt,
-  //       updatedAt: enrollment.updatedAt,
-  //     };
-  //   } catch (error) {
-  //     console.error("Error fetching enrollment details:", error);
-  //     throw new Error("Failed to fetch enrollment details");
-  //   }
-  // },
-
+ 
   async updateEnrollmentProgress(
     enrollmentId: string,
     studentId: string,
@@ -225,5 +145,102 @@ export const enrollmentService = {
       console.error("Error updating enrollment progress:", error);
       throw error;
     }
+  },
+
+  async enrollInProgram(studentId: string, slug: string, enrollmentData: any) {
+    const { coachId, time, date } = enrollmentData;
+
+    const program = await prisma.program.findUnique({
+      where: {
+        slug,
+        isActive: true,
+      },
+      include: {
+        cohorts: {
+          where: {
+            status: "UPCOMING",
+            startDate: {
+              gte: new Date(),
+            },
+          },
+          orderBy: {
+            startDate: "asc",
+          },
+          include: {
+            _count: {
+              select: { enrollments: true },
+            },
+          },
+        },
+      },
+    });
+
+    if (!program) {
+      throw new NotFoundException("Program not found");
+    }
+
+    let cohortId: string | null = null;
+    if (program.cohorts && program.cohorts.length > 0) {
+      const cohort = program.cohorts.find(
+        (c) => c._count.enrollments < c.maxStudents,
+      );
+
+      if (!cohort) {
+        throw new BadRequestException(
+          "All upcoming cohorts for this program are currently full",
+        );
+      }
+      cohortId = cohort.id;
+    }
+
+    const existingEnrollment = await prisma.enrollment.findFirst({
+      where: {
+        studentId,
+        programId: program.id,
+      },
+    });
+
+    if (existingEnrollment) {
+      throw new BadRequestException(
+        "You are already enrolled in this program"
+      );
+    }
+
+    if (
+      program.maxStudents &&
+      (program.currentEnrollments || 0) >= program.maxStudents
+    ) {
+      throw new BadRequestException(
+        "This program has reached its maximum enrollment capacity"
+      );
+    }
+
+    return await prisma.$transaction(async (prisma) => {
+      const enrollment = await prisma.enrollment.create({
+        data: {
+          programId: program.id,
+          coachId: coachId,
+          studentId: studentId,
+          cohortId: cohortId,
+          time: time,
+          enrollmentDate: new Date(
+            date || new Date().toISOString().split("T")[0]
+          ),
+          status: "ACTIVE",
+        },
+      });
+
+      await prisma.program.update({
+        where: { id: program.id },
+        data: {
+          currentEnrollments: { increment: 1 },
+        },
+      });
+
+      return {
+        enrollmentId: enrollment.id,
+        programId: program.id,
+      };
+    });
   },
 };

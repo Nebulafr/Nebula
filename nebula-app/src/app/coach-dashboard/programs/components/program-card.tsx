@@ -2,12 +2,15 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   MoreHorizontal,
   Users,
   Star,
   Briefcase,
   GraduationCap,
+  FileSignature,
+  Loader2,
 } from "lucide-react";
 import Link from "next/link";
 import { Program } from "@/generated/prisma";
@@ -17,6 +20,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiPost } from "@/lib/utils";
+import { toast } from "react-toastify";
 
 export interface IProgram extends Omit<Program, 'category' | 'coach' | 'rating' | 'currentEnrollments'> {
   category: {
@@ -41,7 +47,39 @@ interface ProgramCardProps {
   program: IProgram;
 }
 
+const getStatusBadge = (status: string) => {
+  const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+    PENDING_APPROVAL: { label: "Pending Review", variant: "secondary" },
+    APPROVED: { label: "Approved - Sign & Submit", variant: "outline" },
+    SUBMITTED: { label: "Submitted", variant: "secondary" },
+    ACTIVE: { label: "Active", variant: "default" },
+    INACTIVE: { label: "Inactive", variant: "outline" },
+    REJECTED: { label: "Rejected", variant: "destructive" },
+  };
+  return statusConfig[status] || { label: status, variant: "outline" as const };
+};
+
 export function ProgramCard({ program }: ProgramCardProps) {
+  const queryClient = useQueryClient();
+  const statusBadge = getStatusBadge(program.status);
+
+  const submitMutation = useMutation({
+    mutationFn: async () => {
+      return apiPost(`/programs/id/${program.id}/submit`);
+    },
+    onSuccess: () => {
+      toast.success("Program submitted for publishing!");
+      queryClient.invalidateQueries({ queryKey: ["programs"] });
+    },
+    onError: (error: any) => {
+      toast.error(error?.message || "Failed to submit program");
+    },
+  });
+
+  const handleSubmit = () => {
+    submitMutation.mutate();
+  };
+
   return (
     <Card className="flex flex-col">
       <CardContent className="p-4 flex flex-col flex-1">
@@ -71,6 +109,9 @@ export function ProgramCard({ program }: ProgramCardProps) {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
+        <div className="mb-2">
+          <Badge variant={statusBadge.variant}>{statusBadge.label}</Badge>
+        </div>
         <h3 className="font-semibold text-lg">{program.title}</h3>
         <p className="text-sm text-muted-foreground">{program.category.name}</p>
         <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
@@ -84,12 +125,69 @@ export function ProgramCard({ program }: ProgramCardProps) {
           </div>
         </div>
         <div className="flex-grow" />
-        <div className="flex items-center gap-2 w-full mt-6">
-          <Button variant="outline" className="w-full" asChild>
-            <Link href={`/programs/${program.slug}`}>View Details</Link>
-          </Button>
-          <Button className="w-full">Run Program</Button>
-        </div>
+
+        {/* Show Submit button for APPROVED programs */}
+        {program.status === "APPROVED" && (
+          <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
+            <p className="text-sm text-blue-700 dark:text-blue-300 mb-2">
+              Your program has been approved! Sign the collaboration document and submit for publishing.
+            </p>
+            <Button
+              className="w-full"
+              onClick={handleSubmit}
+              disabled={submitMutation.isPending}
+            >
+              {submitMutation.isPending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <FileSignature className="mr-2 h-4 w-4" />
+              )}
+              Submit for Publishing
+            </Button>
+          </div>
+        )}
+
+        {/* Show different actions based on status */}
+        {program.status === "ACTIVE" && (
+          <div className="flex items-center gap-2 w-full mt-6">
+            <Button variant="outline" className="w-full" asChild>
+              <Link href={`/programs/${program.slug}`}>View Details</Link>
+            </Button>
+            <Button className="w-full">Run Program</Button>
+          </div>
+        )}
+
+        {program.status === "PENDING_APPROVAL" && (
+          <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-950/30 rounded-lg border border-yellow-200 dark:border-yellow-800">
+            <p className="text-sm text-yellow-700 dark:text-yellow-300">
+              Your program is under review. You'll be notified once it's approved.
+            </p>
+          </div>
+        )}
+
+        {program.status === "SUBMITTED" && (
+          <div className="mt-4 p-3 bg-purple-50 dark:bg-purple-950/30 rounded-lg border border-purple-200 dark:border-purple-800">
+            <p className="text-sm text-purple-700 dark:text-purple-300">
+              Your program has been submitted. Waiting for admin to publish.
+            </p>
+          </div>
+        )}
+
+        {program.status === "REJECTED" && (
+          <div className="mt-4 p-3 bg-red-50 dark:bg-red-950/30 rounded-lg border border-red-200 dark:border-red-800">
+            <p className="text-sm text-red-700 dark:text-red-300">
+              This program was not approved. Please contact support for more information.
+            </p>
+          </div>
+        )}
+
+        {(program.status === "INACTIVE" || !program.status) && (
+          <div className="flex items-center gap-2 w-full mt-6">
+            <Button variant="outline" className="w-full" asChild>
+              <Link href={`/programs/${program.slug}`}>View Details</Link>
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

@@ -36,6 +36,7 @@ enum SkillLevel {
 enum ProgramStatus {
   PENDING_APPROVAL
   APPROVED
+  SUBMITTED
   ACTIVE
   INACTIVE
   REJECTED
@@ -52,6 +53,13 @@ enum EnrollmentStatus {
   COMPLETED
   CANCELLED
   PAUSED
+}
+
+enum CohortStatus {
+  UPCOMING
+  ACTIVE
+  COMPLETED
+  CANCELLED
 }
 
 enum PaymentStatus {
@@ -268,9 +276,9 @@ model Program {
   coach       Coach             @relation(fields: [coachId], references: [id])
   modules     Module[]
   enrollments Enrollment[]
+  cohorts     Cohort[]
   reviews     Review[]          @relation("ReviewProgram")
   coCoaches   ProgramCoach[]
-  schedules   ProgramSchedule[]
 
   // Indexes for performance
   @@index([slug])
@@ -281,20 +289,6 @@ model Program {
   @@index([difficultyLevel])
   @@index([createdAt])
   @@map("programs")
-}
-
-model ProgramSchedule {
-  id        String    @id @default(cuid())
-  programId String    @map("program_id")
-  program   Program   @relation(fields: [programId], references: [id], onDelete: Cascade)
-  startDate DateTime  @map("start_date")
-  endDate   DateTime? @map("end_date")
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
-
-  @@unique([programId, startDate])
-  @@index([programId])
-  @@map("program_schedules")
 }
 
 // Join table for co-coaches on programs
@@ -313,6 +307,25 @@ model ProgramCoach {
   @@index([programId])
   @@index([coachId])
   @@map("program_coaches")
+}
+
+model Cohort {
+  id          String       @id @default(cuid())
+  programId   String       @map("program_id")
+  name        String?      // e.g., "Spring 2024"
+  startDate   DateTime     @map("start_date")
+  endDate     DateTime?    @map("end_date")
+  maxStudents Int          @default(100) @map("max_students")
+  status      CohortStatus @default(UPCOMING)
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  program     Program      @relation(fields: [programId], references: [id], onDelete: Cascade)
+  enrollments Enrollment[]
+
+  @@index([programId])
+  @@index([status])
+  @@map("cohorts")
 }
 
 model Module {
@@ -336,6 +349,7 @@ model Enrollment {
   id             String           @id @default(cuid())
   studentId      String           @map("student_id")
   programId      String           @map("program_id")
+  cohortId       String?          @map("cohort_id")
   coachId        String           @map("coach_id")
   status         EnrollmentStatus @default(ACTIVE)
   enrollmentDate DateTime         @default(now()) @map("enrollment_date")
@@ -349,11 +363,13 @@ model Enrollment {
   // Relationships
   student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
   program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+  cohort  Cohort? @relation(fields: [cohortId], references: [id])
   coach   Coach   @relation(fields: [coachId], references: [id])
 
   // Indexes for performance
   @@index([studentId])
   @@index([programId])
+  @@index([cohortId])
   @@index([coachId])
   @@index([status])
   @@index([paymentStatus])

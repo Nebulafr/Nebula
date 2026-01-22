@@ -5,10 +5,9 @@ import {
   UnauthorizedException,
   ForbiddenException,
   BadRequestException,
-  ValidationException,
 } from "@/app/api/utils/http-exception";
 import { sendSuccess } from "@/app/api/utils/send-response";
-import { z } from "zod";
+import { createEnrollmentSchema, enrollmentProgressSchema } from "@/lib/validations";
 
 export class EnrollmentController {
   async getStudentEnrollments(request: NextRequest) {
@@ -60,31 +59,48 @@ export class EnrollmentController {
     const { enrollmentId } = await context.params;
     const { progress } = body;
 
-    // Validate progress value
-    const progressSchema = z.object({
-      progress: z.number().min(0).max(100),
-    });
-
-    try {
-      progressSchema.parse({ progress });
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        throw new ValidationException(
-          `Progress must be a number between 0 and 100`
-        );
-      }
-      throw error;
-    }
+    enrollmentProgressSchema.parse({ progress });
 
     const updatedEnrollment = await enrollmentService.updateEnrollmentProgress(
       enrollmentId,
-      user.studentId!,
+      user?.student?.id!,
       progress
     );
 
     return sendSuccess(
       { enrollment: updatedEnrollment },
       "Enrollment progress updated successfully"
+    );
+  }
+
+  async enrollInProgram(request: NextRequest, slug: string) {
+    const user = (request as any).user;
+
+    if (!user) {
+      throw new UnauthorizedException("Authentication required");
+    }
+
+    if (user.role !== "STUDENT") {
+      throw new ForbiddenException("Student access required");
+    }
+
+    const body = await request.json();
+    
+    const enrollmentData = createEnrollmentSchema.parse(body);
+
+    const enrollmentResult = await enrollmentService.enrollInProgram(
+      user?.student?.id!,
+      slug,
+      enrollmentData
+    );
+
+    return sendSuccess(
+      {
+        enrollmentId: enrollmentResult.enrollmentId,
+        programId: enrollmentResult.programId,
+      },
+      "Successfully enrolled in program",
+      201
     );
   }
 }

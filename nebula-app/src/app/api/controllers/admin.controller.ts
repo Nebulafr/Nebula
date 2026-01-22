@@ -85,4 +85,35 @@ export class AdminController {
 
     return await AdminService.getEvents(queryParams);
   }
+
+  async updateCohort(request: NextRequest, cohortId: string) {
+    if (!cohortId) {
+      throw new BadRequestException("Cohort ID is required");
+    }
+
+    const body = await request.json();
+    return await AdminService.updateCohort(cohortId, body);
+  }
+
+  async getCohortsByProgram(request: NextRequest) {
+    const { searchParams } = new URL(request.url);
+    const programId = searchParams.get("programId");
+
+    if (!programId) {
+      throw new BadRequestException("Program ID is required");
+    }
+
+    return await AdminService.getCohortsByProgram(programId);
+  }
+
+  async createCohort(request: NextRequest) {
+    const body = await request.json();
+    const { programId, name, startDate, maxStudents } = body;
+
+    if (!programId) {
+      throw new BadRequestException("Program ID is required");
+    }
+
+    return await AdminService.createCohort(programId, { name, startDate, maxStudents });
+  }
 }

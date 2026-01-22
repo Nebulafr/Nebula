@@ -404,6 +404,41 @@ export const studentOnboardingStep2Schema = z.object({
   }),
 });
 
+export const enrollmentProgressSchema = z.object({
+  progress: z.number().min(0).max(100),
+});
+
+export const targetReviewSchema = z.object({
+  targetType: z.enum(["COACH", "PROGRAM"]),
+  targetId: z.string().cuid(),
+  rating: z.number().min(1).max(5),
+  title: z.string().optional(),
+  content: z.string().min(1).max(2000),
+  sessionId: z.string().cuid().optional(),
+});
+
+export const reviewQuerySchema = z.object({
+  page: z.number().min(1).default(1),
+  limit: z.number().min(1).max(50).default(10),
+  sortBy: z.enum(["recent", "rating", "oldest"]).default("recent"),
+});
+
+export const conversationCreateSchema = z.object({
+  participants: z.array(z.string()).min(2),
+  type: z.enum(["DIRECT", "GROUP", "SUPPORT"]).optional().default("DIRECT"),
+  title: z.string().optional(),
+});
+
+export const messageSendSchema = z.object({
+  senderId: z.string(),
+  content: z.string().min(1),
+  type: z.enum(["TEXT", "IMAGE", "FILE", "LINK"]).optional().default("TEXT"),
+});
+
+export const markMessageReadSchema = z.object({
+  userId: z.string(),
+});
+
 export const studentOnboardingStep3Schema = z.object({
   availability: z.string().min(1, "Please select your time commitment"),
 });

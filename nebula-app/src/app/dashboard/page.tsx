@@ -18,9 +18,15 @@ export default function DashboardPage() {
   const { profile } = useAuth();
 
   // Fetch data using React Query hooks
-  const { data: eventsResponse } = usePublicEvents({ limit: 6 });
-  const { data: programsResponse } = useRecommendedPrograms();
-  const { data: coachesResponse } = useSuggestedCoaches(4);
+  const { data: eventsResponse, isLoading: isEventsLoading } = usePublicEvents({
+    limit: 6,
+  });
+  const { data: programsResponse, isLoading: isProgramsLoading } =
+    useRecommendedPrograms();
+
+  console.log({ programsResponse });
+  const { data: coachesResponse, isLoading: isCoachesLoading } =
+    useSuggestedCoaches(4);
 
   const upcomingEvents =
     eventsResponse?.data?.events?.filter((event: Event) => {
@@ -34,14 +40,24 @@ export default function DashboardPage() {
 
   return (
     <StudentRoute>
-      <div className="min-h-full bg-muted/30 p-4 md:p-6 lg:p-8">
+      <div className="min-h-full p-4 md:p-6 lg:p-8">
         <div className="mx-auto max-w-7xl space-y-8">
           <DashboardHeader user={profile} />
           <div className="space-y-12 md:space-y-16">
-            <SuggestedCoaches coaches={coaches} user={profile!} />
-            <RecommendedPrograms programs={programs} />
+            <SuggestedCoaches
+              coaches={coaches}
+              user={profile!}
+              loading={isCoachesLoading}
+            />
+            <RecommendedPrograms
+              programs={programs}
+              loading={isProgramsLoading}
+            />
             <ContactCard />
-            <UpcomingSessions sessions={upcomingEvents} />
+            <UpcomingSessions
+              sessions={upcomingEvents}
+              loading={isEventsLoading}
+            />
           </div>
         </div>
       </div>

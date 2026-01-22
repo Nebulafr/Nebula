@@ -60,7 +60,6 @@ export default function ProgramDetailPage({
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedTime, setSelectedTime] = useState<string>("");
-  const [localSelectedTime, setLocalSelectedTime] = useState<string>("");
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
@@ -103,7 +102,7 @@ export default function ProgramDetailPage({
           const response = await getEnrollments();
           if (response && response.success) {
             const isStudentEnrolled = response.data!.enrollments.some(
-              (en: any) => en.programId === program.id
+              (en: any) => en.programId === program.id,
             );
             setIsEnrolled(isStudentEnrolled);
           }
@@ -116,25 +115,25 @@ export default function ProgramDetailPage({
     checkEnrollmentStatus();
   }, [profile, program]);
 
-  // Handle program schedule selection automatically
   useEffect(() => {
-    if (program && program.schedules && program.schedules.length > 0) {
+    if (program) {
       const now = new Date();
-      const futureSchedules = program.schedules
-        .map((s) => ({ ...s, startDate: new Date(s.startDate) }))
-        .filter((s) => s.startDate > now)
-        .sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
+      if (program.cohorts && program.cohorts.length > 0) {
+        const futureCohorts = program.cohorts
+          .map((c) => ({ ...c, startDate: new Date(c.startDate) }))
+          .filter((c) => c.startDate > now && c.status === "UPCOMING")
+          .sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
 
-      if (futureSchedules.length > 0) {
-        const bestSchedule = futureSchedules[0];
-        setSelectedDate(bestSchedule.startDate);
-        const timeStr = bestSchedule.startDate.toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false,
-        });
-        setSelectedTime(timeStr);
-        setLocalSelectedTime(timeStr);
+        if (futureCohorts.length > 0) {
+          const nextCohort = futureCohorts[0];
+          setSelectedDate(nextCohort.startDate);
+          const timeStr = nextCohort.startDate.toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+          });
+          setSelectedTime(timeStr);
+        }
       }
     }
   }, [program]);
@@ -196,80 +195,43 @@ export default function ProgramDetailPage({
     );
   }
 
-  const handleEnrollClick = () => {
+  const handleEnrollClick = async () => {
     if (!profile) {
       toast.error("Please log in to enroll in this program.");
       router.replace("/login");
       return;
     }
-    // If we have a selected date/time from the program schedule, go straight to confirmation (step 2)
-    if (selectedDate && selectedTime) {
-      setEnrollmentStep(2);
-    } else {
-      // Fallback if no schedule is found (shouldn't happen with user's new requirement)
-      setEnrollmentStep(1);
-    }
-  };
 
-  const handleCancelEnrollment = () => {
-    setEnrollmentStep(0);
-    setSelectedDate(undefined);
-    setSelectedTime("");
-    setLocalSelectedTime("");
-  };
-
-  const handleDateSelect = (date: Date | undefined) => {
-    if (date) {
-      setSelectedDate(date);
-      setEnrollmentStep(2);
-    } else {
-      toast.error("Please select a valid date to continue.");
-    }
-  };
-
-  const handleLocalTimeSelect = (time: string) => {
-    setLocalSelectedTime(time);
-  };
-
-  const handleTimeSelect = async (time: string) => {
-    if (!profile || !program) {
-      toast.error("Please log in to complete enrollment.");
+    if (!selectedDate || !selectedTime) {
+      toast.error("No available schedule found for this program.");
       return;
     }
-
-    if (!selectedDate || !time) {
-      toast.error("Please select both date and time for your enrollment.");
-      return;
-    }
-
-    setSelectedTime(time);
 
     try {
       setEnrolling(true);
       if (!profile) {
         toast.error(
-          "Please complete your student profile to enroll in programs."
+          "Please complete your student profile to enroll in programs.",
         );
         router.replace("/dashboard/profile");
         return;
       }
 
       const enrollmentResult = await enrollInProgram({
-        programSlug: program.slug,
-        coachId: program.coachId,
-        amountPaid: program.price || 0,
-        time,
-        date: selectedDate?.toISOString().split("T")[0],
+        programSlug: program!.slug,
+        coachId: program!.coachId,
+        amountPaid: program!.price || 0,
+        time: selectedTime,
       });
 
       if (!enrollmentResult.success) {
         throw new Error(
-          enrollmentResult.error || "Failed to enroll in program"
+          enrollmentResult.error || "Failed to enroll in program",
         );
       }
 
       toast.success(
-        "Welcome to the program! You can access it from your dashboard."
+        "Welcome to the program! You can access it from your dashboard.",
       );
 
       setEnrollmentStep(3);
@@ -279,7 +241,7 @@ export default function ProgramDetailPage({
       toast.error(
         error instanceof Error
           ? error.message
-          : "There was an error processing your enrollment. Please try again."
+          : "There was an error processing your enrollment. Please try again.",
       );
     } finally {
       setEnrolling(false);
@@ -372,7 +334,7 @@ export default function ProgramDetailPage({
               {isStudent && !isEnrolled && (
                 <Button
                   size="lg"
-                  onClick={handleEnrollClick}
+                  onClick={() => setEnrollmentStep(1)}
                   variant={enrollmentStep > 0 ? "outline" : "default"}
                 >
                   <PlusCircle className="mr-2 h-5 w-5" /> Enroll now
@@ -426,12 +388,8 @@ export default function ProgramDetailPage({
                     isEnrolled={isEnrolled}
                     selectedDate={selectedDate}
                     selectedTime={selectedTime}
-                    localSelectedTime={localSelectedTime}
                     onEnroll={handleEnrollClick}
-                    onCancel={handleCancelEnrollment}
-                    onDateSelect={handleDateSelect}
-                    onTimeSelect={handleTimeSelect}
-                    onLocalTimeSelect={handleLocalTimeSelect}
+                    onCancel={() => setEnrollmentStep(0)}
                   />
                 ) : (
                   <>
@@ -466,19 +424,15 @@ export default function ProgramDetailPage({
                   isEnrolled={isEnrolled}
                   selectedDate={selectedDate}
                   selectedTime={selectedTime}
-                  localSelectedTime={localSelectedTime}
                   onEnroll={handleEnrollClick}
-                  onCancel={handleCancelEnrollment}
-                  onDateSelect={handleDateSelect}
-                  onTimeSelect={handleTimeSelect}
-                  onLocalTimeSelect={handleLocalTimeSelect}
+                  onCancel={() => setEnrollmentStep(0)}
                 />
               ) : (
                 isStudent && (
                   <Button
                     size="lg"
                     className="w-full"
-                    onClick={handleEnrollClick}
+                    onClick={() => setEnrollmentStep(1)}
                   >
                     <PlusCircle className="mr-2 h-5 w-5" /> Enroll Now
                   </Button>
@@ -496,7 +450,9 @@ export default function ProgramDetailPage({
               </h2>
               <div className="flex items-center gap-4">
                 <Avatar className="h-20 w-20">
-                  <AvatarImage src={program.coach.user.avatarUrl || undefined} />
+                  <AvatarImage
+                    src={program.coach.user.avatarUrl || undefined}
+                  />
                   <AvatarFallback>
                     {program.coach.user.fullName?.charAt(0)}
                   </AvatarFallback>
@@ -547,7 +503,7 @@ export default function ProgramDetailPage({
                             "h-5 w-5",
                             i < Math.round(program.rating || 0)
                               ? "fill-yellow-400 text-yellow-400"
-                              : "text-muted opacity-30"
+                              : "text-muted opacity-30",
                           )}
                         />
                       ))}
@@ -613,7 +569,7 @@ export default function ProgramDetailPage({
                                             "h-6 w-6 cursor-pointer",
                                             starValue <= (hoverRating || rating)
                                               ? "text-yellow-400 fill-yellow-400"
-                                              : "text-gray-300"
+                                              : "text-gray-300",
                                           )}
                                           onClick={() => setRating(starValue)}
                                           onMouseEnter={() =>
@@ -726,76 +682,29 @@ export default function ProgramDetailPage({
 
 function EnrollmentForm({
   step,
-  loading = false,
-  isEnrolled = false,
+  loading,
+  isEnrolled,
   selectedDate,
   selectedTime,
-  localSelectedTime,
   onEnroll,
   onCancel,
-  onDateSelect,
-  onTimeSelect,
-  onLocalTimeSelect,
 }: {
   step: number;
-  loading?: boolean;
-  isEnrolled?: boolean;
-  selectedDate?: Date;
-  selectedTime?: string;
-  localSelectedTime?: string;
+  loading: boolean;
+  isEnrolled: boolean;
+  selectedDate: Date | undefined;
+  selectedTime: string;
   onEnroll: () => void;
   onCancel: () => void;
-  onDateSelect: (date: Date | undefined) => void;
-  onTimeSelect: (time: string) => void;
-  onLocalTimeSelect: (time: string) => void;
 }) {
-  const { isStudent } = useAuth();
-  const timeSlots = ["09:00", "11:00", "14:00", "16:00"];
-
-  if (step === 0) {
-    if (isEnrolled) {
-      return (
-        <Card className="rounded-xl border shadow-lg">
-          <CardContent className="p-6 text-center">
-            <CheckCircle className="h-12 w-12 mx-auto mb-4 text-green-500" />
-            <h3 className="font-headline text-xl font-bold text-green-700">
-              Already Enrolled!
-            </h3>
-            <p className="text-muted-foreground mt-2 mb-6">
-              You're already part of this program. Access it from your
-              dashboard.
-            </p>
-            <div className="space-y-2">
-              <Button size="lg" className="w-full" asChild>
-                <Link href="/dashboard">Go to Dashboard</Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      );
-    }
-
+  if (step === 1) {
     return (
-      <Card className="rounded-xl border shadow-lg">
-        <CardContent className="p-6 text-center">
-          <h3 className="font-headline text-2xl font-bold font-headline">Ready to start?</h3>
-          <p className="text-muted-foreground mt-2 mb-6 text-sm">Enroll in this program to get personalized coaching.</p>
-          {isStudent && (
-            <Button size="lg" className="w-full" onClick={onEnroll}>
-              <PlusCircle className="mr-2 h-5 w-5" /> Enroll now
-            </Button>
-          )}
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (step === 2) {
-    return (
-      <Card className="rounded-xl border border-border shadow-lg">
+      <Card className="rounded-xl border-border shadow-lg">
         <CardContent className="p-6">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="font-headline text-lg font-bold text-left">Confirm Schedule</h3>
+            <h3 className="font-headline text-lg font-bold">
+              Join Next Cohort
+            </h3>
             <Button
               variant="ghost"
               size="icon"
@@ -805,57 +714,31 @@ function EnrollmentForm({
               <X className="h-4 w-4" />
             </Button>
           </div>
-          
-          <div className="mt-6 p-4 bg-secondary/30 rounded-xl border border-border text-left">
-            <p className="text-xs font-bold uppercase text-muted-foreground tracking-wider mb-2">Program Schedule</p>
-            <div className="flex justify-between text-sm py-2 border-b border-border/50">
-              <span className="text-muted-foreground">Start Date:</span>
-              <span className="font-semibold">{selectedDate?.toLocaleDateString()}</span>
-            </div>
-            <div className="flex justify-between text-sm py-2">
-              <span className="text-muted-foreground">Start Time:</span>
-              <span className="font-semibold">{selectedTime}</span>
-            </div>
+          <div className="text-center my-6">
+            <p className="text-muted-foreground">The next cohort starts on:</p>
+            <p className="text-xl font-bold mt-1">
+              {selectedDate?.toLocaleDateString()} at {selectedTime}
+            </p>
           </div>
-
-          <Button
-            className="w-full mt-8"
-            size="lg"
-            disabled={loading}
-            onClick={() => {
-              onTimeSelect(selectedTime || "");
-            }}
-          >
-            {loading ? "Processing..." : "Confirm Enrollment"}
+          <Button className="w-full" onClick={onEnroll} disabled={loading}>
+            {loading ? "Enrolling..." : "Enroll in Next Cohort"}
           </Button>
         </CardContent>
       </Card>
     );
   }
 
-  if (step === 3) {
+  if (step === 2) {
     return (
       <Card className="rounded-xl border-none bg-green-50 text-green-900 shadow-lg">
         <CardContent className="p-6 text-center">
-          <CheckCircle className="h-12 w-12 mx-auto mb-4 text-green-600" />
+          <CheckCircle className="h-12 w-12 mx-auto mb-4" />
           <h3 className="font-headline text-xl font-bold">You're In!</h3>
-          <p className="text-sm mt-2 text-green-800/80">
-            Welcome to the program. You can view your enrollment details on your dashboard.
+          <p className="text-sm mt-2">
+            Welcome to the program. You can view your enrollment details on your
+            dashboard.
           </p>
-          {selectedDate && selectedTime && (
-            <div className="mt-6 p-4 bg-white/60 rounded-xl border border-green-200 text-left">
-              <p className="text-xs font-bold uppercase text-green-800 tracking-wider mb-2">Schedule Detail</p>
-              <div className="flex justify-between text-sm py-1 border-b border-green-200/50">
-                <span className="text-green-700/70">Date:</span>
-                <span className="font-semibold">{selectedDate.toLocaleDateString()}</span>
-              </div>
-              <div className="flex justify-between text-sm py-1">
-                <span className="text-green-700/70">Time:</span>
-                <span className="font-semibold">{selectedTime}</span>
-              </div>
-            </div>
-          )}
-          <div className="flex gap-2 mt-8">
+          <div className="flex gap-2 mt-6">
             <Button
               variant="outline"
               className="w-full bg-green-100 border-green-600 text-green-800 hover:bg-green-200"
@@ -863,8 +746,8 @@ function EnrollmentForm({
             >
               Close
             </Button>
-            <Button className="w-full bg-green-700 hover:bg-green-800 text-white" asChild>
-              <Link href="/dashboard">Dashboard</Link>
+            <Button className="w-full bg-green-700 hover:bg-green-800" asChild>
+              <Link href="/dashboard">Go to Dashboard</Link>
             </Button>
           </div>
         </CardContent>
