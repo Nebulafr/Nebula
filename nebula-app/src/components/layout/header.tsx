@@ -66,12 +66,7 @@ export function Header() {
             >
               Events
             </Link>
-            <Link
-              href="/simulation"
-              className="font-menu text-sm font-medium text-foreground/60 transition-colors hover:text-foreground/80"
-            >
-              Simulation
-            </Link>
+
             <Link
               href="/universities"
               className="font-menu text-sm font-medium text-foreground/60 transition-colors hover:text-foreground/80"
@@ -83,6 +78,12 @@ export function Header() {
               className="font-menu text-sm font-medium text-foreground/60 transition-colors hover:text-foreground/80"
             >
               Become a coach
+            </Link>
+            <Link
+              href="/nebula-ai"
+              className="font-menu text-sm font-medium text-foreground/60 transition-colors hover:text-foreground/80"
+            >
+              Nebula Ai
             </Link>
           </nav>
         </div>
