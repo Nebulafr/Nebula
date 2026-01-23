@@ -77,10 +77,7 @@ function CoachesPageContent() {
       <Header />
       <main className="flex-1">
         <section className="container py-20 text-center">
-          <Badge variant="secondary" className="mb-4">
-            Coaches
-          </Badge>
-          <h1 className="font-headline text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl">
+          <h1 className="font-headline text-3xl font-bold text-primary tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl">
             Find the perfect coach for your goals
           </h1>
           <p className="mx-auto mt-4 max-w-2xl font-body text-lg text-foreground/70">

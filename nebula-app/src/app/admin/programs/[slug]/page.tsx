@@ -375,10 +375,27 @@ export default function ProgramDetailsPage({
                       </div>
                     </PopoverContent>
                   </Popover>
-                  <Button variant="outline" onClick={handleReject}>
+                  <Button
+                    variant="outline"
+                    onClick={handleReject}
+                    disabled={updateProgramStatusMutation.isPending}
+                  >
+                    {updateProgramStatusMutation.isPending &&
+                    updateProgramStatusMutation.variables?.action === "reject" ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : null}
                     Reject
                   </Button>
-                  <Button onClick={handleApprove}>Approve</Button>
+                  <Button
+                    onClick={handleApprove}
+                    disabled={updateProgramStatusMutation.isPending}
+                  >
+                    {updateProgramStatusMutation.isPending &&
+                    updateProgramStatusMutation.variables?.action === "approve" ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : null}
+                    Approve
+                  </Button>
                 </>
               )}
 
@@ -387,21 +404,43 @@ export default function ProgramDetailsPage({
                 <Button
                   onClick={handleActivate}
                   className="bg-green-600 hover:bg-green-700"
+                  disabled={updateProgramStatusMutation.isPending}
                 >
+                  {updateProgramStatusMutation.isPending &&
+                  updateProgramStatusMutation.variables?.action === "activate" ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : null}
                   Publish Program
                 </Button>
               )}
 
               {/* ACTIVE: Show deactivate button */}
               {program.status === "ACTIVE" && (
-                <Button variant="outline" onClick={handleDeactivate}>
+                <Button
+                  variant="outline"
+                  onClick={handleDeactivate}
+                  disabled={updateProgramStatusMutation.isPending}
+                >
+                  {updateProgramStatusMutation.isPending &&
+                  updateProgramStatusMutation.variables?.action === "deactivate" ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : null}
                   Deactivate
                 </Button>
               )}
 
               {/* INACTIVE: Show reactivate button */}
               {program.status === "INACTIVE" && (
-                <Button onClick={handleActivate}>Reactivate</Button>
+                <Button
+                  onClick={handleActivate}
+                  disabled={updateProgramStatusMutation.isPending}
+                >
+                  {updateProgramStatusMutation.isPending &&
+                  updateProgramStatusMutation.variables?.action === "activate" ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : null}
+                  Reactivate
+                </Button>
               )}
             </div>
           </div>

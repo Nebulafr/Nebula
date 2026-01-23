@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { PlaceHolderImages } from "@/lib/images/placeholder-images";
+import Link from "next/link";
 
 export function NetworkSection() {
   const networkImage = PlaceHolderImages.find((img) => img.id === "network");
@@ -27,9 +28,11 @@ export function NetworkSection() {
             and real-world application, offering you unparalleled access to
             insider knowledge and career opportunities.
           </p>
-          <Button className="mt-8" size="lg">
-            Explore the Network
-          </Button>
+          <Link href="/coaches">
+            <Button className="mt-8" size="lg">
+              Explore the Network
+            </Button>
+          </Link>
         </div>
       </div>
     </section>

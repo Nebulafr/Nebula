@@ -22,6 +22,7 @@ import {
   ChevronDown,
   Check,
   Plus,
+  Loader2,
 } from "lucide-react";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import {
@@ -58,6 +59,7 @@ export default function AdminProgramsPage() {
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [newCategory, setNewCategory] = useState("");
   const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
+  const [actionInProgress, setActionInProgress] = useState<string | null>(null);
 
   const { data: categoriesResponse } = useCategories();
   const categories =
@@ -109,11 +111,18 @@ export default function AdminProgramsPage() {
     programId: string,
     action: "approve" | "reject" | "activate" | "deactivate"
   ) => {
+    setActionInProgress(`${programId}-${action}`);
     try {
       await updateProgramStatusMutation.mutateAsync({ programId, action });
     } catch (error) {
       // Error handled by hook
+    } finally {
+      setActionInProgress(null);
     }
+  };
+
+  const isActionPending = (programId: string, action: string) => {
+    return actionInProgress === `${programId}-${action}`;
   };
 
   const handleViewDetails = (program: any) => {
@@ -304,16 +313,28 @@ export default function AdminProgramsPage() {
                                 onClick={() =>
                                   handleProgramAction(program.id, "approve")
                                 }
+                                disabled={isActionPending(program.id, "approve")}
                               >
-                                <CheckCircle className="mr-2 h-4 w-4" /> Approve
+                                {isActionPending(program.id, "approve") ? (
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                ) : (
+                                  <CheckCircle className="mr-2 h-4 w-4" />
+                                )}
+                                Approve
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 className="text-destructive"
                                 onClick={() =>
                                   handleProgramAction(program.id, "reject")
                                 }
+                                disabled={isActionPending(program.id, "reject")}
                               >
-                                <XCircle className="mr-2 h-4 w-4" /> Reject
+                                {isActionPending(program.id, "reject") ? (
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                ) : (
+                                  <XCircle className="mr-2 h-4 w-4" />
+                                )}
+                                Reject
                               </DropdownMenuItem>
                             </>
                           )}
@@ -322,8 +343,14 @@ export default function AdminProgramsPage() {
                               onClick={() =>
                                 handleProgramAction(program.id, "deactivate")
                               }
+                              disabled={isActionPending(program.id, "deactivate")}
                             >
-                              <XCircle className="mr-2 h-4 w-4" /> Deactivate
+                              {isActionPending(program.id, "deactivate") ? (
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              ) : (
+                                <XCircle className="mr-2 h-4 w-4" />
+                              )}
+                              Deactivate
                             </DropdownMenuItem>
                           )}
                           {program.status === "INACTIVE" && (
@@ -331,8 +358,14 @@ export default function AdminProgramsPage() {
                               onClick={() =>
                                 handleProgramAction(program.id, "activate")
                               }
+                              disabled={isActionPending(program.id, "activate")}
                             >
-                              <CheckCircle className="mr-2 h-4 w-4" /> Activate
+                              {isActionPending(program.id, "activate") ? (
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              ) : (
+                                <CheckCircle className="mr-2 h-4 w-4" />
+                              )}
+                              Activate
                             </DropdownMenuItem>
                           )}
                           <DropdownMenuSeparator />

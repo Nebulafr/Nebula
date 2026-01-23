@@ -55,10 +55,22 @@ export function Header() {
               Programs
             </Link>
             <Link
+              href="/coaches"
+              className="font-menu text-sm font-medium text-foreground/60 transition-colors hover:text-foreground/80"
+            >
+              Coaches
+            </Link>
+            <Link
               href="/events"
               className="font-menu text-sm font-medium text-foreground/60 transition-colors hover:text-foreground/80"
             >
               Events
+            </Link>
+            <Link
+              href="/simulation"
+              className="font-menu text-sm font-medium text-foreground/60 transition-colors hover:text-foreground/80"
+            >
+              Simulation
             </Link>
             <Link
               href="/universities"
