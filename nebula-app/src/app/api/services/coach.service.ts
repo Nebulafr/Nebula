@@ -33,6 +33,16 @@ export class CoachService {
       };
     }
 
+    // Add search filtering at database level for better performance
+    if (search) {
+      whereClause.OR = [
+        { user: { fullName: { contains: search, mode: "insensitive" } } },
+        { title: { contains: search, mode: "insensitive" } },
+        { specialties: { hasSome: [search] } },
+        { bio: { contains: search, mode: "insensitive" } },
+      ];
+    }
+
     const coaches = await prisma.coach.findMany({
       where: whereClause,
       orderBy: {
@@ -80,18 +90,6 @@ export class CoachService {
       createdAt: coach.createdAt.toISOString(),
       updatedAt: coach.updatedAt.toISOString(),
     }));
-
-    if (search) {
-      const searchLower = search.toLowerCase();
-      transformedCoaches = transformedCoaches.filter(
-        (coach) =>
-          (coach.fullName?.toLowerCase() || "").includes(searchLower) ||
-          coach.title.toLowerCase().includes(searchLower) ||
-          coach.specialties.some((s: string) =>
-            s.toLowerCase().includes(searchLower)
-          )
-      );
-    }
 
     const groupedCoaches = transformedCoaches.reduce(
       (acc: Record<string, any[]>, coach) => {

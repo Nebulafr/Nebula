@@ -1,4 +1,3 @@
-import { Linkedin, Twitter, Youtube } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { logos } from "@/lib/images/logos";
@@ -7,17 +6,14 @@ export function Footer() {
   const footerLinks = {
     Company: [
       { title: "About Us", href: "/about" },
-      { title: "Careers", href: "#" },
-      { title: "Press", href: "#" },
-      { title: "Admin", href: "/admin" },
+      { title: "Careers", href: "/careers" },
     ],
     Resources: [
       { title: "Help Center", href: "/help-center" },
-      { title: "Privacy Policy", href: "#" },
-      { title: "Terms of Service", href: "#" },
+      { title: "Privacy Policy", href: "/privacy-policy" },
+      { title: "Terms of Service", href: "/terms-of-service" },
     ],
     Connect: [
-      { title: "Twitter", href: "#" },
       { title: "LinkedIn", href: "#" },
       { title: "Facebook", href: "#" },
       { title: "Instagram", href: "#" },
@@ -64,22 +60,6 @@ export function Footer() {
                     className="text-xs text-secondary-foreground/70 transition-colors hover:text-secondary-foreground"
                   >
                     Coaches
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="#"
-                    className="text-xs text-secondary-foreground/70 transition-colors hover:text-secondary-foreground"
-                  >
-                    Skill Assessment
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="#"
-                    className="text-xs text-secondary-foreground/70 transition-colors hover:text-secondary-foreground"
-                  >
-                    Industry network
                   </Link>
                 </li>
                 <li>

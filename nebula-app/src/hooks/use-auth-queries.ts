@@ -31,9 +31,7 @@ export function useSignUp() {
     onSuccess: (result) => {
       if (result.data) {
         storeAuthData(result.data);
-        // Update the user profile cache
         queryClient.setQueryData([USER_PROFILE_QUERY_KEY], result);
-        toast.success("Account created successfully!");
       }
     },
     onError: (error: any) => {
@@ -52,9 +50,7 @@ export function useSignIn() {
     onSuccess: (result) => {
       if (result.data) {
         storeAuthData(result.data);
-        // Update the user profile cache
         queryClient.setQueryData([USER_PROFILE_QUERY_KEY], result);
-        toast.success("Signed in successfully!");
       }
     },
     onError: (error: any) => {
@@ -73,9 +69,7 @@ export function useGoogleSignIn() {
     onSuccess: (result) => {
       if (result.data) {
         storeAuthData(result.data);
-        // Update the user profile cache
         queryClient.setQueryData([USER_PROFILE_QUERY_KEY], result);
-        toast.success("Signed in with Google successfully!");
       }
     },
     onError: (error: any) => {
@@ -89,9 +83,7 @@ export function useGoogleSignIn() {
 export function useResetPassword() {
   return useMutation({
     mutationFn: (email: string) => resetPassword(email),
-    onSuccess: () => {
-      toast.success("Password reset email sent!");
-    },
+    onSuccess: () => {},
     onError: (error: any) => {
       handleAndToastError(error, "Failed to send reset email");
     },

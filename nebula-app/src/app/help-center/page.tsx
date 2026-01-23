@@ -12,19 +12,15 @@ import { Input } from "@/components/ui/input";
 import {
   ArrowRight,
   BookOpen,
-  Briefcase,
+  Calendar,
   CreditCard,
   HelpCircle,
   LifeBuoy,
-  LogOut,
   MessageCircle,
   Search,
   Settings,
   ShieldCheck,
   Smile,
-  Twitter,
-  Linkedin,
-  Youtube,
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -32,7 +28,9 @@ import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
 
 export default function HelpCenterPage() {
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(
+    "FAQs",
+  );
   const [searchTerm, setSearchTerm] = useState("");
 
   const categories = [
@@ -58,9 +56,9 @@ export default function HelpCenterPage() {
       description: "Learn about how our programs and coaching sessions work.",
     },
     {
-      icon: <Briefcase className="h-5 w-5" />,
-      title: "Case Studies",
-      description: "Explore success stories from our community.",
+      icon: <Calendar className="h-5 w-5" />,
+      title: "Events & Webinars",
+      description: "Find details about upcoming live events and webinars.",
     },
     {
       icon: <LifeBuoy className="h-5 w-5" />,
@@ -79,58 +77,96 @@ export default function HelpCenterPage() {
     },
   ];
 
-  const faqs = [
-    {
-      question: "How do I book a session with a coach?",
-      answer:
-        "You can book a session by visiting a coach's profile and selecting a time from their calendar. Once you confirm, the session will be added to your dashboard.",
-    },
-    {
-      question: "Can I change my subscription plan?",
-      answer:
-        "Yes, you can upgrade, downgrade, or cancel your subscription at any time from your billing settings. Changes will take effect at the end of your current billing cycle.",
-    },
-    {
-      question: "What is the refund policy?",
-      answer:
-        "We offer a 30-day money-back guarantee on all our subscription plans. If you are not satisfied, you can request a full refund within 30 days of your purchase.",
-    },
-    {
-      question: "How are coaches vetted?",
-      answer:
-        "Our coaches undergo a rigorous vetting process that includes a review of their professional experience, coaching qualifications, and a practical assessment. We only partner with top-tier experts to ensure you receive the highest quality guidance.",
-    },
-    {
-      question: "How do I reset my password?",
-      answer:
-        'You can reset your password by clicking the "Forgot your password?" link on the login page. You will receive an email with instructions to create a new password.',
-    },
-    {
-      question: "Are there any free resources available?",
-      answer:
-        'Yes! We offer a variety of free resources, including articles, webinars, and community events. You can explore them in the "Events" and "Blog" sections of our website.',
-    },
-  ];
+  const faqData: { [key: string]: { question: string; answer: string }[] } = {
+    "Getting Started": [
+      {
+        question: "How do I sign up for Nebula?",
+        answer:
+          'You can sign up for a student account by clicking the "Sign Up" button on our homepage. If you are a coach, you can apply through the "Become a Coach" page.',
+      },
+      {
+        question: "What is the onboarding process like?",
+        answer:
+          "Our onboarding process is a quick, three-step flow where you tell us about your interests, skill level, and commitment. This helps us personalize your dashboard with relevant programs and coaches.",
+      },
+    ],
+    "Account & Profile": [
+      {
+        question: "How do I reset my password?",
+        answer:
+          'You can reset your password by clicking the "Forgot your password?" link on the login page. You will receive an email with instructions on how to create a new password.',
+      },
+      {
+        question: "How can I update my profile information?",
+        answer:
+          'You can update your name, email, and other personal details in the "Settings" section of your dashboard.',
+      },
+    ],
+    "Billing & Subscriptions": [
+      {
+        question: "Can I change my subscription plan?",
+        answer:
+          "Yes, you can upgrade, downgrade, or cancel your subscription at any time from your billing settings. Changes will take effect at the end of your current billing cycle.",
+      },
+      {
+        question: "What is the refund policy?",
+        answer:
+          "We offer a 30-day money-back guarantee on all our subscription plans. If you are not satisfied, you can request a full refund within 30 days of your purchase.",
+      },
+    ],
+    "Programs & Coaching": [
+      {
+        question: "How do I enroll in a program or book a session?",
+        answer:
+          "To enroll in a program, visit the program's page and click 'Enroll'. For individual sessions, you can book a time directly from a coach's profile page. All your bookings will appear in the 'My Sessions' section of your dashboard.",
+      },
+      {
+        question:
+          "What is the difference between a program and an individual session?",
+        answer:
+          "Programs are structured, multi-week cohort-based experiences focused on a specific career goal. Individual sessions are one-off meetings you can book with a coach for personalized guidance on any topic.",
+      },
+      {
+        question: "Can I get a certificate after completing a program?",
+        answer:
+          "Yes, upon successful completion of a program, a digital certificate of completion will be available for you to download from the 'My Sessions' section of your dashboard.",
+      },
+      {
+        question: "How are coaches vetted?",
+        answer:
+          "Our coaches undergo a rigorous vetting process that includes a review of their professional experience, coaching qualifications, and a practical assessment. We only partner with top-tier experts to ensure you receive the highest quality guidance.",
+      },
+    ],
+    "Events & Webinars": [
+      {
+        question: "How do I register for an event or webinar?",
+        answer:
+          'You can register for any event or webinar directly from the "Events" page. Once registered, you will receive a confirmation email with all the details.',
+      },
+    ],
+    Troubleshooting: [],
+    "Community Guidelines": [],
+  };
+
+  const allFaqs = Object.values(faqData).flat();
+  faqData["FAQs"] = allFaqs;
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const term = e.target.value;
-    setSearchTerm(term);
-    if (term.trim() !== "") {
-      setSelectedCategory("FAQs");
-    }
+    setSearchTerm(e.target.value);
   };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchTerm.trim() !== "") {
-      setSelectedCategory("FAQs");
-    }
+    setSelectedCategory("FAQs");
   };
 
-  const filteredFaqs = faqs.filter(
+  const faqsForCategory = selectedCategory
+    ? faqData[selectedCategory] || []
+    : [];
+  const filteredFaqs = faqsForCategory.filter(
     (faq) =>
       faq.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      faq.answer.toLowerCase().includes(searchTerm.toLowerCase())
+      faq.answer.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   return (
@@ -183,7 +219,7 @@ export default function HelpCenterPage() {
                         className={cn(
                           "flex w-full items-center gap-3 p-2 rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
                           selectedCategory === category.title &&
-                            "bg-muted text-foreground"
+                            "bg-muted text-foreground",
                         )}
                       >
                         {category.icon}
@@ -194,12 +230,15 @@ export default function HelpCenterPage() {
                     </li>
                   ))}
                   <li>
-                    <button className="flex w-full items-center gap-3 rounded-md bg-primary/5 p-2 text-primary transition-colors hover:bg-primary/10 mt-4">
+                    <Link
+                      href="/help-center/contact"
+                      className="flex w-full items-center gap-3 rounded-md bg-primary/5 p-2 text-primary transition-colors hover:bg-primary/10 mt-4"
+                    >
                       <MessageCircle className="h-5 w-5" />
                       <span className="text-sm font-medium">
                         Contact Support
                       </span>
-                    </button>
+                    </Link>
                   </li>
                 </ul>
               </nav>
@@ -217,38 +256,29 @@ export default function HelpCenterPage() {
                       and FAQs.
                     </p>
                   </div>
-                ) : selectedCategory === "FAQs" ? (
+                ) : (
                   <div>
                     <h2 className="font-headline text-3xl mb-8">
-                      Frequently Asked Questions
+                      {selectedCategory}
                     </h2>
-                    <Accordion type="single" collapsible className="w-full">
-                      {filteredFaqs.map((faq, i) => (
-                        <AccordionItem key={i} value={`item-${i}`}>
-                          <AccordionTrigger className="text-lg font-semibold hover:no-underline text-left">
-                            {faq.question}
-                          </AccordionTrigger>
-                          <AccordionContent className="text-base text-muted-foreground pl-4 pb-4">
-                            {faq.answer}
-                          </AccordionContent>
-                        </AccordionItem>
-                      ))}
-                    </Accordion>
-                    {filteredFaqs.length === 0 && (
+                    {filteredFaqs.length > 0 ? (
+                      <Accordion type="single" collapsible className="w-full">
+                        {filteredFaqs.map((faq, i) => (
+                          <AccordionItem key={i} value={`item-${i}`}>
+                            <AccordionTrigger className="text-lg font-semibold hover:no-underline text-left">
+                              {faq.question}
+                            </AccordionTrigger>
+                            <AccordionContent className="text-base text-muted-foreground pl-4 pb-4">
+                              {faq.answer}
+                            </AccordionContent>
+                          </AccordionItem>
+                        ))}
+                      </Accordion>
+                    ) : (
                       <p className="text-muted-foreground text-center mt-8">
-                        No FAQs found matching your search.
+                        No questions found matching your search.
                       </p>
                     )}
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-start text-center text-muted-foreground">
-                    <BookOpen className="h-12 w-12 mb-4" />
-                    <h3 className="text-base font-semibold text-foreground">
-                      Articles for {selectedCategory}
-                    </h3>
-                    <p className="max-w-xs mt-1 text-sm">
-                      Content for this category will be displayed here.
-                    </p>
                   </div>
                 )}
               </div>
@@ -281,4 +311,3 @@ export default function HelpCenterPage() {
     </div>
   );
 }
-

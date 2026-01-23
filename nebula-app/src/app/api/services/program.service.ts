@@ -153,6 +153,7 @@ export class ProgramService {
 
     const coachId = searchParams.get("coachId") || undefined;
     const category = searchParams.get("category") || undefined;
+    const search = searchParams.get("search") || undefined;
     const limitParam = searchParams.get("limit");
     const offsetParam = searchParams.get("offset");
     const limit = limitParam ? parseInt(limitParam) : 10;
@@ -173,6 +174,17 @@ export class ProgramService {
       whereClause.category = {
         name: category,
       };
+    }
+
+    // Add search filtering - search in title, description, category name, and coach name
+    if (search) {
+      whereClause.OR = [
+        { title: { contains: search, mode: "insensitive" } },
+        { description: { contains: search, mode: "insensitive" } },
+        { category: { name: { contains: search, mode: "insensitive" } } },
+        { coach: { user: { fullName: { contains: search, mode: "insensitive" } } } },
+        { tags: { has: search } },
+      ];
     }
 
     const [programs, totalCount] = await Promise.all([

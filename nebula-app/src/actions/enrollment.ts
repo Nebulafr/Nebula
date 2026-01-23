@@ -20,11 +20,10 @@ export async function enrollInProgram({
     amountPaid,
   };
 
-  return apiPost(`/programs/${programSlug}/enroll`, enrollmentData);
+  return apiPost(`/programs/slug/${programSlug}/enroll`, enrollmentData);
 }
 
 export async function getEnrollments(status?: string) {
   const query = status ? `?status=${status}` : "";
   return apiGet(`/students/enrollments${query}`);
 }
-  

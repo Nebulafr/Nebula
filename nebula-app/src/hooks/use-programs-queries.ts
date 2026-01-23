@@ -23,6 +23,7 @@ export const ADMIN_PROGRAMS_QUERY_KEY = "admin-programs";
 export function usePrograms(params?: {
   coachId?: string;
   category?: string;
+  search?: string;
   limit?: number;
 }) {
   return useQuery({
@@ -75,7 +76,6 @@ export function useCreateProgram() {
   return useMutation({
     mutationFn: (programData: CreateProgramData) => createProgram(programData),
     onSuccess: (response) => {
-      // Invalidate programs queries
       queryClient.invalidateQueries({ queryKey: [PROGRAMS_QUERY_KEY] });
       queryClient.invalidateQueries({
         queryKey: [RECOMMENDED_PROGRAMS_QUERY_KEY],
@@ -101,13 +101,11 @@ export function useUpdateProgram() {
       updateData: Partial<CreateProgramData>;
     }) => updateProgram(programId, updateData),
     onSuccess: (response) => {
-      // Invalidate related queries
       queryClient.invalidateQueries({ queryKey: [PROGRAMS_QUERY_KEY] });
       queryClient.invalidateQueries({
         queryKey: [RECOMMENDED_PROGRAMS_QUERY_KEY],
       });
       queryClient.invalidateQueries({ queryKey: [ADMIN_PROGRAMS_QUERY_KEY] });
-      // Invalidate specific program
       queryClient.invalidateQueries({ queryKey: [PROGRAM_BY_SLUG_QUERY_KEY] });
       toast.success(response.message || "Program updated successfully!");
     },
@@ -123,7 +121,6 @@ export function useDeleteProgram() {
   return useMutation({
     mutationFn: (programId: string) => deleteProgram(programId),
     onSuccess: (response) => {
-      // Invalidate all programs queries
       queryClient.invalidateQueries({ queryKey: [PROGRAMS_QUERY_KEY] });
       queryClient.invalidateQueries({
         queryKey: [RECOMMENDED_PROGRAMS_QUERY_KEY],
@@ -154,7 +151,6 @@ export function useUpdateProgramStatus() {
       startDate?: string;
     }) => updateProgramStatus(programId, action, reason, startDate),
     onSuccess: (response, variables) => {
-      // Invalidate admin programs specifically
       queryClient.invalidateQueries({ queryKey: [ADMIN_PROGRAMS_QUERY_KEY] });
       queryClient.invalidateQueries({ queryKey: [PROGRAMS_QUERY_KEY] });
 
@@ -169,7 +165,7 @@ export function useUpdateProgramStatus() {
         response.message ||
           `Program ${
             actionLabels[variables.action] || variables.action
-          } successfully!`
+          } successfully!`,
       );
     },
     onError: (error: any) => {

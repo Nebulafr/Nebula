@@ -145,7 +145,6 @@ export function useCreateUser() {
       return result;
     },
     onSuccess: () => {
-      // Invalidate and refetch admin users
       queryClient.invalidateQueries({ queryKey: [ADMIN_USERS_QUERY_KEY] });
       toast.success("User created successfully!");
     },
@@ -218,7 +217,7 @@ export function usePlatformActivity(limit: number = 10) {
 
       if (!response.success) {
         throw new Error(
-          response.message || "Failed to fetch platform activity"
+          response.message || "Failed to fetch platform activity",
         );
       }
 

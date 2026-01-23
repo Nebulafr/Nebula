@@ -8,12 +8,14 @@ export async function createProgram(programData: CreateProgramData) {
 export async function getPrograms(params?: {
   coachId?: string;
   category?: string;
+  search?: string;
   limit?: number;
 }) {
   const searchParams = new URLSearchParams();
 
   if (params?.coachId) searchParams.set("coachId", params.coachId);
   if (params?.category) searchParams.set("category", params.category);
+  if (params?.search) searchParams.set("search", params.search);
   if (params?.limit) searchParams.set("limit", params.limit.toString());
 
   const query = searchParams.toString() ? `?${searchParams}` : "";
@@ -34,7 +36,7 @@ export async function getPopularPrograms(params?: { limit?: number }) {
 }
 
 export async function getProgramBySlug(slug: string) {
-  return apiGet(`/programs/slug/${slug}`);
+  return apiGet(`/programs/slug/${slug}`, { requireAuth: false });
 }
 
 export async function getProgramById(programId: string) {

@@ -18,19 +18,16 @@ import {
   Star,
   X,
   CheckCircle,
-  FileText,
-  Download,
 } from "lucide-react";
 import Link from "next/link";
-import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { Footer } from "@/components/layout/footer";
-import { getProgramBySlug } from "@/actions/programs";
 import { enrollInProgram, getEnrollments } from "@/actions/enrollment";
 import { toast } from "react-toastify";
 import { Header } from "@/components/layout/header";
 import { useAuth } from "@/hooks/use-auth";
+import { useProgramBySlug } from "@/hooks";
 import {
   Dialog,
   DialogContent,
@@ -40,11 +37,65 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { VisuallyHidden } from "@/components/ui/visually-hidden";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ProgramWithRelations } from "@/types/program";
 import { reviewProgram } from "@/actions/reviews";
+import { useQueryClient } from "@tanstack/react-query";
+import { PROGRAM_BY_SLUG_QUERY_KEY } from "@/hooks/use-programs-queries";
+
+type Cohort = {
+  id: string;
+  name: string;
+  startDate: Date | string;
+  endDate: Date | string | null;
+  maxStudents: number;
+  status: string;
+  programId: string;
+};
+
+type Module = {
+  id: string;
+  title: string;
+  description: string | null;
+  week: number;
+  materials: string[];
+  programId: string;
+};
+
+type ReviewWithReviewer = {
+  id: string;
+  content: string;
+  rating: number;
+  reviewer: { fullName: string };
+};
+
+type ProgramWithRelations = {
+  id: string;
+  slug: string;
+  title: string;
+  description: string;
+  price: number | null;
+  coachId: string;
+  rating: number | null;
+  totalReviews: number;
+  currentEnrollments: number;
+  hasUserReviewed?: boolean;
+  category?: { name: string } | null;
+  objectives?: string[];
+  cohorts?: Cohort[];
+  modules?: Module[];
+  reviews?: ReviewWithReviewer[];
+  coach?: {
+    title: string;
+    bio: string;
+    rating: number | null;
+    user: {
+      id: string;
+      fullName: string;
+      avatarUrl: string | null;
+    };
+  };
+};
 
 export default function ProgramDetailPage({
   params,
@@ -53,14 +104,17 @@ export default function ProgramDetailPage({
 }) {
   const { slug } = use(params);
   const { profile, isStudent } = useAuth();
+  const queryClient = useQueryClient();
+
+  // Use the platform hook for fetching program data
+  const { data: programResponse, isLoading, error } = useProgramBySlug(slug);
+  const program = programResponse?.data?.program as ProgramWithRelations | undefined;
+
   const [enrollmentStep, setEnrollmentStep] = useState(0);
-  const [program, setProgram] = useState<ProgramWithRelations | null>(null);
-  const [loading, setLoading] = useState(true);
   const [enrolling, setEnrolling] = useState(false);
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedTime, setSelectedTime] = useState<string>("");
-  const [fetchError, setFetchError] = useState<string | null>(null);
   const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
@@ -68,32 +122,6 @@ export default function ProgramDetailPage({
   const [hoverRating, setHoverRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
   const router = useRouter();
-
-  useEffect(() => {
-    const fetchProgram = async () => {
-      try {
-        setLoading(true);
-        const response = await getProgramBySlug(slug);
-        if (response && response.success) {
-          setProgram(response.data!.program);
-        } else if (response && !response.success) {
-          setFetchError(response.message || "Failed to fetch program.");
-          setProgram({} as any);
-        } else {
-          setFetchError("Failed to fetch program.");
-          setProgram({} as any);
-        }
-      } catch (error: any) {
-        console.error("Error fetching program:", error);
-        setFetchError(error.message || "Failed to fetch program.");
-        setProgram(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProgram();
-  }, [slug]);
 
   useEffect(() => {
     const checkEnrollmentStatus = async () => {
@@ -120,9 +148,9 @@ export default function ProgramDetailPage({
       const now = new Date();
       if (program.cohorts && program.cohorts.length > 0) {
         const futureCohorts = program.cohorts
-          .map((c) => ({ ...c, startDate: new Date(c.startDate) }))
-          .filter((c) => c.startDate > now && c.status === "UPCOMING")
-          .sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
+          .map((c: Cohort) => ({ ...c, startDate: new Date(c.startDate) }))
+          .filter((c: Cohort & { startDate: Date }) => c.startDate > now && c.status === "UPCOMING")
+          .sort((a: { startDate: Date }, b: { startDate: Date }) => a.startDate.getTime() - b.startDate.getTime());
 
         if (futureCohorts.length > 0) {
           const nextCohort = futureCohorts[0];
@@ -138,7 +166,7 @@ export default function ProgramDetailPage({
     }
   }, [program]);
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex min-h-screen flex-col bg-background">
         <Header />
@@ -159,19 +187,22 @@ export default function ProgramDetailPage({
     );
   }
 
-  if (fetchError) {
+  if (error) {
     return (
       <div className="flex min-h-screen flex-col bg-background">
         <Header />
         <main className="flex-1">
           <div className="container py-12 md:py-20 text-center">
             <h1 className="text-4xl font-bold mb-4">Error</h1>
-            <p className="text-muted-foreground mb-8">{fetchError}</p>
+            <p className="text-muted-foreground mb-8">
+              {error instanceof Error ? error.message : "Failed to load program"}
+            </p>
             <Button asChild>
               <Link href="/programs">Browse all programs</Link>
             </Button>
           </div>
         </main>
+        <Footer />
       </div>
     );
   }
@@ -283,10 +314,8 @@ export default function ProgramDetailPage({
         toast.success(response.message || "Review submitted successfully!");
         setReviewSubmitted(true);
 
-        const updatedProgramResponse = await getProgramBySlug(slug);
-        if (updatedProgramResponse.success && updatedProgramResponse.data) {
-          setProgram(updatedProgramResponse.data.program);
-        }
+        // Invalidate the query to refetch program data with updated reviews
+        queryClient.invalidateQueries({ queryKey: [PROGRAM_BY_SLUG_QUERY_KEY, slug] });
 
         setIsReviewDialogOpen(false);
       } else {
@@ -369,7 +398,7 @@ export default function ProgramDetailPage({
                   Learning Objectives
                 </h2>
                 <ul className="space-y-4 text-muted-foreground">
-                  {program.objectives.map((obj, i) => (
+                  {program?.objectives?.map((obj, i) => (
                     <li key={i} className="flex items-start gap-3">
                       <CheckCircle className="h-5 w-5 text-primary mt-1 flex-shrink-0" />
                       <span>{obj}</span>
@@ -385,7 +414,6 @@ export default function ProgramDetailPage({
                   <EnrollmentForm
                     step={enrollmentStep}
                     loading={enrolling}
-                    isEnrolled={isEnrolled}
                     selectedDate={selectedDate}
                     selectedTime={selectedTime}
                     onEnroll={handleEnrollClick}
@@ -421,7 +449,6 @@ export default function ProgramDetailPage({
                 <EnrollmentForm
                   step={enrollmentStep}
                   loading={enrolling}
-                  isEnrolled={isEnrolled}
                   selectedDate={selectedDate}
                   selectedTime={selectedTime}
                   onEnroll={handleEnrollClick}
@@ -451,17 +478,19 @@ export default function ProgramDetailPage({
               <div className="flex items-center gap-4">
                 <Avatar className="h-20 w-20">
                   <AvatarImage
-                    src={program.coach.user.avatarUrl || undefined}
+                    src={program.coach?.user.avatarUrl || undefined}
                   />
                   <AvatarFallback>
-                    {program.coach.user.fullName?.charAt(0)}
+                    {program.coach?.user.fullName?.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
                 <div>
                   <h3 className="font-headline text-2xl font-semibold">
-                    {program.coach.user.fullName}
+                    {program.coach?.user.fullName}
                   </h3>
-                  <p className="text-muted-foreground">{program.coach.title}</p>
+                  <p className="text-muted-foreground">
+                    {program.coach?.title}
+                  </p>
                 </div>
                 <Badge
                   variant="outline"
@@ -469,30 +498,30 @@ export default function ProgramDetailPage({
                 >
                   <Star className="h-4 w-4 fill-current text-yellow-500" />
                   <span className="font-semibold">
-                    {Number(program.coach.rating || 0).toFixed(1)}
+                    {Number(program.coach?.rating || 0).toFixed(1)}
                   </span>
                 </Badge>
               </div>
               <p className="mt-6 text-base text-muted-foreground">
-                {program.coach.bio}
+                {program.coach?.bio}
               </p>
               <div className="flex items-center gap-4 mt-6">
                 <Button asChild>
-                  <Link href={`/coaches/${program.coach.user.id}`}>
+                  <Link href={`/coaches/${program.coach?.user.id}`}>
                     View Profile
                   </Link>
                 </Button>
                 {isStudent && (
                   <Button variant="outline" onClick={handleMessageClick}>
                     <MessageCircle className="mr-2 h-4 w-4" />
-                    Message {program.coach.user.fullName?.split(" ")[0]}
+                    Message {program.coach?.user.fullName?.split(" ")[0]}
                   </Button>
                 )}
               </div>
             </div>
             <div className="md:col-span-1">
               <h2 className="mb-4 font-headline text-xl font-bold">Reviews</h2>
-              {program.reviews.length > 0 ? (
+              {program?.reviews && program.reviews.length > 0 ? (
                 <Card className="rounded-xl border shadow-sm">
                   <CardContent className="p-6">
                     <div className="flex items-center gap-1">
@@ -659,7 +688,7 @@ export default function ProgramDetailPage({
             className="w-full"
             defaultValue="item-0"
           >
-            {program.modules.map((mod, i) => (
+            {program?.modules?.map((mod, i) => (
               <AccordionItem key={mod.id} value={`item-${i}`}>
                 <AccordionTrigger className="text-lg font-semibold hover:no-underline text-left">
                   <div className="flex items-center gap-4">
@@ -683,7 +712,6 @@ export default function ProgramDetailPage({
 function EnrollmentForm({
   step,
   loading,
-  isEnrolled,
   selectedDate,
   selectedTime,
   onEnroll,
@@ -691,7 +719,6 @@ function EnrollmentForm({
 }: {
   step: number;
   loading: boolean;
-  isEnrolled: boolean;
   selectedDate: Date | undefined;
   selectedTime: string;
   onEnroll: () => void;

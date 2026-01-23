@@ -1,45 +1,18 @@
 "use client";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { PlaceHolderImages } from "@/lib/images/placeholder-images";
-import {
-  ArrowRight,
-  Eye,
-  Linkedin,
-  Sparkles,
-  Twitter,
-  Users,
-  Youtube,
-} from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { Footer } from "@/components/layout/footer";
-import { Header } from "@/components/layout/header";
 import { Separator } from "@/components/ui/separator";
+import { Header } from "@/components/layout/header";
+import { PlaceHolderImages } from "@/lib/images/placeholder-images";
 
 export default function AboutPage() {
   const heroImage = PlaceHolderImages.find((img) => img.id === "about-hero");
   const storyImage = PlaceHolderImages.find((img) => img.id === "about-story");
-
-  const team = [
-    {
-      name: "Alex Thompson",
-      role: "Founder & CEO",
-      avatar: "https://i.pravatar.cc/300/500?u=alex-thompson",
-    },
-    {
-      name: "Ben Carter",
-      role: "Head of Product",
-      avatar: "https://i.pravatar.cc/300/500?u=ben-carter",
-    },
-    {
-      name: "Chloe Davis",
-      role: "Head of Coaching",
-      avatar: "https://i.pravatar.cc/300/500?u=chloe-davis",
-    },
-  ];
 
   const partners = [
     { name: "Innovate Inc." },
@@ -64,6 +37,7 @@ export default function AboutPage() {
               fill
               className="object-cover"
               data-ai-hint={heroImage.imageHint}
+              unoptimized
             />
           )}
           <div className="absolute inset-0 bg-black/50" />
@@ -101,34 +75,35 @@ export default function AboutPage() {
         </div>
 
         <section className="py-20 sm:py-32">
-          <div className="container">
-            <div className="text-center mb-12">
-              <h2 className="font-headline text-4xl">Meet the Team</h2>
-              <p className="mx-auto mt-2 max-w-2xl text-lg text-muted-foreground">
-                The minds behind the mission, dedicated to your success.
+          <div className="container grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+            <div>
+              <h2 className="font-headline text-4xl">Our Story</h2>
+              <p className="mt-4 text-lg text-muted-foreground">
+                Nebula was born from a simple observation: countless talented
+                students were graduating with strong academic knowledge but
+                lacked the practical, real-world skills and connections to land
+                their dream jobs. We saw an opportunity to bridge this gap.
+              </p>
+              <p className="mt-4 text-lg text-muted-foreground">
+                Founded by a team of experienced professionals and educators,
+                Nebula was created to connect students with industry experts
+                through immersive, hands-on learning experiences. We believe
+                that mentorship is the key to unlocking potential, and we are
+                dedicated to building a community where knowledge is shared and
+                careers are launched.
               </p>
             </div>
-            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-              {team.map((member) => (
-                <div
-                  key={member.name}
-                  className="flex flex-col items-start text-left"
-                >
-                  <div className="relative w-full aspect-square mb-4">
-                    <Image
-                      src={member.avatar}
-                      alt={member.name}
-                      fill
-                      className="rounded-2xl object-cover"
-                    />
-                  </div>
-                  <h3 className="font-headline text-xl font-semibold">
-                    {member.name}
-                  </h3>
-                  <p className="text-muted-foreground">{member.role}</p>
-                </div>
-              ))}
-            </div>
+            {storyImage && (
+              <div className="relative aspect-video rounded-2xl overflow-hidden">
+                <Image
+                  src={storyImage.imageUrl}
+                  alt={storyImage.description}
+                  fill
+                  className="object-cover"
+                  data-ai-hint={storyImage.imageHint}
+                />
+              </div>
+            )}
           </div>
         </section>
 
@@ -161,13 +136,13 @@ export default function AboutPage() {
         </div>
 
         <section className="container py-20 sm:py-32">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-stretch">
-            <Card className="rounded-2xl bg-primary border-none h-full">
-              <CardContent className="p-12 text-left h-full flex flex-col justify-center">
+          <div className="grid grid-cols-1">
+            <Card className="rounded-2xl bg-primary border-none">
+              <CardContent className="p-12 text-center">
                 <h2 className="font-headline text-4xl text-primary-foreground">
                   Join Our Team
                 </h2>
-                <p className="mt-4 max-w-2xl text-lg text-primary-foreground/80">
+                <p className="mt-4 max-w-2xl text-lg text-primary-foreground/80 mx-auto">
                   We're always looking for passionate individuals to join us on
                   our mission. If you believe in the power of mentorship, we'd
                   love to hear from you.
@@ -178,22 +153,11 @@ export default function AboutPage() {
                   className="mt-8 bg-white text-primary hover:bg-white/90"
                 >
                   <Link href="/become-a-coach">
-                    View Open Roles <ArrowRight className="ml-2 h-5 w-5" />
+                    Become a Coach <ArrowRight className="ml-2 h-5 w-5" />
                   </Link>
                 </Button>
               </CardContent>
             </Card>
-            {storyImage && (
-              <div className="relative aspect-video rounded-2xl overflow-hidden">
-                <Image
-                  src={storyImage.imageUrl}
-                  alt={storyImage.description}
-                  fill
-                  className="object-cover"
-                  data-ai-hint={storyImage.imageHint}
-                />
-              </div>
-            )}
           </div>
         </section>
       </main>

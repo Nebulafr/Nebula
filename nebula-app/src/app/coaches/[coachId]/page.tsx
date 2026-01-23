@@ -14,9 +14,6 @@ import {
   CheckCircle,
   Briefcase,
   GraduationCap,
-  Calendar,
-  Clock,
-  ExternalLink,
 } from "lucide-react";
 import Link from "next/link";
 import { WeeklyTimeSlotPicker } from "@/components/ui/weekly-time-slot-picker";
@@ -43,7 +40,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { reviewCoach } from "@/actions/reviews";
 import { createConversation } from "@/actions/messaging";
-import { CoachWithRelations } from "@/types/coach";
 
 export default function CoachDetailPage() {
   const [bookingStep, setBookingStep] = useState(0);
@@ -72,10 +68,7 @@ export default function CoachDetailPage() {
   // Book session mutation
   const bookSessionMutation = useBookCoachSession();
 
-  console.log({ coach });
-
   const handleBookClick = () => {
-    console.log("Start Booking...");
     if (!profile) {
       toast.error("Please log in to book a session.");
       router.replace("/login");
@@ -106,9 +99,6 @@ export default function CoachDetailPage() {
       {
         onSuccess: (result) => {
           if (result.success) {
-            toast.success(
-              result.message || "Your session has been successfully booked."
-            );
             setBookingStep(2); // Go to success step
           } else {
             toast.error(result.error || "Failed to book session");
@@ -118,10 +108,10 @@ export default function CoachDetailPage() {
           console.error("Booking failed:", error);
           toast.error(
             error.message ||
-              "There was an error booking your session. Please try again."
+              "There was an error booking your session. Please try again.",
           );
         },
-      }
+      },
     );
   };
 
@@ -145,12 +135,11 @@ export default function CoachDetailPage() {
 
       if (conversationResult.success && conversationResult.data) {
         router.push(
-          `/dashboard/messaging?conversationId=${conversationResult.data.id}`
+          `/dashboard/messaging?conversationId=${conversationResult.data.id}`,
         );
-        toast.success("Opening conversation...");
       } else {
         throw new Error(
-          conversationResult.error || "Failed to create conversation"
+          conversationResult.error || "Failed to create conversation",
         );
       }
     } catch (error: any) {
@@ -446,7 +435,7 @@ export default function CoachDetailPage() {
                                   "h-6 w-6 cursor-pointer",
                                   starValue <= (hoverRating || rating)
                                     ? "text-yellow-400 fill-yellow-400"
-                                    : "text-gray-300"
+                                    : "text-gray-300",
                                 )}
                                 onClick={() => setRating(starValue)}
                                 onMouseEnter={() => setHoverRating(starValue)}

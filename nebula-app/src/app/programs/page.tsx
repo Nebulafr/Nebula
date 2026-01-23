@@ -5,20 +5,22 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Star, Loader2 } from "lucide-react";
+import { Star, Loader2, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
 import { useCategories, usePrograms } from "@/hooks";
 import { ProgramWithRelations } from "@/types/program";
+import { Input } from "@/components/ui/input";
 
 export default function ProgramsPage() {
   const [activeCategory, setActiveCategory] = useState("All");
-
+  const [searchTerm, setSearchTerm] = useState("");
   const { data: categoriesResponse } = useCategories();
   const { data: programsResponse, isLoading: loading } = usePrograms({
     limit: 50,
     category: activeCategory === "All" ? undefined : activeCategory,
+    search: searchTerm || undefined,
   });
 
   const categories = categoriesResponse?.data?.categories || [];
@@ -37,13 +39,21 @@ export default function ProgramsPage() {
             Nebula platform. This text is intentionally long because we want
             more characters to fill this space.
           </p>
-
+          <div className="mx-auto mt-8 relative max-w-xl">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            <Input
+              placeholder="Search by title, category or coach"
+              className="h-12 w-full rounded-full pl-12"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
           <div className="mx-auto mt-8 flex max-w-2xl flex-wrap justify-center gap-4">
             <Button
               variant="outline"
               className={cn(
                 "rounded-full",
-                activeCategory === "All" && "bg-muted font-bold"
+                activeCategory === "All" && "bg-muted font-bold",
               )}
               onClick={() => setActiveCategory("All")}
               disabled={loading}
@@ -59,7 +69,7 @@ export default function ProgramsPage() {
                 variant="outline"
                 className={cn(
                   "rounded-full",
-                  activeCategory === category?.name && "bg-muted font-bold"
+                  activeCategory === category?.name && "bg-muted font-bold",
                 )}
                 onClick={() => setActiveCategory(category?.name)}
                 disabled={loading}
@@ -162,7 +172,7 @@ export default function ProgramsPage() {
                             </CardContent>
                           </Card>
                         </Link>
-                      )
+                      ),
                     )}
                   </div>
                 </div>
@@ -171,12 +181,14 @@ export default function ProgramsPage() {
           ) : (
             <div className="text-center py-20">
               <h3 className="text-xl font-semibold mb-2">
-                No Programs Available
+                No Programs Found
               </h3>
               <p className="text-muted-foreground">
-                {activeCategory === "All"
-                  ? "There are currently no programs available. Please check back later."
-                  : `No programs found in the "${activeCategory}" category.`}
+                {searchTerm
+                  ? `No programs found matching "${searchTerm}"${activeCategory !== "All" ? ` in the "${activeCategory}" category` : ""}.`
+                  : activeCategory === "All"
+                    ? "There are currently no programs available. Please check back later."
+                    : `No programs found in the "${activeCategory}" category.`}
               </p>
             </div>
           )}

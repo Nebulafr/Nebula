@@ -89,25 +89,22 @@ function CoachesPageContent() {
             perfect match.
           </p>
 
-          <div className="mx-auto mt-8 flex max-w-lg items-center space-x-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                type="text"
-                placeholder="Search coaches..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9"
-              />
-            </div>
+          <div className="mx-auto mt-8 relative max-w-xl">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            <Input
+              placeholder="Search by name or specialty"
+              className="h-12 w-full rounded-full pl-12"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
 
-          <div className="mx-auto mt-8 flex max-w-lg flex-wrap justify-center gap-4">
+          <div className="mx-auto mt-8 flex max-w-2xl flex-wrap justify-center gap-4">
             <Button
               variant="outline"
               className={cn(
                 "rounded-full",
-                activeCategory === "All" && "bg-muted font-bold"
+                activeCategory === "All" && "bg-muted font-bold",
               )}
               onClick={() => setActiveCategory("All")}
               disabled={loading}
@@ -123,7 +120,7 @@ function CoachesPageContent() {
                 variant="outline"
                 className={cn(
                   "rounded-full",
-                  activeCategory === category.name && "bg-muted font-bold"
+                  activeCategory === category.name && "bg-muted font-bold",
                 )}
                 onClick={() => setActiveCategory(category.name)}
                 disabled={loading}

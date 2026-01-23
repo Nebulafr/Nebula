@@ -52,11 +52,8 @@ export function useCreateCoach() {
   return useMutation({
     mutationFn: (coachData: CreateCoachData) => createCoach(coachData),
     onSuccess: () => {
-      // Invalidate coaches list
       queryClient.invalidateQueries({ queryKey: [COACHES_QUERY_KEY] });
-      // Also invalidate user profile since coach profile was created
       queryClient.invalidateQueries({ queryKey: ["user-profile"] });
-      toast.success("Coach profile created successfully!");
     },
     onError: (error: any) => {
       handleAndToastError(error, "Failed to create coach profile.");
@@ -70,13 +67,10 @@ export function useUpdateCoachProfile() {
   return useMutation({
     mutationFn: (coachData: CoachUpdateData) => updateCoachProfile(coachData),
     onSuccess: () => {
-      // Invalidate all coach-related queries
       queryClient.invalidateQueries({ queryKey: [COACHES_QUERY_KEY] });
       queryClient.invalidateQueries({ queryKey: [COACH_BY_SLUG_QUERY_KEY] });
       queryClient.invalidateQueries({ queryKey: [COACH_BY_ID_QUERY_KEY] });
-      // Also invalidate user profile since coach profile was updated
       queryClient.invalidateQueries({ queryKey: ["user-profile"] });
-      toast.success("Profile updated successfully!");
     },
     onError: (error: any) => {
       handleAndToastError(error, "Failed to update profile.");
