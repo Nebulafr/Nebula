@@ -91,7 +91,6 @@ export default function CoachSettingsPage() {
       const response = await uploadUserAvatar(file);
 
       if (response.success) {
-        toast.success("Avatar updated successfully!");
         // Refresh the profile to get the new avatar URL
         await refreshUser();
       } else {
@@ -116,7 +115,7 @@ export default function CoachSettingsPage() {
       const response = await updateCoachProfile(formData);
 
       if (response.success) {
-        toast.success("Profile updated successfully");
+        // Profile updated successfully
       } else {
         toast.error(response.message || "Failed to update profile");
       }
@@ -133,7 +132,6 @@ export default function CoachSettingsPage() {
       // TODO: Implement payout settings save API
       console.log("Saving payout settings:", payoutData);
       await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulated delay
-      toast.success("Payout settings saved successfully");
     } catch (error) {
       toast.error("Failed to save payout settings");
     } finally {
@@ -147,7 +145,7 @@ export default function CoachSettingsPage() {
       const response = await changePassword(data);
 
       if (response.success) {
-        toast.success("Password changed successfully!");
+        // Password changed successfully
       } else {
         toast.error(response.message || "Failed to change password");
       }

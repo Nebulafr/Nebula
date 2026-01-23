@@ -39,6 +39,7 @@ import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { cn, apiGet, apiPatch, apiPost } from "@/lib/utils";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { handleAndToastError } from "@/lib/error-handler";
 
 const getFileIcon = (type: string) => {
   if (type === "pdf") return <Book className="h-5 w-5 text-red-500" />;
@@ -121,15 +122,14 @@ export default function ProgramDetailsPage({
       return apiPatch(`/admin/cohorts/${cohortId}`, data);
     },
     onSuccess: () => {
-      toast.success("Cohort updated successfully");
       queryClient.invalidateQueries({
         queryKey: ["admin-cohorts", program?.id],
       });
       setCohortDialogOpen(false);
       setEditingCohort(null);
     },
-    onError: () => {
-      toast.error("Failed to update cohort");
+    onError: (error) => {
+      handleAndToastError(error, "Failed to update cohort");
     },
   });
 
@@ -139,15 +139,14 @@ export default function ProgramDetailsPage({
       return apiPost("/admin/cohorts", data);
     },
     onSuccess: () => {
-      toast.success("Cohort created successfully");
       queryClient.invalidateQueries({
         queryKey: ["admin-cohorts", program?.id],
       });
       setCohortDialogOpen(false);
       setIsCreatingCohort(false);
     },
-    onError: () => {
-      toast.error("Failed to create cohort");
+    onError: (error) => {
+      handleAndToastError(error, "Failed to create cohort");
     },
   });
 
@@ -163,7 +162,6 @@ export default function ProgramDetailsPage({
         action: "approve",
         startDate: startDate.toISOString(),
       });
-      toast.success("Program approved. Collaboration document sent to coach.");
     } catch (error) {
       // Error handled by hook
     }
@@ -187,7 +185,6 @@ export default function ProgramDetailsPage({
         programId: program.id,
         action: "activate",
       });
-      toast.success("Program is now live!");
     } catch (error) {
       // Error handled by hook
     }
@@ -199,7 +196,6 @@ export default function ProgramDetailsPage({
         programId: program.id,
         action: "deactivate",
       });
-      toast.success("Program deactivated");
     } catch (error) {
       // Error handled by hook
     }

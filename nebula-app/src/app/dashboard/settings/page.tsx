@@ -44,7 +44,6 @@ export default function StudentSettingsPage() {
       const response = await uploadUserAvatar(file);
 
       if (response.success) {
-        toast.success("Avatar updated successfully!");
         // Refresh the profile to get the new avatar URL
         await refreshUser();
       } else {
@@ -67,7 +66,6 @@ export default function StudentSettingsPage() {
       const response = await updateUserProfile(data);
 
       if (response.success) {
-        toast.success("Profile updated successfully!");
         await refreshUser();
       } else {
         toast.error(response.message || "Failed to update profile");
@@ -85,7 +83,7 @@ export default function StudentSettingsPage() {
       const response = await changePassword(data);
 
       if (response.success) {
-        toast.success("Password changed successfully!");
+        // Password changed successfully
       } else {
         toast.error(response.message || "Failed to change password");
       }

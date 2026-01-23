@@ -90,7 +90,6 @@ function OnboardingStep3Content() {
         throw new Error(result.message || "Failed to create student profile");
       }
 
-      toast.success("Profile created successfully!");
       await refreshUser();
       setTimeout(() => {
         router.replace("/dashboard");

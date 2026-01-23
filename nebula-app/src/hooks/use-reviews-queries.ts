@@ -5,7 +5,6 @@ import {
   getCoachReviews,
   getProgramReviews,
 } from "@/actions/reviews";
-import { toast } from "react-toastify";
 import { handleAndToastError } from "@/lib/error-handler";
 
 export const COACH_REVIEWS_QUERY_KEY = "coach-reviews";
@@ -66,7 +65,6 @@ export function useReviewCoach() {
       queryClient.invalidateQueries({
         queryKey: ["coach-by-id", variables.coachId],
       });
-      toast.success("Review submitted successfully!");
     },
     onError: (error: any) => {
       handleAndToastError(error, "Failed to submit review.");
@@ -88,7 +86,6 @@ export function useReviewProgram() {
       queryClient.invalidateQueries({
         queryKey: ["program-by-slug"],
       });
-      toast.success("Review submitted successfully!");
     },
     onError: (error: any) => {
       handleAndToastError(error, "Failed to submit review.");

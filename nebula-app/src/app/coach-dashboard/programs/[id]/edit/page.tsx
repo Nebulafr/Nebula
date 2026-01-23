@@ -25,6 +25,7 @@ import { UserSelect } from "@/components/ui/user-select";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiGet, apiPut } from "@/lib/utils";
 import { toast } from "react-toastify";
+import { handleAndToastError } from "@/lib/error-handler";
 
 interface ProgramModule {
   id?: string;
@@ -146,13 +147,12 @@ export default function EditProgramPage({
       return apiPut(`/programs/id/${id}`, data);
     },
     onSuccess: () => {
-      toast.success("Program updated successfully!");
       queryClient.invalidateQueries({ queryKey: ["programs"] });
       queryClient.invalidateQueries({ queryKey: ["program", id] });
       router.push("/coach-dashboard/programs");
     },
     onError: (error: any) => {
-      toast.error(error?.message || "Failed to update program");
+      handleAndToastError(error, "Failed to update program");
     },
   });
 

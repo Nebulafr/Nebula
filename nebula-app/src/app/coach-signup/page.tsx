@@ -72,7 +72,6 @@ export default function CoachSignupPage() {
         fullName,
         role: UserRole.COACH,
       });
-      toast.success(response.message || "Account created successfully!");
     } catch (error: any) {
       handleAndToastError(error, "Failed to create account");
     } finally {
@@ -87,7 +86,6 @@ export default function CoachSignupPage() {
 
     try {
       const response = await signInWithGoogle(UserRole.COACH);
-      toast.success(response.message || "Signed in with Google successfully!");
     } catch (error: any) {
       if (error?.message !== "Redirecting to Google sign-in...") {
         handleAndToastError(error, "Failed to sign in with Google");

@@ -11,7 +11,6 @@ import {
   updateProgramStatus,
 } from "@/actions/programs";
 import { CreateProgramData } from "@/lib/validations";
-import { toast } from "react-toastify";
 import { handleAndToastError } from "@/lib/error-handler";
 
 export const PROGRAMS_QUERY_KEY = "programs";
@@ -81,7 +80,6 @@ export function useCreateProgram() {
         queryKey: [RECOMMENDED_PROGRAMS_QUERY_KEY],
       });
       queryClient.invalidateQueries({ queryKey: [ADMIN_PROGRAMS_QUERY_KEY] });
-      toast.success(response.message || "Program created successfully!");
     },
     onError: (error: any) => {
       handleAndToastError(error, "Failed to create program.");
@@ -107,7 +105,6 @@ export function useUpdateProgram() {
       });
       queryClient.invalidateQueries({ queryKey: [ADMIN_PROGRAMS_QUERY_KEY] });
       queryClient.invalidateQueries({ queryKey: [PROGRAM_BY_SLUG_QUERY_KEY] });
-      toast.success(response.message || "Program updated successfully!");
     },
     onError: (error: any) => {
       handleAndToastError(error, "Failed to update program.");
@@ -127,7 +124,6 @@ export function useDeleteProgram() {
       });
       queryClient.invalidateQueries({ queryKey: [ADMIN_PROGRAMS_QUERY_KEY] });
       queryClient.invalidateQueries({ queryKey: [PROGRAM_BY_SLUG_QUERY_KEY] });
-      toast.success(response.message || "Program deleted successfully!");
     },
     onError: (error: any) => {
       handleAndToastError(error, "Failed to delete program.");
@@ -153,20 +149,6 @@ export function useUpdateProgramStatus() {
     onSuccess: (response, variables) => {
       queryClient.invalidateQueries({ queryKey: [ADMIN_PROGRAMS_QUERY_KEY] });
       queryClient.invalidateQueries({ queryKey: [PROGRAMS_QUERY_KEY] });
-
-      const actionLabels: Record<string, string> = {
-        approve: "approved",
-        reject: "rejected",
-        activate: "activated",
-        deactivate: "deactivated",
-      };
-
-      toast.success(
-        response.message ||
-          `Program ${
-            actionLabels[variables.action] || variables.action
-          } successfully!`,
-      );
     },
     onError: (error: any) => {
       handleAndToastError(error, "Failed to update program status.");

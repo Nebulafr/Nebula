@@ -261,10 +261,6 @@ export default function ProgramDetailPage({
         );
       }
 
-      toast.success(
-        "Welcome to the program! You can access it from your dashboard.",
-      );
-
       setEnrollmentStep(3);
       setIsEnrolled(true);
     } catch (error) {
@@ -311,7 +307,6 @@ export default function ProgramDetailPage({
       });
 
       if (response.success) {
-        toast.success(response.message || "Review submitted successfully!");
         setReviewSubmitted(true);
 
         // Invalidate the query to refetch program data with updated reviews

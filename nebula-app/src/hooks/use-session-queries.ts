@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiGet, apiPost } from "@/lib/utils";
+import { handleAndToastError } from "@/lib/error-handler";
 
 export function useCoachSessions(
   filter: "today" | "upcoming" | "past" | "all" = "upcoming"
@@ -61,7 +62,7 @@ export function useBookCoachSession() {
       return data;
     },
     onError: (error) => {
-      console.error("Session booking failed:", error);
+      handleAndToastError(error, "Failed to book session");
     },
   });
 }

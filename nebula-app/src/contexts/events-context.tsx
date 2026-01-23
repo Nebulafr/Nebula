@@ -15,6 +15,7 @@ import {
   deleteEvent,
 } from "@/actions/events";
 import { Event } from "@/types/event";
+import { handleAndToastError } from "@/lib/error-handler";
 
 interface EventsParams {
   search?: string;
@@ -69,7 +70,7 @@ export function EventsProvider({ children }: { children: React.ReactNode }) {
           return [];
         }
       } catch (err) {
-        setError("An error occurred while fetching events");
+        handleAndToastError(err, "An error occurred while fetching events");
         setEvents([]);
         return [];
       } finally {
@@ -97,7 +98,7 @@ export function EventsProvider({ children }: { children: React.ReactNode }) {
           return [];
         }
       } catch (err) {
-        setError("An error occurred while fetching events");
+        handleAndToastError(err, "An error occurred while fetching events");
         setEvents([]);
         return [];
       } finally {
@@ -115,7 +116,12 @@ export function EventsProvider({ children }: { children: React.ReactNode }) {
         if (response.success) {
           await fetchAdminEvents();
           return true;
+        } else {
+          handleAndToastError(response.error || response.message, "Failed to create event");
         }
+        return false;
+      } catch (error) {
+        handleAndToastError(error, "An error occurred while creating the event");
         return false;
       } finally {
         setActionLoading((prev) => ({ ...prev, create: false }));
@@ -132,7 +138,12 @@ export function EventsProvider({ children }: { children: React.ReactNode }) {
         if (response.success) {
           await fetchAdminEvents();
           return true;
+        } else {
+          handleAndToastError(response.error || response.message, "Failed to update event");
         }
+        return false;
+      } catch (error) {
+        handleAndToastError(error, "An error occurred while updating the event");
         return false;
       } finally {
         setActionLoading((prev) => ({ ...prev, [id]: false }));
@@ -149,7 +160,12 @@ export function EventsProvider({ children }: { children: React.ReactNode }) {
         if (response.success) {
           await fetchAdminEvents();
           return true;
+        } else {
+          handleAndToastError(response.error || response.message, "Failed to delete event");
         }
+        return false;
+      } catch (error) {
+        handleAndToastError(error, "An error occurred while deleting the event");
         return false;
       } finally {
         setActionLoading((prev) => ({ ...prev, [`delete-${id}`]: false }));

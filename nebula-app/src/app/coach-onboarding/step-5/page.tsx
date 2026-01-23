@@ -87,9 +87,6 @@ function CoachOnboardingStep5Content() {
         throw new Error(result.message || "Failed to create coach profile");
       }
 
-      toast.success(
-        `We've received your application and will be in touch soon.`
-      );
       await refreshUser();
       setTimeout(() => {
         router.replace("/coach-dashboard");

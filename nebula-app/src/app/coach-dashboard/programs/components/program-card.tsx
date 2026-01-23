@@ -23,6 +23,7 @@ import {
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiPost } from "@/lib/utils";
 import { toast } from "react-toastify";
+import { handleAndToastError } from "@/lib/error-handler";
 
 export interface IProgram extends Omit<Program, 'category' | 'coach' | 'rating' | 'currentEnrollments'> {
   category: {
@@ -68,11 +69,10 @@ export function ProgramCard({ program }: ProgramCardProps) {
       return apiPost(`/programs/id/${program.id}/submit`);
     },
     onSuccess: () => {
-      toast.success("Program submitted for publishing!");
       queryClient.invalidateQueries({ queryKey: ["programs"] });
     },
     onError: (error: any) => {
-      toast.error(error?.message || "Failed to submit program");
+      handleAndToastError(error, "Failed to submit program");
     },
   });
 

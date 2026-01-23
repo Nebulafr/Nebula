@@ -9,6 +9,7 @@ import {
   useEffect,
   useState,
 } from "react";
+import { handleAndToastError } from "@/lib/error-handler";
 
 interface ProgramsParams {
   coachId?: string;
@@ -52,7 +53,7 @@ export function ProgramsProvider({ children }: { children: React.ReactNode }) {
         return [];
       }
     } catch (err) {
-      setError("An error occurred while fetching programs");
+      handleAndToastError(err, "An error occurred while fetching programs");
       setPrograms([]);
       return [];
     } finally {

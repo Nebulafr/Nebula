@@ -176,7 +176,6 @@ export default function CoachDetailPage() {
       });
 
       if (response.success) {
-        toast.success(response.message || "Review submitted successfully!");
         setReviewSubmitted(true);
 
         // Invalidate coach cache to refetch updated data

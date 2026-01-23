@@ -9,7 +9,6 @@ import {
   saveCoachAvailability,
   DayAvailability,
 } from "@/actions/session";
-import { toast } from "react-toastify";
 import { handleAndToastError } from "@/lib/error-handler";
 
 export const COACH_SESSIONS_QUERY_KEY = "coach-sessions";
@@ -51,7 +50,6 @@ export function useCreateCoachSession() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [COACH_SESSIONS_QUERY_KEY] });
       queryClient.invalidateQueries({ queryKey: [COACH_STATS_QUERY_KEY] });
-      toast.success("Session created successfully!");
     },
     onError: (error: any) => {
       handleAndToastError(error, "Failed to create session.");
@@ -80,7 +78,6 @@ export function useUpdateCoachSession() {
     }) => updateCoachSession(sessionId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [COACH_SESSIONS_QUERY_KEY] });
-      toast.success("Session updated successfully!");
     },
     onError: (error: any) => {
       handleAndToastError(error, "Failed to update session.");
@@ -102,7 +99,6 @@ export function useCancelCoachSession() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [COACH_SESSIONS_QUERY_KEY] });
       queryClient.invalidateQueries({ queryKey: [COACH_STATS_QUERY_KEY] });
-      toast.success("Session cancelled successfully.");
     },
     onError: (error: any) => {
       handleAndToastError(error, "Failed to cancel session.");
@@ -130,7 +126,6 @@ export function useSaveCoachAvailability() {
       queryClient.invalidateQueries({
         queryKey: [COACH_AVAILABILITY_QUERY_KEY],
       });
-      toast.success("Availability updated successfully!");
     },
     onError: (error: any) => {
       handleAndToastError(error, "Failed to update availability.");

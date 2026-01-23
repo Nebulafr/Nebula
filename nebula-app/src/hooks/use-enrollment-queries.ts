@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiGet, apiPatch } from "@/lib/utils";
 import { EnrollmentStatus } from "@/generated/prisma";
+import { handleAndToastError } from "@/lib/error-handler";
 
 export const ENROLLMENTS_QUERY_KEY = "student-enrollments";
 
@@ -44,6 +45,9 @@ export function useUpdateEnrollmentProgress() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [ENROLLMENTS_QUERY_KEY] });
+    },
+    onError: (error) => {
+      handleAndToastError(error, "Failed to update enrollment progress");
     },
   });
 }

@@ -69,7 +69,6 @@ export default function CoachLoginPage() {
 
     try {
       const response = await signIn({ email, password });
-      toast.success(response.message || "Logged in successfully!");
     } catch (error: any) {
       console.error("Coach login error:", error);
       handleAndToastError(error, "Failed to sign in");
@@ -85,7 +84,6 @@ export default function CoachLoginPage() {
 
     try {
       const response = await signInWithGoogle(UserRole.COACH);
-      toast.success(response.message || "Signed in with Google successfully!");
     } catch (error: any) {
       console.error("Coach Google login error:", error);
       if (error?.message !== "Redirecting to Google sign-in...") {

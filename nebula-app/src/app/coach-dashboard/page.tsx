@@ -54,9 +54,7 @@ function CoachDashboardContent() {
           });
 
           if (result.success) {
-            toast.success(
-              result?.message || "Google Calendar connected successfully!"
-            );
+            // Google Calendar connected successfully
           } else {
             toast.error(
               result?.message || "Failed to save calendar connection"
