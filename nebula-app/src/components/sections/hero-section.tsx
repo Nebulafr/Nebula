@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 
+
+
 export function HeroSection() {
   const [searchTerm, setSearchTerm] = useState("");
   const router = useRouter();
@@ -42,11 +44,10 @@ export function HeroSection() {
   return (
     <section className="container py-20 text-center md:py-32">
       <h1 className="font-headline text-5xl font-bold tracking-tighter md:text-7xl">
-        Empower your career <br /> journey with Nebula
+        Unlock Your Potential with Expert Coaching
       </h1>
       <p className="mx-auto mt-4 max-w-2xl font-body text-lg text-foreground/70 md:text-xl">
-        Get online career coaching from the world&apos;s leading experts to help
-        you land your dream job.
+        Connect with world-class coaches to accelerate your career and personal growth.
       </p>
       <form
         onSubmit={handleSearch}

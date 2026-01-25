@@ -1,12 +1,60 @@
 "use client";
 
-import Link from "next/link";
 import Image from "next/image";
-import { LogOut } from "lucide-react";
+import { LogOut, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { logos } from "@/lib/images/logos";
+import Link from "next/link";
+
+declare global {
+  interface Window {
+    google?: any;
+  }
+}
+
+function LanguageSwitcher() {
+  const [currentLang, setCurrentLang] = useState("en");
+
+  useEffect(() => {
+    // Check the current language from Google Translate cookie
+    const checkLang = () => {
+      const match = document.cookie.match(/googtrans=\/[^/]+\/([^;]+)/);
+      if (match && match[1]) {
+        setCurrentLang(match[1]);
+      }
+    };
+    checkLang();
+  }, []);
+
+  const handleLanguageChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    const select = document.querySelector(
+      '.goog-te-combo'
+    ) as HTMLSelectElement | null;
+
+    if (select) {
+      select.value = value;
+      select.dispatchEvent(new Event('change'));
+    }
+    setCurrentLang(value);
+  }, []);
+
+  return (
+    <div className="notranslate flex items-center gap-1 border rounded-md px-2 h-9 text-sm bg-background">
+      <Globe className="h-4 w-4 text-muted-foreground" />
+      <select
+        value={currentLang}
+        onChange={handleLanguageChange}
+        className="bg-transparent outline-none cursor-pointer text-sm"
+      >
+        <option value="en">EN</option>
+        <option value="fr">FR</option>
+      </select>
+    </div>
+  );
+}
 
 export function Header() {
   const { profile, signOut } = useAuth();
@@ -96,7 +144,7 @@ export function Header() {
                 disabled={isLoggingOut}
               >
                 <LogOut className="mr-2 h-4 w-4" />
-                {isLoggingOut ? "Logging out..." : "Log Out"}
+                {isLoggingOut ? "Log Out..." : "Log Out"}
               </Button>
               <Button asChild>
                 <Link href={dashboardUrl}>Dashboard</Link>
@@ -112,6 +160,7 @@ export function Header() {
               </Button>
             </>
           )}
+          <LanguageSwitcher />
         </div>
       </div>
     </header>
