@@ -1,6 +1,7 @@
 "use client";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/images/placeholder-images";
+import { useLanguage } from "@/contexts/language-context";
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
 import { HeroSection } from "@/components/sections/hero-section";
@@ -9,8 +10,10 @@ import { NetworkSection } from "@/components/sections/network-section";
 import { PopularProgramsSection } from "@/components/sections/popular-programs-section";
 import { UpcomingEventsSection } from "@/components/sections/upcoming-events-section";
 import { TestimonialsSection } from "@/components/sections/testimonials-section";
+import { CompanyLogosSection } from "@/components/sections/company-logo-section";
 
 export default function Home() {
+  const { isFrench } = useLanguage();
   const featureCards = [
     {
       icon: (
@@ -21,7 +24,11 @@ export default function Home() {
           height={32}
         />
       ),
-      title: "Vetted Coaches, Proven Results",
+      title: (
+        <>
+          Vetted <span className="notranslate">{isFrench ? "Coachs" : "Coaches"}</span>, Proven Results
+        </>
+      ),
       description:
         "Our coaches are industry leaders with years of experience in their respective fields.",
     },
@@ -83,11 +90,19 @@ export default function Home() {
       <Header />
       <main className="flex-1">
         <HeroSection />
-        <FeaturesSection cards={featureCards} />
+        <section className="bg-muted py-20 sm:py-32">
+          <div className="container">
+            <p className="max-w-4xl text-center mx-auto text-[28px] font-medium text-muted-foreground leading-snug">
+                We’re not just an AI platform. Our qualified coaches work alongside you, offering expert guidance that elevates your experience and accelerates your growth.
+            </p>
+          </div>
+        </section>
+        <CompanyLogosSection />
         <NetworkSection />
         <PopularProgramsSection />
         <UpcomingEventsSection />
         <TestimonialsSection testimonials={testimonials} />
+        <FeaturesSection cards={featureCards} />
       </main>
       <Footer />
     </div>

@@ -96,8 +96,8 @@ export class CoachService {
         const matchingCategories = categories.filter((category) =>
           coach.specialties.some(
             (specialty: string) =>
-              specialty.toLowerCase() === category.name.toLowerCase()
-          )
+              specialty.toLowerCase() === category.name.toLowerCase(),
+          ),
         );
 
         if (matchingCategories.length > 0) {
@@ -107,7 +107,7 @@ export class CoachService {
             }
 
             const existingCoach = acc[category.name].find(
-              (existingCoach) => existingCoach.id === coach.id
+              (existingCoach) => existingCoach.id === coach.id,
             );
 
             if (!existingCoach) {
@@ -123,14 +123,14 @@ export class CoachService {
 
         return acc;
       },
-      {}
+      {},
     );
 
     const formattedGroups = Object.entries(groupedCoaches).map(
       ([group, items]) => ({
         group,
         items,
-      })
+      }),
     );
 
     return sendSuccess(
@@ -138,7 +138,7 @@ export class CoachService {
         coaches: transformedCoaches,
         groupedCoaches: formattedGroups,
       },
-      "Coaches retrieved successfully"
+      "Coaches retrieved successfully",
     );
   }
 
@@ -275,12 +275,12 @@ export class CoachService {
       coach,
       programs,
       reviews,
-      hasUserReviewed
+      hasUserReviewed,
     );
 
     return sendSuccess(
       { coach: transformedCoach },
-      "Coach fetched successfully"
+      "Coach fetched successfully",
     );
   }
 
@@ -294,7 +294,7 @@ export class CoachService {
         orderBy: {
           createdAt: "desc",
         },
-        take: 10,
+        take: 4,
         include: {
           category: {
             select: {
@@ -338,7 +338,7 @@ export class CoachService {
         orderBy: {
           createdAt: "desc",
         },
-        take: 20,
+        take: 4,
         include: {
           reviewer: {
             select: {
@@ -384,7 +384,7 @@ export class CoachService {
   static async checkUserReview(
     targetId: string,
     userId: string,
-    targetType: "COACH" | "PROGRAM"
+    targetType: "COACH" | "PROGRAM",
   ) {
     try {
       const existingReview = await prisma.review.findFirst({
@@ -408,7 +408,7 @@ export class CoachService {
     coach: any,
     programs: any[],
     reviews: any[],
-    hasUserReviewed?: boolean
+    hasUserReviewed?: boolean,
   ) {
     // Parse availability JSON if it exists
     let parsedAvailability = {};
@@ -537,14 +537,14 @@ export class CoachService {
       {
         coaches: transformedCoaches,
       },
-      "Suggested coaches retrieved successfully"
+      "Suggested coaches retrieved successfully",
     );
   }
 
   static async connectGoogleCalendar(
     userId: string,
     accessToken: string,
-    refreshToken?: string
+    refreshToken?: string,
   ) {
     const coach = await this.findByUserId(userId);
     if (!coach) {

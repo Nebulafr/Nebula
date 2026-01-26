@@ -2,9 +2,10 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DollarSign, Users, UserPlus, Briefcase } from "lucide-react";
+import { useLanguage } from "@/contexts/language-context";
 
 interface StatCardProps {
-  title: string;
+  title: React.ReactNode;
   value: string;
   change: string;
   icon: React.ReactNode;
@@ -41,6 +42,7 @@ interface StatsCardsProps {
 }
 
 export function StatsCards({ stats, loading = false }: StatsCardsProps) {
+  const { isFrench } = useLanguage();
   if (loading) {
     return (
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -81,7 +83,11 @@ export function StatsCards({ stats, loading = false }: StatsCardsProps) {
         icon={<UserPlus className="h-4 w-4 text-muted-foreground" />}
       />
       <StatCard
-        title="Active Coaches"
+        title={
+          <span>
+            Active <span className="notranslate">{isFrench ? "Coachs" : "Coaches"}</span>
+          </span>
+        }
         value={stats.coaches.value}
         change={stats.coaches.change}
         icon={<Briefcase className="h-4 w-4 text-muted-foreground" />}

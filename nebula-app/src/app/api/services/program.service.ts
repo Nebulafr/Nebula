@@ -182,7 +182,11 @@ export class ProgramService {
         { title: { contains: search, mode: "insensitive" } },
         { description: { contains: search, mode: "insensitive" } },
         { category: { name: { contains: search, mode: "insensitive" } } },
-        { coach: { user: { fullName: { contains: search, mode: "insensitive" } } } },
+        {
+          coach: {
+            user: { fullName: { contains: search, mode: "insensitive" } },
+          },
+        },
         { tags: { has: search } },
       ];
     }
@@ -520,7 +524,10 @@ export class ProgramService {
       },
     });
 
-    return sendSuccess({ program: updatedProgram }, "Program updated successfully");
+    return sendSuccess(
+      { program: updatedProgram },
+      "Program updated successfully",
+    );
   }
 
   async checkUserReview(

@@ -7,7 +7,6 @@ import "./globals.css";
 import "react-toastify/dist/ReactToastify.css";
 import { Manrope } from "next/font/google";
 import { Providers } from "./providers";
-import Script from "next/script";
 
 export const metadata: Metadata = {
   title: "Nebula - Coaching Platform",
@@ -28,9 +27,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${manrope.className}  antialiased`}>
         <Providers>
-          <AuthProvider>
-            {children}
-          </AuthProvider>
+          <AuthProvider>{children}</AuthProvider>
         </Providers>
         <Toaster />
         <ToastContainer
@@ -44,26 +41,6 @@ export default function RootLayout({
           draggable
           pauseOnHover
           theme="light"
-        />
-        {/* Google Translate */}
-        <div id="google_translate_element" className="hidden" />
-        <Script id="google-translate-init" strategy="afterInteractive">
-          {`
-            function googleTranslateElementInit() {
-              new window.google.translate.TranslateElement(
-                {
-                  pageLanguage: 'en',
-                  includedLanguages: 'en,fr',
-                  autoDisplay: false,
-                },
-                'google_translate_element'
-              );
-            }
-          `}
-        </Script>
-        <Script
-          src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"
-          strategy="afterInteractive"
         />
       </body>
     </html>

@@ -86,6 +86,7 @@ type ProgramWithRelations = {
   modules?: Module[];
   reviews?: ReviewWithReviewer[];
   coach?: {
+    id: string;
     title: string;
     bio: string;
     rating: number | null;
@@ -108,7 +109,9 @@ export default function ProgramDetailPage({
 
   // Use the platform hook for fetching program data
   const { data: programResponse, isLoading, error } = useProgramBySlug(slug);
-  const program = programResponse?.data?.program as ProgramWithRelations | undefined;
+  const program = programResponse?.data?.program as
+    | ProgramWithRelations
+    | undefined;
 
   const [enrollmentStep, setEnrollmentStep] = useState(0);
   const [enrolling, setEnrolling] = useState(false);
@@ -149,8 +152,14 @@ export default function ProgramDetailPage({
       if (program.cohorts && program.cohorts.length > 0) {
         const futureCohorts = program.cohorts
           .map((c: Cohort) => ({ ...c, startDate: new Date(c.startDate) }))
-          .filter((c: Cohort & { startDate: Date }) => c.startDate > now && c.status === "UPCOMING")
-          .sort((a: { startDate: Date }, b: { startDate: Date }) => a.startDate.getTime() - b.startDate.getTime());
+          .filter(
+            (c: Cohort & { startDate: Date }) =>
+              c.startDate > now && c.status === "UPCOMING",
+          )
+          .sort(
+            (a: { startDate: Date }, b: { startDate: Date }) =>
+              a.startDate.getTime() - b.startDate.getTime(),
+          );
 
         if (futureCohorts.length > 0) {
           const nextCohort = futureCohorts[0];
@@ -195,7 +204,9 @@ export default function ProgramDetailPage({
           <div className="container py-12 md:py-20 text-center">
             <h1 className="text-4xl font-bold mb-4">Error</h1>
             <p className="text-muted-foreground mb-8">
-              {error instanceof Error ? error.message : "Failed to load program"}
+              {error instanceof Error
+                ? error.message
+                : "Failed to load program"}
             </p>
             <Button asChild>
               <Link href="/programs">Browse all programs</Link>
@@ -310,7 +321,9 @@ export default function ProgramDetailPage({
         setReviewSubmitted(true);
 
         // Invalidate the query to refetch program data with updated reviews
-        queryClient.invalidateQueries({ queryKey: [PROGRAM_BY_SLUG_QUERY_KEY, slug] });
+        queryClient.invalidateQueries({
+          queryKey: [PROGRAM_BY_SLUG_QUERY_KEY, slug],
+        });
 
         setIsReviewDialogOpen(false);
       } else {
@@ -502,7 +515,7 @@ export default function ProgramDetailPage({
               </p>
               <div className="flex items-center gap-4 mt-6">
                 <Button asChild>
-                  <Link href={`/coaches/${program.coach?.user.id}`}>
+                  <Link href={`/coaches/${program.coach?.id}`}>
                     View Profile
                   </Link>
                 </Button>

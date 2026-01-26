@@ -15,6 +15,12 @@ import {
 import Link from "next/link";
 import { Program } from "@/generated/prisma";
 
+function truncateText(text: string | null | undefined, maxLength: number): string {
+  if (!text) return "";
+  if (text.length <= maxLength) return text;
+  return text.slice(0, maxLength).trim() + "...";
+}
+
 type ProgramWithRelations = Program & {
   category: {
     id: string;
@@ -114,11 +120,11 @@ export function RecommendedPrograms({
                           >
                             {program.category.name}
                           </Badge>
-                          <h3 className="font-headline mt-4 text-2xl font-semibold leading-tight line-clamp-2">
-                            {program.title}
+                          <h3 className="font-headline mt-4 text-2xl font-semibold leading-tight">
+                            {truncateText(program.title, 50)}
                           </h3>
-                          <p className="mt-2 text-sm text-muted-foreground line-clamp-2">
-                            {program.description}
+                          <p className="mt-2 text-sm text-muted-foreground">
+                            {truncateText(program.description, 100)}
                           </p>
                         </div>
                         <div className="mt-6">

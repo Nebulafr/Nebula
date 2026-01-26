@@ -5,8 +5,8 @@ export function FeaturesSection({
 }: {
   cards: {
     icon: JSX.Element;
-    title: string;
-    description: string;
+    title: React.ReactNode;
+    description: React.ReactNode;
     customStyle?: React.CSSProperties;
   }[];
 }) {

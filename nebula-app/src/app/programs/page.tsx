@@ -13,6 +13,12 @@ import { useCategories, usePrograms } from "@/hooks";
 import { ProgramWithRelations } from "@/types/program";
 import { Input } from "@/components/ui/input";
 
+function truncateText(text: string | null | undefined, maxLength: number): string {
+  if (!text) return "";
+  if (text.length <= maxLength) return text;
+  return text.slice(0, maxLength).trim() + "...";
+}
+
 export default function ProgramsPage() {
   const [activeCategory, setActiveCategory] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
@@ -105,10 +111,10 @@ export default function ProgramsPage() {
                                   {program?.category?.name}
                                 </Badge>
                                 <h3 className="font-headline mt-3 text-base font-semibold leading-tight">
-                                  {program.title}
+                                  {truncateText(program.title, 60)}
                                 </h3>
                                 <p className="mt-1 text-xs text-muted-foreground">
-                                  {program.description}
+                                  {truncateText(program.description, 120)}
                                 </p>
                               </div>
 

@@ -15,6 +15,7 @@ import {
 import Link from "next/link";
 import { UserProfile } from "@/hooks/use-user";
 import { CoachWithRelations } from "@/types/coach";
+import { useLanguage } from "@/contexts/language-context";
 
 interface SuggestedCoachesProps {
   coaches: CoachWithRelations[];
@@ -27,11 +28,15 @@ export function SuggestedCoaches({
   user,
   loading = false,
 }: SuggestedCoachesProps) {
+  const { isFrench } = useLanguage();
+
   if (loading) {
     return (
       <div>
         <div className="flex items-center justify-between">
-          <h3 className="text-xl font-bold tracking-tight">Browse Coaches</h3>
+          <h3 className="text-xl font-bold tracking-tight">
+            Browse <span className="notranslate">{isFrench ? "Coachs" : "Coaches"}</span>
+          </h3>
           <Button variant="link" disabled>
             See All <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
@@ -54,7 +59,9 @@ export function SuggestedCoaches({
     return (
       <div>
         <div className="flex items-center justify-between">
-          <h3 className="text-xl font-bold tracking-tight">Browse Coaches</h3>
+          <h3 className="text-xl font-bold tracking-tight">
+            Browse <span className="notranslate">{isFrench ? "Coachs" : "Coaches"}</span>
+          </h3>
           <Button variant="link" asChild>
             <Link href="/coaches">
               See All <ArrowRight className="ml-2 h-4 w-4" />
@@ -75,7 +82,9 @@ export function SuggestedCoaches({
                 interests. Explore all coaches to find your match.
               </p>
               <Button asChild>
-                <Link href="/coaches">Browse All Coaches</Link>
+                <Link href="/coaches">
+                  Browse All <span className="notranslate">{isFrench ? "Coachs" : "Coaches"}</span>
+                </Link>
               </Button>
             </CardContent>
           </Card>
@@ -87,7 +96,9 @@ export function SuggestedCoaches({
   return (
     <div>
       <div className="flex items-center justify-between">
-        <h3 className="text-xl font-bold tracking-tight">Browse Coaches</h3>
+        <h3 className="text-xl font-bold tracking-tight">
+          Browse <span className="notranslate">{isFrench ? "Coachs" : "Coaches"}</span>
+        </h3>
         <Button variant="link" asChild>
           <Link href="/coaches">
             See All <ArrowRight className="ml-2 h-4 w-4" />

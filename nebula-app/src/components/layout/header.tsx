@@ -3,8 +3,9 @@
 import Image from "next/image";
 import { LogOut, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
+import { useLanguage, SupportedLanguage } from "@/contexts/language-context";
 import { logos } from "@/lib/images/logos";
 import Link from "next/link";
 
@@ -15,31 +16,11 @@ declare global {
 }
 
 function LanguageSwitcher() {
-  const [currentLang, setCurrentLang] = useState("en");
+  const { currentLang, setLanguage } = useLanguage();
 
-  useEffect(() => {
-    // Check the current language from Google Translate cookie
-    const checkLang = () => {
-      const match = document.cookie.match(/googtrans=\/[^/]+\/([^;]+)/);
-      if (match && match[1]) {
-        setCurrentLang(match[1]);
-      }
-    };
-    checkLang();
-  }, []);
-
-  const handleLanguageChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value;
-    const select = document.querySelector(
-      '.goog-te-combo'
-    ) as HTMLSelectElement | null;
-
-    if (select) {
-      select.value = value;
-      select.dispatchEvent(new Event('change'));
-    }
-    setCurrentLang(value);
-  }, []);
+  const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setLanguage(e.target.value as SupportedLanguage);
+  };
 
   return (
     <div className="notranslate flex items-center gap-1 border rounded-md px-2 h-9 text-sm bg-background">
@@ -58,6 +39,7 @@ function LanguageSwitcher() {
 
 export function Header() {
   const { profile, signOut } = useAuth();
+  const { isFrench } = useLanguage();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleLogout = async () => {
@@ -93,43 +75,44 @@ export function Header() {
                 className="object-cover"
               />
             </div>
-            <span className="font-headline text-xl font-bold">Nebula</span>
+            <span className="notranslate font-headline text-xl font-bold">
+              Nebula
+            </span>
           </Link>
-          <nav className="hidden items-center gap-4 md:flex">
+          <nav className="hidden items-center gap-4 md:flex flex-nowrap">
             <Link
               href="/programs"
-              className="font-menu text-sm font-medium text-foreground/60 transition-colors hover:text-foreground/80"
+              className="font-menu text-sm font-medium text-foreground/60 transition-colors hover:text-foreground/80 whitespace-nowrap"
             >
               Programs
             </Link>
             <Link
               href="/coaches"
-              className="font-menu text-sm font-medium text-foreground/60 transition-colors hover:text-foreground/80"
+              className="notranslate font-menu text-sm font-medium text-foreground/60 transition-colors hover:text-foreground/80 whitespace-nowrap"
             >
-              Coaches
+              {isFrench ? "Coachs" : "Coaches"}
             </Link>
             <Link
               href="/events"
-              className="font-menu text-sm font-medium text-foreground/60 transition-colors hover:text-foreground/80"
+              className="font-menu text-sm font-medium text-foreground/60 transition-colors hover:text-foreground/80 whitespace-nowrap"
             >
               Events
             </Link>
-
             <Link
               href="/universities"
-              className="font-menu text-sm font-medium text-foreground/60 transition-colors hover:text-foreground/80"
+              className="font-menu text-sm font-medium text-foreground/60 transition-colors hover:text-foreground/80 whitespace-nowrap"
             >
               For Universities
             </Link>
             <Link
               href="/become-a-coach"
-              className="font-menu text-sm font-medium text-foreground/60 transition-colors hover:text-foreground/80"
+              className="font-menu text-sm font-medium text-foreground/60 transition-colors hover:text-foreground/80 whitespace-nowrap"
             >
               Become a coach
             </Link>
             <Link
               href="/nebula-ai"
-              className="font-menu text-sm font-medium text-foreground/60 transition-colors hover:text-foreground/80"
+              className="notranslate font-menu text-sm font-medium text-foreground/60 transition-colors hover:text-foreground/80 whitespace-nowrap"
             >
               Nebula Ai
             </Link>

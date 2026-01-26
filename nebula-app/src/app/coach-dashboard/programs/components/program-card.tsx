@@ -22,8 +22,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiPost } from "@/lib/utils";
-import { toast } from "react-toastify";
 import { handleAndToastError } from "@/lib/error-handler";
+
+function truncateText(text: string | null | undefined, maxLength: number): string {
+  if (!text) return "";
+  if (text.length <= maxLength) return text;
+  return text.slice(0, maxLength).trim() + "...";
+}
 
 export interface IProgram extends Omit<Program, 'category' | 'coach' | 'rating' | 'currentEnrollments'> {
   category: {
@@ -112,8 +117,9 @@ export function ProgramCard({ program }: ProgramCardProps) {
         <div className="mb-2">
           <Badge variant={statusBadge.variant}>{statusBadge.label}</Badge>
         </div>
-        <h3 className="font-semibold text-lg">{program.title}</h3>
-        <p className="text-sm text-muted-foreground">{program.category.name}</p>
+        <h3 className="font-semibold text-lg">{truncateText(program.title, 50)}</h3>
+        <p className="text-xs text-muted-foreground mb-1">{program.category.name}</p>
+        <p className="text-sm text-muted-foreground mb-2">{truncateText(program.description, 100)}</p>
         <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
           <div className="flex items-center gap-1">
             <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />

@@ -1,8 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { logos } from "@/lib/images/logos";
+import { useLanguage } from "@/contexts/language-context";
+
 
 export function Footer() {
+  const { isFrench } = useLanguage();
   const footerLinks = {
     Company: [
       { title: "About Us", href: "/about" },
@@ -34,7 +37,7 @@ export function Footer() {
                   className="object-cover"
                 />
               </div>
-              <span className="font-headline text-2xl font-bold">Nebula</span>
+              <span className="notranslate font-headline text-2xl font-bold">Nebula</span>
             </Link>
             <p className="mt-4 text-xs text-secondary-foreground/70">
               Empower your career journey.
@@ -57,9 +60,9 @@ export function Footer() {
                 <li>
                   <Link
                     href="/coaches"
-                    className="text-xs text-secondary-foreground/70 transition-colors hover:text-secondary-foreground"
+                    className="notranslate text-xs text-secondary-foreground/70 transition-colors hover:text-secondary-foreground"
                   >
-                    Coaches
+                    {isFrench ? "Coachs" : "Coaches"}
                   </Link>
                 </li>
                 <li>

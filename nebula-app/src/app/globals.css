@@ -100,6 +100,31 @@
   }
 }
 
+@layer utilities {
+  @keyframes marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  .animate-marquee {
+    animation: marquee 30s linear infinite;
+  }
+
+  .marquee-container {
+    mask-image: linear-gradient(
+      to right,
+      hsl(0 0% 0% / 0),
+      hsl(0 0% 0% / 1) 10%,
+      hsl(0 0% 0% / 1) 90%,
+      hsl(0 0% 0% / 0)
+    );
+  }
+}
+
 @layer components {
   .dashboard-container {
     @apply mx-auto w-full max-w-[1400px] px-4 md:px-8;
@@ -115,7 +140,16 @@
 .goog-tooltip:hover {
   display: none !important;
 }
-
+.goog-te-spinner,
+.goog-te-balloon-frame,
+#goog-gt-tt,
+.goog-te-menu-value,
+.goog-logo-link {
+  display: none !important;
+}
+#google-translate-script {
+  display: none !important;
+}
 .goog-text-highlight {
   background-color: transparent !important;
   box-shadow: none !important;

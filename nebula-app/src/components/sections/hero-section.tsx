@@ -6,10 +6,10 @@ import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-
-
+import { useLanguage } from "@/contexts/language-context";
 
 export function HeroSection() {
+  const { isFrench } = useLanguage();
   const [searchTerm, setSearchTerm] = useState("");
   const router = useRouter();
 
@@ -17,7 +17,7 @@ export function HeroSection() {
     e.preventDefault();
     if (searchTerm.trim()) {
       router.replace(
-        `/coaches?search=${encodeURIComponent(searchTerm.trim())}`
+        `/coaches?search=${encodeURIComponent(searchTerm.trim())}`,
       );
     } else {
       router.replace("/coaches");
@@ -25,7 +25,15 @@ export function HeroSection() {
   };
 
   const stats = [
-    { value: "50+", label: "Top Coaches" },
+    {
+      value: "50+",
+      label: (
+        <>
+          Top{" "}
+          <span className="notranslate">{isFrench ? "Coachs" : "Coaches"}</span>
+        </>
+      ),
+    },
     { value: "200+", label: "Companies" },
     { value: "5k+", label: "Users Helped" },
   ];
@@ -44,10 +52,11 @@ export function HeroSection() {
   return (
     <section className="container py-20 text-center md:py-32">
       <h1 className="font-headline text-5xl font-bold tracking-tighter md:text-7xl">
-        Unlock Your Potential with Expert Coaching
+        Empower your career <br /> journey with Nebula
       </h1>
       <p className="mx-auto mt-4 max-w-2xl font-body text-lg text-foreground/70 md:text-xl">
-        Connect with world-class coaches to accelerate your career and personal growth.
+        Get online career coaching from the world&apos;s leading experts to help
+        you land your dream job.
       </p>
       <form
         onSubmit={handleSearch}
@@ -69,9 +78,11 @@ export function HeroSection() {
         </Button>
       </form>
       <div className="mt-16 grid grid-cols-1 gap-8 sm:grid-cols-3">
-        {stats.map((stat) => (
-          <div key={stat.label}>
-            <p className="font-headline text-5xl font-medium">{stat.value}</p>
+        {stats.map((stat, index) => (
+          <div key={index}>
+            <p className="notranslate font-headline text-5xl font-medium">
+              {stat.value}
+            </p>
             <p className="mt-2 text-sm uppercase tracking-wider text-muted-foreground">
               {stat.label}
             </p>
