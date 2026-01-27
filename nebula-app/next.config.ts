@@ -19,7 +19,6 @@ const nextConfig: NextConfig = {
   },
   images: {
     minimumCacheTTL: 60 * 60 * 24 * 7, // Cache images for 7 days
-    domains: ["firebasestorage.googleapis.com", "lh3.googleusercontent.com", "res.cloudinary.com"],
     remotePatterns: [
       {
         protocol: "https",
