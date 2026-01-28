@@ -15,8 +15,10 @@ import { EventDetailsDialog } from "./event-details-dialog";
 import { CreateEventDialog } from "./create-event-dialog";
 import { useSearchParams } from "next/navigation";
 import { EventType } from "@/types/event";
+import { useTranslations } from "next-intl";
 
 export default function AdminEventsContent() {
+  const t = useTranslations("dashboard.admin");
   const searchParams = useSearchParams();
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("all");
@@ -200,7 +202,7 @@ export default function AdminEventsContent() {
       <div className="flex-1 space-y-4 p-4 md:p-8">
         <div className="flex items-center justify-center h-64">
           <div className="text-destructive">
-            {error?.message || "Failed to load events"}
+            {error?.message || t("failedToLoadEvents")}
           </div>
         </div>
       </div>

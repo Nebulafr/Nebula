@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, PlusCircle, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 interface EventsHeaderProps {
   searchTerm: string;
@@ -24,12 +25,14 @@ export function EventsHeader({
   loading,
   onCreateEvent,
 }: EventsHeaderProps) {
+  const t = useTranslations("dashboard.admin");
+
   return (
     <div className="flex items-center justify-between">
       <div className="relative w-full max-w-sm">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
-          placeholder="Search events or organizers..."
+          placeholder={t("searchEvents")}
           className="pl-9"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
@@ -50,18 +53,18 @@ export function EventsHeader({
             {loading && activeTab === type ? (
               <div className="flex items-center gap-2">
                 <Loader2 className="h-4 w-4 animate-spin" />
-                {type === "all" ? "All Events" : type}
+                {type === "all" ? t("allEvents") : t(type)}
               </div>
             ) : type === "all" ? (
-              "All Events"
+              t("allEvents")
             ) : (
-              type
+              t(type)
             )}
           </Button>
         ))}
         <Button onClick={onCreateEvent}>
           <PlusCircle className="mr-2 h-4 w-4" />
-          Create Event
+          {t("createEvent")}
         </Button>
       </div>
     </div>

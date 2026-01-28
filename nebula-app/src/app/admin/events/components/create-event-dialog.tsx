@@ -34,6 +34,7 @@ import { cn } from "@/lib/utils";
 import { EventType } from "@/types/event";
 import { UserSelect } from "@/components/ui/user-select";
 import { uploadImageToCloudinary } from "@/lib/cloudinary";
+import { useTranslations } from "next-intl";
 
 interface NewEvent {
   title: string;
@@ -78,6 +79,7 @@ export function CreateEventDialog({
   actionLoading,
   onCreateEvent,
 }: CreateEventDialogProps) {
+  const t = useTranslations("dashboard.admin");
   const [eventType, setEventType] = useState<"Webinar" | "Social" | null>(null);
   const [date, setDate] = useState<Date>();
   const [uploading, setUploading] = useState(false);
@@ -162,18 +164,18 @@ export function CreateEventDialog({
       <DialogContent className="sm:max-w-[625px] max-h-[90vh] overflow-y-auto">
         <form onSubmit={handleCreate}>
           <DialogHeader>
-            <DialogTitle>Create New Event</DialogTitle>
+            <DialogTitle>{t("createEvent")}</DialogTitle>
             <DialogDescription>
-              Create a new event for members to participate in.
+              {t("createFirstEvent")}
             </DialogDescription>
           </DialogHeader>
 
           {createStep === 1 && (
             <div className="py-4">
-              <p className="text-sm text-muted-foreground mb-4">Step 1 of 2</p>
-              <h3 className="font-semibold mb-2">Choose Event Type</h3>
+              <p className="text-sm text-muted-foreground mb-4">{t("stepOf", { current: 1, total: 2 })}</p>
+              <h3 className="font-semibold mb-2">{t("chooseEventType")}</h3>
               <p className="text-sm text-muted-foreground mb-4">
-                Select the type of event you want to create.
+                {t("selectEventTypeDesc")}
               </p>
               <div className="grid grid-cols-2 gap-4">
                 <Card
@@ -185,9 +187,9 @@ export function CreateEventDialog({
                   onClick={() => handleEventTypeSelect("Webinar")}
                 >
                   <Video className="h-8 w-8 mb-2 text-primary" />
-                  <p className="font-semibold">Webinar</p>
+                  <p className="font-semibold">{t("webinar")}</p>
                   <p className="text-xs text-muted-foreground text-center">
-                    Free online educational sessions
+                    {t("webinarDesc")}
                   </p>
                 </Card>
                 <Card
@@ -199,9 +201,9 @@ export function CreateEventDialog({
                   onClick={() => handleEventTypeSelect("Social")}
                 >
                   <PartyPopper className="h-8 w-8 mb-2 text-primary" />
-                  <p className="font-semibold">Social Event</p>
+                  <p className="font-semibold">{t("socialEvent")}</p>
                   <p className="text-xs text-muted-foreground text-center">
-                    In-person gatherings and networking events
+                    {t("socialEventDesc")}
                   </p>
                 </Card>
               </div>
@@ -210,9 +212,9 @@ export function CreateEventDialog({
 
           {createStep === 2 && (
             <div className="py-4 grid gap-4">
-              <p className="text-sm text-muted-foreground">Step 2 of 2</p>
+              <p className="text-sm text-muted-foreground">{t("stepOf", { current: 2, total: 2 })}</p>
               <div className="space-y-2">
-                <Label htmlFor="event-name">Event Name</Label>
+                <Label htmlFor="event-name">{t("eventName")}</Label>
                 <Input
                   id="event-name"
                   value={newEvent.title || ""}
@@ -223,7 +225,7 @@ export function CreateEventDialog({
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="event-description">Event Description</Label>
+                <Label htmlFor="event-description">{t("eventDescription")}</Label>
                 <Textarea
                   id="event-description"
                   value={newEvent.description || ""}
@@ -237,7 +239,7 @@ export function CreateEventDialog({
                 />
               </div>
               <div className="space-y-2">
-                <Label>Event Image</Label>
+                <Label>{t("eventImage")}</Label>
                 <div className="flex items-center justify-center w-full">
                   <label
                     htmlFor="dropzone-file"
@@ -246,15 +248,15 @@ export function CreateEventDialog({
                     <div className="flex flex-col items-center justify-center pt-5 pb-6">
                       <Upload className="w-8 h-8 mb-2 text-muted-foreground" />
                       <p className="mb-2 text-sm text-muted-foreground">
-                        <span className="font-semibold">Click to upload</span>{" "}
-                        or drag and drop
+                        <span className="font-semibold">{t("clickToUpload")}</span>{" "}
+                        {t("orDragAndDrop")}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         SVG, PNG, JPG or GIF (MAX. 800x400px)
                       </p>
                       {uploading && (
                         <p className="text-sm text-green-600 mt-2">
-                          Uploading images...
+                          {t("uploadingImages")}
                         </p>
                       )}
                     </div>
@@ -292,7 +294,7 @@ export function CreateEventDialog({
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Date</Label>
+                  <Label>{t("date")}</Label>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button
@@ -302,7 +304,7 @@ export function CreateEventDialog({
                           !date && "text-muted-foreground"
                         )}
                       >
-                        {date ? format(date, "PPP") : <span>Pick a date</span>}
+                        {date ? format(date, "PPP") : <span>{t("pickADate")}</span>}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
@@ -316,13 +318,13 @@ export function CreateEventDialog({
                   </Popover>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="time">Time</Label>
+                  <Label htmlFor="time">{t("time")}</Label>
                   <Input id="time" type="time" required />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="location">Location</Label>
+                  <Label htmlFor="location">{t("location")}</Label>
                   <Select
                     onValueChange={(value) =>
                       setNewEvent((prev) => ({ ...prev, location: value }))
@@ -333,7 +335,7 @@ export function CreateEventDialog({
                     required
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select location" />
+                      <SelectValue placeholder={t("location")} />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="online">Online</SelectItem>
@@ -342,7 +344,7 @@ export function CreateEventDialog({
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="access-type">Access Type</Label>
+                  <Label htmlFor="access-type">{t("accessType")}</Label>
                   <Select
                     onValueChange={(value) =>
                       setNewEvent((prev) => ({ ...prev, accessType: value }))
@@ -351,27 +353,27 @@ export function CreateEventDialog({
                     required
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select access type" />
+                      <SelectValue placeholder={t("accessType")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="free">Free</SelectItem>
-                      <SelectItem value="premium">Premium</SelectItem>
+                      <SelectItem value="free">{t("free")}</SelectItem>
+                      <SelectItem value="premium">{t("premium")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
               <div className="space-y-2">
-                <Label>Event Host</Label>
+                <Label>{t("eventHost")}</Label>
                 <UserSelect
                   value={newEvent.organizerId}
                   onChange={(user: any) => {
                     handleSelectOrganizer(user.id);
                   }}
-                  placeholder="Select event organizer"
+                  placeholder={t("selectOrganizer")}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="lumaEventLink">Luma Event Link *</Label>
+                <Label htmlFor="lumaEventLink">{t("lumaEventLink")} *</Label>
                 <Input
                   id="lumaEventLink"
                   type="url"
@@ -389,7 +391,7 @@ export function CreateEventDialog({
               {eventType === "Social" && (
                 <>
                   <div className="space-y-2">
-                    <Label htmlFor="price">Price per Guest (EUR)</Label>
+                    <Label htmlFor="price">{t("pricePerGuest")}</Label>
                     <Input
                       id="price"
                       type="number"
@@ -398,10 +400,10 @@ export function CreateEventDialog({
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="whatToBring">What to Bring</Label>
+                    <Label htmlFor="whatToBring">{t("whatToBring")}</Label>
                     <Textarea
                       id="whatToBring"
-                      placeholder="What should attendees bring to this event?"
+                      placeholder={t("bringDesc")}
                       value={newEvent.whatToBring || ""}
                       onChange={(e) =>
                         setNewEvent((prev) => ({
@@ -413,11 +415,11 @@ export function CreateEventDialog({
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="additionalInfo">
-                      Additional Information
+                      {t("additionalInfo")}
                     </Label>
                     <Textarea
                       id="additionalInfo"
-                      placeholder="Any additional information for attendees"
+                      placeholder={t("infoDesc")}
                       value={newEvent.additionalInfo || ""}
                       onChange={(e) =>
                         setNewEvent((prev) => ({
@@ -437,7 +439,7 @@ export function CreateEventDialog({
               <>
                 <DialogClose asChild>
                   <Button type="button" variant="outline">
-                    Cancel
+                    {t("cancel")}
                   </Button>
                 </DialogClose>
                 <Button
@@ -445,17 +447,17 @@ export function CreateEventDialog({
                   onClick={handleNext}
                   disabled={!eventType}
                 >
-                  Next
+                  {t("next")}
                 </Button>
               </>
             )}
             {createStep === 2 && (
               <>
                 <Button type="button" variant="outline" onClick={handleBack}>
-                  <ArrowLeft className="mr-2 h-4 w-4" /> Back
+                  <ArrowLeft className="mr-2 h-4 w-4" /> {t("back")}
                 </Button>
                 <Button type="submit" disabled={actionLoading.create}>
-                  {actionLoading.create ? "Creating..." : "Create Event"}
+                  {actionLoading.create ? t("creating") : t("createEventBtn")}
                 </Button>
               </>
             )}

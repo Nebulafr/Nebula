@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useTranslations } from "next-intl";
 
 interface AddUserDialogProps {
   onAddUser?: (userData: NewUserData) => Promise<void>;
@@ -36,6 +37,7 @@ interface NewUserData {
 }
 
 export function AddUserDialog({ onAddUser, loading = false }: AddUserDialogProps) {
+  const t = useTranslations("dashboard.admin");
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<NewUserData>({
@@ -77,21 +79,21 @@ export function AddUserDialog({ onAddUser, loading = false }: AddUserDialogProps
       <DialogTrigger asChild>
         <Button disabled={loading || isSubmitting}>
           <PlusCircle className="mr-2 h-4 w-4" />
-          Add User
+          {t("addUser")}
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add New User</DialogTitle>
+          <DialogTitle>{t("addNewUser")}</DialogTitle>
           <DialogDescription>
-            Fill in the details below to create a new user account.
+            {t("addUserDescription")}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="name" className="text-right">
-                Name
+                {t("name")}
               </Label>
               <Input
                 id="name"
@@ -105,7 +107,7 @@ export function AddUserDialog({ onAddUser, loading = false }: AddUserDialogProps
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="email" className="text-right">
-                Email
+                {t("email")}
               </Label>
               <Input
                 id="email"
@@ -120,7 +122,7 @@ export function AddUserDialog({ onAddUser, loading = false }: AddUserDialogProps
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="role" className="text-right">
-                Role
+                {t("role")}
               </Label>
               <Select 
                 value={formData.role} 
@@ -128,18 +130,18 @@ export function AddUserDialog({ onAddUser, loading = false }: AddUserDialogProps
                 disabled={isSubmitting}
               >
                 <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Select a role" />
+                  <SelectValue placeholder={t("selectRole")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="student">Student</SelectItem>
-                  <SelectItem value="coach">Coach</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="student">{t("student")}</SelectItem>
+                  <SelectItem value="coach">{t("coach")}</SelectItem>
+                  <SelectItem value="admin">{t("admin")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="password" className="text-right">
-                Password
+                {t("password")}
               </Label>
               <Input
                 id="password"
@@ -156,11 +158,11 @@ export function AddUserDialog({ onAddUser, loading = false }: AddUserDialogProps
           <DialogFooter>
             <DialogClose asChild>
               <Button type="button" variant="outline">
-                Cancel
+                {t("cancel")}
               </Button>
             </DialogClose>
             <Button type="submit" disabled={!isFormValid || loading || isSubmitting}>
-              {isSubmitting ? 'Creating...' : 'Create User'}
+              {isSubmitting ? t("creating") : t("addNewUser")}
             </Button>
           </DialogFooter>
         </form>

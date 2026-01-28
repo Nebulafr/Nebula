@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { formatUserName, getUserInitials } from "@/lib/chat-utils";
 import { getDefaultAvatar } from "@/lib/event-utils";
+import { useTranslations } from "next-intl";
 
 interface User {
   name: string;
@@ -63,23 +64,26 @@ export function UsersTable({
   loading = false,
   onUserAction,
 }: UsersTableProps) {
+  const t = useTranslations("dashboard.admin");
+  const tc = useTranslations("common");
+
   if (loading) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>User List</CardTitle>
+          <CardTitle>{t("userList")}</CardTitle>
           <CardDescription>
-            A list of all the users in the system.
+            {t("userListDescription")}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Joined</TableHead>
+                <TableHead>{t("name")}</TableHead>
+                <TableHead>{t("role")}</TableHead>
+                <TableHead>{t("status")}</TableHead>
+                <TableHead>{t("joined")}</TableHead>
                 <TableHead></TableHead>
               </TableRow>
             </TableHeader>
@@ -119,24 +123,24 @@ export function UsersTable({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>User List</CardTitle>
+        <CardTitle>{t("userList")}</CardTitle>
         <CardDescription>
-          A list of all the users in the system.
+          {t("userListDescription")}
         </CardDescription>
       </CardHeader>
       <CardContent>
         {users.length === 0 ? (
           <div className="flex items-center justify-center h-32 text-muted-foreground">
-            <p>No users found matching your criteria.</p>
+            <p>{t("noUsersFound")}</p>
           </div>
         ) : (
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Joined</TableHead>
+                <TableHead>{t("name")}</TableHead>
+                <TableHead>{t("role")}</TableHead>
+                <TableHead>{t("status")}</TableHead>
+                <TableHead>{t("joined")}</TableHead>
                 <TableHead></TableHead>
               </TableRow>
             </TableHeader>
@@ -163,13 +167,19 @@ export function UsersTable({
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>{user.role}</TableCell>
+                    <TableCell>
+                      {user.role === "student" ? t("student") : user.role === "coach" ? t("coach") : user.role === "admin" ? t("admin") : user.role}
+                    </TableCell>
                     <TableCell>
                       <Badge
                         variant={getUserStatusVariant(user.status)}
                         className={getUserStatusClassName(user.status)}
                       >
-                        {user.status}
+                        {user.status === "ACTIVE"
+                          ? t("statusActive")
+                          : user.status === "SUSPENDED"
+                          ? t("statusSuspended")
+                          : t("statusInactive")}
                       </Badge>
                     </TableCell>
                     <TableCell>{user.joined}</TableCell>
@@ -184,18 +194,18 @@ export function UsersTable({
                           <DropdownMenuItem
                             onClick={() => onUserAction?.(user, "edit")}
                           >
-                            Edit
+                            {t("edit")}
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => onUserAction?.(user, "suspend")}
                           >
-                            {user.status === "Active" ? "Suspend" : "Activate"}
+                            {user.status === "ACTIVE" ? t("suspend") : t("activate")}
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             className="text-destructive"
                             onClick={() => onUserAction?.(user, "delete")}
                           >
-                            Delete
+                            {t("delete")}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>

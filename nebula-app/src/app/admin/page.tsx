@@ -9,20 +9,22 @@ import {
   useRecentSignups,
   usePlatformActivity,
 } from "@/hooks/use-admin-queries";
+import { useTranslations } from "next-intl";
 
 export default function AdminDashboardPage() {
+  const t = useTranslations("dashboard.admin");
   const { data: stats, isLoading: statsLoading } = useDashboardStats();
   const { data: recentSignups = [], isLoading: signupsLoading } =
     useRecentSignups(5);
   const { data: platformActivity = [], isLoading: activityLoading } =
-    usePlatformActivity(10);
+    usePlatformActivity(5);
 
   // Default stats for loading state
   const defaultStats = {
-    revenue: { value: "$0", change: "+0% from last month" },
-    users: { value: "0", change: "+0 from last month" },
-    signups: { value: "+0", change: "+0% from last month" },
-    coaches: { value: "0", change: "+0 since last month" },
+    revenue: { value: "$0", change: t("fromLastMonthShort", { change: "0" }) },
+    users: { value: "0", change: t("fromLastMonthShort", { change: "0" }) },
+    signups: { value: "+0", change: t("fromLastMonthShort", { change: "0" }) },
+    coaches: { value: "0", change: t("sinceLastMonthShort", { count: "0" }) },
   };
 
   return (

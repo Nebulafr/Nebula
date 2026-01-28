@@ -230,8 +230,9 @@ export class AdminService {
     search?: string;
     role?: string;
     status?: string;
+    limit?: string; 
   }) {
-    const { search, role, status } = params || {};
+    const { search, role, status, limit } = params || {};
 
     // Build where clause for Prisma query
     const whereClause: any = {
@@ -270,6 +271,7 @@ export class AdminService {
 
     const users = await prisma.user.findMany({
       where: whereClause,
+      take: limit ? parseInt(limit) : undefined,
       select: {
         id: true,
         email: true,

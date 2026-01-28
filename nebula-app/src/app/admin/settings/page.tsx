@@ -20,24 +20,27 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useTranslations } from 'next-intl';
 
 export default function AdminSettingsPage() {
+  const t = useTranslations("dashboard.admin");
+
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8">
       <Card>
         <CardHeader>
-          <CardTitle>General Settings</CardTitle>
+          <CardTitle>{t("generalSettings")}</CardTitle>
           <CardDescription>
-            Manage your application's basic information.
+            {t("generalSettingsDesc")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="site-name">Site Name</Label>
+            <Label htmlFor="site-name">{t("siteName")}</Label>
             <Input id="site-name" defaultValue="Nebula" />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="support-email">Support Email</Label>
+            <Label htmlFor="support-email">{t("supportEmail")}</Label>
             <Input
               id="support-email"
               type="email"
@@ -46,84 +49,84 @@ export default function AdminSettingsPage() {
           </div>
           <Separator />
           <div className="flex justify-end">
-            <Button>Save General Settings</Button>
+            <Button>{t("saveGeneralSettings")}</Button>
           </div>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Notification Settings</CardTitle>
+          <CardTitle>{t("notificationSettings")}</CardTitle>
           <CardDescription>
-            Configure which email notifications you want to receive.
+            {t("notificationSettingsDesc")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="flex items-center justify-between rounded-lg border p-4">
             <div>
-              <p className="font-semibold">New User Sign-ups</p>
+              <p className="font-semibold">{t("newUserSignups")}</p>
               <p className="text-sm text-muted-foreground">
-                Receive an email when a new user joins the platform.
+                {t("newUserSignupsDesc")}
               </p>
             </div>
             <Switch defaultChecked />
           </div>
           <div className="flex items-center justify-between rounded-lg border p-4">
             <div>
-              <p className="font-semibold">New Coach Applications</p>
+              <p className="font-semibold">{t("newCoachApplications")}</p>
               <p className="text-sm text-muted-foreground">
-                Get notified when a new coach applies to join.
+                {t("newCoachApplicationsDesc")}
               </p>
             </div>
             <Switch defaultChecked />
           </div>
           <div className="flex items-center justify-between rounded-lg border p-4">
             <div>
-              <p className="font-semibold">Weekly Summary</p>
+              <p className="font-semibold">{t("weeklySummary")}</p>
               <p className="text-sm text-muted-foreground">
-                Receive a weekly digest of platform activity.
+                {t("weeklySummaryDesc")}
               </p>
             </div>
             <Switch />
           </div>
            <Separator />
           <div className="flex justify-end">
-            <Button>Save Notification Settings</Button>
+            <Button>{t("saveNotificationSettings")}</Button>
           </div>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Security</CardTitle>
-          <CardDescription>Manage your site's security settings.</CardDescription>
+          <CardTitle>{t("security")}</CardTitle>
+          <CardDescription>{t("securityDesc")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-           <div className="space-y-2">
-            <Label htmlFor="password-policy">Password Policy</Label>
+          <div className="space-y-2">
+            <Label htmlFor="password-policy">{t("passwordPolicy")}</Label>
              <Select defaultValue="medium">
                 <SelectTrigger id="password-policy">
-                    <SelectValue placeholder="Select policy" />
+                    <SelectValue placeholder={t("selectPolicy")} />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem value="simple">Simple (min. 8 characters)</SelectItem>
-                    <SelectItem value="medium">Medium (min. 10 characters, 1 number)</SelectItem>
-                    <SelectItem value="strong">Strong (min. 12 characters, 1 number, 1 symbol)</SelectItem>
+                    <SelectItem value="simple">{t("simplePolicy")}</SelectItem>
+                    <SelectItem value="medium">{t("mediumPolicy")}</SelectItem>
+                    <SelectItem value="strong">{t("strongPolicy")}</SelectItem>
                 </SelectContent>
             </Select>
           </div>
            <div className="flex items-center justify-between rounded-lg border p-4">
             <div>
-              <p className="font-semibold">Two-Factor Authentication (2FA)</p>
+              <p className="font-semibold">{t("twoFactorAuth")}</p>
               <p className="text-sm text-muted-foreground">
-                Require all admins to use two-factor authentication.
+                {t("twoFactorAuthDesc")}
               </p>
             </div>
             <Switch />
           </div>
            <Separator />
            <div className="flex justify-end">
-            <Button>Save Security Settings</Button>
+            <Button>{t("saveSecuritySettings")}</Button>
           </div>
         </CardContent>
       </Card>

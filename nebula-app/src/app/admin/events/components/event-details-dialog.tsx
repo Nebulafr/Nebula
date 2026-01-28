@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface EventDetailsDialogProps {
   isOpen: boolean;
@@ -41,6 +42,8 @@ export function EventDetailsDialog({
   actionLoading,
   onSaveChanges,
 }: EventDetailsDialogProps) {
+  const t = useTranslations("dashboard.admin");
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[625px]">
@@ -57,7 +60,7 @@ export function EventDetailsDialog({
                     </AvatarFallback>
                   </Avatar>
                   <span>
-                    {selectedEvent?.organizer?.fullName || "Unknown"}
+                    {selectedEvent?.organizer?.fullName || t("statusUnknown")}
                   </span>
                 </div>
               </DialogDescription>
@@ -65,7 +68,7 @@ export function EventDetailsDialog({
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-start gap-4">
                 <Label htmlFor="event-description" className="text-right pt-2">
-                  Description
+                  {t("eventDescription")}
                 </Label>
                 <Textarea
                   id="event-description"
@@ -77,20 +80,20 @@ export function EventDetailsDialog({
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="event-type" className="text-right">
-                  Event Type
+                  {t("eventType")}
                 </Label>
                 <Select
                   value={dialogEventType}
                   onValueChange={setDialogEventType}
                 >
                   <SelectTrigger id="event-type" className="col-span-3">
-                    <SelectValue placeholder="Select an event type" />
+                    <SelectValue placeholder={t("selectEventTypeDesc")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="WEBINAR">Webinar</SelectItem>
-                    <SelectItem value="SOCIAL">Social</SelectItem>
-                    <SelectItem value="WORKSHOP">Workshop</SelectItem>
-                    <SelectItem value="NETWORKING">Networking</SelectItem>
+                    <SelectItem value="WEBINAR">{t("webinar")}</SelectItem>
+                    <SelectItem value="SOCIAL">{t("socialEvent")}</SelectItem>
+                    <SelectItem value="WORKSHOP">{t("workshop") || "Workshop"}</SelectItem>
+                    <SelectItem value="NETWORKING">{t("networking") || "Networking"}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -102,7 +105,7 @@ export function EventDetailsDialog({
                   variant="outline"
                   onClick={() => onOpenChange(false)}
                 >
-                  Close
+                  {t("cancel")}
                 </Button>
               </DialogClose>
               <Button
@@ -113,10 +116,10 @@ export function EventDetailsDialog({
                 {actionLoading[selectedEvent?.id] ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Saving...
+                    {t("saving")}
                   </>
                 ) : (
-                  "Save Changes"
+                  t("saveChanges")
                 )}
               </Button>
             </DialogFooter>

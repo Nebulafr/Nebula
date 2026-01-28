@@ -24,6 +24,7 @@ import {
   XCircle,
   Loader2,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface EventsTableProps {
   events: any[];
@@ -40,15 +41,25 @@ export function EventsTable({
   onEventAction,
   onDeleteEvent,
 }: EventsTableProps) {
+  const t = useTranslations("dashboard.admin");
+
+  const getStatusLabel = (status: string) => {
+    if (status === "UPCOMING") return t("upcoming");
+    if (status === "COMPLETED") return t("completed");
+    if (status === "CANCELLED") return t("cancelled");
+    if (status === "PENDING") return t("statusPendingApproval") || "Pending";
+    return status;
+  };
+
   return (
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Event</TableHead>
-          <TableHead>Type</TableHead>
-          <TableHead>Organizer</TableHead>
-          <TableHead>Date</TableHead>
-          <TableHead>Status</TableHead>
+          <TableHead>{t("event")}</TableHead>
+          <TableHead>{t("eventType")}</TableHead>
+          <TableHead>{t("organizer")}</TableHead>
+          <TableHead>{t("date")}</TableHead>
+          <TableHead>{t("status")}</TableHead>
           <TableHead></TableHead>
         </TableRow>
       </TableHeader>
@@ -57,8 +68,8 @@ export function EventsTable({
           <TableRow>
             <TableCell colSpan={6} className="text-center py-8">
               <div className="space-y-2">
-                <p className="text-muted-foreground">No events found</p>
-                <p className="text-sm text-muted-foreground">Create your first event to get started</p>
+                <p className="text-muted-foreground">{t("noEventsFound")}</p>
+                <p className="text-sm text-muted-foreground">{t("createFirstEvent")}</p>
               </div>
             </TableCell>
           </TableRow>
@@ -72,7 +83,7 @@ export function EventsTable({
                   event.eventType === "WEBINAR" ? "default" : "secondary"
                 }
               >
-                {event.eventType}
+                {event.eventType === "WEBINAR" ? t("webinar") : event.eventType === "SOCIAL" ? t("socialEvent") : event.eventType}
               </Badge>
             </TableCell>
             <TableCell>
@@ -83,7 +94,7 @@ export function EventsTable({
                     {event.organizer?.fullName?.charAt(0) || "A"}
                   </AvatarFallback>
                 </Avatar>
-                <span>{event.organizer?.fullName || "Unknown"}</span>
+                <span>{event.organizer?.fullName || t("statusUnknown")}</span>
               </div>
             </TableCell>
             <TableCell>
@@ -101,7 +112,7 @@ export function EventsTable({
                     : "secondary"
                 }
               >
-                {event.status}
+                {getStatusLabel(event.status)}
               </Badge>
             </TableCell>
             <TableCell className="text-right">
@@ -113,7 +124,7 @@ export function EventsTable({
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   <DropdownMenuItem onClick={() => onViewDetails(event)}>
-                    View Details
+                    {t("viewDetails")}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   {event.status === "PENDING" && (
@@ -127,7 +138,7 @@ export function EventsTable({
                         ) : (
                           <CheckCircle className="mr-2 h-4 w-4" />
                         )}
-                        Approve
+                        {t("approve")}
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         className="text-destructive"
@@ -139,7 +150,7 @@ export function EventsTable({
                         ) : (
                           <XCircle className="mr-2 h-4 w-4" />
                         )}
-                        Reject
+                        {t("reject")}
                       </DropdownMenuItem>
                     </>
                   )}
@@ -153,7 +164,7 @@ export function EventsTable({
                       ) : (
                         <XCircle className="mr-2 h-4 w-4" />
                       )}
-                      Cancel
+                      {t("cancel")}
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuSeparator />
@@ -167,7 +178,7 @@ export function EventsTable({
                     ) : (
                       <XCircle className="mr-2 h-4 w-4" />
                     )}
-                    Delete
+                    {t("delete")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useAdminReviews } from "@/hooks";
+import { useTranslations } from "next-intl";
 
 import {
   Table,
@@ -45,6 +46,7 @@ const StarRating = ({ rating }: { rating: number }) => (
 );
 
 export default function AdminReviewsPage() {
+  const t = useTranslations("dashboard.admin");
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
 
@@ -73,14 +75,14 @@ export default function AdminReviewsPage() {
     target: {
       type:
         review.targetType === "PROGRAM"
-          ? "Program"
+          ? t("program")
           : review.targetType === "COACH"
-          ? "Coach"
-          : "Session",
-      name: review.program?.title || review.reviewee?.fullName || "Unknown",
+          ? t("coach")
+          : t("session"),
+      name: review.program?.title || review.reviewee?.fullName || t("statusUnknown"),
     },
     date: new Date(review.createdAt).toLocaleDateString(),
-    status: review.isPublic ? "Visible" : "Hidden",
+    status: review.isPublic ? t("visible") : t("hidden"),
   }));
 
   return (
@@ -90,7 +92,7 @@ export default function AdminReviewsPage() {
           <div className="relative w-full max-w-sm">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="Search reviews, authors, or targets..."
+              placeholder={t("searchReviews")}
               className="pl-9"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -101,12 +103,12 @@ export default function AdminReviewsPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Author</TableHead>
-                <TableHead className="w-[40%]">Review</TableHead>
-                <TableHead>Rating</TableHead>
-                <TableHead>Target</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>{t("author")}</TableHead>
+                <TableHead className="w-[40%]">{t("review")}</TableHead>
+                <TableHead>{t("rating")}</TableHead>
+                <TableHead>{t("target")}</TableHead>
+                <TableHead>{t("date")}</TableHead>
+                <TableHead>{t("status")}</TableHead>
                 <TableHead></TableHead>
               </TableRow>
             </TableHeader>
@@ -153,7 +155,7 @@ export default function AdminReviewsPage() {
                     colSpan={7}
                     className="text-center py-8 text-muted-foreground"
                   >
-                    No reviews found matching your criteria.
+                    {t("noReviewsFound")}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -186,14 +188,14 @@ export default function AdminReviewsPage() {
                     <TableCell>
                       <Badge
                         variant={
-                          review.status === "Visible"
+                          review.status === t("visible")
                             ? "secondary"
-                            : review.status === "Hidden"
+                            : review.status === t("hidden")
                             ? "outline"
                             : "destructive"
                         }
                         className={
-                          review.status === "Visible"
+                          review.status === t("visible")
                             ? "bg-green-100 text-green-800"
                             : ""
                         }
@@ -209,18 +211,18 @@ export default function AdminReviewsPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                          {review.status !== "Visible" && (
+                          {review.status !== t("visible") && (
                             <DropdownMenuItem>
-                              <Eye className="mr-2 h-4 w-4" /> Approve & Show
+                              <Eye className="mr-2 h-4 w-4" /> {t("approveAndShow")}
                             </DropdownMenuItem>
                           )}
-                          {review.status === "Visible" && (
+                          {review.status === t("visible") && (
                             <DropdownMenuItem>
-                              <EyeOff className="mr-2 h-4 w-4" /> Hide Review
+                              <EyeOff className="mr-2 h-4 w-4" /> {t("hideReview")}
                             </DropdownMenuItem>
                           )}
                           <DropdownMenuItem className="text-destructive">
-                            <Trash2 className="mr-2 h-4 w-4" /> Delete
+                            <Trash2 className="mr-2 h-4 w-4" /> {t("delete")}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>

@@ -44,15 +44,13 @@ import {
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
-import {
-  useAdminPrograms,
-  useCategories,
-  useUpdateProgramStatus,
-  useCreateCategory,
-} from "@/hooks";
+import { useAdminPrograms, useCategories, useUpdateProgramStatus, useCreateCategory } from "@/hooks";
 import { toast } from "react-toastify";
+import { useTranslations } from "next-intl";
 
 export default function AdminProgramsPage() {
+  const t = useTranslations("dashboard.admin");
+  const tc = useTranslations("common");
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
@@ -137,10 +135,10 @@ export default function AdminProgramsPage() {
   };
 
   const getStatusLabel = (status: string) => {
-    if (status === "PENDING_APPROVAL") return "Pending Approval";
-    if (status === "ACTIVE") return "Active";
-    if (status === "INACTIVE") return "Inactive";
-    if (status === "REJECTED") return "Rejected";
+    if (status === "PENDING_APPROVAL") return t("statusPendingApproval") || "Pending Approval";
+    if (status === "ACTIVE") return t("statusActive") || "Active";
+    if (status === "INACTIVE") return t("statusInactive") || "Inactive";
+    if (status === "REJECTED") return t("statusRejected") || "Rejected";
     return status;
   };
 
@@ -152,7 +150,7 @@ export default function AdminProgramsPage() {
             <div className="relative w-full max-w-sm">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Search programs or coaches..."
+                placeholder={t("searchPrograms")}
                 className="pl-9"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -167,7 +165,7 @@ export default function AdminProgramsPage() {
                 )}
                 onClick={() => handleCategorySelect("All")}
               >
-                All
+                {t("all")}
               </Button>
               <DropdownMenu
                 onOpenChange={(open) => !open && setIsAddingCategory(false)}
@@ -180,7 +178,7 @@ export default function AdminProgramsPage() {
                       activeCategory !== "All" && "bg-muted font-bold"
                     )}
                   >
-                    Categories <ChevronDown className="h-4 w-4" />
+                    {t("categories")} <ChevronDown className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
@@ -190,7 +188,7 @@ export default function AdminProgramsPage() {
                       onKeyDown={(e) => e.stopPropagation()}
                     >
                       <Input
-                        placeholder="New category..."
+                        placeholder={t("newCategoryPlaceholder")}
                         value={newCategory}
                         onChange={(e) => setNewCategory(e.target.value)}
                         onKeyDown={(e) =>
@@ -233,7 +231,7 @@ export default function AdminProgramsPage() {
                         }}
                       >
                         <Plus className="mr-2 h-4 w-4" />
-                        Add Category
+                        {t("addCategory")}
                       </DropdownMenuItem>
                     </>
                   )}
@@ -246,11 +244,11 @@ export default function AdminProgramsPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Program Title</TableHead>
-                <TableHead>Coach</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Created</TableHead>
+                <TableHead>{t("programTitle")}</TableHead>
+                <TableHead>{t("coach")}</TableHead>
+                <TableHead>{t("category")}</TableHead>
+                <TableHead>{t("status")}</TableHead>
+                <TableHead>{t("created")}</TableHead>
                 <TableHead></TableHead>
               </TableRow>
             </TableHeader>
@@ -258,13 +256,13 @@ export default function AdminProgramsPage() {
               {isLoading ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-8">
-                    Loading programs...
+                    {t("loadingPrograms")}
                   </TableCell>
                 </TableRow>
               ) : filteredPrograms.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-8">
-                    No programs found
+                    {t("noProgramsFound")}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -304,7 +302,7 @@ export default function AdminProgramsPage() {
                           <DropdownMenuItem
                             onClick={() => handleViewDetails(program)}
                           >
-                            View Details
+                            {t("viewDetails")}
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           {program.status === "PENDING_APPROVAL" && (
@@ -320,7 +318,7 @@ export default function AdminProgramsPage() {
                                 ) : (
                                   <CheckCircle className="mr-2 h-4 w-4" />
                                 )}
-                                Approve
+                                {t("approve")}
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 className="text-destructive"
@@ -334,7 +332,7 @@ export default function AdminProgramsPage() {
                                 ) : (
                                   <XCircle className="mr-2 h-4 w-4" />
                                 )}
-                                Reject
+                                {t("reject")}
                               </DropdownMenuItem>
                             </>
                           )}
@@ -350,7 +348,7 @@ export default function AdminProgramsPage() {
                               ) : (
                                 <XCircle className="mr-2 h-4 w-4" />
                               )}
-                              Deactivate
+                              {t("deactivate")}
                             </DropdownMenuItem>
                           )}
                           {program.status === "INACTIVE" && (
@@ -365,12 +363,12 @@ export default function AdminProgramsPage() {
                               ) : (
                                 <CheckCircle className="mr-2 h-4 w-4" />
                               )}
-                              Activate
+                              {t("activate")}
                             </DropdownMenuItem>
                           )}
                           <DropdownMenuSeparator />
                           <DropdownMenuItem className="text-destructive">
-                            <Trash2 className="mr-2 h-4 w-4" /> Delete
+                            <Trash2 className="mr-2 h-4 w-4" /> {t("delete")}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -388,18 +386,17 @@ export default function AdminProgramsPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>{t("areYouSure")}</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete the &quot;{categoryToDelete}&quot;
-              category. This action cannot be undone.
+              {categoryToDelete && t("deleteCategoryDesc", { name: categoryToDelete })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => handleDeleteCategory(categoryToDelete!)}
             >
-              Delete
+              {t("delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

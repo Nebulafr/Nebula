@@ -88,6 +88,7 @@ export function useAdminUsers(params?: {
   search?: string;
   role?: string;
   status?: string;
+  limit?: string;
 }) {
   return useQuery({
     queryKey: [ADMIN_USERS_QUERY_KEY, params],
@@ -96,8 +97,9 @@ export function useAdminUsers(params?: {
       if (params?.search) queryParams.append("search", params.search);
       if (params?.role) queryParams.append("role", params.role);
       if (params?.status) queryParams.append("status", params.status);
+      if (params?.limit) queryParams.append("limit", params.limit);
 
-      const url = `/admin/users${
+      const url = `/admin/users${ 
         queryParams.toString() ? `?${queryParams.toString()}` : ""
       }`;
       const response = await makeRequest(url, "GET");

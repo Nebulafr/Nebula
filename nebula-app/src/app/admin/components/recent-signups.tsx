@@ -5,12 +5,11 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription, // Kept as it's used later
 } from "@/components/ui/card";
 import {
   Table,
   TableHeader,
-  TableRow,
+  TableRow,   
   TableHead,
   TableBody,
   TableCell,
@@ -18,7 +17,6 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button"; // Kept as it's used later
-import { Loader2, MoreHorizontal } from "lucide-react"; // Added Loader2
 import { format } from "date-fns"; // Added format
 import { enUS, fr } from "date-fns/locale"; // Added date-fns locales
 import { useTranslations, useLocale } from "next-intl"; // Added next-intl hooks
@@ -42,7 +40,6 @@ interface RecentSignupsProps {
 
 export function RecentSignups({ signups, loading, onUserAction }: RecentSignupsProps) {
   const t = useTranslations("dashboard.admin");
-  const tc = useTranslations("common");
   const locale = useLocale();
   const dateLocale = locale === "fr" ? fr : enUS;
 
@@ -133,7 +130,13 @@ export function RecentSignups({ signups, loading, onUserAction }: RecentSignupsP
                               : "outline"
                           }
                         >
-                          {user.role}
+                          {user.role.toLowerCase() === "coach"
+                            ? t("coach")
+                            : user.role.toLowerCase() === "student"
+                            ? t("student")
+                            : user.role.toLowerCase() === "admin"
+                            ? t("admin")
+                            : user.role}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right text-xs text-muted-foreground whitespace-nowrap">
@@ -145,7 +148,7 @@ export function RecentSignups({ signups, loading, onUserAction }: RecentSignupsP
               </TableBody>
             </Table>
             <Button asChild variant="ghost" size="sm" className="mt-4 w-full">
-              <Link href="/admin/users">{t("viewAllUsers") || "View All Users"}</Link>
+              <Link href="/admin/users">{t("viewAllUsers")}</Link>
             </Button>
           </>
         )}

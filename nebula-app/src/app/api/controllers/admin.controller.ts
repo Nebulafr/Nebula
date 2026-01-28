@@ -38,6 +38,7 @@ export class AdminController {
       search: searchParams.get("search") || undefined,
       role: searchParams.get("role") || undefined,
       status: searchParams.get("status") || undefined,
+      limit: searchParams.get("limit") || undefined,
     };
 
     return await AdminService.getUsers(queryParams);

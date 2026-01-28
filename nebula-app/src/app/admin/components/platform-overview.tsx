@@ -109,10 +109,16 @@ export function PlatformOverview({ activities, loading = false }: PlatformOvervi
                   <TableCell>{activity.module || "N/A"}</TableCell>
                   <TableCell>{activity.user || "N/A"}</TableCell>
                   <TableCell className="text-right text-muted-foreground">
-                    {formatDistanceToNow(new Date(activity.createdAt), {
-                      addSuffix: true,
-                      locale: dateLocale,
-                    })}
+                    {(() => {
+                      const dateStr = activity.createdAt || activity.time;
+                      if (!dateStr) return "-";
+                      const date = new Date(dateStr);
+                      if (isNaN(date.getTime())) return "-";
+                      return formatDistanceToNow(date, {
+                        addSuffix: true,
+                        locale: dateLocale,
+                      });
+                    })()}
                   </TableCell>
                 </TableRow>
               ))

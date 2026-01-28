@@ -7,8 +7,10 @@ import { UsersTable } from "./components/users-table";
 import { AddUserDialog } from "./components/add-user-dialog";
 import { useAdminUsers, useCreateUser } from "@/hooks";
 import { toast } from "react-toastify";
+import { useTranslations } from "next-intl";
 
 export default function UserManagementPage() {
+  const t = useTranslations("dashboard.admin");
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [activeTab, setActiveTab] = useState("all");
@@ -39,15 +41,10 @@ export default function UserManagementPage() {
     email: user.email,
     avatar: user.avatarUrl,
     role: user.role,
-    status:
-      user.status === "ACTIVE"
-        ? "Active"
-        : user.status === "SUSPENDED"
-        ? "Suspended"
-        : "Inactive",
+    status: user.status,
     joined: user.createdAt
       ? new Date(user.createdAt).toLocaleDateString()
-      : "Unknown",
+      : t("statusUnknown"),
   }));
 
   const handleAddUser = async (userData: {
