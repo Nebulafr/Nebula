@@ -13,6 +13,7 @@ import {
   formatUnreadCount,
 } from "@/lib/chat-utils";
 import { Conversation } from "@/generated/prisma";
+import { useTranslations } from "next-intl";
 
 interface ConversationListProps {
   conversations: any[];
@@ -27,10 +28,11 @@ export function ConversationList({
   conversations,
   selectedConversation,
   searchTerm,
-  onSearchChange,
   onConversationSelect,
+  onSearchChange,
   loading = false,
 }: ConversationListProps) {
+  const t = useTranslations("dashboard.coach.messaging");
   const filteredConversations = conversations.filter(
     (convo) =>
       convo.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -44,7 +46,7 @@ export function ConversationList({
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
-              placeholder="Search conversations..."
+              placeholder={t("searchHint")}
               className="pl-10 pr-4 py-2 rounded-lg border border-gray-200 bg-gray-50 shadow-sm"
               disabled
             />
@@ -75,7 +77,7 @@ export function ConversationList({
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input
-            placeholder="Search conversations..."
+            placeholder={t("searchHint")}
             value={searchTerm || ""}
             onChange={(e) => onSearchChange(e.target.value)}
             className="pl-10 pr-4 py-2 rounded-lg border border-gray-200 bg-gray-50 shadow-sm focus:bg-white focus:ring-2 focus:ring-primary/20 transition-all"
@@ -88,7 +90,7 @@ export function ConversationList({
         <div className="p-4 space-y-4">
           {filteredConversations.length === 0 ? (
             <div className="p-8 text-center text-gray-500">
-              {searchTerm ? "No conversations found" : "No conversations yet"}
+              {searchTerm ? t("noConversationsFound") : t("noConversations")}
             </div>
           ) : (
             filteredConversations.map((conversation) => (

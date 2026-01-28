@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, Video, Clock, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslations, useLocale } from "next-intl";
 
 export interface SessionStudent {
   id: string;
@@ -54,8 +55,12 @@ export function SessionItem({
   onReschedule,
   onCancel,
 }: SessionItemProps) {
+  const t = useTranslations("dashboard.coach.schedule.sessionItem");
+  const commonT = useTranslations("common");
+  const locale = useLocale();
+
   const scheduledDate = new Date(session.scheduledTime);
-  const timeString = scheduledDate.toLocaleTimeString("en-US", {
+  const timeString = scheduledDate.toLocaleTimeString(locale, {
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
@@ -77,7 +82,7 @@ export function SessionItem({
               variant="outline"
               className={cn("text-xs", statusColors[session.status])}
             >
-              {session.status.replace("_", " ")}
+              {t(`status.${session.status}`)}
             </Badge>
           </div>
 
@@ -88,8 +93,7 @@ export function SessionItem({
             </span>
             <span className="flex items-center gap-1">
               <Users className="h-3 w-3" />
-              {session.students.length} student
-              {session.students.length !== 1 ? "s" : ""}
+              {t("studentsCount", { count: session.students.length })}
             </span>
           </div>
 
@@ -110,7 +114,7 @@ export function SessionItem({
               </div>
               {session.students.length > 3 && (
                 <span className="text-xs text-muted-foreground">
-                  +{session.students.length - 3} more
+                  +{session.students.length - 3} {commonT("more")}
                 </span>
               )}
               <span className="text-xs text-muted-foreground">
@@ -128,7 +132,7 @@ export function SessionItem({
               onClick={() => onStartSession?.(session)}
             >
               <Video className="h-3 w-3" />
-              Start
+              {t("actions.start")}
             </Button>
           )}
 
@@ -140,18 +144,18 @@ export function SessionItem({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => onViewDetails?.(session)}>
-                View Details
+                {t("actions.viewDetails")}
               </DropdownMenuItem>
               {isUpcoming && (
                 <>
                   <DropdownMenuItem onClick={() => onReschedule?.(session)}>
-                    Reschedule
+                    {t("actions.reschedule")}
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     className="text-destructive"
                     onClick={() => onCancel?.(session)}
                   >
-                    Cancel Session
+                    {t("actions.cancel")}
                   </DropdownMenuItem>
                 </>
               )}

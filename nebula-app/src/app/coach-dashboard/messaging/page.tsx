@@ -13,8 +13,10 @@ import { MessageList } from "./components/message-list";
 import { MessageInput } from "./components/message-input";
 import { EmptyState } from "./components/empty-state";
 import { Conversation, Message, User } from "@/generated/prisma";
+import { useTranslations } from "next-intl";
 
 function CoachMessagingPageContent() {
+  const t = useTranslations("dashboard.coach.messaging");
   const searchParams = useSearchParams();
   const router = useRouter();
   const conversationId = searchParams.get("conversationId");
@@ -238,7 +240,7 @@ function CoachMessagingPageContent() {
               <MessageInput
                 onSendMessage={handleSendMessage}
                 disabled={sending}
-                placeholder="Type a message to your student..."
+                placeholder={t("placeholder")}
               />
             </div>
           </>
@@ -251,11 +253,12 @@ function CoachMessagingPageContent() {
 }
 
 export default function CoachMessagingPage() {
+  const t = useTranslations("dashboard.coach.messaging");
   return (
     <Suspense
       fallback={
         <div className="flex h-screen items-center justify-center">
-          <div className="text-lg">Loading coach messaging...</div>
+          <div className="text-lg">{t("loading")}</div>
         </div>
       }
     >

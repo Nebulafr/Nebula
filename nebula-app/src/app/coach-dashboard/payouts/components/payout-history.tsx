@@ -10,6 +10,8 @@ import {
 } from "@/components/ui/table";
 import { PayoutItem, Payout } from "./payout-item";
 
+import { useTranslations } from "next-intl";
+
 interface PayoutHistoryProps {
   payouts: Payout[];
   onViewDetails?: (payout: Payout) => void;
@@ -23,11 +25,13 @@ export function PayoutHistory({
   onDownloadReceipt,
   loading = false,
 }: PayoutHistoryProps) {
+  const t = useTranslations("dashboard.coach.payouts");
+
   if (loading) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Payout History</CardTitle>
+          <CardTitle>{t("history")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -51,30 +55,30 @@ export function PayoutHistory({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Payout History</CardTitle>
+        <CardTitle>{t("history")}</CardTitle>
         {payouts.length > 0 && (
           <p className="text-sm text-muted-foreground">
-            {payouts.length} payout{payouts.length !== 1 ? 's' : ''} found
+            {t("payoutsFound", { count: payouts.length })}
           </p>
         )}
       </CardHeader>
       <CardContent>
         {payouts.length === 0 ? (
           <div className="text-center py-8">
-            <p className="text-muted-foreground">No payouts yet.</p>
+            <p className="text-muted-foreground">{t("noPayouts")}</p>
             <p className="text-sm text-muted-foreground mt-1">
-              Your payout history will appear here once you receive your first payment.
+              {t("payoutsArrival")}
             </p>
           </div>
         ) : (
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Payout ID</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>{t("payoutId")}</TableHead>
+                <TableHead>{t("date")}</TableHead>
+                <TableHead>{t("amount")}</TableHead>
+                <TableHead>{t("status")}</TableHead>
+                <TableHead className="text-right">{t("actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

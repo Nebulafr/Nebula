@@ -11,8 +11,10 @@ import {
   AddStudentDialog,
   type StudentFormData,
 } from "./components/add-student-dialog";
+import { useTranslations } from "next-intl";
 
 export default function StudentsPage() {
+  const t = useTranslations("dashboard.coach.students");
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [programFilter, setProgramFilter] = useState("all");
@@ -81,9 +83,9 @@ export default function StudentsPage() {
     <div className="flex-1 space-y-6 p-4 md:p-8">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Students</h1>
+        <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
         <p className="text-muted-foreground">
-          Manage your students and track their progress
+          {t("subtitle")}
         </p>
       </div>
 

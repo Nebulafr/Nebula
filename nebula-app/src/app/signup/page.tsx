@@ -20,6 +20,7 @@ import { toast } from "react-toastify";
 import { AuthPageGuard } from "@/components/auth/protected-route";
 import { useAuthActions } from "@/hooks/use-auth";
 import { handleAndToastError } from "@/lib/error-handler";
+import { useTranslations } from "next-intl";
 
 function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -59,13 +60,16 @@ export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const { signUp, signInWithGoogle } = useAuthActions();
+  const t = useTranslations("auth.signup");
+  const f = useTranslations("auth.fields");
+  const c = useTranslations("common");
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (loading) return;
 
     if (password !== confirmPassword) {
-      toast.error("Passwords do not match");
+      toast.error(t("passwordMismatch"));
       return;
     }
 
@@ -79,7 +83,7 @@ export default function SignupPage() {
         role: UserRole.STUDENT,
       });
     } catch (error: any) {
-      handleAndToastError(error, "Failed to create account");
+      handleAndToastError(error, t("signingUp") === "Creating account..." ? "Failed to create account" : "Échec de la création du compte");
     } finally {
       setLoading(false);
     }
@@ -117,11 +121,10 @@ export default function SignupPage() {
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
           <div className="absolute bottom-8 left-8 text-white">
             <h2 className="text-4xl font-bold">
-              Start your journey with Nebula
+              {t("welcome")}
             </h2>
             <p className="mt-2 max-w-lg">
-              Join a community of learners and experts to accelerate your
-              career.
+              {t("description")}
             </p>
           </div>
         </div>
@@ -134,22 +137,22 @@ export default function SignupPage() {
                   className="flex items-center gap-2 mb-4 text-sm font-medium text-muted-foreground hover:text-foreground"
                 >
                   <ArrowLeft className="h-4 w-4" />
-                  Back to website
+                  {useTranslations("auth.login")("backToWebsite")}
                 </Link>
                 <CardTitle className="text-3xl font-bold text-primary">
-                  Create an Account
+                  {t("title")}
                 </CardTitle>
                 <CardDescription>
-                  Enter your information to get started.
+                  {t("subtitle")}
                 </CardDescription>
               </CardHeader>
               <form onSubmit={handleSignup}>
                 <CardContent className="grid gap-4 p-0 mt-6">
                   <div className="grid gap-2">
-                    <Label htmlFor="full-name">Full Name</Label>
+                    <Label htmlFor="full-name">{t("fullName")}</Label>
                     <Input
                       id="full-name"
-                      placeholder="John Doe"
+                      placeholder={t("fullNamePlaceholder")}
                       required
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
@@ -157,11 +160,11 @@ export default function SignupPage() {
                     />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="email">Email</Label>
+                    <Label htmlFor="email">{f("email")}</Label>
                     <Input
                       id="email"
                       type="email"
-                      placeholder="m@example.com"
+                      placeholder={f("emailPlaceholder")}
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
@@ -169,7 +172,7 @@ export default function SignupPage() {
                     />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="password">Password</Label>
+                    <Label htmlFor="password">{f("password")}</Label>
                     <div className="relative">
                       <Input
                         id="password"
@@ -194,11 +197,11 @@ export default function SignupPage() {
                       </button>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Must be at least 6 characters
+                      {t("passwordHint")}
                     </p>
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="confirm-password">Confirm Password</Label>
+                    <Label htmlFor="confirm-password">{f("confirmPassword")}</Label>
                     <Input
                       id="confirm-password"
                       type="password"
@@ -209,7 +212,7 @@ export default function SignupPage() {
                     />
                     {confirmPassword && password !== confirmPassword && (
                       <p className="text-xs text-destructive">
-                        Passwords do not match
+                        {t("passwordMismatch")}
                       </p>
                     )}
                   </div>
@@ -219,7 +222,7 @@ export default function SignupPage() {
                     size="lg"
                     disabled={loading || password !== confirmPassword}
                   >
-                    {loading ? "Creating account..." : "Create Account"}
+                    {loading ? t("signingUp") : t("signUp")}
                   </Button>
                 </CardContent>
               </form>
@@ -229,7 +232,7 @@ export default function SignupPage() {
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
                   <span className="bg-background px-2 text-muted-foreground">
-                    Or continue with
+                    {useTranslations("auth.login")("orContinueWith")}
                   </span>
                 </div>
               </div>
@@ -241,13 +244,13 @@ export default function SignupPage() {
                 disabled={loading}
               >
                 <GoogleIcon className="mr-2 h-5 w-5" />
-                {loading ? "Signing up..." : "Sign up with Google"}
+                {loading ? t("signingUp") : t("googleSignUp")}
               </Button>
             </Card>
             <div className="mt-4 text-center text-sm">
-              Already have an account?{" "}
+              {t("hasAccount")}{" "}
               <Link href="/login" className="underline">
-                Log in
+                {c("login")}
               </Link>
             </div>
           </div>

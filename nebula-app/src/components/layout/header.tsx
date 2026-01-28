@@ -5,41 +5,17 @@ import { LogOut, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
-import { useLanguage, SupportedLanguage } from "@/contexts/language-context";
+
+
 import { logos } from "@/lib/images/logos";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
-declare global {
-  interface Window {
-    google?: any;
-  }
-}
-
-function LanguageSwitcher() {
-  const { currentLang, setLanguage } = useLanguage();
-
-  const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setLanguage(e.target.value as SupportedLanguage);
-  };
-
-  return (
-    <div className="notranslate flex items-center gap-1 border rounded-md px-2 h-9 text-sm bg-background">
-      <Globe className="h-4 w-4 text-muted-foreground" />
-      <select
-        value={currentLang}
-        onChange={handleLanguageChange}
-        className="bg-transparent outline-none cursor-pointer text-sm"
-      >
-        <option value="en">EN</option>
-        <option value="fr">FR</option>
-      </select>
-    </div>
-  );
-}
+import { LanguageSwitcher } from "./language-switcher";
 
 export function Header() {
   const { profile, signOut } = useAuth();
-  const { isFrench } = useLanguage();
+  const t = useTranslations("common");
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleLogout = async () => {
@@ -75,7 +51,7 @@ export function Header() {
                 className="object-cover"
               />
             </div>
-            <span className="notranslate font-headline text-xl font-bold">
+            <span className="font-headline text-xl font-bold">
               Nebula
             </span>
           </Link>
@@ -84,37 +60,37 @@ export function Header() {
               href="/programs"
               className="font-menu text-sm font-medium text-foreground/60 transition-colors hover:text-foreground/80 whitespace-nowrap"
             >
-              Programs
+              {t("programs")}
             </Link>
             <Link
               href="/coaches"
-              className="notranslate font-menu text-sm font-medium text-foreground/60 transition-colors hover:text-foreground/80 whitespace-nowrap"
+              className="font-menu text-sm font-medium text-foreground/60 transition-colors hover:text-foreground/80 whitespace-nowrap"
             >
-              {isFrench ? "Coachs" : "Coaches"}
+              {t("coaches")}
             </Link>
             <Link
               href="/events"
               className="font-menu text-sm font-medium text-foreground/60 transition-colors hover:text-foreground/80 whitespace-nowrap"
             >
-              Events
+              {t("events")}
             </Link>
             <Link
               href="/universities"
               className="font-menu text-sm font-medium text-foreground/60 transition-colors hover:text-foreground/80 whitespace-nowrap"
             >
-              For Universities
+              {t("universities")}
             </Link>
             <Link
               href="/become-a-coach"
               className="font-menu text-sm font-medium text-foreground/60 transition-colors hover:text-foreground/80 whitespace-nowrap"
             >
-              Become a coach
+              {t("becomeCoach")}
             </Link>
             <Link
               href="/nebula-ai"
-              className="notranslate font-menu text-sm font-medium text-foreground/60 transition-colors hover:text-foreground/80 whitespace-nowrap"
+              className="font-menu text-sm font-medium text-foreground/60 transition-colors hover:text-foreground/80 whitespace-nowrap"
             >
-              Nebula Ai
+              {t("nebulaAi")}
             </Link>
           </nav>
         </div>
@@ -127,19 +103,19 @@ export function Header() {
                 disabled={isLoggingOut}
               >
                 <LogOut className="mr-2 h-4 w-4" />
-                {isLoggingOut ? "Log Out..." : "Log Out"}
+                {isLoggingOut ? t("loggingOut") : t("logout")}
               </Button>
               <Button asChild>
-                <Link href={dashboardUrl}>Dashboard</Link>
+                <Link href={dashboardUrl}>{t("dashboard")}</Link>
               </Button>
             </>
           ) : (
             <>
               <Button variant="ghost" asChild>
-                <Link href="/login">Log In</Link>
+                <Link href="/login">{t("login")}</Link>
               </Button>
               <Button asChild>
-                <Link href="/signup">Sign Up</Link>
+                <Link href="/signup">{t("signup")}</Link>
               </Button>
             </>
           )}

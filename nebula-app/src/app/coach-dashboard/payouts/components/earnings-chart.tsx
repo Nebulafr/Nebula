@@ -8,6 +8,8 @@ import {
 } from "@/components/ui/chart";
 import { Bar, BarChart, XAxis, YAxis } from "recharts";
 
+import { useTranslations } from "next-intl";
+
 export interface EarningsData {
   month: string;
   earnings: number;
@@ -18,20 +20,22 @@ interface EarningsChartProps {
   loading?: boolean;
 }
 
-const chartConfig = {
-  earnings: {
-    label: "Earnings",
-    color: "hsl(var(--primary))",
-  },
-};
-
 export function EarningsChart({ data, loading = false }: EarningsChartProps) {
+  const t = useTranslations("dashboard.coach.payouts");
+  
+  const chartConfig = {
+    earnings: {
+      label: t("earningsOverview"),
+      color: "hsl(var(--primary))",
+    },
+  };
+
   if (loading) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Earnings Overview</CardTitle>
-          <CardDescription>Your earnings over the last 6 months.</CardDescription>
+          <CardTitle>{t("earningsOverview")}</CardTitle>
+          <CardDescription>{t("earningsDescription")}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="min-h-64 w-full bg-gray-200 rounded animate-pulse" />
@@ -43,8 +47,8 @@ export function EarningsChart({ data, loading = false }: EarningsChartProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Earnings Overview</CardTitle>
-        <CardDescription>Your earnings over the last 6 months.</CardDescription>
+        <CardTitle>{t("earningsOverview")}</CardTitle>
+        <CardDescription>{t("earningsDescription")}</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="min-h-64 w-full">

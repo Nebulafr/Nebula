@@ -25,6 +25,7 @@ import {
 import { Stepper } from "../components/stepper";
 import { useProposeProgramContext } from "../context/propose-program-context";
 import { toast } from "react-toastify";
+import { useTranslations } from "next-intl";
 
 const MAX_FILE_SIZE = 3 * 1024 * 1024; // 3MB in bytes
 const MAX_FILES_PER_MODULE = 2;
@@ -52,6 +53,7 @@ function ModuleUploader({
   onDrop,
   onRemove,
 }: ModuleUploaderProps) {
+  const t = useTranslations("dashboard.coach.programs.proposeFlow.step3.uploader");
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop: (acceptedFiles) => {
       // Check if adding these files would exceed the limit
@@ -59,7 +61,7 @@ function ModuleUploader({
 
       if (remainingSlots <= 0) {
         toast.error(
-          `Maximum ${MAX_FILES_PER_MODULE} documents allowed per module`
+          t("maxDocs", { count: MAX_FILES_PER_MODULE })
         );
         return;
       }
@@ -71,9 +73,7 @@ function ModuleUploader({
 
       if (invalidFiles.length > 0) {
         toast.error(
-          `Some files exceed the 3MB limit: ${invalidFiles
-            .map((f) => f.name)
-            .join(", ")}`
+          t("fileSizeLimit", { files: invalidFiles.map((f) => f.name).join(", ") })
         );
         return;
       }
@@ -83,7 +83,7 @@ function ModuleUploader({
 
       if (filesToAdd.length < acceptedFiles.length) {
         toast.warning(
-          `Only ${remainingSlots} file(s) can be added. Maximum ${MAX_FILES_PER_MODULE} documents per module.`
+          t("onlySomeAdded", { count: remainingSlots, max: MAX_FILES_PER_MODULE })
         );
       }
 
@@ -99,9 +99,9 @@ function ModuleUploader({
     <div>
       <div className="flex items-center justify-between mb-2">
         <p className="text-sm text-muted-foreground">
-          {files.length} / {MAX_FILES_PER_MODULE} documents
+          {t("docsCount", { count: files.length, max: MAX_FILES_PER_MODULE })}
         </p>
-        <p className="text-xs text-muted-foreground">Max 3MB per file</p>
+        <p className="text-xs text-muted-foreground">{t("maxSize")}</p>
       </div>
       <div
         {...getRootProps()}
@@ -120,17 +120,16 @@ function ModuleUploader({
           <Upload className="w-8 h-8 mb-4 text-muted-foreground" />
           <p className="mb-2 text-sm text-muted-foreground">
             {isMaxReached ? (
-              <span>Maximum documents reached</span>
+              <span>{t("maxReached")}</span>
             ) : (
               <>
-                <span className="font-semibold">Click to upload</span> or drag
-                and drop
+                <span className="font-semibold">{t("clickToUpload")}</span> {t("dragAndDrop")}
               </>
             )}
           </p>
           {!isMaxReached && (
             <p className="text-xs text-muted-foreground">
-              PDF, PPT, DOC, etc. (Max 3MB)
+              {t("supportedTypes")}
             </p>
           )}
         </div>
@@ -175,6 +174,7 @@ function ModuleUploader({
 }
 
 export default function ProposeStep3Page() {
+  const t = useTranslations("dashboard.coach.programs.proposeFlow.step3");
   const { formData, addModuleMaterial, removeModuleMaterial } =
     useProposeProgramContext();
 
@@ -183,10 +183,9 @@ export default function ProposeStep3Page() {
       <CardContent className="p-8">
         <Stepper currentStep={3} />
         <div className="mt-12">
-          <h1 className="text-3xl font-bold">Program Materials</h1>
+          <h1 className="text-3xl font-bold">{t("title")}</h1>
           <p className="mt-2 text-muted-foreground">
-            Upload any documents, slides, templates, or other resources for each
-            module of your program. (Optional)
+            {t("description")}
           </p>
         </div>
 
@@ -194,7 +193,7 @@ export default function ProposeStep3Page() {
           {formData.modules.length === 0 ? (
             <Card className="p-6 text-center text-muted-foreground">
               <p>
-                No modules defined yet. Please go back to Step 2 to add modules.
+                {t("noModules")}
               </p>
             </Card>
           ) : (
@@ -207,7 +206,7 @@ export default function ProposeStep3Page() {
               {formData.modules.map((module, index) => (
                 <AccordionItem key={index} value={`item-${index}`}>
                   <AccordionTrigger className="font-semibold text-lg hover:no-underline">
-                    {module.title || `Week ${module.week}`}
+                    {module.title || t("weekLabel", { count: index + 1 })}
                   </AccordionTrigger>
                   <AccordionContent>
                     <p className="text-sm text-muted-foreground mb-2">
@@ -229,12 +228,12 @@ export default function ProposeStep3Page() {
         <div className="flex justify-between mt-12">
           <Button asChild size="lg" variant="outline">
             <Link href="/coach-dashboard/programs/propose/step-2">
-              <ArrowLeft className="mr-2 h-4 w-4" /> Back
+              <ArrowLeft className="mr-2 h-4 w-4" /> {t("back")}
             </Link>
           </Button>
           <Button asChild size="lg">
             <Link href="/coach-dashboard/programs/propose/step-4">
-              Next <ArrowRight className="ml-2 h-4 w-4" />
+              {t("next")} <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
         </div>

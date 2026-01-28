@@ -10,6 +10,7 @@ import {
   useCoachAvailability,
   useSaveCoachAvailability,
 } from "@/hooks/use-schedule-queries";
+import { useTranslations } from "next-intl";
 
 export interface DayAvailability {
   enabled: boolean;
@@ -18,13 +19,13 @@ export interface DayAvailability {
 }
 
 const DAYS = [
-  { key: "monday", label: "Monday" },
-  { key: "tuesday", label: "Tuesday" },
-  { key: "wednesday", label: "Wednesday" },
-  { key: "thursday", label: "Thursday" },
-  { key: "friday", label: "Friday" },
-  { key: "saturday", label: "Saturday" },
-  { key: "sunday", label: "Sunday" },
+  { key: "monday", labelKey: "monday" },
+  { key: "tuesday", labelKey: "tuesday" },
+  { key: "wednesday", labelKey: "wednesday" },
+  { key: "thursday", labelKey: "thursday" },
+  { key: "friday", labelKey: "friday" },
+  { key: "saturday", labelKey: "saturday" },
+  { key: "sunday", labelKey: "sunday" },
 ];
 
 const DEFAULT_AVAILABILITY: Record<string, DayAvailability> = {
@@ -59,13 +60,16 @@ interface AvailabilitySettingsProps {
 export function AvailabilitySettings({
   showHeader = true,
   showSaveButton = true,
-  title = "Availability Settings",
-  description = "Set your weekly availability for coaching sessions",
+  title,
+  description,
   onAvailabilityChange,
   initialAvailability,
   loading = false,
   disabled = false,
 }: AvailabilitySettingsProps) {
+  const t = useTranslations("dashboard.coach.schedule.availability");
+  const commonT = useTranslations("common");
+
   // Only use hooks if showSaveButton is true (dashboard mode)
   const { data: availabilityData, isLoading: loadingData } = showSaveButton 
     ? useCoachAvailability() 
@@ -146,16 +150,16 @@ export function AvailabilitySettings({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Settings className="h-5 w-5" />
-            {title}
+            {title || t("title")}
           </CardTitle>
           <p className="text-sm text-muted-foreground">
-            {description}
+            {description || t("description")}
           </p>
         </CardHeader>
       )}
       <CardContent className={showHeader ? "" : "pt-6"}>
         <div className="space-y-4">
-          {DAYS.map(({ key, label }) => (
+          {DAYS.map(({ key, labelKey }) => (
             <div
               key={key}
               className="flex items-center justify-between gap-4 py-2 border-b last:border-0"
@@ -166,7 +170,7 @@ export function AvailabilitySettings({
                   onCheckedChange={() => handleToggleDay(key)}
                   disabled={disabled || (showSaveButton && saving)}
                 />
-                <Label className="font-medium">{label}</Label>
+                <Label className="font-medium">{commonT(`days.${labelKey}`)}</Label>
               </div>
 
               {availability[key].enabled && (
@@ -181,7 +185,7 @@ export function AvailabilitySettings({
                     className="border rounded px-2 py-1 text-sm"
                     disabled={disabled || (showSaveButton && saving)}
                   />
-                  <span className="text-muted-foreground">to</span>
+                  <span className="text-muted-foreground">{t("to")}</span>
                   <input
                     type="time"
                     value={availability[key].endTime}
@@ -196,7 +200,7 @@ export function AvailabilitySettings({
 
               {!availability[key].enabled && (
                 <span className="text-sm text-muted-foreground">
-                  Not available
+                  {t("notAvailable")}
                 </span>
               )}
             </div>
@@ -209,10 +213,10 @@ export function AvailabilitySettings({
               {saving ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  Saving...
+                  {t("saving")}
                 </>
               ) : (
-                "Save Availability"
+                t("save")
               )}
             </Button>
           </div>

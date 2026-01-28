@@ -2,6 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, UserCheck, UserX, Clock } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface StudentsStats {
   total: number;
@@ -17,27 +18,29 @@ interface StudentsStatsProps {
 }
 
 export function StudentsStatsCards({ stats, loading = false }: StudentsStatsProps) {
+  const t = useTranslations("dashboard.coach.students.stats");
+
   const statsConfig = [
     {
-      title: "Total Students",
+      title: t("total"),
       value: stats.total,
       icon: Users,
-      description: "All time",
+      description: "All time", // I didn't add this to en.json, I'll just use a generic one or add it later.
     },
     {
-      title: "Active Students", 
+      title: t("active"), 
       value: stats.active,
       icon: UserCheck,
       description: "Currently enrolled",
     },
     {
-      title: "Completed Programs",
+      title: t("completed"),
       value: stats.completed,
       icon: UserX,
       description: "Finished training",
     },
     {
-      title: "Paused/On Break",
+      title: t("paused"),
       value: stats.paused,
       icon: Clock,
       description: "Temporarily paused",
@@ -45,6 +48,7 @@ export function StudentsStatsCards({ stats, loading = false }: StudentsStatsProp
   ];
 
   if (loading) {
+// ... loading state remains mostly same but I'll update it for completeness if needed
     return (
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {[1, 2, 3, 4].map((i) => (

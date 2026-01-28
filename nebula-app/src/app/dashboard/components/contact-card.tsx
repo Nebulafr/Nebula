@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Phone } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 function NebulaLogo() {
   return (
@@ -21,6 +22,8 @@ function NebulaLogo() {
 }
 
 export function ContactCard() {
+  const t = useTranslations("dashboard.student");
+
   return (
     <Card className="rounded-xl border">
       <CardContent className="p-8 flex flex-col md:flex-row items-center justify-between gap-8">
@@ -32,19 +35,19 @@ export function ContactCard() {
           </div>
           <div>
             <h3 className="text-xl font-bold tracking-tight">
-              Not sure where to start?
+              {t("notSureWhereToStart")}
             </h3>
             <p className="text-muted-foreground mt-1">
-              Get personalized coach recommendations tailored to your goals.
+              {t("getPersonalizedRecs")}
             </p>
           </div>
         </div>
         <div className="flex gap-4 flex-shrink-0">
           <Button variant="outline" size="lg">
             <Phone className="mr-2 h-5 w-5" />
-            Schedule a call
+            {t("scheduleCall")}
           </Button>
-          <Button size="lg">Get recommendations</Button>
+          <Button size="lg">{t("getRecommendations")}</Button>
         </div>
       </CardContent>
     </Card>

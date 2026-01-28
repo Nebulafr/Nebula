@@ -36,7 +36,7 @@ export interface AuthContextValue {
 }
 
 export const AuthContext = createContext<AuthContextValue | undefined>(
-  undefined
+  undefined,
 );
 
 interface AuthProviderProps {
@@ -59,7 +59,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const hasProfile =
       userData.role === "ADMIN" || userData.coach || userData.student;
     setAuthState(
-      hasProfile ? "AUTHENTICATED_WITH_PROFILE" : "AUTHENTICATED_NO_PROFILE"
+      hasProfile ? "AUTHENTICATED_WITH_PROFILE" : "AUTHENTICATED_NO_PROFILE",
     );
   }, []);
 
@@ -80,12 +80,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const handleAuthAction = useCallback(
     async <T extends AuthResponse>(
-      action: () => Promise<ApiResponse<T>>
+      action: () => Promise<ApiResponse<T>>,
     ): Promise<ApiResponse<T>> => {
       try {
         const result = await action();
         console.log("Auth result:", { result });
-        
+
         if (!result.success) {
           throw result;
         }
@@ -101,7 +101,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         throw error;
       }
     },
-    [updateUserState]
+    [updateUserState],
   );
 
   const handleSignOut = useCallback(async () => {
@@ -121,23 +121,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const signUp = useCallback(
     (data: SignupData) => handleAuthAction(() => signUpWithEmail(data)),
-    [handleAuthAction]
+    [handleAuthAction],
   );
 
   const signIn = useCallback(
     (data: SigninData) => handleAuthAction(() => signInWithEmail(data)),
-    [handleAuthAction]
+    [handleAuthAction],
   );
 
   const googleSignIn = useCallback(
     (role: UserRole = UserRole.STUDENT) =>
       handleAuthAction(() => signInWithGoogle(role)),
-    [handleAuthAction]
+    [handleAuthAction],
   );
 
   const handleResetPassword = useCallback(
     (email: string) => resetPassword(email),
-    []
+    [],
   );
 
   useEffect(() => {

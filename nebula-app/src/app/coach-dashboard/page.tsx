@@ -28,10 +28,14 @@ import { toast } from "react-toastify";
 import { apiPost } from "@/lib/utils";
 import { useCoachSessions, useCoachStats } from "@/hooks/use-session-queries";
 import { getDefaultAvatar } from "@/lib/event-utils";
+import { useTranslations } from "next-intl";
 
 function CoachDashboardContent() {
   const { profile } = useAuth();
   const searchParams = useSearchParams();
+  const t = useTranslations("dashboard.coach");
+  const td = useTranslations("dashboard");
+  const tc = useTranslations("common");
   const { data: todaySessionsData, isLoading: isLoadingSessions } =
     useCoachSessions("upcoming");
   const { data: statsData } = useCoachStats();
@@ -57,11 +61,11 @@ function CoachDashboardContent() {
             // Google Calendar connected successfully
           } else {
             toast.error(
-              result?.message || "Failed to save calendar connection"
+              result?.message || t("failedToSaveCalendar")
             );
           }
         } catch (error) {
-          toast.error("Failed to save calendar connection");
+          toast.error(t("failedToSaveCalendar"));
         }
       }
       saveTokens();
@@ -79,7 +83,7 @@ function CoachDashboardContent() {
       <div className="flex-1 space-y-4 p-4 md:p-8">
         <div className="flex items-center justify-between space-y-2">
           <h3 className="text-3xl font-bold tracking-tight">
-            Welcome back, {profile?.fullName || "Coach"}!
+            {td("welcome", { name: profile?.fullName || t("student").replace(/Student/i, "Coach") })}
           </h3>
           <Button
             asChild
@@ -90,8 +94,8 @@ function CoachDashboardContent() {
             <Link href="/api/auth/google-calendar">
               <CalendarPlus className="mr-2 h-4 w-4" />
               {profile?.coach?.googleCalendarAccessToken
-                ? "Calendar Connected"
-                : "Connect Calendar"}
+                ? t("calendarConnected")
+                : t("connectCalendar")}
             </Link>
           </Button>
         </div>
@@ -99,7 +103,7 @@ function CoachDashboardContent() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                Total Revenue
+                {t("totalRevenue")}
               </CardTitle>
               <span className="text-muted-foreground">$</span>
             </CardHeader>
@@ -108,14 +112,14 @@ function CoachDashboardContent() {
                 ${stats?.totalRevenue || 0}
               </div>
               <p className="text-xs text-muted-foreground">
-                +{stats?.revenueChange || 0}% from last month
+                {t("fromLastMonth", { change: stats?.revenueChange || 0 })}
               </p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                Active Students
+                {t("activeStudents")}
               </CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -124,14 +128,14 @@ function CoachDashboardContent() {
                 +{stats?.activeStudents || 0}
               </div>
               <p className="text-xs text-muted-foreground">
-                +{stats?.studentsChange || 0} from last month
+                {t("sinceLastMonth", { count: stats?.studentsChange || 0 })}
               </p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                Sessions this month
+                {t("sessionsThisMonth")}
               </CardTitle>
               <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -140,14 +144,14 @@ function CoachDashboardContent() {
                 {stats?.sessionsThisMonth || 0}
               </div>
               <p className="text-xs text-muted-foreground">
-                +{stats?.sessionsChange || 0} since last month
+                {t("sinceLastMonth", { count: stats?.sessionsChange || 0 })}
               </p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                Average Rating
+                {t("averageRating")}
               </CardTitle>
               <Star className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -156,7 +160,7 @@ function CoachDashboardContent() {
                 {Number(stats?.averageRating || 0).toFixed(1)}
               </div>
               <p className="text-xs text-muted-foreground">
-                Consistent high performance
+                {t("consistentPerformance")}
               </p>
             </CardContent>
           </Card>
@@ -164,14 +168,14 @@ function CoachDashboardContent() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
           <Card className="col-span-4">
             <CardHeader>
-              <CardTitle>Upcoming Sessions Today</CardTitle>
+              <CardTitle>{t("upcomingSessionsToday")}</CardTitle>
             </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Student</TableHead>
-                    <TableHead>Time</TableHead>
+                    <TableHead>{t("student")}</TableHead>
+                    <TableHead>{t("time")}</TableHead>
                     <TableHead></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -206,7 +210,7 @@ function CoachDashboardContent() {
                                   </AvatarFallback>
                                 </Avatar>
                                 <span className="font-medium">
-                                  {session.students[0]?.fullName || "Student"}
+                                   {session.students[0]?.fullName || t("student")}
                                 </span>
                               </>
                             }
@@ -225,12 +229,12 @@ function CoachDashboardContent() {
                           {session.meetLink ? (
                             <Button variant="outline" size="sm" asChild>
                               <Link href={session.meetLink} target="_blank">
-                                Join Call
+                                {t("joinCall")}
                               </Link>
                             </Button>
                           ) : (
                             <Button variant="outline" size="sm" disabled>
-                              No Link
+                              {t("noLink")}
                             </Button>
                           )}
                         </TableCell>
@@ -242,7 +246,7 @@ function CoachDashboardContent() {
                         colSpan={3}
                         className="text-center py-8 text-muted-foreground"
                       >
-                        No sessions scheduled for today
+                        {t("noSessionsToday")}
                       </TableCell>
                     </TableRow>
                   )}
@@ -252,8 +256,8 @@ function CoachDashboardContent() {
           </Card>
           <Card className="col-span-4 lg:col-span-3">
             <CardHeader>
-              <CardTitle>Recent Payouts</CardTitle>
-              <CardDescription>You made 3 payouts this month.</CardDescription>
+              <CardTitle>{t("recentPayouts")}</CardTitle>
+              <CardDescription>{t("payoutCount", { count: 3 })}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-8">
@@ -270,7 +274,7 @@ function CoachDashboardContent() {
                       August Payout
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      Bank Transfer
+                      {t("settings.payout.bankTransfer")}
                     </p>
                   </div>
                   <div className="ml-auto font-medium">+$1,999.00</div>
@@ -288,7 +292,7 @@ function CoachDashboardContent() {
                       July Payout
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      Bank Transfer
+                      {t("settings.payout.bankTransfer")}
                     </p>
                   </div>
                   <div className="ml-auto font-medium">+$390.00</div>
@@ -306,14 +310,14 @@ function CoachDashboardContent() {
                       June Payout
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      Bank Transfer
+                      {t("settings.payout.bankTransfer")}
                     </p>
                   </div>
                   <div className="ml-auto font-medium">+$1,200.00</div>
                 </div>
               </div>
               <Button asChild className="mt-6 w-full">
-                <Link href="/coach-dashboard/payouts">View all payouts</Link>
+                <Link href="/coach-dashboard/payouts">{t("viewAllPayouts")}</Link>
               </Button>
             </CardContent>
           </Card>

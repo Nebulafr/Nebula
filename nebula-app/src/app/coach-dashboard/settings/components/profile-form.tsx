@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { TagInputField } from "./tag-input-field";
 import { AvailabilitySettings } from "@/components/availability-settings";
+import { useTranslations } from "next-intl";
 
 export interface ProfileFormData {
   title: string;
@@ -43,6 +44,7 @@ export function ProfileForm({
   onSave,
   isLoading = false,
 }: ProfileFormProps) {
+  const t = useTranslations("dashboard.coach.settings.profile");
   const handleInputChange = (field: keyof ProfileFormData, value: any) => {
     onFormDataChange({ [field]: value });
   };
@@ -50,24 +52,24 @@ export function ProfileForm({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>My Profile</CardTitle>
+        <CardTitle>{t("title")}</CardTitle>
         <CardDescription>
-          Update your public profile information.
+          {t("description")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="title">Professional Title</Label>
+            <Label htmlFor="title">{t("professionalTitle")}</Label>
             <Input
               id="title"
               value={formData.title}
               onChange={(e) => handleInputChange("title", e.target.value)}
-              placeholder="e.g., Senior Software Engineer"
+              placeholder={t("professionalTitlePlaceholder")}
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="hourlyRate">Hourly Rate ($)</Label>
+            <Label htmlFor="hourlyRate">{t("hourlyRate")}</Label>
             <Input
               id="hourlyRate"
               type="number"
@@ -75,93 +77,93 @@ export function ProfileForm({
               onChange={(e) =>
                 handleInputChange("hourlyRate", Number(e.target.value))
               }
-              placeholder="150"
+              placeholder={t("hourlyRatePlaceholder")}
             />
           </div>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="bio">Biography</Label>
+          <Label htmlFor="bio">{t("bio")}</Label>
           <Textarea
             id="bio"
             value={formData.bio}
             onChange={(e) => handleInputChange("bio", e.target.value)}
             rows={5}
-            placeholder="Tell potential students about yourself, your experience, and your coaching approach..."
+            placeholder={t("bioPlaceholder")}
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="style">Coaching Style</Label>
+          <Label htmlFor="style">{t("style")}</Label>
           <Input
             id="style"
             value={formData.style}
             onChange={(e) => handleInputChange("style", e.target.value)}
-            placeholder="e.g., Hands-on, Mentoring, Strategic"
+            placeholder={t("stylePlaceholder")}
           />
         </div>
         <div className="space-y-2"></div>
 
         <div className="space-y-2">
-          <Label htmlFor="linkedinUrl">LinkedIn URL</Label>
+          <Label htmlFor="linkedinUrl">{t("linkedin")}</Label>
           <Input
             id="linkedinUrl"
             value={formData.linkedinUrl}
             onChange={(e) => handleInputChange("linkedinUrl", e.target.value)}
-            placeholder="https://linkedin.com/in/yourprofile"
+            placeholder={t("linkedinPlaceholder")}
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="experience">Experience Summary</Label>
+          <Label htmlFor="experience">{t("experience")}</Label>
           <Textarea
             id="experience"
             value={formData.experience}
             onChange={(e) => handleInputChange("experience", e.target.value)}
             rows={3}
-            placeholder="Brief overview of your professional experience..."
+            placeholder={t("experiencePlaceholder")}
           />
         </div>
 
         <TagInputField
-          label="Specialties"
-          description="Add tags that describe your expertise."
+          label={t("specialties")}
+          description={t("specialtiesDesc")}
           tags={formData.specialties}
           onTagsChange={(tags) => handleInputChange("specialties", tags)}
-          placeholder="Add a specialty..."
+          placeholder={t("addSpecialty")}
         />
 
         <TagInputField
-          label="Past Companies"
-          description="Add companies you've worked at."
+          label={t("pastCompanies")}
+          description={t("pastCompaniesDesc")}
           tags={formData.pastCompanies}
           onTagsChange={(tags) => handleInputChange("pastCompanies", tags)}
-          placeholder="Add a company..."
+          placeholder={t("addCompany")}
         />
 
         <TagInputField
-          label="Qualifications"
+          label={t("qualifications")}
           tags={formData.qualifications}
           onTagsChange={(tags) => handleInputChange("qualifications", tags)}
-          placeholder="Add a qualification..."
+          placeholder={t("addQualification")}
         />
 
         <TagInputField
-          label="Languages"
+          label={t("languages")}
           tags={formData.languages}
           onTagsChange={(tags) => handleInputChange("languages", tags)}
-          placeholder="Add a language..."
+          placeholder={t("addLanguage")}
           protectedTags={["English"]}
         />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="timezone">Timezone</Label>
+            <Label htmlFor="timezone">{t("timezone")}</Label>
             <Input
               id="timezone"
               value={formData.timezone}
               onChange={(e) => handleInputChange("timezone", e.target.value)}
-              placeholder="UTC"
+              placeholder={t("timezonePlaceholder")}
             />
           </div>
         </div>
@@ -169,15 +171,15 @@ export function ProfileForm({
         <Separator />
         <div className="flex justify-end">
           <Button onClick={onSave} disabled={isLoading}>
-            {isLoading ? "Saving..." : "Save Changes"}
+            {isLoading ? t("saving") : t("save")}
           </Button>
         </div>
       </CardContent>
       <AvailabilitySettings
         showHeader={true}
         showSaveButton={true}
-        title="Availability Settings"
-        description="Set your weekly availability for coaching sessions"
+        title={t("availabilityTitle")}
+        description={t("availabilityDesc")}
       />
     </Card>
   );

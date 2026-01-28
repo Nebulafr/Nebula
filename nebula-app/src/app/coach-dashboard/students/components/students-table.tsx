@@ -19,6 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { getDefaultAvatar } from "@/lib/event-utils";
+import { useTranslations } from "next-intl";
 
 export interface Student {
   id: string;
@@ -47,6 +48,8 @@ export function StudentsTable({
   onViewProfile,
   onRemoveStudent,
 }: StudentsTableProps) {
+  const t = useTranslations("dashboard.coach.students.table");
+  
   const getStatusColor = (status: Student["status"]) => {
     switch (status) {
       case "active":
@@ -86,7 +89,7 @@ export function StudentsTable({
   if (students.length === 0) {
     return (
       <div className="text-center py-8">
-        <p className="text-muted-foreground">No students found</p>
+        <p className="text-muted-foreground">{t("noStudents")}</p>
       </div>
     );
   }
@@ -95,11 +98,11 @@ export function StudentsTable({
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Student</TableHead>
-          <TableHead>Program</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead>Last Contact</TableHead>
-          <TableHead className="text-right">Actions</TableHead>
+          <TableHead>{t("name")}</TableHead>
+          <TableHead>{t("program")}</TableHead>
+          <TableHead>{t("status")}</TableHead>
+          <TableHead>{t("lastSession")}</TableHead>
+          <TableHead className="text-right">{t("actions")}</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -129,13 +132,13 @@ export function StudentsTable({
             <TableCell>{student.program}</TableCell>
             <TableCell>
               <Badge className={getStatusColor(student.status)}>
-                {student.status}
+                {t(student.status)}
               </Badge>
             </TableCell>
 
             <TableCell>
               <div className="text-sm">
-                {student.lastSession || "No sessions yet"}
+                {student.lastSession || t("noSessions")}
               </div>
             </TableCell>
             <TableCell className="text-right">
@@ -144,6 +147,7 @@ export function StudentsTable({
                   size="sm"
                   variant="outline"
                   onClick={() => onMessageStudent?.(student.id)}
+                  title={t("message")}
                 >
                   <MessageSquare className="h-3 w-3" />
                 </Button>
@@ -151,6 +155,7 @@ export function StudentsTable({
                   size="sm"
                   variant="outline"
                   onClick={() => onScheduleSession?.(student.id)}
+                  title={t("schedule")}
                 >
                   <Calendar className="h-3 w-3" />
                 </Button>
@@ -164,23 +169,23 @@ export function StudentsTable({
                     <DropdownMenuItem
                       onClick={() => onViewProfile?.(student.id)}
                     >
-                      View Profile
+                      {t("viewProfile")}
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => onMessageStudent?.(student.id)}
                     >
-                      Send Message
+                      {t("message")}
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => onScheduleSession?.(student.id)}
                     >
-                      Schedule Session
+                      {t("schedule")}
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => onRemoveStudent?.(student.id)}
                       className="text-red-600"
                     >
-                      Remove Student
+                      {t("remove")}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>

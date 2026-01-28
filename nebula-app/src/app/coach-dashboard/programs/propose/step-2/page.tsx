@@ -33,14 +33,16 @@ import { DifficultyLevel } from "@/generated/prisma";
 import { Badge } from "@/components/ui/badge";
 import { useCategories } from "@/hooks";
 import { UserSelect } from "@/components/ui/user-select";
+import { useTranslations } from "next-intl";
 
-const DIFFICULTY_OPTIONS = [
-  { value: DifficultyLevel.BEGINNER, label: "Beginner" },
-  { value: DifficultyLevel.INTERMEDIATE, label: "Intermediate" },
-  { value: DifficultyLevel.ADVANCED, label: "Advanced" },
+const DIFFICULTY_OPTIONS = (t: any) => [
+  { value: DifficultyLevel.BEGINNER, label: t("difficultyBeginner") },
+  { value: DifficultyLevel.INTERMEDIATE, label: t("difficultyIntermediate") },
+  { value: DifficultyLevel.ADVANCED, label: t("difficultyAdvanced") },
 ];
 
 export default function ProposeStep2Page() {
+  const t = useTranslations("dashboard.coach.programs.proposeFlow.step2");
   const { data: categoriesResponse } = useCategories();
   console.log({ data: categoriesResponse });
   const {
@@ -97,28 +99,27 @@ export default function ProposeStep2Page() {
       <CardContent className="p-8">
         <Stepper currentStep={2} />
         <div className="mt-12">
-          <h1 className="text-3xl font-bold">Program Details</h1>
+          <h1 className="text-3xl font-bold">{t("title")}</h1>
           <p className="mt-2 text-muted-foreground">
-            Structure your program, define modules, and specify who will be
-            coaching.
+            {t("description")}
           </p>
         </div>
         <div className="grid gap-8 mt-8">
           {/* Basic Info */}
           <div className="space-y-2">
-            <Label htmlFor="program-title">Program Title *</Label>
+            <Label htmlFor="program-title">{t("programTitle")}</Label>
             <Input
               id="program-title"
-              placeholder="e.g., Breaking into Product Management"
+              placeholder={t("programTitlePlaceholder")}
               value={formData.title}
               onChange={(e) => updateFormData({ title: e.target.value })}
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="program-description">Program Description *</Label>
+            <Label htmlFor="program-description">{t("programDescription")}</Label>
             <Textarea
               id="program-description"
-              placeholder="Provide a short, compelling description of your program..."
+              placeholder={t("programDescriptionPlaceholder")}
               rows={3}
               value={formData.description}
               onChange={(e) => updateFormData({ description: e.target.value })}
@@ -128,13 +129,13 @@ export default function ProposeStep2Page() {
           {/* Category & Target Audience */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label htmlFor="career-track">Career Track *</Label>
+              <Label htmlFor="career-track">{t("careerTrack")}</Label>
               <Select
                 value={formData.category}
                 onValueChange={(value) => updateFormData({ category: value })}
               >
                 <SelectTrigger id="career-track">
-                  <SelectValue placeholder="Select track" />
+                  <SelectValue placeholder={t("careerTrackPlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
                   {categories.map((cat: any) => (
@@ -146,10 +147,10 @@ export default function ProposeStep2Page() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="target-audience">Target Audience</Label>
+              <Label htmlFor="target-audience">{t("targetAudience")}</Label>
               <Input
                 id="target-audience"
-                placeholder="e.g., Aspiring PMs with 0-2 years experience"
+                placeholder={t("targetAudiencePlaceholder")}
                 value={formData.targetAudience}
                 onChange={(e) =>
                   updateFormData({ targetAudience: e.target.value })
@@ -161,7 +162,7 @@ export default function ProposeStep2Page() {
           {/* Price, Duration, Difficulty, Max Students */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="space-y-2">
-              <Label htmlFor="price">Price ($)</Label>
+              <Label htmlFor="price">{t("price")}</Label>
               <Input
                 id="price"
                 type="number"
@@ -174,10 +175,10 @@ export default function ProposeStep2Page() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="duration">Duration (In Weeks)</Label>
+              <Label htmlFor="duration">{t("duration")}</Label>
               <Input
                 id="duration"
-                placeholder="e.g., 3 weeks"
+                placeholder={t("durationPlaceholder")}
                 type="number"
                 value={formData.duration}
                 onChange={(e) =>
@@ -186,7 +187,7 @@ export default function ProposeStep2Page() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="difficulty">Difficulty Level</Label>
+              <Label htmlFor="difficulty">{t("difficulty")}</Label>
               <Select
                 value={formData.difficultyLevel}
                 onValueChange={(value) =>
@@ -194,10 +195,10 @@ export default function ProposeStep2Page() {
                 }
               >
                 <SelectTrigger id="difficulty">
-                  <SelectValue placeholder="Select level" />
+                  <SelectValue placeholder={t("difficultyPlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
-                  {DIFFICULTY_OPTIONS.map((opt) => (
+                  {DIFFICULTY_OPTIONS(t).map((opt) => (
                     <SelectItem key={opt.value} value={opt.value}>
                       {opt.label}
                     </SelectItem>
@@ -206,7 +207,7 @@ export default function ProposeStep2Page() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="max-students">Max Students</Label>
+              <Label htmlFor="max-students">{t("maxStudents")}</Label>
               <Input
                 id="max-students"
                 type="number"
@@ -224,7 +225,7 @@ export default function ProposeStep2Page() {
 
           {/* Tags */}
           <div className="space-y-2">
-            <Label>Tags</Label>
+            <Label>{t("tags")}</Label>
             <div className="flex flex-wrap gap-2 mb-2">
               {formData.tags.map((tag, index) => (
                 <Badge key={index} variant="secondary" className="gap-1">
@@ -241,7 +242,7 @@ export default function ProposeStep2Page() {
             </div>
             <div className="flex items-center gap-2">
               <Input
-                placeholder="Add a tag..."
+                placeholder={t("addTag")}
                 value={newTag}
                 onChange={(e) => setNewTag(e.target.value)}
                 onKeyDown={(e) =>
@@ -249,14 +250,14 @@ export default function ProposeStep2Page() {
                 }
               />
               <Button type="button" onClick={handleAddTag} variant="outline">
-                <PlusCircle className="mr-2 h-4 w-4" /> Add
+                <PlusCircle className="mr-2 h-4 w-4" /> {t("add")}
               </Button>
             </div>
           </div>
 
           {/* Prerequisites */}
           <div className="space-y-2">
-            <Label>Prerequisites</Label>
+            <Label>{t("prerequisites")}</Label>
             <div className="space-y-2 mb-2">
               {formData.prerequisites.map((prereq, index) => (
                 <div key={index} className="flex items-center gap-2">
@@ -273,7 +274,7 @@ export default function ProposeStep2Page() {
             </div>
             <div className="flex items-center gap-2">
               <Input
-                placeholder="Add a prerequisite..."
+                placeholder={t("addPrereq")}
                 value={newPrerequisite}
                 onChange={(e) => setNewPrerequisite(e.target.value)}
                 onKeyDown={(e) =>
@@ -286,14 +287,14 @@ export default function ProposeStep2Page() {
                 onClick={handleAddPrerequisite}
                 variant="outline"
               >
-                <PlusCircle className="mr-2 h-4 w-4" /> Add
+                <PlusCircle className="mr-2 h-4 w-4" /> {t("add")}
               </Button>
             </div>
           </div>
 
           {/* Program Objectives */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Program Objectives *</h3>
+            <h3 className="text-lg font-semibold mb-4">{t("objectives")}</h3>
             <div className="space-y-4">
               <div className="space-y-3">
                 {formData.objectives.map((objective, index) => (
@@ -315,7 +316,7 @@ export default function ProposeStep2Page() {
               </div>
               <div className="flex items-center gap-2">
                 <Input
-                  placeholder="Add a learning objective..."
+                  placeholder={t("addObjective")}
                   value={newObjective}
                   onChange={(e) => setNewObjective(e.target.value)}
                   onKeyDown={(e) =>
@@ -324,7 +325,7 @@ export default function ProposeStep2Page() {
                   }
                 />
                 <Button onClick={handleAddObjective}>
-                  <PlusCircle className="mr-2 h-4 w-4" /> Add
+                  <PlusCircle className="mr-2 h-4 w-4" /> {t("add")}
                 </Button>
               </div>
             </div>
@@ -332,7 +333,7 @@ export default function ProposeStep2Page() {
 
           {/* Program Modules */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Program Modules *</h3>
+            <h3 className="text-lg font-semibold mb-4">{t("modules")}</h3>
             <div className="space-y-4">
               {formData.modules.map((module, index) => (
                 <Card key={index} className="bg-muted/50 p-4">
@@ -343,7 +344,7 @@ export default function ProposeStep2Page() {
                         onChange={(e) =>
                           updateModule(index, { title: e.target.value })
                         }
-                        placeholder={`Week ${index + 1}: Module Title`}
+                        placeholder={t("modulePlaceholder", { index: index + 1 })}
                         className="font-semibold bg-transparent border-0 focus-visible:ring-1"
                       />
                       <Textarea
@@ -351,7 +352,7 @@ export default function ProposeStep2Page() {
                         onChange={(e) =>
                           updateModule(index, { description: e.target.value })
                         }
-                        placeholder="Module description..."
+                        placeholder={t("moduleDescriptionPlaceholder")}
                         rows={2}
                         className="text-sm bg-transparent border-0 focus-visible:ring-1"
                       />
@@ -370,13 +371,13 @@ export default function ProposeStep2Page() {
               ))}
             </div>
             <Button variant="outline" className="mt-4" onClick={addModule}>
-              <PlusCircle className="mr-2 h-4 w-4" /> Add Module
+              <PlusCircle className="mr-2 h-4 w-4" /> {t("addModule")}
             </Button>
           </div>
 
           {/* Coaches */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Coaches</h3>
+            <h3 className="text-lg font-semibold mb-4">{t("coCoaches")}</h3>
             <div className="flex items-center space-x-2 mb-4 p-4 border rounded-lg">
               <Switch
                 id="multi-coach-toggle"
@@ -386,7 +387,7 @@ export default function ProposeStep2Page() {
                 }
               />
               <Label htmlFor="multi-coach-toggle">
-                This program will be co-delivered with other Nebula coaches.
+                {t("multiCoachLabel")}
               </Label>
             </div>
 
@@ -429,7 +430,7 @@ export default function ProposeStep2Page() {
                         }
                       }
                     }}
-                    placeholder="Select Coach"
+                    placeholder={t("selectCoach")}
                   />
                 </div>
               </Card>
@@ -440,7 +441,7 @@ export default function ProposeStep2Page() {
         <div className="flex justify-between mt-12">
           <Button asChild size="lg" variant="outline">
             <Link href="/coach-dashboard/programs/propose/step-1">
-              <ArrowLeft className="mr-2 h-4 w-4" /> Back
+              <ArrowLeft className="mr-2 h-4 w-4" /> {t("back")}
             </Link>
           </Button>
           <Button asChild size="lg" disabled={!isStep2Valid}>
@@ -449,7 +450,7 @@ export default function ProposeStep2Page() {
                 isStep2Valid ? "/coach-dashboard/programs/propose/step-3" : "#"
               }
             >
-              Next <ArrowRight className="ml-2 h-4 w-4" />
+              {t("next")} <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
         </div>

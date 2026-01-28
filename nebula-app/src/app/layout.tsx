@@ -7,6 +7,9 @@ import "./globals.css";
 import "react-toastify/dist/ReactToastify.css";
 import { Manrope } from "next/font/google";
 import { Providers } from "./providers";
+import { getLocale, getMessages } from 'next-intl/server';
+import { cookies } from "next/headers";
+import { TIMEZONE_COOKIE_NAME } from "@/i18n/config";
 
 export const metadata: Metadata = {
   title: "Nebula - Coaching Platform",
@@ -18,15 +21,20 @@ const manrope = Manrope({
   weight: ["400", "700"],
 });
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
+  const messages = await getMessages();
+  const cookieStore = await cookies();
+  const timeZone = cookieStore.get(TIMEZONE_COOKIE_NAME)?.value || 'UTC';
+
   return (
-    <html lang="en">
-      <body className={`${manrope.className}  antialiased`}>
-        <Providers>
+    <html lang={locale} suppressHydrationWarning={true}>
+      <body className={`${manrope.className} antialiased`}>
+        <Providers locale={locale} messages={messages} timeZone={timeZone}>
           <AuthProvider>{children}</AuthProvider>
         </Providers>
         <Toaster />

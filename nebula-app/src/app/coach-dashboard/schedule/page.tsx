@@ -11,7 +11,10 @@ import { toast } from "react-toastify";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar, Settings } from "lucide-react";
 
+import { useTranslations } from "next-intl";
+
 export default function SchedulePage() {
+  const t = useTranslations("dashboard.coach.schedule");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
     new Date()
   );
@@ -41,37 +44,34 @@ export default function SchedulePage() {
 
   const handleViewDetails = (session: Session) => {
     console.log("View details for:", session);
-    toast.info(`Viewing details for: ${session.title}`);
   };
 
   const handleStartSession = (session: Session) => {
     if (session.meetLink) {
       window.open(session.meetLink, "_blank");
     } else {
-      toast.error("No meeting link available for this session.");
+      toast.error(t("noMeetingLink"));
     }
   };
 
   const handleReschedule = (session: Session) => {
     console.log("Reschedule:", session);
-    toast.info("Reschedule functionality coming soon!");
   };
 
   const handleCancel = (session: Session) => {
     console.log("Cancel:", session);
-    toast.info("Cancel functionality coming soon!");
   };
 
   const handleCreateSession = () => {
-    toast.info("Create session functionality coming soon!");
+    //
   };
 
   return (
     <div className="flex-1 space-y-6 p-4 md:p-8">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">Schedule</h2>
+        <h2 className="text-3xl font-bold tracking-tight">{t("title")}</h2>
         <p className="text-muted-foreground">
-          Manage your coaching sessions and availability
+          {t("subtitle")}
         </p>
       </div>
 
@@ -81,11 +81,11 @@ export default function SchedulePage() {
         <TabsList>
           <TabsTrigger value="sessions" className="gap-2">
             <Calendar className="h-4 w-4" />
-            Sessions
+            {t("tabs.sessions")}
           </TabsTrigger>
           <TabsTrigger value="availability" className="gap-2">
             <Settings className="h-4 w-4" />
-            Availability
+            {t("tabs.availability")}
           </TabsTrigger>
         </TabsList>
 

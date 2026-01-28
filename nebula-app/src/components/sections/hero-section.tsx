@@ -6,10 +6,12 @@ import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { useLanguage } from "@/contexts/language-context";
+import { useTranslations, useLocale } from "next-intl";
 
 export function HeroSection() {
-  const { isFrench } = useLanguage();
+  const t = useTranslations("hero");
+  const locale = useLocale();
+  const isFrench = locale === "fr";
   const [searchTerm, setSearchTerm] = useState("");
   const router = useRouter();
 
@@ -29,13 +31,13 @@ export function HeroSection() {
       value: "50+",
       label: (
         <>
-          Top{" "}
-          <span className="notranslate">{isFrench ? "Coachs" : "Coaches"}</span>
+          {t("stats.coaches")}{" "}
+          <span className="sr-only">{isFrench ? "Coachs" : "Coaches"}</span>
         </>
       ),
     },
-    { value: "200+", label: "Companies" },
-    { value: "5k+", label: "Users Helped" },
+    { value: "200+", label: t("stats.companies") },
+    { value: "5k+", label: t("stats.users") },
   ];
 
   const categories = [
@@ -51,12 +53,13 @@ export function HeroSection() {
 
   return (
     <section className="container py-20 text-center md:py-32">
-      <h1 className="font-headline text-5xl font-bold tracking-tighter md:text-7xl">
-        Empower your career <br /> journey with Nebula
+      <h1 
+        className="font-headline text-5xl font-bold tracking-tighter md:text-7xl whitespace-pre-line"
+      >
+        {t("heading")}
       </h1>
       <p className="mx-auto mt-4 max-w-2xl font-body text-lg text-foreground/70 md:text-xl">
-        Get online career coaching from the world&apos;s leading experts to help
-        you land your dream job.
+        {t("description")}
       </p>
       <form
         onSubmit={handleSearch}
@@ -64,7 +67,7 @@ export function HeroSection() {
       >
         <Input
           type="search"
-          placeholder="Search for a coach or specialty..."
+          placeholder={t("searchPlaceholder")}
           className="h-14 flex-1 rounded-full border focus-visible:ring-0"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
@@ -80,10 +83,12 @@ export function HeroSection() {
       <div className="mt-16 grid grid-cols-1 gap-8 sm:grid-cols-3">
         {stats.map((stat, index) => (
           <div key={index}>
-            <p className="notranslate font-headline text-5xl font-medium">
+            <p className="font-headline text-5xl font-medium">
               {stat.value}
             </p>
-            <p className="mt-2 text-sm uppercase tracking-wider text-muted-foreground">
+            <p 
+              className="mt-2 text-sm uppercase tracking-wider text-muted-foreground"
+            >
               {stat.label}
             </p>
           </div>

@@ -3,10 +3,10 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { PlaceHolderImages } from "@/lib/images/placeholder-images";
 import Link from "next/link";
-import { useLanguage } from "@/contexts/language-context";
+import { useTranslations } from "next-intl";
 
 export function NetworkSection() {
-  const { isFrench } = useLanguage();
+  const t = useTranslations("network");
   const networkImage = PlaceHolderImages.find((img) => img.id === "network");
   return (
     <section className="py-20 sm:py-32">
@@ -24,18 +24,13 @@ export function NetworkSection() {
           )}
         </div>
         <div className="order-2 md:order-1">
-          <h2 className="font-headline">
-            Global Community of <span className="notranslate">{isFrench ? "Coachs" : "Coaches"}</span>
-          </h2>
+          <h2 className="font-headline">{t("title")}</h2>
           <p className="mt-4 text-lg text-muted-foreground">
-            Our network comprises professionals from world-renowned institutions
-            and top-tier companies. We bridge the gap between academic theory
-            and real-world application, offering you unparalleled access to
-            insider knowledge and career opportunities.
+            {t("description")}
           </p>
           <Link href="/coaches">
             <Button className="mt-8" size="lg">
-              Explore the Network
+              {t("button")}
             </Button>
           </Link>
         </div>

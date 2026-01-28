@@ -1,0 +1,640 @@
+{
+  "common": {
+    "search": "Rechercher",
+    "loading": "Chargement...",
+    "coaches": "Coachs",
+    "browseCoaches": "Parcourir les Coachs",
+    "activeCoaches": "Coachs Actifs",
+    "programs": "Programmes",
+    "events": "Événements",
+    "universities": "Pour les Universités",
+    "becomeCoach": "Devenir coach",
+    "nebulaAi": "Nebula Ai",
+    "dashboard": "Tableau de bord",
+    "logout": "Déconnexion",
+    "loggingOut": "Déconnexion...",
+    "login": "Connexion",
+    "signup": "S'inscrire",
+    "getStarted": "Commencer",
+    "about": "À propos",
+    "careers": "Carrières",
+    "helpCenter": "Centre d'aide",
+    "privacyPolicy": "Politique de confidentialité",
+    "termsOfService": "Conditions d'utilisation",
+    "mySessions": "Mes sessions",
+    "messaging": "Messagerie",
+    "schedule": "Emploi du temps",
+    "students": "Étudiants",
+    "payouts": "Paiements",
+    "users": "Utilisateurs",
+    "settings": "Paramètres",
+    "help": "Aide",
+    "collapse": "Réduire",
+    "goToHomepage": "Aller à l'accueil",
+    "seeAll": "Voir tout",
+    "reviews": "Avis",
+    "admin": "Admin",
+    "days": {
+      "monday": "Lundi",
+      "tuesday": "Mardi",
+      "wednesday": "Mercredi",
+      "thursday": "Jeudi",
+      "friday": "Vendredi",
+      "saturday": "Samedi",
+      "sunday": "Dimanche"
+    }
+  },
+  "dashboard": {
+    "welcome": "Bon retour, {name} !",
+    "student": {
+      "browsePrograms": "Parcourir les programmes",
+      "suggestedCoaches": "Coachs suggérés",
+      "notSureWhereToStart": "Vous ne savez pas par où commencer ?",
+      "getPersonalizedRecs": "Obtenez des recommandations de coachs personnalisées adaptées à vos objectifs.",
+      "scheduleCall": "Prendre rendez-vous",
+      "getRecommendations": "Obtenir des recommandations",
+      "noRecommendedPrograms": "Aucun programme recommandé disponible pour le moment.",
+      "browseAllPrograms": "Parcourir tous les programmes",
+      "noCoachSuggestions": "Pas encore de suggestions de coachs",
+      "findingPerfectCoaches": "Nous trouvons les coachs parfaits pour vous en fonction de vos intérêts. Explorez tous les coachs pour trouver votre match.",
+      "browseAllCoaches": "Parcourir tous les {coaches}",
+      "upcomingEvents": "Événements à venir",
+      "noUpcomingEvents": "Aucun événement à venir pour le moment.",
+      "browseAllEvents": "Parcourir tous les événements",
+      "registerNow": "S'inscrire maintenant",
+      "viewProfile": "Voir le profil"
+    },
+    "coach": {
+      "coach": "Coach",
+      "totalRevenue": "Revenu total",
+      "activeStudents": "Étudiants actifs",
+      "sessionsThisMonth": "Sessions ce mois-ci",
+      "averageRating": "Note moyenne",
+      "fromLastMonth": "{change}% par rapport au mois dernier",
+      "sinceLastMonth": "{count} depuis le mois dernier",
+      "consistentPerformance": "Performance élevée constante",
+      "upcomingSessionsToday": "Sessions à venir aujourd'hui",
+      "student": "Étudiant",
+      "time": "Heure",
+      "joinCall": "Rejoindre l'appel",
+      "noLink": "Pas de lien",
+      "noSessionsToday": "Aucune session prévue pour aujourd'hui",
+      "recentPayouts": "Paiements récents",
+      "payoutCount": "Vous avez effectué {count} paiements ce mois-ci.",
+      "viewAllPayouts": "Voir tous les paiements",
+      "connectCalendar": "Connecter l'agenda",
+      "calendarConnected": "Agenda connecté",
+      "failedToSaveCalendar": "Échec de l'enregistrement des jetons de l'agenda. Veuillez réessayer.",
+      "payouts": {
+        "title": "Paiements",
+        "earningsOverview": "Aperçu des revenus",
+        "earningsDescription": "Vos revenus au cours des 6 derniers mois.",
+        "accountBalance": "Solde du compte",
+        "balanceDescription": "Votre solde disponible actuel.",
+        "noBalance": "Aucun solde disponible",
+        "requestPayout": "Demander un paiement",
+        "minPayout": "Montant minimum du paiement : 50,00 $",
+        "history": "Historique des paiements",
+        "payoutsFound": "{count, plural, one {# paiement trouvé} other {# paiements trouvés}}",
+        "noPayouts": "Aucun paiement pour le moment.",
+        "payoutsArrival": "Votre historique de paiement apparaîtra ici dès que vous recevrez votre premier paiement.",
+        "payoutId": "ID du paiement",
+        "date": "Date",
+        "amount": "Montant",
+        "status": "Statut",
+        "actions": "Actions",
+        "viewDetails": "Voir les détails",
+        "downloadReceipt": "Télécharger le reçu"
+      },
+      "students": {
+        "title": "Étudiants",
+        "subtitle": "Gérez vos étudiants et suivez leurs progrès",
+        "stats": {
+          "total": "Total des étudiants",
+          "active": "Étudiants actifs",
+          "completed": "Étudiants terminés",
+          "paused": "En pause"
+        },
+        "filters": {
+          "search": "Rechercher des étudiants...",
+          "allStatuses": "Tous les statuts",
+          "active": "Actif",
+          "completed": "Terminé",
+          "paused": "En pause",
+          "allPrograms": "Tous les programmes",
+          "addStudent": "Ajouter un étudiant",
+          "export": "Exporter"
+        },
+        "table": {
+          "name": "Étudiant",
+          "program": "Programme",
+          "status": "Statut",
+          "lastSession": "Dernière session",
+          "actions": "Actions",
+          "message": "Message",
+          "schedule": "Programmer",
+          "viewProfile": "Voir le profil",
+          "remove": "Supprimer",
+          "noStudents": "Aucun étudiant trouvé",
+          "emptyState": "Vous n'avez aucun étudiant correspondant à vos critères."
+        },
+        "addDialog": {
+          "title": "Ajouter un nouvel étudiant",
+          "description": "Invitez un étudiant à votre programme de coaching.",
+          "email": "Email de l'étudiant",
+          "emailPlaceholder": "etudiant@example.com",
+          "program": "Sélectionner le programme",
+          "cancel": "Annuler",
+          "inviting": "Invitation en cours...",
+          "invite": "Inviter l'étudiant"
+        }
+      },
+      "schedule": {
+        "title": "Emploi du temps",
+        "subtitle": "Gérez vos sessions de coaching et votre disponibilité",
+        "tabs": {
+          "sessions": "Sessions",
+          "availability": "Disponibilité"
+        },
+        "stats": {
+          "upcoming": "Sessions à venir",
+          "completed": "Terminées ce mois-ci",
+          "hours": "Heures de coaching"
+        },
+        "calendar": {
+          "title": "Calendrier des sessions"
+        },
+        "list": {
+          "title": "Sessions pour le {date}",
+          "noSessions": "Aucune session prévue pour ce jour.",
+          "create": "Créer une session",
+          "start": "Démarrer la session",
+          "reschedule": "Reprogrammer",
+          "cancel": "Annuler",
+          "comingSoon": "Bientôt disponible !",
+          "noMeetingLink": "Aucun lien de réunion disponible pour cette session."
+        }
+      },
+      "programs": {
+        "title": "Mes Programmes",
+        "propose": "Proposer un programme",
+        "noPrograms": "Aucun programme pour le moment",
+        "noProgramsDesc": "Proposez votre premier programme pour commencer.",
+        "card": {
+          "status": {
+            "pendingApproval": "En attente d'approbation",
+            "approved": "Approuvé",
+            "submitted": "Soumis",
+            "active": "Actif",
+            "inactive": "Inactif",
+            "rejected": "Refusé"
+          },
+          "actions": {
+            "edit": "Modifier",
+            "viewDetails": "Voir les détails",
+            "addSession": "Ajouter une session",
+            "archive": "Archiver",
+            "runProgram": "Lancer le programme"
+          },
+          "studentsCount": "{count, plural, =0 {Aucun étudiant} =1 {1 étudiant} other {# étudiants}}",
+          "submitError": "Échec de la soumission du programme pour publication",
+          "approvedMessage": "Votre programme a été approuvé ! Vous pouvez maintenant le soumettre pour publication.",
+          "submitForPublishing": "Soumettre pour publication",
+          "pendingMessage": "Votre programme est en cours de révision par notre équipe.",
+          "submittedMessage": "Votre programme a été soumis et attend d'être révisé.",
+          "rejectedMessage": "Votre programme n'a pas été approuvé. Veuillez vérifier vos emails pour plus de détails."
+        },
+        "edit": {
+          "title": "Modifier le programme",
+          "saveChanges": "Enregistrer les modifications",
+          "saving": "Enregistrement...",
+          "basicInfo": "Informations de base",
+          "settings": "Paramètres du programme",
+          "learningObjectives": "Objectifs d'apprentissage *",
+          "modules": "Modules du programme",
+          "addModule": "Ajouter un module",
+          "coCoaches": "Co-coachs",
+          "isMultiCoach": "Ce programme sera co-animé avec d'autres coachs Nebula.",
+          "selectCoach": "Sélectionner un coach",
+          "cancel": "Annuler",
+          "loading": "Chargement du programme...",
+          "notFound": "Programme non trouvé",
+          "backToPrograms": "Retour aux programmes",
+          "programTitle": "Titre du programme *",
+          "programTitlePlaceholder": "ex: Intégrer la gestion de produits",
+          "description": "Description *",
+          "descriptionPlaceholder": "Décrivez votre programme...",
+          "category": "Catégorie *",
+          "selectCategory": "Sélectionner une catégorie",
+          "targetAudience": "Public cible",
+          "targetAudiencePlaceholder": "ex: Aspirants PM avec 0-2 ans d'expérience",
+          "price": "Prix ($)",
+          "duration": "Durée (semaines)",
+          "difficulty": "Niveau de difficulté",
+          "maxStudents": "Max Étudiants",
+          "tags": "Tags",
+          "addTag": "Ajouter un tag...",
+          "add": "Ajouter",
+          "prerequisites": "Prérequis",
+          "addPrerequisite": "Ajouter un prérequis...",
+          "addObjective": "Ajouter un objectif d'apprentissage...",
+          "modulePlaceholder": "Semaine {count}: Titre du module",
+          "moduleDescriptionPlaceholder": "Description du module...",
+          "difficultyBeginner": "Débutant",
+          "difficultyIntermediate": "Intermédiaire",
+          "difficultyAdvanced": "Avancé",
+          "titleRequired": "Le titre du programme est obligatoire",
+          "descriptionRequired": "La description du programme est obligatoire",
+          "categoryRequired": "Veuillez sélectionner une catégorie",
+          "objectivesRequired": "Veuillez ajouter au moins un objectif",
+          "updateError": "Échec de la mise à jour du programme"
+        },
+        "proposeFlow": {
+          "steps": {
+            "step1": "Introduction",
+            "step2": "Détails du programme",
+            "step3": "Documents du programme",
+            "step4": "Réviser",
+            "step5": "Confirmation"
+          },
+          "step1": {
+            "title": "Proposer un programme d'immersion",
+            "description": "Les programmes d'immersion Nebula sont des expériences sélectives, basées sur des cohortes et dirigées par des experts du secteur.",
+            "conditions": "Conditions d'application",
+            "condition1": "Je suis un expert sur le sujet que je propose et je possède une expérience significative dans le monde réel.",
+            "condition2": "Je peux m'engager à organiser des sessions en direct et à fournir des commentaires pendant toute la durée du programme de 3 semaines.",
+            "condition3": "Le matériel et la structure que je fournis sont mon travail original ou j'ai les droits de les utiliser.",
+            "cancel": "Annuler",
+            "next": "Suivant"
+          },
+          "step2": {
+            "title": "Détails du programme",
+            "description": "Structurez votre programme, définissez les modules et spécifiez qui assurera le coaching.",
+            "programTitle": "Titre du programme *",
+            "programTitlePlaceholder": "ex: Intégrer la gestion de produits",
+            "programDescription": "Description du programme *",
+            "programDescriptionPlaceholder": "Fournissez une description courte et convaincante de votre programme...",
+            "careerTrack": "Domaine de carrière *",
+            "careerTrackPlaceholder": "Sélectionner le domaine",
+            "targetAudience": "Public cible",
+            "targetAudiencePlaceholder": "ex: Aspirants PM avec 0-2 ans d'expérience",
+            "price": "Prix ($)",
+            "duration": "Durée (en semaines)",
+            "durationPlaceholder": "ex: 3",
+            "difficulty": "Niveau de difficulté",
+            "difficultyPlaceholder": "Sélectionner le niveau",
+            "difficultyBeginner": "Débutant",
+            "difficultyIntermediate": "Intermédiaire",
+            "difficultyAdvanced": "Avancé",
+            "maxStudents": "Nombre maximal d'étudiants",
+            "tags": "Mots-clés",
+            "addTag": "Ajouter un mot-clé...",
+            "add": "Ajouter",
+            "prerequisites": "Prérequis",
+            "addPrereq": "Ajouter un prérequis...",
+            "objectives": "Objectifs du programme *",
+            "addObjective": "Ajouter un objectif d'apprentissage...",
+            "modules": "Modules du programme *",
+            "addModule": "Ajouter un module",
+            "week": "Semaine {count}",
+            "modulePlaceholder": "Semaine {index} : Titre du module",
+            "moduleDescriptionPlaceholder": "Description du module...",
+            "coCoaches": "Co-coachs",
+            "multiCoachLabel": "Ce programme sera co-animé avec d'autres coachs Nebula.",
+            "selectCoach": "Sélectionner un coach",
+            "back": "Retour",
+            "next": "Suivant"
+          },
+          "step3": {
+            "title": "Documents du programme",
+            "description": "Téléchargez tous les documents, diapositives, modèles ou autres ressources pour chaque module de votre programme (Optionnel).",
+            "noModules": "Aucun module défini pour le moment. Veuillez revenir à l'étape 2 pour ajouter des modules.",
+            "uploader": {
+              "maxDocs": "Maximum de {count} documents autorisés par module",
+              "fileSizeLimit": "Certains fichiers dépassent la limite de 3 Mo : {files}",
+              "onlySomeAdded": "Seul(s) {count} fichier(s) peu(ven)t être ajouté(s).",
+              "docsCount": "{count} / {max} documents",
+              "maxSize": "Max 3 Mo par fichier",
+              "maxReached": "Nombre maximal de documents atteint",
+              "clickToUpload": "Cliquez pour télécharger",
+              "dragAndDrop": "ou glissez-déposez",
+              "supportedTypes": "PDF, PPT, DOC, etc. (Max 3 Mo)"
+            },
+            "back": "Retour",
+            "next": "Suivant",
+            "weekLabel": "Semaine {count}"
+          },
+          "step4": {
+            "title": "Réviser et soumettre",
+            "description": "Veuillez examiner attentivement votre proposition de programme avant de la soumettre.",
+            "sections": {
+              "basic": "Infos de base",
+              "objectives": "Objectifs du programme",
+              "modules": "Modules et matériel du programme",
+              "coCoaches": "Co-coachs"
+            },
+            "noObjectives": "Aucun objectif défini",
+            "notSpecified": "Non spécifié",
+            "free": "Gratuit",
+            "noDescription": "Aucune description",
+            "noMaterials": "Aucun document téléchargé pour ce module.",
+            "back": "Retour",
+            "submit": "Soumettre la candidature",
+            "untitled": "Programme sans titre",
+            "noDescriptionProvided": "Aucune description fournie",
+            "notSelected": "Non sélectionné",
+            "labels": {
+              "careerTrack": "Domaine de carrière",
+              "targetAudience": "Public cible",
+              "price": "Prix",
+              "duration": "Durée",
+              "difficulty": "Difficulté",
+              "maxStudents": "Max d'étudiants",
+              "tags": "Mots-clés",
+              "prerequisites": "Prérequis",
+              "uploadedMaterials": "Documents téléchargés :"
+            }
+          },
+          "step5": {
+            "submitting": "Soumission de votre proposition...",
+            "submittingDescription": "Veuillez patienter pendant que nous téléchargeons vos documents et traitons votre demande.",
+            "submittingHint": "Cela peut prendre un moment si vous avez téléchargé des fichiers.",
+            "success": "Merci pour votre proposition !",
+            "successDescription": "Votre proposition de programme d'immersion a été soumise avec succès.",
+            "successNote": "Notre équipe examinera votre candidature et vous contactera prochainement.",
+            "reviewTime": "Délai de révision",
+            "reviewTimeValue": "5 à 7 jours ouvrables",
+            "confirmation": "E-mail de confirmation",
+            "confirmationValue": "Une confirmation vous a été envoyée",
+            "backToPrograms": "Retour aux programmes",
+            "uploadError": "Échec du téléchargement des documents pour {title}"
+          }
+        }
+      },
+      "settings": {
+        "title": "Paramètres",
+        "subtitle": "Gérez les paramètres de votre compte et vos informations de paiement",
+        "loading": "Chargement des paramètres...",
+        "tabs": {
+          "account": "Paramètres du compte",
+          "payout": "Informations de paiement",
+          "security": "Sécurité"
+        },
+        "avatar": {
+          "change": "Changer la photo",
+          "uploading": "Téléchargement...",
+          "errorFileType": "Veuillez sélectionner un fichier image valide (JPEG, PNG ou WebP)",
+          "errorFileSize": "La taille du fichier doit être inférieure à 5 Mo",
+          "uploadSuccess": "Avatar téléchargé avec succès",
+          "uploadError": "Échec du téléchargement de l'avatar"
+        },
+        "profile": {
+          "title": "Mon profil",
+          "description": "Mettez à jour les informations de votre profil public.",
+          "professionalTitle": "Titre professionnel",
+          "professionalTitlePlaceholder": "ex: Ingénieur logiciel senior",
+          "hourlyRate": "Taux horaire ($)",
+          "hourlyRatePlaceholder": "150",
+          "bio": "Biographie",
+          "bioPlaceholder": "Présentez-vous aux futurs étudiants, votre expérience et votre approche de coaching...",
+          "style": "Style de coaching",
+          "stylePlaceholder": "ex: Pratique, Mentorat, Stratégique",
+          "linkedin": "URL LinkedIn",
+          "linkedinPlaceholder": "https://linkedin.com/in/votreprofil",
+          "experience": "Résumé de l'expérience",
+          "experiencePlaceholder": "Bref aperçu de votre expérience professionnelle...",
+          "specialties": "Spécialités",
+          "specialtiesDesc": "Ajoutez des mots-clés décrivant votre expertise.",
+          "addSpecialty": "Ajouter une spécialité...",
+          "pastCompanies": "Anciennes entreprises",
+          "pastCompaniesDesc": "Ajoutez les entreprises où vous avez travaillé.",
+          "addCompany": "Ajouter une entreprise...",
+          "qualifications": "Diplômes et certifications",
+          "addQualification": "Ajouter un diplôme...",
+          "languages": "Langues",
+          "addLanguage": "Ajouter une langue...",
+          "timezone": "Fuseau horaire",
+          "timezonePlaceholder": "UTC",
+          "availabilityTitle": "Paramètres de disponibilité",
+          "availabilityDesc": "Définissez votre disponibilité hebdomadaire pour les sessions de coaching",
+          "save": "Enregistrer les modifications",
+          "saving": "Enregistrement...",
+          "errorUpdate": "Échec de la mise à jour du profil",
+          "errorUnexpected": "Une erreur inattendue s'est produite"
+        },
+        "payout": {
+          "title": "Informations de paiement",
+          "description": "Configurez le mode de réception de vos revenus",
+          "verified": "Vérifié",
+          "notVerified": "Non vérifié",
+          "method": "Méthode de paiement",
+          "selectMethod": "Sélectionner la méthode de paiement",
+          "bankTransfer": "Virement bancaire (ACH)",
+          "paypal": "PayPal",
+          "stripe": "Stripe Connect",
+          "bankName": "Nom de la banque",
+          "bankNamePlaceholder": "ex: BNP Paribas, Société Générale",
+          "accountHolder": "Nom du titulaire du compte",
+          "accountHolderPlaceholder": "Nom tel qu'il apparaît sur le compte",
+          "routing": "Numéro d'acheminement",
+          "routingPlaceholder": "9 chiffres",
+          "accountNumber": "Numéro de compte",
+          "accountNumberPlaceholder": "Numéro de compte",
+          "paypalEmail": "Email PayPal",
+          "paypalEmailPlaceholder": "votre@email.com",
+          "paypalInfo": "Les paiements seront envoyés sur ce compte PayPal. Assurez-vous que cet e-mail est associé à un compte PayPal vérifié.",
+          "stripeInfo": "Connectez votre compte Stripe pour recevoir vos paiements directement. C'est la méthode la plus rapide et la plus sûre.",
+          "connectStripe": "Connecter le compte Stripe",
+          "stripeConnected": "Compte Stripe connecté",
+          "save": "Enregistrer les paramètres de paiement",
+          "saving": "Enregistrement...",
+          "errorSave": "Échec de l'enregistrement des paramètres de paiement"
+        }
+      },
+      "messaging": {
+        "loading": "Chargement de la messagerie coach...",
+        "placeholder": "Écrivez un message à votre étudiant...",
+        "noConversations": "Aucune conversation pour le moment",
+        "noConversationsFound": "Aucune conversation trouvée",
+        "searchHint": "Rechercher des conversations...",
+        "emptyState": {
+          "title": "Bienvenue Coach !",
+          "message": "Sélectionnez une conversation pour commencer à échanger avec vos étudiants"
+        }
+      },
+      "availability": {
+        "title": "Paramètres de disponibilité",
+        "description": "Définissez votre disponibilité hebdomadaire pour les sessions de coaching",
+        "notAvailable": "Pas disponible",
+        "to": "à",
+        "saving": "Enregistrement...",
+        "save": "Enregistrer la disponibilité"
+      }
+    },
+    "admin": {
+      "platformOverview": "Aperçu de la plateforme",
+      "recentSignups": "Inscriptions récentes",
+      "signups": "Inscriptions",
+      "action": "Action",
+      "module": "Module",
+      "user": "Utilisateur",
+      "time": "Heure",
+      "role": "Rôle",
+      "date": "Date",
+      "noPlatformActivity": "Aucune activité sur la plateforme",
+      "noRecentSignups": "Aucune inscription récente",
+      "userManagement": "Gestion des utilisateurs",
+      "programManagement": "Gestion des programmes",
+      "eventManagement": "Gestion des événements",
+      "reviewManagement": "Gestion des avis"
+    }
+  },
+  "hero": {
+    "heading": "Propulsez votre carrière\navec Nebula",
+    "description": "Bénéficiez du coaching de carrière en ligne des meilleurs experts mondiaux pour vous aider à décrocher l'emploi de vos rêves.",
+    "searchPlaceholder": "Rechercher un coach ou une spécialité...",
+    "stats": {
+      "coaches": "Meilleurs Coachs",
+      "companies": "Entreprises",
+      "users": "Utilisateurs aidés"
+    }
+  },
+  "home": {
+    "intermediate": "Nous ne sommes pas seulement une plateforme d'IA. Nos coachs qualifiés travaillent à vos côtés, offrant des conseils d'experts qui améliorent votre expérience et accélèrent votre croissance.",
+    "features": {
+      "vetted": {
+        "title": "Coachs sélectionnés, résultats prouvés",
+        "description": "Nos coachs sont des leaders de l'industrie avec des années d'expérience dans leurs domaines respectifs."
+      },
+      "personalized": {
+        "title": "Parcours d'apprentissage personnalisés",
+        "description": "Un accompagnement sur mesure pour vous aider à atteindre vos objectifs et aspirations de carrière spécifiques."
+      },
+      "flexible": {
+        "title": "Horaires flexibles et assistance",
+        "description": "Réservez des séances qui correspondent à votre emploi du temps et bénéficiez du soutien de notre équipe dédiée."
+      }
+    },
+    "testimonials": {
+      "title": "Voici ce que vos pairs ont à dire",
+      "sarah": {
+        "role": "UX Designer",
+        "content": "Nebula m'a mise en relation avec un coach fantastique qui m'a aidée à décrocher l'emploi de mes rêves. Les conseils personnalisés ont tout changé !"
+      },
+      "david": {
+        "role": "Ingénieur Logiciel",
+        "content": "Les entretiens blancs étaient incroyablement réalistes. Je me sentais tellement plus confiant pour le vrai entretien. Je recommande vivement !"
+      },
+      "emily": {
+        "role": "Chef de Produit",
+        "content": "Je me sentais bloquée dans ma carrière. Mon coach m'a apporté la clarté et la stratégie dont j'avais besoin pour avancer. Merci, Nebula !"
+      }
+    }
+  },
+  "network": {
+    "title": "Communauté mondiale de Coachs",
+    "description": "Notre réseau se compose de professionnels issus d'institutions de renommée mondiale et d'entreprises de premier plan. Nous comblons le fossé entre la théorie académique et l'application dans le monde réel, en vous offrant un accès inégalé aux connaissances d'initiés et aux opportunités de carrière.",
+    "button": "Explorer le réseau"
+  },
+  "programs": {
+    "popular": {
+      "title": "Programmes Populaires",
+      "subtitle": "Explorez nos programmes de coaching les plus demandés, conçus pour la réussite.",
+      "empty": "Aucun programme populaire pour le moment."
+    }
+  },
+  "events": {
+    "upcoming": {
+      "title": "Événements à venir",
+      "subtitle": "Rejoignez des sessions en direct avec des experts du secteur pour améliorer vos compétences.",
+      "empty": "Aucun événement à venir pour le moment.",
+      "failed": "Échec du chargement des événements",
+      "register": "S'inscrire maintenant",
+      "attending": "{count, plural, one {# personne participe} other {# personnes participent}}"
+    }
+  },
+  "companies": {
+    "subtitle": "Certains de nos coachs travaillent ici"
+  },
+  "testimonials": {
+    "title": "Ce que nos utilisateurs disent"
+  },
+  "footer": {
+    "copyright": "© {year} Nebula, Inc. Tous droits réservés.",
+    "description": "Propulsez votre carrière.",
+    "sections": {
+      "programs": "Programmes",
+      "company": "Entreprise",
+      "resources": "Ressources",
+      "connect": "Réseaux"
+    },
+    "links": {
+      "career": "Programmes de carrière"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Connexion",
+      "subtitle": "Entrez votre email ci-dessous pour vous connecter à votre compte.",
+      "welcome": "Bon retour sur Nebula",
+      "description": "Connectez-vous pour poursuivre votre parcours et rejoindre notre communauté.",
+      "signIn": "Se connecter",
+      "signingIn": "Connexion en cours...",
+      "noAccount": "Vous n'avez pas de compte ?",
+      "backToWebsite": "Retour au site",
+      "orContinueWith": "Ou continuer avec",
+      "googleSignIn": "Se connecter avec Google"
+    },
+    "signup": {
+      "title": "Créer un compte",
+      "subtitle": "Entrez vos informations pour commencer.",
+      "welcome": "Commencez votre parcours avec Nebula",
+      "description": "Rejoignez une communauté d'apprenants et d'experts pour accélérer votre carrière.",
+      "signUp": "Créer un compte",
+      "signingUp": "Création du compte...",
+      "hasAccount": "Vous avez déjà un compte ?",
+      "fullName": "Nom complet",
+      "fullNamePlaceholder": "John Doe",
+      "passwordHint": "Au moins 6 caractères",
+      "passwordMismatch": "Les mots de passe ne correspondent pas",
+      "googleSignUp": "S'inscrire avec Google"
+    },
+    "coachLogin": {
+      "title": "Connexion Coach",
+      "subtitle": "Entrez votre email ci-dessous pour vous connecter à votre compte coach.",
+      "welcome": "Bon retour, Coach",
+      "description": "Connectez-vous pour gérer votre emploi du temps, échanger avec les étudiants et avoir un impact.",
+      "noAccount": "Vous n'avez pas de compte coach ?"
+    },
+    "coachSignup": {
+      "title": "Créer un compte Coach",
+      "subtitle": "Entrez vos informations pour commencer votre candidature.",
+      "welcome": "Rejoignez Nebula en tant que Coach",
+      "description": "Partagez votre expertise, accompagnez la prochaine génération de talents et travaillez selon votre propre horaire.",
+      "signUp": "Créer un compte",
+      "hasAccount": "Vous avez déjà un compte coach ?",
+      "googleSignUp": "S'inscrire avec Google"
+    },
+    "forgotPassword": {
+      "title": "Réinitialiser le mot de passe",
+      "subtitle": "Entrez votre adresse email et nous vous enverrons un lien pour réinitialiser votre mot de passe.",
+      "backToSignIn": "Retour à la connexion",
+      "sendLink": "Envoyer le lien",
+      "sending": "Envoi en cours...",
+      "checkEmail": {
+        "title": "Vérifiez vos emails",
+        "subtitle": "Nous avons envoyé un lien de réinitialisation à {email}",
+        "description": "Cliquez sur le lien dans votre email pour réinitialiser votre mot de passe. Si vous ne le voyez pas, vérifiez vos spams.",
+        "tryDifferent": "Essayer un autre email",
+        "backToSignIn": "Retour à la connexion"
+      }
+    },
+    "fields": {
+      "email": "Email",
+      "emailPlaceholder": "m@example.com",
+      "password": "Mot de passe",
+      "confirmPassword": "Confirmer le mot de passe",
+      "forgotPassword": "Mot de passe oublié ?"
+    }
+  }
+}

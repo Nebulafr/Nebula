@@ -23,14 +23,21 @@ import {
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiPost } from "@/lib/utils";
 import { handleAndToastError } from "@/lib/error-handler";
+import { useTranslations } from "next-intl";
 
-function truncateText(text: string | null | undefined, maxLength: number): string {
+function truncateText(
+  text: string | null | undefined,
+  maxLength: number,
+): string {
   if (!text) return "";
   if (text.length <= maxLength) return text;
   return text.slice(0, maxLength).trim() + "...";
 }
 
-export interface IProgram extends Omit<Program, 'category' | 'coach' | 'rating' | 'currentEnrollments'> {
+export interface IProgram extends Omit<
+  Program,
+  "category" | "coach" | "rating" | "currentEnrollments"
+> {
   category: {
     id: string;
     name: string;
@@ -53,20 +60,33 @@ interface ProgramCardProps {
   program: IProgram;
 }
 
-const getStatusBadge = (status: string) => {
-  const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
-    PENDING_APPROVAL: { label: "Pending Review", variant: "secondary" },
-    APPROVED: { label: "Approved - Sign & Submit", variant: "outline" },
-    SUBMITTED: { label: "Submitted", variant: "secondary" },
-    ACTIVE: { label: "Active", variant: "default" },
-    INACTIVE: { label: "Inactive", variant: "outline" },
-    REJECTED: { label: "Rejected", variant: "destructive" },
-  };
-  return statusConfig[status] || { label: status, variant: "outline" as const };
-};
-
 export function ProgramCard({ program }: ProgramCardProps) {
+  const t = useTranslations("dashboard.coach.programs.card");
   const queryClient = useQueryClient();
+
+  const getStatusBadge = (status: string) => {
+    const statusConfig: Record<
+      string,
+      {
+        label: string;
+        variant: "default" | "secondary" | "destructive" | "outline";
+      }
+    > = {
+      PENDING_APPROVAL: {
+        label: t("status.pendingApproval"),
+        variant: "secondary",
+      },
+      APPROVED: { label: t("status.approved"), variant: "outline" },
+      SUBMITTED: { label: t("status.submitted"), variant: "secondary" },
+      ACTIVE: { label: t("status.active"), variant: "default" },
+      INACTIVE: { label: t("status.inactive"), variant: "outline" },
+      REJECTED: { label: t("status.rejected"), variant: "destructive" },
+    };
+    return (
+      statusConfig[status] || { label: status, variant: "outline" as const }
+    );
+  };
+
   const statusBadge = getStatusBadge(program.status);
 
   const submitMutation = useMutation({
@@ -77,7 +97,7 @@ export function ProgramCard({ program }: ProgramCardProps) {
       queryClient.invalidateQueries({ queryKey: ["programs"] });
     },
     onError: (error: any) => {
-      handleAndToastError(error, "Failed to submit program");
+      handleAndToastError(error, t("submitError"));
     },
   });
 
@@ -98,28 +118,44 @@ export function ProgramCard({ program }: ProgramCardProps) {
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 -mt-1 -mr-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 -mt-1 -mr-1"
+              >
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem asChild>
-                <Link href={`/coach-dashboard/programs/${program.id}/edit`}>Edit</Link>
+                <Link href={`/coach-dashboard/programs/${program.id}/edit`}>
+                  {t("actions.edit")}
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href={`/programs/${program.slug}`}>View Details</Link>
+                <Link href={`/programs/${program.slug}`}>
+                  {t("actions.viewDetails")}
+                </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem>Add Session</DropdownMenuItem>
-              <DropdownMenuItem className="text-destructive">Archive</DropdownMenuItem>
+              <DropdownMenuItem>{t("actions.addSession")}</DropdownMenuItem>
+              <DropdownMenuItem className="text-destructive">
+                {t("actions.archive")}
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
         <div className="mb-2">
           <Badge variant={statusBadge.variant}>{statusBadge.label}</Badge>
         </div>
-        <h3 className="font-semibold text-lg">{truncateText(program.title, 50)}</h3>
-        <p className="text-xs text-muted-foreground mb-1">{program.category.name}</p>
-        <p className="text-sm text-muted-foreground mb-2">{truncateText(program.description, 100)}</p>
+        <h3 className="font-semibold text-lg">
+          {truncateText(program.title, 50)}
+        </h3>
+        <p className="text-xs text-muted-foreground mb-1">
+          {program.category.name}
+        </p>
+        <p className="text-sm text-muted-foreground mb-2">
+          {truncateText(program.description, 100)}
+        </p>
         <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
           <div className="flex items-center gap-1">
             <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
@@ -127,7 +163,9 @@ export function ProgramCard({ program }: ProgramCardProps) {
           </div>
           <div className="flex items-center gap-1">
             <Users className="h-4 w-4" />
-            <span>{program.currentEnrollments || 0} students</span>
+            <span>
+              {t("studentsCount", { count: program.currentEnrollments || 0 })}
+            </span>
           </div>
         </div>
         <div className="flex-grow" />
@@ -136,7 +174,7 @@ export function ProgramCard({ program }: ProgramCardProps) {
         {program.status === "APPROVED" && (
           <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
             <p className="text-sm text-blue-700 dark:text-blue-300 mb-2">
-              Your program has been approved! Sign the collaboration document and submit for publishing.
+              {t("approvedMessage")}
             </p>
             <Button
               className="w-full"
@@ -148,7 +186,7 @@ export function ProgramCard({ program }: ProgramCardProps) {
               ) : (
                 <FileSignature className="mr-2 h-4 w-4" />
               )}
-              Submit for Publishing
+              {t("submitForPublishing")}
             </Button>
           </div>
         )}
@@ -157,16 +195,18 @@ export function ProgramCard({ program }: ProgramCardProps) {
         {program.status === "ACTIVE" && (
           <div className="flex items-center gap-2 w-full mt-6">
             <Button variant="outline" className="w-full" asChild>
-              <Link href={`/programs/${program.slug}`}>View Details</Link>
+              <Link href={`/programs/${program.slug}`}>
+                {t("actions.viewDetails")}
+              </Link>
             </Button>
-            <Button className="w-full">Run Program</Button>
+            <Button className="w-full">{t("actions.runProgram")}</Button>
           </div>
         )}
 
         {program.status === "PENDING_APPROVAL" && (
           <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-950/30 rounded-lg border border-yellow-200 dark:border-yellow-800">
             <p className="text-sm text-yellow-700 dark:text-yellow-300">
-              Your program is under review. You'll be notified once it's approved.
+              {t("pendingMessage")}
             </p>
           </div>
         )}
@@ -174,7 +214,7 @@ export function ProgramCard({ program }: ProgramCardProps) {
         {program.status === "SUBMITTED" && (
           <div className="mt-4 p-3 bg-purple-50 dark:bg-purple-950/30 rounded-lg border border-purple-200 dark:border-purple-800">
             <p className="text-sm text-purple-700 dark:text-purple-300">
-              Your program has been submitted. Waiting for admin to publish.
+              {t("submittedMessage")}
             </p>
           </div>
         )}
@@ -182,7 +222,7 @@ export function ProgramCard({ program }: ProgramCardProps) {
         {program.status === "REJECTED" && (
           <div className="mt-4 p-3 bg-red-50 dark:bg-red-950/30 rounded-lg border border-red-200 dark:border-red-800">
             <p className="text-sm text-red-700 dark:text-red-300">
-              This program was not approved. Please contact support for more information.
+              {t("rejectedMessage")}
             </p>
           </div>
         )}
@@ -190,7 +230,9 @@ export function ProgramCard({ program }: ProgramCardProps) {
         {(program.status === "INACTIVE" || !program.status) && (
           <div className="flex items-center gap-2 w-full mt-6">
             <Button variant="outline" className="w-full" asChild>
-              <Link href={`/programs/${program.slug}`}>View Details</Link>
+              <Link href={`/programs/${program.slug}`}>
+                {t("actions.viewDetails")}
+              </Link>
             </Button>
           </div>
         )}

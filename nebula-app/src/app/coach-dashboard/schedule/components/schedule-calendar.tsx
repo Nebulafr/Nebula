@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ChevronLeft, ChevronRight, Calendar } from "lucide-react";
 import { cn, getStartOfWeek } from "@/lib/utils";
+import { useTranslations, useLocale } from "next-intl";
 
 export interface ScheduleSession {
   id: string;
@@ -33,6 +34,9 @@ export function ScheduleCalendar({
   sessions,
   loading = false,
 }: ScheduleCalendarProps) {
+  const t = useTranslations("dashboard.coach.schedule.calendar");
+  const locale = useLocale();
+
   const currentWeekStart = useMemo(() => {
     return getStartOfWeek(selectedDate || new Date());
   }, [selectedDate]);
@@ -70,10 +74,10 @@ export function ScheduleCalendar({
   const formatWeekRange = () => {
     const endOfWeek = new Date(currentWeekStart);
     endOfWeek.setDate(currentWeekStart.getDate() + 6);
-    const startMonth = currentWeekStart.toLocaleDateString("en-US", {
+    const startMonth = currentWeekStart.toLocaleDateString(locale, {
       month: "short",
     });
-    const endMonth = endOfWeek.toLocaleDateString("en-US", { month: "short" });
+    const endMonth = endOfWeek.toLocaleDateString(locale, { month: "short" });
     const startDay = currentWeekStart.getDate();
     const endDay = endOfWeek.getDate();
     const year = endOfWeek.getFullYear();
@@ -113,11 +117,11 @@ export function ScheduleCalendar({
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <Calendar className="h-5 w-5" />
-            Weekly Schedule
+            {t("title")}
           </CardTitle>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={goToToday}>
-              Today
+              {t("today")}
             </Button>
             <Button
               variant="outline"
@@ -161,7 +165,7 @@ export function ScheduleCalendar({
               >
                 <div className="text-center mb-2">
                   <div className="text-xs text-muted-foreground">
-                    {day.toLocaleDateString("en-US", { weekday: "short" })}
+                    {day.toLocaleDateString(locale, { weekday: "short" })}
                   </div>
                   <div
                     className={cn(
@@ -189,7 +193,7 @@ export function ScheduleCalendar({
                       )}
                     >
                       {new Date(session.scheduledTime).toLocaleTimeString(
-                        "en-US",
+                        locale,
                         {
                           hour: "numeric",
                           minute: "2-digit",
@@ -199,7 +203,7 @@ export function ScheduleCalendar({
                   ))}
                   {daySessions.length > 3 && (
                     <Badge variant="secondary" className="text-xs">
-                      +{daySessions.length - 3} more
+                      +{daySessions.length - 3} {t("more")}
                     </Badge>
                   )}
                 </div>

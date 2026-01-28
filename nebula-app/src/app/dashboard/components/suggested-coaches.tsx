@@ -15,7 +15,7 @@ import {
 import Link from "next/link";
 import { UserProfile } from "@/hooks/use-user";
 import { CoachWithRelations } from "@/types/coach";
-import { useLanguage } from "@/contexts/language-context";
+import { useTranslations } from "next-intl";
 
 interface SuggestedCoachesProps {
   coaches: CoachWithRelations[];
@@ -28,17 +28,18 @@ export function SuggestedCoaches({
   user,
   loading = false,
 }: SuggestedCoachesProps) {
-  const { isFrench } = useLanguage();
+  const t = useTranslations("dashboard.student");
+  const tc = useTranslations("common");
 
   if (loading) {
     return (
       <div>
         <div className="flex items-center justify-between">
           <h3 className="text-xl font-bold tracking-tight">
-            Browse <span className="notranslate">{isFrench ? "Coachs" : "Coaches"}</span>
+            {t("suggestedCoaches")}
           </h3>
           <Button variant="link" disabled>
-            See All <ArrowRight className="ml-2 h-4 w-4" />
+            {tc("seeAll")} <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </div>
         <div className="mt-6">
@@ -60,11 +61,11 @@ export function SuggestedCoaches({
       <div>
         <div className="flex items-center justify-between">
           <h3 className="text-xl font-bold tracking-tight">
-            Browse <span className="notranslate">{isFrench ? "Coachs" : "Coaches"}</span>
+            {t("suggestedCoaches")}
           </h3>
           <Button variant="link" asChild>
             <Link href="/coaches">
-              See All <ArrowRight className="ml-2 h-4 w-4" />
+              {tc("seeAll")} <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
         </div>
@@ -75,15 +76,14 @@ export function SuggestedCoaches({
                 <UserCheck className="h-8 w-8 text-muted-foreground" />
               </div>
               <h3 className="text-lg font-semibold mb-2">
-                No Coach Suggestions Yet
+                {t("noCoachSuggestions")}
               </h3>
               <p className="text-sm text-muted-foreground mb-6 max-w-sm">
-                We&apos;re finding the perfect coaches for you based on your
-                interests. Explore all coaches to find your match.
+                {t("findingPerfectCoaches")}
               </p>
               <Button asChild>
                 <Link href="/coaches">
-                  Browse All <span className="notranslate">{isFrench ? "Coachs" : "Coaches"}</span>
+                  {t("browseAllCoaches", { coaches: tc("coaches") })}
                 </Link>
               </Button>
             </CardContent>
@@ -97,11 +97,11 @@ export function SuggestedCoaches({
     <div>
       <div className="flex items-center justify-between">
         <h3 className="text-xl font-bold tracking-tight">
-          Browse <span className="notranslate">{isFrench ? "Coachs" : "Coaches"}</span>
+          {t("suggestedCoaches")}
         </h3>
         <Button variant="link" asChild>
           <Link href="/coaches">
-            See All <ArrowRight className="ml-2 h-4 w-4" />
+            {tc("seeAll")} <ArrowRight className="ml-2 h-4 w-4" />
           </Link>
         </Button>
       </div>
@@ -165,11 +165,11 @@ export function SuggestedCoaches({
                       <div className="mt-4 flex items-center justify-center gap-1">
                         <Users className="h-4 w-4 text-muted-foreground" />
                         <span className="text-sm text-muted-foreground">
-                          {coach.studentsCoached}+ students
+                          {coach.studentsCoached}+ {tc("students").toLowerCase()}
                         </span>
                       </div>
                       <Button variant="outline" className="mt-4 w-full">
-                        View Profile
+                        {t("viewProfile")}
                       </Button>
                     </CardContent>
                   </Card>

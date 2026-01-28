@@ -9,13 +9,16 @@ import { ExternalLink, Loader2 } from "lucide-react";
 import { usePublicEvents } from "@/hooks";
 import { Event } from "@/types/event";
 import { getEventBackgroundColor, getDefaultAvatar, getAccessTypeText } from "@/lib/event-utils";
+import { useTranslations, useFormatter } from "next-intl";
 
 function EventCard({ event, index, previousIndex }: { event: Event; index: number; previousIndex?: number }) {
+  const t = useTranslations("events.upcoming");
+  const format = useFormatter();
   const eventDate = new Date(event.date);
   const color = getEventBackgroundColor(index, previousIndex);
 
   const formatEventDate = (date: Date) => {
-    return date.toLocaleDateString("en-US", {
+    return format.dateTime(date, {
       weekday: "long",
       month: "long",
       day: "numeric",
@@ -23,7 +26,7 @@ function EventCard({ event, index, previousIndex }: { event: Event; index: numbe
   };
 
   const formatEventTime = (date: Date) => {
-    return date.toLocaleTimeString("en-US", {
+    return format.dateTime(date, {
       hour: "numeric",
       minute: "2-digit",
       hour12: true,
@@ -94,8 +97,7 @@ function EventCard({ event, index, previousIndex }: { event: Event; index: numbe
           </div>
           {event.attendees > 0 && (
             <span className="ml-3 text-xs font-medium text-muted-foreground">
-              {event.attendees > 3 && `+${event.attendees - 3} `}
-              {event.attendees === 1 ? "person" : "people"} attending
+              {t("attending", { count: event.attendees })}
             </span>
           )}
         </div>
@@ -106,7 +108,7 @@ function EventCard({ event, index, previousIndex }: { event: Event; index: numbe
           className="w-2/3 bg-gray-900 text-white hover:bg-gray-800 text-left"
         >
           <Link href={eventUrl}>
-            Register now <ExternalLink className="ml-2 h-4 w-4" />
+            {t("register")} <ExternalLink className="ml-2 h-4 w-4" />
           </Link>
         </Button>
       </div>
@@ -115,6 +117,7 @@ function EventCard({ event, index, previousIndex }: { event: Event; index: numbe
 }
 
 export function UpcomingEventsSection() {
+  const t = useTranslations("events.upcoming");
   const {
     data: eventsResponse,
     isLoading: loading,
@@ -134,13 +137,13 @@ export function UpcomingEventsSection() {
       <section className="py-20 sm:py-32">
         <div className="container">
           <div className="text-left">
-            <h2 className="font-headline">Upcoming Events</h2>
+            <h2 className="font-headline">{t("title")}</h2>
             <p className="mt-4 max-w-2xl text-lg text-muted-foreground">
-              Join live sessions with industry experts to level up your skills.
+              {t("subtitle")}
             </p>
           </div>
           <div className="mt-12 text-center">
-            <p className="text-muted-foreground">Failed to load events</p>
+            <p className="text-muted-foreground">{t("failed")}</p>
           </div>
         </div>
       </section>
@@ -151,9 +154,9 @@ export function UpcomingEventsSection() {
     <section className="py-20 sm:py-32">
       <div className="container">
         <div className="text-left">
-          <h2 className="font-headline">Upcoming Events</h2>
+          <h2 className="font-headline">{t("title")}</h2>
           <p className="mt-4 max-w-2xl text-lg text-muted-foreground">
-            Join live sessions with industry experts to level up your skills.
+            {t("subtitle")}
           </p>
         </div>
         <div className="mt-12 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
@@ -185,7 +188,7 @@ export function UpcomingEventsSection() {
           ) : (
             <div className="col-span-full text-center">
               <p className="text-muted-foreground">
-                No upcoming events at the moment.
+                {t("empty")}
               </p>
             </div>
           )}

@@ -1,8 +1,8 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign, Users, UserPlus, Briefcase } from "lucide-react";
-import { useLanguage } from "@/contexts/language-context";
+import { Users, CreditCard, UserPlus, GraduationCap, Loader2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface StatCardProps {
   title: React.ReactNode;
@@ -41,20 +41,23 @@ interface StatsCardsProps {
   loading?: boolean;
 }
 
-export function StatsCards({ stats, loading = false }: StatsCardsProps) {
-  const { isFrench } = useLanguage();
+export function StatsCards({ stats, loading }: StatsCardsProps) {
+  const t = useTranslations("dashboard.coach");
+  const tc = useTranslations("common");
+  const td = useTranslations("dashboard.admin");
+
   if (loading) {
     return (
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {[1, 2, 3, 4].map((i) => (
-          <Card key={i}>
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Card key={i} className="animate-pulse">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <div className="h-4 w-20 bg-gray-200 rounded animate-pulse" />
-              <div className="h-4 w-4 bg-gray-200 rounded animate-pulse" />
+              <div className="h-4 w-24 bg-gray-200 rounded" />
+              <div className="h-4 w-4 bg-gray-200 rounded-full" />
             </CardHeader>
             <CardContent>
-              <div className="h-8 w-24 bg-gray-200 rounded animate-pulse mb-1" />
-              <div className="h-3 w-32 bg-gray-200 rounded animate-pulse" />
+              <div className="h-8 w-16 bg-gray-200 rounded mb-2" />
+              <div className="h-3 w-32 bg-gray-200 rounded" />
             </CardContent>
           </Card>
         ))}
@@ -64,34 +67,56 @@ export function StatsCards({ stats, loading = false }: StatsCardsProps) {
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      <StatCard
-        title="Total Revenue"
-        value={stats.revenue.value}
-        change={stats.revenue.change}
-        icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
-      />
-      <StatCard
-        title="Total Users"
-        value={stats.users.value}
-        change={stats.users.change}
-        icon={<Users className="h-4 w-4 text-muted-foreground" />}
-      />
-      <StatCard
-        title="New Sign-ups"
-        value={stats.signups.value}
-        change={stats.signups.change}
-        icon={<UserPlus className="h-4 w-4 text-muted-foreground" />}
-      />
-      <StatCard
-        title={
-          <span>
-            Active <span className="notranslate">{isFrench ? "Coachs" : "Coaches"}</span>
-          </span>
-        }
-        value={stats.coaches.value}
-        change={stats.coaches.change}
-        icon={<Briefcase className="h-4 w-4 text-muted-foreground" />}
-      />
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">{t("totalRevenue")}</CardTitle>
+          <CreditCard className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{stats.revenue.value}</div>
+          <p className="text-xs text-muted-foreground">
+            {t("fromLastMonth", { change: stats.revenue.change.split("%")[0].replace("+", "") })}
+          </p>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">{tc("users")}</CardTitle>
+          <Users className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{stats.users.value}</div>
+          <p className="text-xs text-muted-foreground">
+            {t("fromLastMonth", { change: stats.users.change.split(" ")[0].replace("+", "") })}
+          </p>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">{td("signups")}</CardTitle>
+          <UserPlus className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{stats.signups.value}</div>
+          <p className="text-xs text-muted-foreground">
+            {t("fromLastMonth", { change: stats.signups.change.split("%")[0].replace("+", "") })}
+          </p>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">
+            {tc("activeCoaches")}
+          </CardTitle>
+          <GraduationCap className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{stats.coaches.value}</div>
+          <p className="text-xs text-muted-foreground">
+            {t("sinceLastMonth", { count: stats.coaches.change.split(" ")[0].replace("+", "") })}
+          </p>
+        </CardContent>
+      </Card>
     </div>
   );
 }

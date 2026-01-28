@@ -16,10 +16,11 @@ import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { UserRole } from "@/generated/prisma";
-import { toast } from "react-toastify";
+import { useTranslations } from "next-intl";
 import { useAuthActions } from "@/hooks/use-auth";
 import { AuthPageGuard } from "@/components/auth/protected-route";
 import { handleAndToastError } from "@/lib/error-handler";
+import { toast } from "react-toastify";
 
 function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -54,14 +55,25 @@ export default function CoachSignupPage() {
   const signupImage = PlaceHolderImages.find((img) => img.id === "about-story");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const { signUp, signInWithGoogle } = useAuthActions();
+  const t = useTranslations("auth.coachSignup");
+  const ts = useTranslations("auth.signup");
+  const f = useTranslations("auth.fields");
+  const tl = useTranslations("auth.login");
+  const c = useTranslations("common");
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (loading) return;
+
+    if (password !== confirmPassword) {
+      toast.error(ts("passwordMismatch"));
+      return;
+    }
 
     setLoading(true);
 
@@ -73,7 +85,7 @@ export default function CoachSignupPage() {
         role: UserRole.COACH,
       });
     } catch (error: any) {
-      handleAndToastError(error, "Failed to create account");
+      handleAndToastError(error, ts("signingUp") === "Creating account..." ? "Failed to create account" : "Échec de la création du compte");
     } finally {
       setLoading(false);
     }
@@ -88,7 +100,7 @@ export default function CoachSignupPage() {
       const response = await signInWithGoogle(UserRole.COACH);
     } catch (error: any) {
       if (error?.message !== "Redirecting to Google sign-in...") {
-        handleAndToastError(error, "Failed to sign in with Google");
+        handleAndToastError(error, tl("signingIn") === "Signing in..." ? "Failed to sign in with Google" : "Échec de la connexion avec Google");
       }
     } finally {
       setLoading(false);
@@ -110,10 +122,11 @@ export default function CoachSignupPage() {
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
           <div className="absolute bottom-8 left-8 text-white">
-            <h2 className="text-4xl font-bold">Join Nebula as a Coach</h2>
+            <h2 className="text-4xl font-bold">
+              {t("welcome")}
+            </h2>
             <p className="mt-2 max-w-lg">
-              Share your expertise, mentor the next generation of talent, and
-              earn on your own schedule.
+              {t("description")}
             </p>
           </div>
         </div>
@@ -126,40 +139,40 @@ export default function CoachSignupPage() {
                   className="flex items-center gap-2 mb-4 text-sm font-medium text-muted-foreground hover:text-foreground"
                 >
                   <ArrowLeft className="h-4 w-4" />
-                  Back to website
+                  {tl("backToWebsite")}
                 </Link>
                 <CardTitle className="text-3xl font-bold text-primary">
-                  Create a Coach Account
+                  {t("title")}
                 </CardTitle>
                 <CardDescription>
-                  Enter your information to get started with your application.
+                  {t("subtitle")}
                 </CardDescription>
               </CardHeader>
               <form onSubmit={handleSignup}>
                 <CardContent className="grid gap-4 p-0 mt-6">
                   <div className="grid gap-2">
-                    <Label htmlFor="full-name">Full Name</Label>
+                    <Label htmlFor="full-name">{ts("fullName")}</Label>
                     <Input
                       id="full-name"
-                      placeholder="John Doe"
+                      placeholder={ts("fullNamePlaceholder")}
                       required
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                     />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="email">Email</Label>
+                    <Label htmlFor="email">{f("email")}</Label>
                     <Input
                       id="email"
                       type="email"
-                      placeholder="m@example.com"
+                      placeholder={f("emailPlaceholder")}
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                     />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="password">Password</Label>
+                    <Label htmlFor="password">{f("password")}</Label>
                     <div className="relative">
                       <Input
                         id="password"
@@ -184,13 +197,47 @@ export default function CoachSignupPage() {
                       </Button>
                     </div>
                   </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="confirm-password">{f("confirmPassword")}</Label>
+                    <div className="relative">
+                      <Input
+                        id="confirm-password"
+                        type={showPassword ? "text" : "password"}
+                        required
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        className="pr-10"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
+                    {confirmPassword && password !== confirmPassword && (
+                      <p className="text-xs text-destructive">
+                        {ts("passwordMismatch")}
+                      </p>
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                      {ts("passwordHint")}
+                    </p>
+                  </div>
                   <Button
                     type="submit"
                     className="w-full"
                     size="lg"
-                    disabled={loading}
+                    disabled={loading || password !== confirmPassword}
                   >
-                    {loading ? "Creating account..." : "Create an account"}
+                    {loading ? ts("signingUp") : t("signUp")}
                   </Button>
                 </CardContent>
               </form>
@@ -202,13 +249,13 @@ export default function CoachSignupPage() {
                 disabled={loading}
               >
                 <GoogleIcon className="mr-2 h-5 w-5" />
-                {loading ? "Signing up..." : "Sign up with Google"}
+                {loading ? ts("signingUp") : t("googleSignUp")}
               </Button>
             </Card>
             <div className="mt-4 text-center text-sm">
-              Already have a coach account?{" "}
-              <Link href="/login" className="underline">
-                Log in
+              {t("hasAccount")}{" "}
+              <Link href="/coach-login" className="underline">
+                {c("login")}
               </Link>
             </div>
           </div>

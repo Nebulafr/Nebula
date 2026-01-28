@@ -8,7 +8,10 @@ import { usePrograms } from "@/hooks";
 import { useAuth } from "@/hooks/use-auth";
 import { ProgramCard } from "./components/program-card";
 
+import { useTranslations } from "next-intl";
+
 export default function CoachProgramsPage() {
+  const t = useTranslations("dashboard.coach.programs");
   const { profile } = useAuth();
   const { data: programsResponse, isLoading: loading } = usePrograms({
     coachId: profile?.coach?.id,
@@ -20,7 +23,7 @@ export default function CoachProgramsPage() {
     return (
       <div className="flex-1 space-y-4 p-4 md:p-8">
         <div className="flex items-center justify-between">
-          <h2 className="text-3xl font-bold tracking-tight">My Programs</h2>
+          <h2 className="text-3xl font-bold tracking-tight">{t("title")}</h2>
         </div>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {[...Array(3)].map((_, i) => (
@@ -49,11 +52,11 @@ export default function CoachProgramsPage() {
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8">
       <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">My Programs</h2>
+        <h2 className="text-3xl font-bold tracking-tight">{t("title")}</h2>
         <Button asChild>
           <Link href="/coach-dashboard/programs/propose/step-1">
             <PlusCircle className="mr-2 h-4 w-4" />
-            Propose a Program
+            {t("propose")}
           </Link>
         </Button>
       </div>
@@ -66,15 +69,15 @@ export default function CoachProgramsPage() {
                 <Briefcase className="h-8 w-8 text-gray-400" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold">No programs yet</h3>
+                <h3 className="text-lg font-semibold">{t("noPrograms")}</h3>
                 <p className="text-muted-foreground">
-                  Propose your first program to get started.
+                  {t("noProgramsDesc")}
                 </p>
               </div>
               <Button asChild>
                 <Link href="/coach-dashboard/programs/propose/step-1">
                   <PlusCircle className="mr-2 h-4 w-4" />
-                  Propose a Program
+                  {t("propose")}
                 </Link>
               </Button>
             </div>

@@ -8,7 +8,7 @@ const GOOGLE_REFRESH_TOKEN_KEY = "googleRefreshToken";
 const cookies = new Cookies();
 
 const cookieOptions = {
-  httpOnly: false,
+  httpOnly: false, // Must be accessible by client-side auth-storage
   secure: process.env.NODE_ENV === "production",
   sameSite: "lax" as const,
   maxAge: 60 * 60 * 24 * 7, // 7 days

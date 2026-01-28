@@ -14,6 +14,8 @@ import {
   Calendar,
 } from "lucide-react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import {
   SidebarProvider,
   Sidebar,
@@ -34,16 +36,18 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 
 function TopBar() {
+  const t = useTranslations("common");
+  const td = useTranslations("dashboard.admin"); // Fallback for some titles
   const pathname = usePathname();
-  let pageTitle = "Dashboard";
+  let pageTitle = t("dashboard");
   if (pathname.includes("/programs")) {
-    pageTitle = "Programs";
+    pageTitle = t("programs");
   } else if (pathname.includes("/coaches")) {
-    pageTitle = "Coaches";
+    pageTitle = t("coaches");
   } else if (pathname.includes("/messaging")) {
-    pageTitle = "Messaging";
+    pageTitle = t("messaging");
   } else if (pathname.includes("/my-sessions")) {
-    pageTitle = "My Sessions";
+    pageTitle = t("mySessions");
   }
 
   return (
@@ -58,13 +62,14 @@ function TopBar() {
           <Button variant="ghost" size="sm" asChild>
             <Link href="/">
               <ExternalLink className="mr-2 h-4 w-4" />
-              Go to Homepage
+              {t("goToHomepage")}
             </Link>
           </Button>
           <div className="relative hidden md:block">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input placeholder="Search..." className="pl-9 w-64" />
+            <Input placeholder={t("search") + "..."} className="pl-9 w-64" />
           </div>
+          <LanguageSwitcher />
           <Button variant="ghost" size="icon">
             <Bell className="h-5 w-5" />
           </Button>
@@ -75,12 +80,13 @@ function TopBar() {
 }
 
 function CollapseButton() {
+  const t = useTranslations("common");
   const { toggleSidebar } = useSidebar();
   return (
     <SidebarMenuItem>
-      <SidebarMenuButton tooltip="Collapse" onClick={() => toggleSidebar()}>
+      <SidebarMenuButton tooltip={t("collapse")} onClick={() => toggleSidebar()}>
         <PanelLeft />
-        <span>Collapse</span>
+        <span>{t("collapse")}</span>
       </SidebarMenuButton>
     </SidebarMenuItem>
   );
@@ -91,6 +97,8 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const t = useTranslations("common");
+  const tc = useTranslations("dashboard.coach");
   const pathname = usePathname();
   const { profile } = useAuth();
 
@@ -111,7 +119,7 @@ export default function DashboardLayout({
                 </AvatarFallback>
               </Avatar>
               <span className="font-headline text-lg font-bold">
-                {profile?.fullName || "Student"}
+                {profile?.fullName || tc("student")}
               </span>
             </div>
           </div>
@@ -121,13 +129,13 @@ export default function DashboardLayout({
             <SidebarMenuItem>
               <Link href="/dashboard">
                 <SidebarMenuButton
-                  tooltip="Dashboard"
+                  tooltip={t("dashboard")}
                   isActive={pathname === "/dashboard"}
                   asChild
                 >
                   <div>
                     <Home />
-                    <span>Dashboard</span>
+                    <span>{t("dashboard")}</span>
                   </div>
                 </SidebarMenuButton>
               </Link>
@@ -135,13 +143,13 @@ export default function DashboardLayout({
             <SidebarMenuItem>
               <Link href="/programs">
                 <SidebarMenuButton
-                  tooltip="Programs"
+                  tooltip={t("programs")}
                   isActive={pathname.startsWith("/programs")}
                   asChild
                 >
                   <div>
                     <Briefcase />
-                    <span>Programs</span>
+                    <span>{t("programs")}</span>
                   </div>
                 </SidebarMenuButton>
               </Link>
@@ -149,13 +157,13 @@ export default function DashboardLayout({
             <SidebarMenuItem>
               <Link href="/coaches">
                 <SidebarMenuButton
-                  tooltip="Coaches"
+                  tooltip={t("coaches")}
                   isActive={pathname.startsWith("/coaches")}
                   asChild
                 >
                   <div>
                     <Users />
-                    <span>Coaches</span>
+                    <span>{t("coaches")}</span>
                   </div>
                 </SidebarMenuButton>
               </Link>
@@ -163,13 +171,13 @@ export default function DashboardLayout({
             <SidebarMenuItem>
               <Link href="/dashboard/my-sessions">
                 <SidebarMenuButton
-                  tooltip="My Sessions"
+                  tooltip={t("mySessions")}
                   isActive={pathname.startsWith("/dashboard/my-sessions")}
                   asChild
                 >
                   <div>
                     <Calendar />
-                    <span>My Sessions</span>
+                    <span>{t("mySessions")}</span>
                   </div>
                 </SidebarMenuButton>
               </Link>
@@ -177,13 +185,13 @@ export default function DashboardLayout({
             <SidebarMenuItem>
               <Link href="/dashboard/messaging">
                 <SidebarMenuButton
-                  tooltip="Messaging"
+                  tooltip={t("messaging")}
                   isActive={pathname === "/dashboard/messaging"}
                   asChild
                 >
                   <div>
                     <MessageSquare />
-                    <span>Messaging</span>
+                    <span>{t("messaging")}</span>
                   </div>
                 </SidebarMenuButton>
               </Link>
@@ -195,10 +203,10 @@ export default function DashboardLayout({
             <CollapseButton />
             <SidebarMenuItem>
               <Link href="#">
-                <SidebarMenuButton tooltip="Help" asChild>
+                <SidebarMenuButton tooltip={t("help")} asChild>
                   <div>
                     <CircleHelp />
-                    <span>Help</span>
+                    <span>{t("help")}</span>
                   </div>
                 </SidebarMenuButton>
               </Link>
@@ -206,13 +214,13 @@ export default function DashboardLayout({
             <SidebarMenuItem>
               <Link href="/dashboard/settings">
                 <SidebarMenuButton
-                  tooltip="Settings"
+                  tooltip={t("settings")}
                   isActive={pathname === "/dashboard/settings"}
                   asChild
                 >
                   <div>
                     <Settings />
-                    <span>Settings</span>
+                    <span>{t("settings")}</span>
                   </div>
                 </SidebarMenuButton>
               </Link>

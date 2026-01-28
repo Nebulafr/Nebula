@@ -10,7 +10,6 @@ export async function POST(request: NextRequest) {
     cookieStore.delete(AUTH_TOKEN_KEY);
     cookieStore.delete(USER_DATA_KEY);
     cookieStore.delete("auth-token"); // legacy cleanup
-
     return NextResponse.json({
       success: true,
       message: "Logged out successfully",

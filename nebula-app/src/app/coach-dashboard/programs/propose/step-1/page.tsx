@@ -10,45 +10,43 @@ import { Label } from "@/components/ui/label";
 import { Stepper } from "../components/stepper";
 import { useProposeProgramContext } from "../context/propose-program-context";
 
-const CONDITIONS = [
-  {
-    key: "isExpert" as const,
-    label:
-      "I am an expert in the topic I'm proposing and have significant real-world experience.",
-  },
-  {
-    key: "canCommit" as const,
-    label:
-      "I can commit to hosting live sessions and providing feedback for the duration of the 3-week program.",
-  },
-  {
-    key: "isOriginal" as const,
-    label:
-      "The materials and structure I provide are my original work or I have the rights to use them.",
-  },
-];
+import { useTranslations } from "next-intl";
 
 export default function ProposeStep1Page() {
+  const t = useTranslations("dashboard.coach.programs.proposeFlow.step1");
   const { formData, updateAcknowledgments, isStep1Valid } =
     useProposeProgramContext();
+
+  const CONDITIONS = [
+    {
+      key: "isExpert" as const,
+      label: t("condition1"),
+    },
+    {
+      key: "canCommit" as const,
+      label: t("condition2"),
+    },
+    {
+      key: "isOriginal" as const,
+      label: t("condition3"),
+    },
+  ];
 
   return (
     <Card className="w-full max-w-4xl shadow-lg">
       <CardContent className="p-8">
         <Stepper currentStep={1} />
         <div className="text-center mt-12">
-          <h1 className="text-3xl font-bold">Propose an Immersion Program</h1>
+          <h1 className="text-3xl font-bold">{t("title")}</h1>
           <p className="mt-2 text-muted-foreground max-w-3xl mx-auto">
-            Nebula Immersion Programs are selective, cohort-based experiences
-            led by industry experts. They are designed to provide students with
-            hands-on, practical skills.
+            {t("description")}
           </p>
         </div>
 
         <Card className="mt-8 bg-muted/50 border-dashed">
           <CardContent className="p-6">
             <h3 className="font-semibold text-center mb-6">
-              Application Conditions
+              {t("conditions")}
             </h3>
             <div className="space-y-4">
               {CONDITIONS.map((condition) => (
@@ -75,7 +73,7 @@ export default function ProposeStep1Page() {
 
         <div className="flex justify-between mt-12">
           <Button asChild variant="outline" size="lg">
-            <Link href="/coach-dashboard/programs">Cancel</Link>
+            <Link href="/coach-dashboard/programs">{t("cancel")}</Link>
           </Button>
           <Button asChild size="lg" disabled={!isStep1Valid}>
             <Link
@@ -83,7 +81,7 @@ export default function ProposeStep1Page() {
                 isStep1Valid ? "/coach-dashboard/programs/propose/step-2" : "#"
               }
             >
-              Next <ArrowRight className="ml-2 h-4 w-4" />
+              {t("next")} <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
         </div>

@@ -8,16 +8,30 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Briefcase, UserPlus, Users, TrendingUp, AlertCircle } from "lucide-react";
+import {
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
+} from "@/components/ui/table";
+import { formatDistanceToNow } from "date-fns";
+import { enUS, fr } from "date-fns/locale";
+import { useTranslations, useLocale } from "next-intl";
 
 interface PlatformActivity {
   type: string;
+  action?: string;
   description: string;
-  time: string;
-  icon?: string;
+  module?: string;
+  user?: string;
+  createdAt: string;
+  time?: string;
 }
 
 interface PlatformOverviewProps {
-  activities: PlatformActivity[];
+  activities: any[]; // Changed to any to be safe with incoming data
   loading?: boolean;
 }
 
@@ -38,12 +52,16 @@ function ActivityIcon({ type }: { type: string }) {
 }
 
 export function PlatformOverview({ activities, loading = false }: PlatformOverviewProps) {
+  const t = useTranslations("dashboard.admin");
+  const locale = useLocale();
+  const dateLocale = locale === "fr" ? fr : enUS;
+
   if (loading) {
     return (
       <Card className="col-span-4 lg:col-span-3">
         <CardHeader>
-          <CardTitle>Platform Overview</CardTitle>
-          <CardDescription>Recent platform-wide activity.</CardDescription>
+          <CardTitle>{t("platformOverview")}</CardTitle>
+          <CardDescription>{t("recentPlatformActivity")}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
@@ -65,31 +83,51 @@ export function PlatformOverview({ activities, loading = false }: PlatformOvervi
   return (
     <Card className="col-span-4 lg:col-span-3">
       <CardHeader>
-        <CardTitle>Platform Overview</CardTitle>
-        <CardDescription>Recent platform-wide activity.</CardDescription>
+        <CardTitle>{t("platformOverview")}</CardTitle>
+        <CardDescription>{t("recentPlatformActivity")}</CardDescription>
       </CardHeader>
       <CardContent>
-        {activities.length === 0 ? (
-          <div className="flex items-center justify-center h-32 text-muted-foreground">
-            <p>No recent activity to display.</p>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {activities.map((activity, index) => (
-              <div key={index} className="flex items-start">
-                <ActivityIcon type={activity.type} />
-                <div className="ml-4 space-y-1">
-                  <p className="text-sm font-medium leading-none">
-                    {activity.description}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {activity.time}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>{t("action")}</TableHead>
+              <TableHead>{t("module")}</TableHead>
+              <TableHead>{t("user")}</TableHead>
+              <TableHead className="text-right">{t("time")}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {activities.length > 0 ? (
+              activities.map((activity, index) => (
+                <TableRow key={index}>
+                  <TableCell className="font-medium">
+                    <div className="flex items-center">
+                      <ActivityIcon type={activity.type} />
+                      <span className="ml-3">{activity.action || activity.description}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell>{activity.module || "N/A"}</TableCell>
+                  <TableCell>{activity.user || "N/A"}</TableCell>
+                  <TableCell className="text-right text-muted-foreground">
+                    {formatDistanceToNow(new Date(activity.createdAt), {
+                      addSuffix: true,
+                      locale: dateLocale,
+                    })}
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={4}
+                  className="text-center py-8 text-muted-foreground"
+                >
+                  {t("noPlatformActivity")}
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
       </CardContent>
     </Card>
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import { UserProfile } from "@/hooks/use-user";
+import { useTranslations } from "next-intl";
 
 interface DashboardHeaderProps {
   user: UserProfile | null;
@@ -11,6 +12,9 @@ export function DashboardHeader({
   user,
   loading = false,
 }: DashboardHeaderProps) {
+  const t = useTranslations("dashboard");
+  const tc = useTranslations("dashboard.coach");
+  
   if (loading) {
     return (
       <div className="flex items-center justify-between space-y-2">
@@ -22,7 +26,7 @@ export function DashboardHeader({
   return (
     <div className="flex items-center justify-between space-y-2">
       <h3 className="text-3xl font-bold tracking-tight">
-        Welcome back, {user?.fullName || "Student"}!
+        {t("welcome", { name: user?.fullName || tc("student") })}
       </h3>
     </div>
   );

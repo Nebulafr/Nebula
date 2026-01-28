@@ -5,7 +5,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription,
+  CardDescription, // Kept as it's used later
 } from "@/components/ui/card";
 import {
   Table,
@@ -14,11 +14,14 @@ import {
   TableHead,
   TableBody,
   TableCell,
-} from "@/components/ui/table";
+} from "@/components/ui/table"; // Kept as it's used later
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { MoreHorizontal } from "lucide-react";
+import { Button } from "@/components/ui/button"; // Kept as it's used later
+import { Loader2, MoreHorizontal } from "lucide-react"; // Added Loader2
+import { format } from "date-fns"; // Added format
+import { enUS, fr } from "date-fns/locale"; // Added date-fns locales
+import { useTranslations, useLocale } from "next-intl"; // Added next-intl hooks
 import Link from "next/link";
 import { formatUserName, getUserInitials } from "@/lib/chat-utils";
 import { getDefaultAvatar } from "@/lib/event-utils";
@@ -37,77 +40,66 @@ interface RecentSignupsProps {
   onUserAction?: (user: RecentSignup, action: string) => void;
 }
 
-export function RecentSignups({
-  signups,
-  loading = false,
-  onUserAction,
-}: RecentSignupsProps) {
+export function RecentSignups({ signups, loading, onUserAction }: RecentSignupsProps) {
+  const t = useTranslations("dashboard.admin");
+  const tc = useTranslations("common");
+  const locale = useLocale();
+  const dateLocale = locale === "fr" ? fr : enUS;
+
   if (loading) {
     return (
-      <Card className="col-span-4">
+      <Card className="col-span-3">
         <CardHeader>
-          <CardTitle>Recent Sign-ups</CardTitle>
-          <CardDescription>
-            A list of the newest users on the platform.
-          </CardDescription>
+          <CardTitle>{t("recentSignups")}</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>User</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {[1, 2, 3].map((i) => (
-                <TableRow key={i}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full bg-gray-200 animate-pulse" />
-                      <div>
-                        <div className="h-4 w-24 bg-gray-200 rounded animate-pulse mb-1" />
-                        <div className="h-3 w-32 bg-gray-200 rounded animate-pulse" />
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="h-6 w-16 bg-gray-200 rounded animate-pulse" />
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="h-8 w-8 bg-gray-200 rounded animate-pulse" />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <div className="space-y-8">
+            <div className="flex items-center text-sm font-medium text-muted-foreground px-1">
+              <div className="flex-1">{t("user")}</div>
+              <div className="w-24 text-center">{t("role")}</div>
+              <div className="w-24 text-right">{t("date")}</div>
+            </div>
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex items-center">
+                <div className="flex-1 flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-gray-200 animate-pulse" />
+                  <div>
+                    <div className="h-4 w-24 bg-gray-200 rounded animate-pulse mb-1" />
+                    <div className="h-3 w-32 bg-gray-200 rounded animate-pulse" />
+                  </div>
+                </div>
+                <div className="w-24 text-center">
+                  <div className="h-6 w-16 bg-gray-200 rounded animate-pulse mx-auto" />
+                </div>
+                <div className="w-24 text-right">
+                  <div className="h-4 w-16 bg-gray-200 rounded animate-pulse ml-auto" />
+                </div>
+              </div>
+            ))}
+          </div>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card className="col-span-4">
+    <Card className="col-span-3">
       <CardHeader>
-        <CardTitle>Recent Sign-ups</CardTitle>
-        <CardDescription>
-          A list of the newest users on the platform.
-        </CardDescription>
+        <CardTitle>{t("recentSignups")}</CardTitle>
       </CardHeader>
       <CardContent>
         {signups.length === 0 ? (
-          <div className="flex items-center justify-center h-32 text-muted-foreground">
-            <p>No recent sign-ups to display.</p>
+          <div className="text-center py-8 text-muted-foreground">
+            {t("noRecentSignups")}
           </div>
         ) : (
           <>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>User</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead></TableHead>
+                  <TableHead>{t("user")}</TableHead>
+                  <TableHead>{t("role")}</TableHead>
+                  <TableHead className="text-right">{t("date")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -121,15 +113,15 @@ export function RecentSignups({
                         <div className="flex items-center gap-3">
                           <Avatar>
                             <AvatarImage
-                              src={user.avatar || getDefaultAvatar(user!.name)}
+                              src={user.avatar || getDefaultAvatar(user.name)}
                             />
                             <AvatarFallback>{initials}</AvatarFallback>
                           </Avatar>
-                          <div>
-                            <span className="font-medium">{displayName}</span>
-                            <p className="text-xs text-muted-foreground">
+                          <div className="flex flex-col">
+                            <span className="font-medium text-sm">{displayName}</span>
+                            <span className="text-xs text-muted-foreground truncate max-w-[150px]">
                               {user.email}
-                            </p>
+                            </span>
                           </div>
                         </div>
                       </TableCell>
@@ -144,22 +136,16 @@ export function RecentSignups({
                           {user.role}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => onUserAction?.(user, "view")}
-                        >
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
+                      <TableCell className="text-right text-xs text-muted-foreground whitespace-nowrap">
+                        {user.joined ? format(new Date(user.joined), "MMM d", { locale: dateLocale }) : "-"}
                       </TableCell>
                     </TableRow>
                   );
                 })}
               </TableBody>
             </Table>
-            <Button asChild className="mt-6 w-full">
-              <Link href="/admin/users">View all users</Link>
+            <Button asChild variant="ghost" size="sm" className="mt-4 w-full">
+              <Link href="/admin/users">{t("viewAllUsers") || "View All Users"}</Link>
             </Button>
           </>
         )}

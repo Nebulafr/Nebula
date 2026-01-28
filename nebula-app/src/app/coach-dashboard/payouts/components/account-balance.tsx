@@ -3,6 +3,8 @@
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
+import { useTranslations } from "next-intl";
+
 interface AccountBalanceProps {
   balance: number;
   currency?: string;
@@ -18,12 +20,14 @@ export function AccountBalance({
   loading = false,
   disabled = false,
 }: AccountBalanceProps) {
+  const t = useTranslations("dashboard.coach.payouts");
+
   if (loading) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Account Balance</CardTitle>
-          <CardDescription>Your current available balance.</CardDescription>
+          <CardTitle>{t("accountBalance")}</CardTitle>
+          <CardDescription>{t("balanceDescription")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="h-12 w-32 bg-gray-200 rounded animate-pulse" />
@@ -36,23 +40,23 @@ export function AccountBalance({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Account Balance</CardTitle>
-        <CardDescription>Your current available balance.</CardDescription>
+        <CardTitle>{t("accountBalance")}</CardTitle>
+        <CardDescription>{t("balanceDescription")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-4xl font-bold">
-          {currency}{balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          {currency}{balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         </p>
         <Button 
           className="w-full" 
           onClick={onRequestPayout}
           disabled={disabled || balance <= 0}
         >
-          {balance <= 0 ? "No Balance Available" : "Request Payout"}
+          {balance <= 0 ? t("noBalance") : t("requestPayout")}
         </Button>
         {balance > 0 && (
           <p className="text-xs text-muted-foreground">
-            Minimum payout amount: $50.00
+            {t("minPayout")}
           </p>
         )}
       </CardContent>

@@ -4,6 +4,8 @@ import { TableRow, TableCell } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
+import { useTranslations, useLocale } from "next-intl";
+
 export interface Payout {
   id: string;
   date: string;
@@ -24,6 +26,9 @@ export function PayoutItem({
   onViewDetails,
   onDownloadReceipt,
 }: PayoutItemProps) {
+  const t = useTranslations("dashboard.coach.payouts");
+  const locale = useLocale();
+
   const getStatusColor = (status: Payout['status']) => {
     switch (status) {
       case 'Paid':
@@ -40,7 +45,7 @@ export function PayoutItem({
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return new Date(dateString).toLocaleDateString(locale, {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -52,7 +57,7 @@ export function PayoutItem({
       <TableCell className="font-medium">{payout.id}</TableCell>
       <TableCell>{formatDate(payout.date)}</TableCell>
       <TableCell>
-        {payout.currency || '$'}{payout.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+        {payout.currency || '$'}{payout.amount.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
       </TableCell>
       <TableCell>
         <Badge className={getStatusColor(payout.status)}>
@@ -67,7 +72,7 @@ export function PayoutItem({
               size="sm"
               onClick={() => onDownloadReceipt?.(payout)}
             >
-              Receipt
+              {t("downloadReceipt")}
             </Button>
           )}
           <Button 
@@ -75,7 +80,7 @@ export function PayoutItem({
             size="sm"
             onClick={() => onViewDetails?.(payout)}
           >
-            Details
+            {t("viewDetails")}
           </Button>
         </div>
       </TableCell>

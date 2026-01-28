@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/carousel";
 import Link from "next/link";
 import { Program } from "@/generated/prisma";
+import { useTranslations } from "next-intl";
 
 function truncateText(text: string | null | undefined, maxLength: number): string {
   if (!text) return "";
@@ -51,13 +52,16 @@ export function RecommendedPrograms({
   programs,
   loading = false,
 }: RecommendedProgramsProps) {
+  const t = useTranslations("dashboard.student");
+  const tc = useTranslations("common");
+
   if (loading) {
     return (
       <div>
         <div className="flex items-center justify-between">
-          <h3 className="text-xl font-bold tracking-tight">Browse Programs</h3>
+          <h3 className="text-xl font-bold tracking-tight">{t("browsePrograms")}</h3>
           <Button variant="link" disabled>
-            See All <ArrowRight className="ml-2 h-4 w-4" />
+            {tc("seeAll")} <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </div>
         <div className="mt-6">
@@ -77,10 +81,10 @@ export function RecommendedPrograms({
   return (
     <div>
       <div className="flex items-center justify-between">
-        <h3 className="text-xl font-bold tracking-tight">Browse Programs</h3>
+        <h3 className="text-xl font-bold tracking-tight">{t("browsePrograms")}</h3>
         <Button variant="link" asChild>
           <Link href="/programs">
-            See All <ArrowRight className="ml-2 h-4 w-4" />
+            {tc("seeAll")} <ArrowRight className="ml-2 h-4 w-4" />
           </Link>
         </Button>
       </div>
@@ -88,10 +92,10 @@ export function RecommendedPrograms({
         {programs.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-muted-foreground">
-              No recommended programs available at the moment.
+              {t("noRecommendedPrograms")}
             </p>
             <Button asChild className="mt-4">
-              <Link href="/programs">Browse all programs</Link>
+              <Link href="/programs">{t("browseAllPrograms")}</Link>
             </Button>
           </div>
         ) : (

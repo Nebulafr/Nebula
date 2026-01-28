@@ -26,6 +26,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiGet, apiPut } from "@/lib/utils";
 import { toast } from "react-toastify";
 import { handleAndToastError } from "@/lib/error-handler";
+import { useTranslations } from "next-intl";
 
 interface ProgramModule {
   id?: string;
@@ -41,17 +42,12 @@ interface CoCoach {
   avatar?: string;
 }
 
-const DIFFICULTY_OPTIONS = [
-  { value: DifficultyLevel.BEGINNER, label: "Beginner" },
-  { value: DifficultyLevel.INTERMEDIATE, label: "Intermediate" },
-  { value: DifficultyLevel.ADVANCED, label: "Advanced" },
-];
-
 export default function EditProgramPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const t = useTranslations("dashboard.coach.programs.edit");
   const { id } = use(params);
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -152,7 +148,7 @@ export default function EditProgramPage({
       router.push("/coach-dashboard/programs");
     },
     onError: (error: any) => {
-      handleAndToastError(error, "Failed to update program");
+      handleAndToastError(error, t("updateError"));
     },
   });
 
@@ -206,7 +202,7 @@ export default function EditProgramPage({
       modules: [
         ...formData.modules,
         {
-          title: `Week ${formData.modules.length + 1}: `,
+          title: t("modulePlaceholder", { count: formData.modules.length + 1 }),
           week: formData.modules.length + 1,
           description: "",
           materials: [],
@@ -245,19 +241,19 @@ export default function EditProgramPage({
 
   const handleSubmit = () => {
     if (!formData.title.trim()) {
-      toast.error("Program title is required");
+      toast.error(t("titleRequired"));
       return;
     }
     if (!formData.description.trim()) {
-      toast.error("Program description is required");
+      toast.error(t("descriptionRequired"));
       return;
     }
     if (!formData.category) {
-      toast.error("Please select a category");
+      toast.error(t("categoryRequired"));
       return;
     }
     if (formData.objectives.length === 0) {
-      toast.error("Please add at least one objective");
+      toast.error(t("objectivesRequired"));
       return;
     }
 
@@ -290,7 +286,7 @@ export default function EditProgramPage({
       <div className="flex-1 space-y-4 p-4 md:p-8">
         <div className="flex items-center justify-center py-12">
           <Loader2 className="h-6 w-6 animate-spin mr-2" />
-          <span>Loading program...</span>
+          <span>{t("loading")}</span>
         </div>
       </div>
     );
@@ -300,9 +296,9 @@ export default function EditProgramPage({
     return (
       <div className="flex-1 space-y-4 p-4 md:p-8">
         <div className="text-center py-12">
-          <p className="text-muted-foreground">Program not found</p>
+          <p className="text-muted-foreground">{t("notFound")}</p>
           <Button asChild className="mt-4">
-            <Link href="/coach-dashboard/programs">Back to Programs</Link>
+            <Link href="/coach-dashboard/programs">{t("backToPrograms")}</Link>
           </Button>
         </div>
       </div>
@@ -319,7 +315,7 @@ export default function EditProgramPage({
             </Link>
           </Button>
           <div>
-            <h1 className="text-2xl font-bold">Edit Program</h1>
+            <h1 className="text-2xl font-bold">{t("title")}</h1>
             <p className="text-sm text-muted-foreground">{program.title}</p>
           </div>
         </div>
@@ -329,7 +325,7 @@ export default function EditProgramPage({
           ) : (
             <Save className="mr-2 h-4 w-4" />
           )}
-          Save Changes
+          {t("saveChanges")}
         </Button>
       </div>
 
@@ -337,39 +333,39 @@ export default function EditProgramPage({
         {/* Basic Information */}
         <Card>
           <CardHeader>
-            <CardTitle>Basic Information</CardTitle>
+            <CardTitle>{t("basicInfo")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="title">Program Title *</Label>
+              <Label htmlFor="title">{t("programTitle")}</Label>
               <Input
                 id="title"
                 value={formData.title}
                 onChange={(e) => updateFormData({ title: e.target.value })}
-                placeholder="e.g., Breaking into Product Management"
+                placeholder={t("programTitlePlaceholder")}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="description">Description *</Label>
+              <Label htmlFor="description">{t("description")}</Label>
               <Textarea
                 id="description"
                 value={formData.description}
                 onChange={(e) =>
                   updateFormData({ description: e.target.value })
                 }
-                placeholder="Describe your program..."
+                placeholder={t("descriptionPlaceholder")}
                 rows={4}
               />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Category *</Label>
+                <Label>{t("category")}</Label>
                 <Select
                   value={formData.category}
                   onValueChange={(value) => updateFormData({ category: value })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
+                    <SelectValue placeholder={t("selectCategory")} />
                   </SelectTrigger>
                   <SelectContent>
                     {categories.map((cat: any) => (
@@ -381,14 +377,14 @@ export default function EditProgramPage({
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="targetAudience">Target Audience</Label>
+                <Label htmlFor="targetAudience">{t("targetAudience")}</Label>
                 <Input
                   id="targetAudience"
                   value={formData.targetAudience}
                   onChange={(e) =>
                     updateFormData({ targetAudience: e.target.value })
                   }
-                  placeholder="e.g., Aspiring PMs with 0-2 years experience"
+                  placeholder={t("targetAudiencePlaceholder")}
                 />
               </div>
             </div>
@@ -398,12 +394,12 @@ export default function EditProgramPage({
         {/* Program Settings */}
         <Card>
           <CardHeader>
-            <CardTitle>Program Settings</CardTitle>
+            <CardTitle>{t("settings")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="price">Price ($)</Label>
+                <Label htmlFor="price">{t("price")}</Label>
                 <Input
                   id="price"
                   type="number"
@@ -415,7 +411,7 @@ export default function EditProgramPage({
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="duration">Duration (weeks)</Label>
+                <Label htmlFor="duration">{t("duration")}</Label>
                 <Input
                   id="duration"
                   type="number"
@@ -427,7 +423,7 @@ export default function EditProgramPage({
                 />
               </div>
               <div className="space-y-2">
-                <Label>Difficulty Level</Label>
+                <Label>{t("difficulty")}</Label>
                 <Select
                   value={formData.difficultyLevel}
                   onValueChange={(value) =>
@@ -440,7 +436,20 @@ export default function EditProgramPage({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {DIFFICULTY_OPTIONS.map((opt) => (
+                    {[
+                      {
+                        value: DifficultyLevel.BEGINNER,
+                        label: t("difficultyBeginner"),
+                      },
+                      {
+                        value: DifficultyLevel.INTERMEDIATE,
+                        label: t("difficultyIntermediate"),
+                      },
+                      {
+                        value: DifficultyLevel.ADVANCED,
+                        label: t("difficultyAdvanced"),
+                      },
+                    ].map((opt) => (
                       <SelectItem key={opt.value} value={opt.value}>
                         {opt.label}
                       </SelectItem>
@@ -449,7 +458,7 @@ export default function EditProgramPage({
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="maxStudents">Max Students</Label>
+                <Label htmlFor="maxStudents">{t("maxStudents")}</Label>
                 <Input
                   id="maxStudents"
                   type="number"
@@ -469,7 +478,7 @@ export default function EditProgramPage({
         {/* Tags */}
         <Card>
           <CardHeader>
-            <CardTitle>Tags</CardTitle>
+            <CardTitle>{t("tags")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex flex-wrap gap-2">
@@ -488,7 +497,7 @@ export default function EditProgramPage({
             </div>
             <div className="flex gap-2">
               <Input
-                placeholder="Add a tag..."
+                placeholder={t("addTag")}
                 value={newTag}
                 onChange={(e) => setNewTag(e.target.value)}
                 onKeyDown={(e) =>
@@ -496,7 +505,7 @@ export default function EditProgramPage({
                 }
               />
               <Button type="button" onClick={handleAddTag} variant="outline">
-                <PlusCircle className="mr-2 h-4 w-4" /> Add
+                <PlusCircle className="mr-2 h-4 w-4" /> {t("add")}
               </Button>
             </div>
           </CardContent>
@@ -505,7 +514,7 @@ export default function EditProgramPage({
         {/* Prerequisites */}
         <Card>
           <CardHeader>
-            <CardTitle>Prerequisites</CardTitle>
+            <CardTitle>{t("prerequisites")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {formData.prerequisites.map((prereq, index) => (
@@ -522,7 +531,7 @@ export default function EditProgramPage({
             ))}
             <div className="flex gap-2">
               <Input
-                placeholder="Add a prerequisite..."
+                placeholder={t("addPrerequisite")}
                 value={newPrerequisite}
                 onChange={(e) => setNewPrerequisite(e.target.value)}
                 onKeyDown={(e) =>
@@ -535,7 +544,7 @@ export default function EditProgramPage({
                 onClick={handleAddPrerequisite}
                 variant="outline"
               >
-                <PlusCircle className="mr-2 h-4 w-4" /> Add
+                <PlusCircle className="mr-2 h-4 w-4" /> {t("add")}
               </Button>
             </div>
           </CardContent>
@@ -544,7 +553,7 @@ export default function EditProgramPage({
         {/* Objectives */}
         <Card>
           <CardHeader>
-            <CardTitle>Learning Objectives *</CardTitle>
+            <CardTitle>{t("learningObjectives")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {formData.objectives.map((objective, index) => (
@@ -561,7 +570,7 @@ export default function EditProgramPage({
             ))}
             <div className="flex gap-2">
               <Input
-                placeholder="Add a learning objective..."
+                placeholder={t("addObjective")}
                 value={newObjective}
                 onChange={(e) => setNewObjective(e.target.value)}
                 onKeyDown={(e) =>
@@ -570,7 +579,7 @@ export default function EditProgramPage({
                 }
               />
               <Button type="button" onClick={handleAddObjective}>
-                <PlusCircle className="mr-2 h-4 w-4" /> Add
+                <PlusCircle className="mr-2 h-4 w-4" /> {t("add")}
               </Button>
             </div>
           </CardContent>
@@ -579,9 +588,9 @@ export default function EditProgramPage({
         {/* Modules */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Program Modules *</CardTitle>
+            <CardTitle>{t("modules")}</CardTitle>
             <Button variant="outline" size="sm" onClick={handleAddModule}>
-              <PlusCircle className="mr-2 h-4 w-4" /> Add Module
+              <PlusCircle className="mr-2 h-4 w-4" /> {t("addModule")}
             </Button>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -595,7 +604,7 @@ export default function EditProgramPage({
                         onChange={(e) =>
                           handleUpdateModule(index, { title: e.target.value })
                         }
-                        placeholder={`Week ${index + 1}: Module Title`}
+                        placeholder={t("modulePlaceholder", { count: index + 1 })}
                         className="font-semibold"
                       />
                       <Textarea
@@ -605,7 +614,7 @@ export default function EditProgramPage({
                             description: e.target.value,
                           })
                         }
-                        placeholder="Module description..."
+                        placeholder={t("moduleDescriptionPlaceholder")}
                         rows={2}
                       />
                     </div>
@@ -628,7 +637,7 @@ export default function EditProgramPage({
         {/* Co-Coaches */}
         <Card>
           <CardHeader>
-            <CardTitle>Co-Coaches</CardTitle>
+            <CardTitle>{t("coCoaches")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center space-x-2 p-4 border rounded-lg">
@@ -640,7 +649,7 @@ export default function EditProgramPage({
                 }
               />
               <Label htmlFor="multi-coach">
-                This program will be co-delivered with other Nebula coaches.
+                {t("isMultiCoach")}
               </Label>
             </div>
 
@@ -679,7 +688,7 @@ export default function EditProgramPage({
                       });
                     }
                   }}
-                  placeholder="Select Coach"
+                  placeholder={t("selectCoach")}
                 />
               </div>
             )}
@@ -689,7 +698,7 @@ export default function EditProgramPage({
         {/* Actions */}
         <div className="flex justify-end gap-4">
           <Button variant="outline" asChild>
-            <Link href="/coach-dashboard/programs">Cancel</Link>
+            <Link href="/coach-dashboard/programs">{t("cancel")}</Link>
           </Button>
           <Button onClick={handleSubmit} disabled={updateMutation.isPending}>
             {updateMutation.isPending ? (
@@ -697,7 +706,7 @@ export default function EditProgramPage({
             ) : (
               <Save className="mr-2 h-4 w-4" />
             )}
-            Save Changes
+            {t("saveChanges")}
           </Button>
         </div>
       </div>

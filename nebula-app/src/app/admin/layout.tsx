@@ -14,6 +14,8 @@ import {
   Star,
 } from "lucide-react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import {
   SidebarProvider,
   Sidebar,
@@ -33,19 +35,21 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 function TopBar() {
+  const t = useTranslations("common");
+  const td = useTranslations("dashboard.admin");
   const pathname = usePathname();
-  let pageTitle = "Dashboard";
+  let pageTitle = t("dashboard");
 
   if (pathname.includes("/users")) {
-    pageTitle = "User Management";
+    pageTitle = td("userManagement");
   } else if (pathname.includes("/programs")) {
-    pageTitle = "Program Management";
+    pageTitle = td("programManagement");
   } else if (pathname.includes("/events")) {
-    pageTitle = "Event Management";
+    pageTitle = td("eventManagement");
   } else if (pathname.includes("/reviews")) {
-    pageTitle = "Review Management";
+    pageTitle = td("reviewManagement");
   } else if (pathname.includes("/settings")) {
-    pageTitle = "Settings";
+    pageTitle = t("settings");
   }
 
   return (
@@ -60,13 +64,14 @@ function TopBar() {
           <Button variant="ghost" size="sm" asChild>
             <Link href="/">
               <ExternalLink className="mr-2 h-4 w-4" />
-              Go to Homepage
+              {t("goToHomepage")}
             </Link>
           </Button>
           <div className="relative hidden md:block">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input placeholder="Search..." className="pl-9 w-64" />
+            <Input placeholder={t("search") + "..."} className="pl-9 w-64" />
           </div>
+          <LanguageSwitcher />
           <Button variant="ghost" size="icon">
             <Bell className="h-5 w-5" />
           </Button>
@@ -77,12 +82,13 @@ function TopBar() {
 }
 
 function CollapseButton() {
+  const t = useTranslations("common");
   const { toggleSidebar } = useSidebar();
   return (
     <SidebarMenuItem>
-      <SidebarMenuButton tooltip="Collapse" onClick={() => toggleSidebar()}>
+      <SidebarMenuButton tooltip={t("collapse")} onClick={() => toggleSidebar()}>
         <PanelLeft />
-        <span>Collapse</span>
+        <span>{t("collapse")}</span>
       </SidebarMenuButton>
     </SidebarMenuItem>
   );
@@ -94,6 +100,7 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const t = useTranslations("common");
   return (
     <SidebarProvider>
       <Sidebar collapsible="icon">
@@ -104,7 +111,7 @@ export default function AdminLayout({
                 <AvatarImage src="https://i.pravatar.cc/150?u=admin" />
                 <AvatarFallback>A</AvatarFallback>
               </Avatar>
-              <span className="font-headline text-lg font-bold">Admin</span>
+              <span className="font-headline text-lg font-bold">{t("admin")}</span>
             </div>
           </div>
         </SidebarHeader>
@@ -113,13 +120,13 @@ export default function AdminLayout({
             <SidebarMenuItem>
               <Link href="/admin">
                 <SidebarMenuButton
-                  tooltip="Dashboard"
+                  tooltip={t("dashboard")}
                   isActive={pathname === "/admin"}
                   asChild
                 >
                   <div>
                     <Home />
-                    <span>Dashboard</span>
+                    <span>{t("dashboard")}</span>
                   </div>
                 </SidebarMenuButton>
               </Link>
@@ -127,13 +134,13 @@ export default function AdminLayout({
             <SidebarMenuItem>
               <Link href="/admin/users">
                 <SidebarMenuButton
-                  tooltip="Users"
+                  tooltip={t("users")}
                   isActive={pathname.startsWith("/admin/users")}
                   asChild
                 >
                   <div>
                     <Users />
-                    <span>Users</span>
+                    <span>{t("users")}</span>
                   </div>
                 </SidebarMenuButton>
               </Link>
@@ -141,13 +148,13 @@ export default function AdminLayout({
             <SidebarMenuItem>
               <Link href="/admin/programs">
                 <SidebarMenuButton
-                  tooltip="Programs"
+                  tooltip={t("programs")}
                   isActive={pathname.startsWith("/admin/programs")}
                   asChild
                 >
                   <div>
                     <GraduationCap />
-                    <span>Programs</span>
+                    <span>{t("programs")}</span>
                   </div>
                 </SidebarMenuButton>
               </Link>
@@ -155,13 +162,13 @@ export default function AdminLayout({
             <SidebarMenuItem>
               <Link href="/admin/events">
                 <SidebarMenuButton
-                  tooltip="Events"
+                  tooltip={t("events")}
                   isActive={pathname.startsWith("/admin/events")}
                   asChild
                 >
                   <div>
                     <Calendar />
-                    <span>Events</span>
+                    <span>{t("events")}</span>
                   </div>
                 </SidebarMenuButton>
               </Link>
@@ -169,13 +176,13 @@ export default function AdminLayout({
             <SidebarMenuItem>
               <Link href="/admin/reviews">
                 <SidebarMenuButton
-                  tooltip="Reviews"
+                  tooltip={t("reviews")}
                   isActive={pathname.startsWith("/admin/reviews")}
                   asChild
                 >
                   <div>
                     <Star />
-                    <span>Reviews</span>
+                    <span>{t("reviews")}</span>
                   </div>
                 </SidebarMenuButton>
               </Link>
@@ -187,10 +194,10 @@ export default function AdminLayout({
             <CollapseButton />
             <SidebarMenuItem>
               <Link href="/help-center">
-                <SidebarMenuButton tooltip="Help" asChild>
+                <SidebarMenuButton tooltip={t("help")} asChild>
                   <div>
                     <CircleHelp />
-                    <span>Help</span>
+                    <span>{t("help")}</span>
                   </div>
                 </SidebarMenuButton>
               </Link>
@@ -198,13 +205,13 @@ export default function AdminLayout({
             <SidebarMenuItem>
               <Link href="/admin/settings">
                 <SidebarMenuButton
-                  tooltip="Settings"
+                  tooltip={t("settings")}
                   isActive={pathname.startsWith("/admin/settings")}
                   asChild
                 >
                   <div>
                     <Settings />
-                    <span>Settings</span>
+                    <span>{t("settings")}</span>
                   </div>
                 </SidebarMenuButton>
               </Link>

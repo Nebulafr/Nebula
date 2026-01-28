@@ -19,6 +19,7 @@ import {
   getDefaultAvatar,
   getAccessTypeText,
 } from "@/lib/event-utils";
+import { useTranslations, useLocale } from "next-intl";
 
 function EventCard({
   event,
@@ -29,11 +30,13 @@ function EventCard({
   index: number;
   previousIndex?: number;
 }) {
+  const locale = useLocale();
   const eventDate = new Date(event.date);
   const color = getEventBackgroundColor(index, previousIndex);
+  const t = useTranslations("dashboard.student");
 
   const formatEventDate = (date: Date) => {
-    return date.toLocaleDateString("en-US", {
+    return date.toLocaleDateString(locale === "fr" ? "fr-FR" : "en-US", {
       weekday: "long",
       month: "long",
       day: "numeric",
@@ -41,10 +44,10 @@ function EventCard({
   };
 
   const formatEventTime = (date: Date) => {
-    return date.toLocaleTimeString("en-US", {
+    return date.toLocaleTimeString(locale === "fr" ? "fr-FR" : "en-US", {
       hour: "numeric",
       minute: "2-digit",
-      hour12: true,
+      hour12: locale !== "fr",
       timeZoneName: "short",
     });
   };
@@ -115,8 +118,7 @@ function EventCard({
           </div>
           {event.attendees > 0 && (
             <span className="ml-3 text-xs font-medium text-muted-foreground">
-              {event.attendees > 3 && `+${event.attendees - 3} `}
-              {event.attendees === 1 ? "person" : "people"} attending
+              {useTranslations("events.upcoming")("attending", { count: event.attendees })}
             </span>
           )}
         </div>
@@ -127,7 +129,7 @@ function EventCard({
           className="w-2/3 bg-gray-900 text-white hover:bg-gray-800 text-left"
         >
           <Link href={eventUrl}>
-            Register now <ExternalLink className="ml-2 h-4 w-4" />
+            {t("registerNow")} <ExternalLink className="ml-2 h-4 w-4" />
           </Link>
         </Button>
       </div>
@@ -146,13 +148,16 @@ export function UpcomingSessions({
   sessions,
   loading = false,
 }: UpcomingSessionsProps) {
+  const t = useTranslations("dashboard.student");
+  const tc = useTranslations("common");
+
   return (
     <div>
       <div className="flex items-center justify-between">
-        <h3 className="text-xl font-bold tracking-tight">Upcoming Events</h3>
+        <h3 className="text-xl font-bold tracking-tight">{t("upcomingEvents")}</h3>
         <Button variant="link" asChild>
           <Link href="/events">
-            See All <ArrowRight className="ml-2 h-4 w-4" />
+            {tc("seeAll")} <ArrowRight className="ml-2 h-4 w-4" />
           </Link>
         </Button>
       </div>
@@ -202,10 +207,10 @@ export function UpcomingSessions({
         ) : (
           <div className="text-center py-12">
             <p className="text-muted-foreground my-4">
-              No upcoming events at the moment.
+              {t("noUpcomingEvents")}
             </p>
              <Button asChild>
-                  <Link href="/events">Browse All Events</Link>
+                  <Link href="/events">{t("browseAllEvents")}</Link>
               </Button>
           </div>
         )}

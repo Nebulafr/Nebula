@@ -12,12 +12,14 @@ import { useCreateProgram } from '@/hooks';
 import { useRouter } from 'next/navigation';
 import { uploadMultipleFilesToCloudinary } from '@/lib/cloudinary';
 import { toast } from 'react-toastify';
+import { useTranslations } from 'next-intl';
 
 export default function ProposeStep5Page() {
     const [isClient, setIsClient] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submissionComplete, setSubmissionComplete] = useState(false);
     const router = useRouter();
+    const t = useTranslations("dashboard.coach.programs.proposeFlow.step5");
     const { formData, resetForm } = useProposeProgramContext();
     const createProgramMutation = useCreateProgram();
 
@@ -49,7 +51,7 @@ export default function ProposeStep5Page() {
                             );
                         } catch (error) {
                             console.error(`Failed to upload materials for ${mod.title}:`, error);
-                            toast.error(`Failed to upload materials for ${mod.title}`);
+                            toast.error(t("uploadError", { title: mod.title }));
                             // Continue with empty materials array
                         }
                     }
@@ -119,16 +121,16 @@ export default function ProposeStep5Page() {
             <Card className="w-full max-w-4xl shadow-lg relative overflow-hidden">
                 <CardContent className="p-8">
                     <Stepper currentStep={5} />
-                    <div className="text-center mt-12 py-12">
+                      <div className="text-center mt-12 py-12">
                         <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
-                        <h1 className="text-2xl font-bold">Submitting Your Proposal...</h1>
+                        <h1 className="text-2xl font-bold">{t("submitting")}</h1>
                         <p className="mt-2 text-muted-foreground">
-                            Please wait while we upload your materials and process your application.
+                            {t("submittingDescription")}
                         </p>
                         <p className="mt-1 text-sm text-muted-foreground">
-                            This may take a moment if you have uploaded files.
+                            {t("submittingHint")}
                         </p>
-                    </div>
+                      </div>
                 </CardContent>
             </Card>
         );
@@ -140,35 +142,36 @@ export default function ProposeStep5Page() {
             <CardContent className="p-8">
                 <Stepper currentStep={5} />
                 <div className="text-center mt-12">
-                    <h1 className="text-3xl font-bold">Thank You for Your Proposal!</h1>
+                    <h1 className="text-3xl font-bold">{t("success")}</h1>
                     <p className="mt-2 text-muted-foreground max-w-2xl mx-auto">
-                        Your Immersion Program proposal has been successfully submitted.
-                        Our team will review your application and get back to you shortly.
+                        {t("successDescription")}
+                        {" "}
+                        {t("successNote")}
                     </p>
                 </div>
                 <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4 max-w-md mx-auto">
                     <Card className="p-4 bg-muted border-none">
                         <div className="flex items-center gap-3">
                             <Clock className="h-5 w-5 text-muted-foreground" />
-                            <div>
-                                <p className="font-semibold text-sm">Review time</p>
-                                <p className="text-xs text-muted-foreground">5-7 business days</p>
+                             <div>
+                                <p className="font-semibold text-sm">{t("reviewTime")}</p>
+                                <p className="text-xs text-muted-foreground">{t("reviewTimeValue")}</p>
                             </div>
                         </div>
                     </Card>
                     <Card className="p-4 bg-muted border-none">
                         <div className="flex items-center gap-3">
                             <Mail className="h-5 w-5 text-muted-foreground" />
-                            <div>
-                                <p className="font-semibold text-sm">Confirmation email</p>
-                                <p className="text-xs text-muted-foreground">A confirmation has been sent to you</p>
+                             <div>
+                                <p className="font-semibold text-sm">{t("confirmation")}</p>
+                                <p className="text-xs text-muted-foreground">{t("confirmationValue")}</p>
                             </div>
                         </div>
                     </Card>
                 </div>
                 <div className="text-center mt-12">
                     <Button asChild size="lg" onClick={() => resetForm()}>
-                        <Link href="/coach-dashboard/programs">Back to Programs</Link>
+                        <Link href="/coach-dashboard/programs">{t("backToPrograms")}</Link>
                     </Button>
                 </div>
             </CardContent>

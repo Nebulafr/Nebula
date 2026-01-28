@@ -1,15 +1,14 @@
+import React, { ReactNode, CSSProperties } from "react";
 import { Card } from "@/components/ui/card";
 
-export function FeaturesSection({
-  cards,
-}: {
-  cards: {
-    icon: JSX.Element;
-    title: React.ReactNode;
-    description: React.ReactNode;
-    customStyle?: React.CSSProperties;
-  }[];
-}) {
+interface FeatureCard {
+  icon: ReactNode;
+  title: ReactNode;
+  description: ReactNode;
+  customStyle?: CSSProperties;
+}
+
+export function FeaturesSection({ cards }: { cards: FeatureCard[] }) {
   return (
     <section className="py-20 sm:py-32" style={{ backgroundColor: "#059669" }}>
       <div className="container">

@@ -10,6 +10,7 @@ import {
   TrendingDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 export interface CoachStatsData {
   totalRevenue?: number;
@@ -30,33 +31,35 @@ interface ScheduleStatsProps {
 }
 
 export function ScheduleStats({ stats, loading = false }: ScheduleStatsProps) {
+  const t = useTranslations("dashboard.coach.schedule.stats");
+
   const statsConfig = [
     {
-      title: "Sessions This Month",
+      title: t("sessionsThisMonth"),
       value: stats.sessionsThisMonth ?? 0,
       change: stats.sessionsChange,
       icon: Calendar,
       format: (v: number) => v.toString(),
     },
     {
-      title: "Active Students",
+      title: t("activeStudents"),
       value: stats.activeStudents ?? 0,
       change: stats.studentsChange,
       icon: Users,
       format: (v: number) => v.toString(),
     },
     {
-      title: "Total Sessions",
+      title: t("totalSessions"),
       value: stats.totalSessions ?? 0,
       icon: Clock,
       format: (v: number) => v.toString(),
     },
     {
-      title: "Average Rating",
+      title: t("averageRating"),
       value: stats.averageRating ?? 0,
       icon: Star,
       format: (v: number) => v.toFixed(1),
-      suffix: stats.totalReviews ? `(${stats.totalReviews} reviews)` : "",
+      suffix: stats.totalReviews ? t("reviewsCount", { count: stats.totalReviews }) : "",
     },
   ];
 
@@ -121,7 +124,7 @@ export function ScheduleStats({ stats, loading = false }: ScheduleStatsProps) {
                 )}
                 {!hasChange && !stat.suffix && (
                   <span className="text-xs text-muted-foreground">
-                    vs last month
+                    {t("vsLastMonth")}
                   </span>
                 )}
               </div>

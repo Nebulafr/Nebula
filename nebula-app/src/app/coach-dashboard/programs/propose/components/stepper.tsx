@@ -3,20 +3,23 @@
 import React from 'react';
 import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-const STEPS = [
-    "Introduction",
-    "Program Details",
-    "Program Materials",
-    "Review",
-    "Confirmation"
-];
+import { useTranslations } from 'next-intl';
 
 interface StepperProps {
     currentStep: number;
 }
 
 export function Stepper({ currentStep }: StepperProps) {
+    const t = useTranslations("dashboard.coach.programs.proposeFlow.steps");
+    
+    const STEPS = [
+        t("step1"),
+        t("step2"),
+        t("step3"),
+        t("step4"),
+        t("step5")
+    ];
+
     return (
         <div className="flex items-center justify-center space-x-4">
             {STEPS.map((step, index) => (
@@ -43,4 +46,3 @@ export function Stepper({ currentStep }: StepperProps) {
         </div>
     );
 }
-

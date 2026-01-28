@@ -20,6 +20,7 @@ import { toast } from "react-toastify";
 import { useAuthActions } from "@/hooks/use-auth";
 import { AuthPageGuard } from "@/components/auth/protected-route";
 import { handleAndToastError } from "@/lib/error-handler";
+import { useTranslations } from "next-intl";
 
 function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -60,6 +61,9 @@ export default function CoachLoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const { signIn, signInWithGoogle } = useAuthActions();
+  const t = useTranslations("auth.coachLogin");
+  const f = useTranslations("auth.fields");
+  const tl = useTranslations("auth.login");
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,7 +75,7 @@ export default function CoachLoginPage() {
       const response = await signIn({ email, password });
     } catch (error: any) {
       console.error("Coach login error:", error);
-      handleAndToastError(error, "Failed to sign in");
+      handleAndToastError(error, tl("signingIn") === "Signing in..." ? "Failed to sign in" : "Échec de la connexion");
     } finally {
       setLoading(false);
     }
@@ -87,7 +91,7 @@ export default function CoachLoginPage() {
     } catch (error: any) {
       console.error("Coach Google login error:", error);
       if (error?.message !== "Redirecting to Google sign-in...") {
-        handleAndToastError(error, "Failed to sign in with Google");
+        handleAndToastError(error, tl("signingIn") === "Signing in..." ? "Failed to sign in with Google" : "Échec de la connexion avec Google");
       }
     } finally {
       setLoading(false);
@@ -109,10 +113,9 @@ export default function CoachLoginPage() {
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
           <div className="absolute bottom-8 left-8 text-white">
-            <h2 className="text-4xl font-bold">Welcome back, Coach</h2>
+            <h2 className="text-4xl font-bold">{t("welcome")}</h2>
             <p className="mt-2 max-w-lg">
-              Log in to manage your schedule, connect with students, and make an
-              impact.
+              {t("description")}
             </p>
           </div>
         </div>
@@ -125,23 +128,23 @@ export default function CoachLoginPage() {
                   className="flex items-center gap-2 mb-4 text-sm font-medium text-muted-foreground hover:text-foreground"
                 >
                   <ArrowLeft className="h-4 w-4" />
-                  Back to website
+                  {tl("backToWebsite")}
                 </Link>
                 <CardTitle className="text-3xl font-bold text-primary">
-                  Coach Log In
+                  {t("title")}
                 </CardTitle>
                 <CardDescription>
-                  Enter your email below to log in to your coach account.
+                  {t("subtitle")}
                 </CardDescription>
               </CardHeader>
               <form onSubmit={handleLogin}>
                 <CardContent className="grid gap-4 p-0 mt-6">
                   <div className="grid gap-2">
-                    <Label htmlFor="email">Email</Label>
+                    <Label htmlFor="email">{f("email")}</Label>
                     <Input
                       id="email"
                       type="email"
-                      placeholder="m@example.com"
+                      placeholder={f("emailPlaceholder")}
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
@@ -149,12 +152,12 @@ export default function CoachLoginPage() {
                   </div>
                   <div className="grid gap-2">
                     <div className="flex items-center">
-                      <Label htmlFor="password">Password</Label>
+                      <Label htmlFor="password">{f("password")}</Label>
                       <Link
                         href="#"
                         className="ml-auto inline-block text-sm underline"
                       >
-                        Forgot your password?
+                        {f("forgotPassword")}
                       </Link>
                     </div>
                     <div className="relative">
@@ -187,7 +190,7 @@ export default function CoachLoginPage() {
                     size="lg"
                     disabled={loading}
                   >
-                    {loading ? "Logging in..." : "Log In"}
+                    {loading ? tl("signingIn") : tl("signIn")}
                   </Button>
                 </CardContent>
               </form>
@@ -199,13 +202,13 @@ export default function CoachLoginPage() {
                 disabled={loading}
               >
                 <GoogleIcon className="mr-2 h-5 w-5" />
-                {loading ? "Signing in..." : "Log in with Google"}
+                {loading ? tl("signingIn") : tl("googleSignIn")}
               </Button>
             </Card>
             <div className="mt-4 text-center text-sm">
-              Don&apos;t have a coach account?{" "}
+              {t("noAccount")}{" "}
               <Link href="/coach-signup" className="underline">
-                Sign up
+                {useTranslations("common")("signup")}
               </Link>
             </div>
           </div>

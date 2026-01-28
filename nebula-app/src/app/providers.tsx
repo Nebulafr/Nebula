@@ -2,13 +2,18 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactNode, useState } from "react";
-import { LanguageProvider } from "@/contexts/language-context";
+
+
+import { NextIntlClientProvider } from "next-intl";
 
 interface ProvidersProps {
   children: ReactNode;
+  locale: string;
+  messages: any;
+  timeZone: string;
 }
 
-export function Providers({ children }: ProvidersProps) {
+export function Providers({ children, locale, messages, timeZone }: ProvidersProps) {
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -26,11 +31,14 @@ export function Providers({ children }: ProvidersProps) {
       })
   );
 
+  // Strictly default to 'en' if not 'fr'
+  const validLocale = locale === "fr" ? "fr" : "en";
+
   return (
     <QueryClientProvider client={queryClient}>
-      <LanguageProvider>
+      <NextIntlClientProvider locale={validLocale} messages={messages} timeZone={timeZone}>
         {children}
-      </LanguageProvider>
+      </NextIntlClientProvider>
     </QueryClientProvider>
   );
 }

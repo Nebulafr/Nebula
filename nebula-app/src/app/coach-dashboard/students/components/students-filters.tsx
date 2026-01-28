@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Search, Filter, Download, UserPlus } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface StudentsFiltersProps {
   searchTerm: string;
@@ -34,6 +35,8 @@ export function StudentsFilters({
   onAddStudent,
   onExportStudents,
 }: StudentsFiltersProps) {
+  const t = useTranslations("dashboard.coach.students.filters");
+
   return (
     <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
       <div className="flex flex-1 gap-4 items-center">
@@ -41,7 +44,7 @@ export function StudentsFilters({
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search students..."
+            placeholder={t("search")}
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
             className="pl-9"
@@ -52,24 +55,24 @@ export function StudentsFilters({
         <Select value={statusFilter} onValueChange={onStatusFilterChange}>
           <SelectTrigger className="w-32">
             <Filter className="h-4 w-4 mr-2" />
-            <SelectValue placeholder="Status" />
+            <SelectValue placeholder={t("allStatuses")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="paused">Paused</SelectItem>
-            <SelectItem value="completed">Completed</SelectItem>
-            <SelectItem value="cancelled">Cancelled</SelectItem>
+            <SelectItem value="all">{t("allStatuses")}</SelectItem>
+            <SelectItem value="active">{t("active")}</SelectItem>
+            <SelectItem value="paused">{t("paused")}</SelectItem>
+            <SelectItem value="completed">{t("completed")}</SelectItem>
+            <SelectItem value="cancelled">{t("allStatuses")}</SelectItem> 
           </SelectContent>
         </Select>
 
         {/* Program Filter */}
         <Select value={programFilter} onValueChange={onProgramFilterChange}>
           <SelectTrigger className="w-40">
-            <SelectValue placeholder="Program" />
+            <SelectValue placeholder={t("allPrograms")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Programs</SelectItem>
+            <SelectItem value="all">{t("allPrograms")}</SelectItem>
             {programs.map((program) => (
               <SelectItem key={program} value={program}>
                 {program}
@@ -83,11 +86,11 @@ export function StudentsFilters({
       <div className="flex gap-2">
         <Button variant="outline" onClick={onExportStudents}>
           <Download className="h-4 w-4 mr-2" />
-          Export
+          {t("export")}
         </Button>
         <Button onClick={onAddStudent}>
           <UserPlus className="h-4 w-4 mr-2" />
-          Add Student
+          {t("addStudent")}
         </Button>
       </div>
     </div>

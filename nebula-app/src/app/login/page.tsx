@@ -20,6 +20,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { handleAndToastError } from "@/lib/error-handler";
 import { AuthPageGuard } from "@/components/auth/protected-route";
 import { toast } from "react-toastify";
+import { useTranslations } from "next-intl";
 
 function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -57,6 +58,8 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const { signIn, signInWithGoogle } = useAuth();
+  const t = useTranslations("auth.login");
+  const f = useTranslations("auth.fields");
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,7 +70,7 @@ export default function LoginPage() {
     try {
       const response = await signIn({ email, password });
     } catch (error) {
-      handleAndToastError(error, "Failed to sign in");
+      handleAndToastError(error, t("signingIn") === "Signing in..." ? "Failed to sign in" : "Échec de la connexion");
     } finally {
       setLoading(false);
     }
@@ -108,9 +111,9 @@ export default function LoginPage() {
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
           <div className="absolute bottom-8 left-8 text-white">
-            <h2 className="text-4xl font-bold">Welcome back to Nebula</h2>
+            <h2 className="text-4xl font-bold">{t("welcome")}</h2>
             <p className="mt-2 max-w-lg">
-              Log in to continue your journey and connect with our community.
+              {t("description")}
             </p>
           </div>
         </div>
@@ -123,23 +126,23 @@ export default function LoginPage() {
                   className="flex items-center gap-2 mb-4 text-sm font-medium text-muted-foreground hover:text-foreground"
                 >
                   <ArrowLeft className="h-4 w-4" />
-                  Back to website
+                  {t("backToWebsite")}
                 </Link>
                 <CardTitle className="text-3xl font-bold text-primary">
-                  Log In
+                  {t("title")}
                 </CardTitle>
                 <CardDescription>
-                  Enter your email below to log in to your account.
+                  {t("subtitle")}
                 </CardDescription>
               </CardHeader>
               <form onSubmit={handleLogin}>
                 <CardContent className="grid gap-4 p-0 mt-6">
                   <div className="grid gap-2">
-                    <Label htmlFor="email">Email</Label>
+                    <Label htmlFor="email">{f("email")}</Label>
                     <Input
                       id="email"
                       type="email"
-                      placeholder="m@example.com"
+                      placeholder={f("emailPlaceholder")}
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
@@ -148,12 +151,12 @@ export default function LoginPage() {
                   </div>
                   <div className="grid gap-2">
                     <div className="flex items-center">
-                      <Label htmlFor="password">Password</Label>
+                      <Label htmlFor="password">{f("password")}</Label>
                       <Link
                         href="/forgot-password"
                         className="ml-auto inline-block text-sm underline hover:no-underline"
                       >
-                        Forgot your password?
+                        {f("forgotPassword")}
                       </Link>
                     </div>
                     <div className="relative">
@@ -185,7 +188,7 @@ export default function LoginPage() {
                     size="lg"
                     disabled={loading}
                   >
-                    {loading ? "Signing in..." : "Sign In"}
+                    {loading ? t("signingIn") : t("signIn")}
                   </Button>
                 </CardContent>
               </form>
@@ -195,7 +198,7 @@ export default function LoginPage() {
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
                   <span className="bg-background px-2 text-muted-foreground">
-                    Or continue with
+                    {t("orContinueWith")}
                   </span>
                 </div>
               </div>
@@ -207,13 +210,13 @@ export default function LoginPage() {
                 disabled={loading}
               >
                 <GoogleIcon className="mr-2 h-5 w-5" />
-                {loading ? "Signing in..." : "Sign in with Google"}
+                {loading ? t("signingIn") : t("googleSignIn")}
               </Button>
             </Card>
             <div className="mt-4 text-center text-sm">
-              Don&apos;t have an account?{" "}
+              {t("noAccount")}{" "}
               <Link href="/signup" className="underline">
-                Sign up
+                {useTranslations("common")("signup")}
               </Link>
             </div>
           </div>

@@ -1,14 +1,18 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 interface DashboardHeaderProps {
   title?: string;
   loading?: boolean;
 }
 
 export function DashboardHeader({ 
-  title = "Dashboard", 
+  title, 
   loading = false 
 }: DashboardHeaderProps) {
+  const t = useTranslations("common");
+  const displayTitle = title || t("dashboard");
   if (loading) {
     return (
       <div className="flex items-center justify-between space-y-2">
@@ -19,7 +23,7 @@ export function DashboardHeader({
 
   return (
     <div className="flex items-center justify-between space-y-2">
-      <h3 className="text-3xl font-bold tracking-tight">{title}</h3>
+      <h3 className="text-3xl font-bold tracking-tight">{displayTitle}</h3>
     </div>
   );
 }

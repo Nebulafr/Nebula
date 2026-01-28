@@ -15,11 +15,14 @@ import { ArrowLeft, Mail } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/hooks/use-auth";
 import { handleAndToastError } from "@/lib/error-handler";
+import { useTranslations } from "next-intl";
 
 export default function ForgotPasswordPage() {
   const { resetPassword } = useAuth();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
+  const t = useTranslations("auth.forgotPassword");
+  const f = useTranslations("auth.fields");
   const [emailSent, setEmailSent] = useState(false);
 
   const handleResetPassword = async (e: React.FormEvent) => {
@@ -32,7 +35,7 @@ export default function ForgotPasswordPage() {
       await resetPassword(email);
       setEmailSent(true);
     } catch (error) {
-      handleAndToastError(error, "Failed to send reset email");
+      handleAndToastError(error, t("sending") === "Sending..." ? "Failed to send reset link" : "Échec de l'envoi du lien");
     } finally {
       setLoading(false);
     }
@@ -43,39 +46,36 @@ export default function ForgotPasswordPage() {
       <div className="flex items-center justify-center min-h-screen p-4">
         <div className="mx-auto grid w-[350px] gap-6">
           <Card className="border-none shadow-none">
-            <CardHeader className="p-0 text-center">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-                <Mail className="h-6 w-6 text-green-600" />
-              </div>
-              <CardTitle className="text-2xl font-bold text-primary">
-                Check your email
-              </CardTitle>
-              <CardDescription>
-                We&apos;ve sent a password reset link to {email}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-0 mt-6">
-              <div className="space-y-4 text-center text-sm text-muted-foreground">
-                <p>
-                  Click the link in your email to reset your password. If you
-                  don&apos;t see it, check your spam folder.
-                </p>
-                <div className="flex flex-col gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => setEmailSent(false)}
-                    className="w-full"
-                  >
-                    Try different email
-                  </Button>
-                  <Link href="/login">
-                    <Button variant="default" className="w-full">
-                      Back to Sign In
-                    </Button>
-                  </Link>
+            <div className="mx-auto w-[400px] text-center">
+              <div className="mb-6 flex justify-center">
+                <div className="rounded-full bg-primary/10 p-3">
+                  <span className="text-2xl">📧</span>
                 </div>
               </div>
-            </CardContent>
+              <h1 className="mb-2 text-3xl font-bold text-primary">
+                {t("checkEmail.title")}
+              </h1>
+              <p className="mb-6 text-muted-foreground">
+                {t("checkEmail.subtitle", { email })}
+              </p>
+              <div className="rounded-lg bg-muted p-6 text-left text-sm text-muted-foreground">
+                {t("checkEmail.description")}
+              </div>
+              <div className="mt-8 flex flex-col gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setEmailSent(false)}
+                  className="w-full"
+                >
+                  {t("checkEmail.tryDifferent")}
+                </Button>
+                <Link href="/login">
+                  <Button variant="link" className="w-full hover:no-underline">
+                    {t("checkEmail.backToSignIn")}
+                  </Button>
+                </Link>
+              </div>
+            </div>
           </Card>
         </div>
       </div>
@@ -92,25 +92,24 @@ export default function ForgotPasswordPage() {
               className="flex items-center gap-2 mb-4 text-sm font-medium text-muted-foreground hover:text-foreground"
             >
               <ArrowLeft className="h-4 w-4" />
-              Back to sign in
+              {t("backToSignIn")}
             </Link>
             <CardTitle className="text-3xl font-bold text-primary">
-              Reset Password
+              {t("title")}
             </CardTitle>
             <CardDescription>
-              Enter your email address and we&apos;ll send you a link to reset
-              your password.
+              {t("subtitle")}
             </CardDescription>
           </CardHeader>
 
           <form onSubmit={handleResetPassword}>
             <CardContent className="grid gap-4 p-0 mt-6">
               <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">{f("email")}</Label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="m@example.com"
+                  placeholder={f("emailPlaceholder")}
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -123,7 +122,7 @@ export default function ForgotPasswordPage() {
                 size="lg"
                 disabled={loading}
               >
-                {loading ? "Sending..." : "Send Reset Link"}
+                {loading ? t("sending") : t("sendLink")}
               </Button>
             </CardContent>
           </form>

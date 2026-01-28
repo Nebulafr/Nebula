@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { useTranslations } from "next-intl";
 
 interface AddStudentDialogProps {
   open: boolean;
@@ -43,6 +44,9 @@ export function AddStudentDialog({
   onAddStudent,
   loading = false,
 }: AddStudentDialogProps) {
+  const t = useTranslations("dashboard.coach.students.addDialog");
+  const commonT = useTranslations("common");
+  
   const [formData, setFormData] = useState<StudentFormData>({
     name: "",
     email: "",
@@ -96,18 +100,18 @@ export function AddStudentDialog({
       <DialogContent className="sm:max-w-md">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>Add New Student</DialogTitle>
+            <DialogTitle>{t("title")}</DialogTitle>
             <DialogDescription>
-              Add a new student to your coaching program. They will receive an invitation email.
+              {t("description")}
             </DialogDescription>
           </DialogHeader>
           
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Full Name *</Label>
+              <Label htmlFor="name">{commonT("fullName")} *</Label>
               <Input
                 id="name"
-                placeholder="Enter student's full name"
+                placeholder={t("emailPlaceholder").replace("student@example.com", "John Doe")} // Need better placeholder key
                 value={formData.name}
                 onChange={(e) => handleInputChange("name", e.target.value)}
                 className={errors.name ? "border-red-500" : ""}
@@ -118,11 +122,11 @@ export function AddStudentDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email Address *</Label>
+              <Label htmlFor="email">{t("email")} *</Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="student@example.com"
+                placeholder={t("emailPlaceholder")}
                 value={formData.email}
                 onChange={(e) => handleInputChange("email", e.target.value)}
                 className={errors.email ? "border-red-500" : ""}
@@ -133,13 +137,13 @@ export function AddStudentDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="program">Program *</Label>
+              <Label htmlFor="program">{t("program")} *</Label>
               <Select
                 value={formData.program}
                 onValueChange={(value) => handleInputChange("program", value)}
               >
                 <SelectTrigger className={errors.program ? "border-red-500" : ""}>
-                  <SelectValue placeholder="Select a program" />
+                  <SelectValue placeholder={t("program")} />
                 </SelectTrigger>
                 <SelectContent>
                   {programs.map((program) => (
@@ -155,10 +159,10 @@ export function AddStudentDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="notes">Notes (Optional)</Label>
+              <Label htmlFor="notes">Notes ({commonT("optional") || "Optional"})</Label>
               <Textarea
                 id="notes"
-                placeholder="Add any notes about this student..."
+                placeholder="Add any notes..."
                 value={formData.notes}
                 onChange={(e) => handleInputChange("notes", e.target.value)}
                 rows={3}
@@ -173,10 +177,10 @@ export function AddStudentDialog({
               onClick={() => onOpenChange(false)}
               disabled={loading}
             >
-              Cancel
+              {t("cancel")}
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? "Adding..." : "Add Student"}
+              {loading ? t("inviting") : t("invite")}
             </Button>
           </DialogFooter>
         </form>

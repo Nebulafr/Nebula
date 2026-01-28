@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Star } from "lucide-react";
 import { usePopularPrograms } from "@/hooks";
 import { Button } from "../ui/button";
+import { useTranslations } from "next-intl";
 
 function truncateText(text: string | null | undefined, maxLength: number): string {
   if (!text) return "";
@@ -14,6 +15,7 @@ function truncateText(text: string | null | undefined, maxLength: number): strin
 }
 
 export function PopularProgramsSection() {
+  const t = useTranslations("programs.popular");
   const { data: programsResponse, isLoading: loading } = usePopularPrograms({
     limit: 3,
   });
@@ -22,10 +24,9 @@ export function PopularProgramsSection() {
     <section className="bg-light-gray py-20 sm:py-32">
       <div className="container">
         <div className="text-left">
-          <h2 className="font-headline">Popular Programs</h2>
+          <h2 className="font-headline">{t("title")}</h2>
           <p className="mt-4 max-w-2xl text-lg text-muted-foreground">
-            Explore our most sought-after coaching programs designed for
-            success.
+            {t("subtitle")}
           </p>
         </div>
         <div className="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
@@ -152,7 +153,7 @@ export function PopularProgramsSection() {
           ) : (
             <div className="col-span-full text-center">
               <p className="text-muted-foreground">
-                No popular programs at the moment.
+                {t("empty")}
               </p>
             </div>
           )}
