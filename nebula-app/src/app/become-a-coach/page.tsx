@@ -82,9 +82,7 @@ export default function BecomeACoachPage() {
   ];
 
   const heroImage = PlaceHolderImages.find((img) => img.id === "coach-hero");
-  const networkImage = PlaceHolderImages.find(
-    (img) => img.id === "coach-network"
-  );
+
 
   return (
     <div className="flex min-h-screen flex-col bg-background">

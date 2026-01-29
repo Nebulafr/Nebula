@@ -710,6 +710,7 @@
       "selectEventTypeDesc": "Select the type of event you want to create.",
       "webinar": "Webinar",
       "webinarDesc": "Free online educational sessions",
+      "social": "Social Experience",
       "socialEvent": "Social Event",
       "socialEventDesc": "In-person gatherings and networking events",
       "eventName": "Event Name",

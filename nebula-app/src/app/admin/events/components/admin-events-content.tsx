@@ -40,7 +40,7 @@ export default function AdminEventsContent() {
     refetch: fetchAdminEvents,
   } = useEvents({
     search: searchTerm || undefined,
-    status: activeTab === "all" ? undefined : activeTab.toUpperCase(),
+    eventType: activeTab === "all" ? undefined : activeTab.toUpperCase(),
     limit: 10,
   });
 
