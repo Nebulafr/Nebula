@@ -4,16 +4,22 @@ import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { Separator } from "@/components/ui/separator";
 
+import { useTranslations, useLocale } from "next-intl";
+import { FileText } from "lucide-react";
+
 export default function TermsOfServicePage() {
+  const t = useTranslations("termsOfService");
+  const locale = useLocale();
+
   const sections = [
-    { id: "acceptance", title: "1. Acceptance of Terms" },
-    { id: "accounts", title: "2. User Accounts" },
-    { id: "responsibilities", title: "3. User Responsibilities" },
-    { id: "ip", title: "4. Intellectual Property" },
-    { id: "termination", title: "5. Termination" },
-    { id: "disclaimers", title: "6. Disclaimers" },
-    { id: "liability", title: "7. Limitation of Liability" },
-    { id: "governing", title: "8. Governing Law" },
+    { id: "acceptance", title: t("sections.acceptance.title") },
+    { id: "accounts", title: t("sections.accounts.title") },
+    { id: "responsibilities", title: t("sections.responsibilities.title") },
+    { id: "ip", title: t("sections.ip.title") },
+    { id: "termination", title: t("sections.termination.title") },
+    { id: "disclaimers", title: t("sections.disclaimers.title") },
+    { id: "liability", title: t("sections.liability.title") },
+    { id: "governing", title: t("sections.governing.title") },
   ];
 
   return (
@@ -24,18 +30,27 @@ export default function TermsOfServicePage() {
         <section className="bg-primary/5 border-b">
           <div className="container py-16 md:py-24">
             <div className="max-w-3xl">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+                  <FileText className="h-6 w-6 text-primary" />
+                </div>
+              </div>
               <h1 className="font-headline text-4xl font-bold tracking-tight md:text-5xl">
-                Terms of Service
+                {t("title")}
               </h1>
               <p className="mt-4 text-lg text-muted-foreground">
-                Please read these terms carefully before using our platform.
+                {t("subtitle")}
               </p>
               <p className="mt-2 text-sm text-muted-foreground">
-                Last updated:{" "}
-                {new Date().toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
+                {t("lastUpdated", {
+                  date: new Date().toLocaleDateString(
+                    locale === "fr" ? "fr-FR" : "en-US",
+                    {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    },
+                  ),
                 })}
               </p>
             </div>
@@ -50,7 +65,7 @@ export default function TermsOfServicePage() {
               <aside className="hidden lg:block">
                 <div className="sticky top-24">
                   <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-4">
-                    On this page
+                    {t("onThisPage")}
                   </h3>
                   <nav className="space-y-2">
                     {sections.map((section) => (
@@ -70,24 +85,17 @@ export default function TermsOfServicePage() {
               <div className="lg:col-span-3">
                 <div className="prose prose-gray dark:prose-invert max-w-none">
                   <p className="text-lg text-muted-foreground">
-                    Welcome to Nebula! These Terms of Service ("Terms") govern
-                    your use of our website, platform, and services
-                    (collectively, the "Services"). Please read these Terms
-                    carefully before using our Services.
+                    {t("intro")}
                   </p>
 
                   <Separator className="my-8" />
 
                   <section id="acceptance" className="scroll-mt-24">
                     <h2 className="text-2xl font-semibold mb-4">
-                      1. Acceptance of Terms
+                      {t("sections.acceptance.title")}
                     </h2>
                     <p className="text-muted-foreground">
-                      By accessing or using our Services, you agree to be bound
-                      by these Terms and our Privacy Policy. If you do not agree
-                      to these Terms, you may not use our Services. We may
-                      modify these Terms at any time, and such modification will
-                      be effective upon posting on this page.
+                      {t("sections.acceptance.p1")}
                     </p>
                   </section>
 
@@ -95,15 +103,10 @@ export default function TermsOfServicePage() {
 
                   <section id="accounts" className="scroll-mt-24">
                     <h2 className="text-2xl font-semibold mb-4">
-                      2. User Accounts
+                      {t("sections.accounts.title")}
                     </h2>
                     <p className="text-muted-foreground">
-                      To access certain features of our Services, you may be
-                      required to create an account. You are responsible for
-                      maintaining the confidentiality of your account
-                      information and for all activities that occur under your
-                      account. You agree to notify us immediately of any
-                      unauthorized use of your account.
+                      {t("sections.accounts.p1")}
                     </p>
                   </section>
 
@@ -111,32 +114,27 @@ export default function TermsOfServicePage() {
 
                   <section id="responsibilities" className="scroll-mt-24">
                     <h2 className="text-2xl font-semibold mb-4">
-                      3. User Responsibilities
+                      {t("sections.responsibilities.title")}
                     </h2>
                     <p className="text-muted-foreground mb-4">
-                      You agree to use our Services only for lawful purposes.
-                      You are responsible for your own conduct and
-                      communications while using our Services and for any
-                      consequences thereof. You agree not to:
+                      {t("sections.responsibilities.p1")}
                     </p>
                     <ul className="space-y-2 text-muted-foreground">
                       <li className="flex items-start gap-2">
                         <span className="text-primary mt-1">•</span>
-                        Use the Services for any fraudulent or unlawful purpose.
+                        {t("sections.responsibilities.item1")}
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-primary mt-1">•</span>
-                        Post or transmit any content that is abusive,
-                        defamatory, obscene, or otherwise objectionable.
+                        {t("sections.responsibilities.item2")}
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-primary mt-1">•</span>
-                        Infringe on the intellectual property rights of others.
+                        {t("sections.responsibilities.item3")}
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-primary mt-1">•</span>
-                        Interfere with or disrupt the Services or servers or
-                        networks connected to the Services.
+                        {t("sections.responsibilities.item4")}
                       </li>
                     </ul>
                   </section>
@@ -145,17 +143,10 @@ export default function TermsOfServicePage() {
 
                   <section id="ip" className="scroll-mt-24">
                     <h2 className="text-2xl font-semibold mb-4">
-                      4. Intellectual Property
+                      {t("sections.ip.title")}
                     </h2>
                     <p className="text-muted-foreground">
-                      All content and materials available on Nebula, including
-                      but not limited to text, graphics, website name, code,
-                      images, and logos, are the intellectual property of Nebula
-                      and are protected by applicable copyright and trademark
-                      law. Any inappropriate use, including but not limited to
-                      the reproduction, distribution, display, or transmission
-                      of any content on this site is strictly prohibited, unless
-                      specifically authorized by Nebula.
+                      {t("sections.ip.p1")}
                     </p>
                   </section>
 
@@ -163,14 +154,10 @@ export default function TermsOfServicePage() {
 
                   <section id="termination" className="scroll-mt-24">
                     <h2 className="text-2xl font-semibold mb-4">
-                      5. Termination
+                      {t("sections.termination.title")}
                     </h2>
                     <p className="text-muted-foreground">
-                      We may terminate or suspend your access to our Services at
-                      any time, without prior notice or liability, for any
-                      reason whatsoever, including without limitation if you
-                      breach the Terms. Upon termination, your right to use the
-                      Services will immediately cease.
+                      {t("sections.termination.p1")}
                     </p>
                   </section>
 
@@ -178,14 +165,10 @@ export default function TermsOfServicePage() {
 
                   <section id="disclaimers" className="scroll-mt-24">
                     <h2 className="text-2xl font-semibold mb-4">
-                      6. Disclaimers
+                      {t("sections.disclaimers.title")}
                     </h2>
                     <p className="text-muted-foreground">
-                      Our Services are provided "as is" and "as available"
-                      without any warranties of any kind, either express or
-                      implied. Nebula does not warrant that the Services will be
-                      uninterrupted, error-free, or free of viruses or other
-                      harmful components.
+                      {t("sections.disclaimers.p1")}
                     </p>
                   </section>
 
@@ -193,16 +176,10 @@ export default function TermsOfServicePage() {
 
                   <section id="liability" className="scroll-mt-24">
                     <h2 className="text-2xl font-semibold mb-4">
-                      7. Limitation of Liability
+                      {t("sections.liability.title")}
                     </h2>
                     <p className="text-muted-foreground">
-                      In no event shall Nebula, nor its directors, employees,
-                      partners, agents, suppliers, or affiliates, be liable for
-                      any indirect, incidental, special, consequential, or
-                      punitive damages, including without limitation, loss of
-                      profits, data, use, goodwill, or other intangible losses,
-                      resulting from your access to or use of or inability to
-                      access or use the Services.
+                      {t("sections.liability.p1")}
                     </p>
                   </section>
 
@@ -210,12 +187,10 @@ export default function TermsOfServicePage() {
 
                   <section id="governing" className="scroll-mt-24">
                     <h2 className="text-2xl font-semibold mb-4">
-                      8. Governing Law
+                      {t("sections.governing.title")}
                     </h2>
                     <p className="text-muted-foreground">
-                      These Terms shall be governed and construed in accordance
-                      with the laws of the jurisdiction in which our company is
-                      based, without regard to its conflict of law provisions.
+                      {t("sections.governing.p1")}
                     </p>
                   </section>
                 </div>

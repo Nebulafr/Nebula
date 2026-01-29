@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PlaceHolderImages } from "@/lib/images/placeholder-images";
 import { ArrowLeft, ArrowRight, X, Loader2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
 import { Progress } from "@/components/ui/progress";
@@ -27,6 +28,8 @@ import {
 } from "@/lib/validations";
 
 function CoachOnboardingStep2Content() {
+  const t = useTranslations("onboarding.coach.step2");
+  const tCommon = useTranslations("onboarding.common");
   const image = PlaceHolderImages.find((img) => img.id === "about-hero");
   const [inputValue, setInputValue] = useState("");
   const { data: categoriesResponse, isLoading: loading } = useCategories();
@@ -56,7 +59,7 @@ function CoachOnboardingStep2Content() {
       <div className="w-full min-h-screen flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p className="text-lg">Loading categories...</p>
+          <p className="text-lg">{t("loading")}</p>
         </div>
       </div>
     );
@@ -110,10 +113,8 @@ function CoachOnboardingStep2Content() {
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
         <div className="absolute bottom-8 left-8 text-white">
-          <h2 className="text-4xl font-bold">Step 2: Areas of Expertise</h2>
-          <p className="mt-2 max-w-lg">
-            Help students find you by listing your specialties.
-          </p>
+          <h2 className="text-4xl font-bold">{t("title")}</h2>
+          <p className="mt-2 max-w-lg">{t("description")}</p>
         </div>
       </div>
       <div className="flex h-full flex-col justify-center py-12 lg:col-span-2">
@@ -122,18 +123,17 @@ function CoachOnboardingStep2Content() {
           <Card className="border-none shadow-none">
             <CardHeader className="p-0 text-left">
               <CardTitle className="text-3xl font-bold text-primary">
-                Your Expertise
+                {t("heading")}
               </CardTitle>
               <CardDescription>
-                What are your key areas of expertise? Add a few tags that best
-                describe your skills.{" "}
+                {t("subheading")}{" "}
                 <span className="text-destructive">*</span>
               </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4 p-0 mt-6">
               <div className="grid gap-4">
                 <div className="grid gap-2">
-                  <Label>Suggested Categories</Label>
+                  <Label>{t("suggested")}</Label>
                   <div className="flex flex-wrap gap-2">
                     {categories.map((category: any) => (
                       <Button
@@ -151,10 +151,10 @@ function CoachOnboardingStep2Content() {
                 </div>
 
                 <div className="grid gap-2">
-                  <Label htmlFor="specialties">Add Custom Specialty</Label>
+                  <Label htmlFor="specialties">{t("custom")}</Label>
                   <Input
                     id="specialties"
-                    placeholder="Type a specialty and press Enter..."
+                    placeholder={t("placeholder")}
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyDown={handleKeyDown}
@@ -164,7 +164,7 @@ function CoachOnboardingStep2Content() {
 
                 {specialties.length > 0 && (
                   <div className="grid gap-2">
-                    <Label>Selected Specialties</Label>
+                    <Label>{t("selected")}</Label>
                     <div className="flex flex-wrap gap-2">
                       {specialties.map((spec) => (
                         <Badge key={spec} variant="secondary">
@@ -197,12 +197,12 @@ function CoachOnboardingStep2Content() {
                   company || ""
                 )}&linkedin=${encodeURIComponent(linkedin || "")}`}
               >
-                <ArrowLeft className="mr-2 h-5 w-5" /> Back
+                <ArrowLeft className="mr-2 h-5 w-5" /> {tCommon("back")}
               </Link>
             </Button>
             <Button size="lg" asChild disabled={!isValid}>
               <Link href={nextStepUrl}>
-                Continue <ArrowRight className="ml-2 h-5 w-5" />
+                {tCommon("continue")} <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>
           </div>

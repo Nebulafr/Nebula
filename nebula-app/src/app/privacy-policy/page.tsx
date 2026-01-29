@@ -6,14 +6,19 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Mail, Shield } from "lucide-react";
 
+import { useTranslations, useLocale } from "next-intl";
+
 export default function PrivacyPolicyPage() {
+  const t = useTranslations("privacyPolicy");
+  const locale = useLocale();
+
   const sections = [
-    { id: "collect", title: "1. Information We Collect" },
-    { id: "use", title: "2. How We Use Your Information" },
-    { id: "share", title: "3. How We Share Your Information" },
-    { id: "rights", title: "4. Your Rights and Choices" },
-    { id: "security", title: "5. Data Security" },
-    { id: "changes", title: "6. Changes to This Policy" },
+    { id: "collect", title: t("sections.collect.title") },
+    { id: "use", title: t("sections.use.title") },
+    { id: "share", title: t("sections.share.title") },
+    { id: "rights", title: t("sections.rights.title") },
+    { id: "security", title: t("sections.security.title") },
+    { id: "changes", title: t("sections.changes.title") },
   ];
 
   return (
@@ -30,18 +35,21 @@ export default function PrivacyPolicyPage() {
                 </div>
               </div>
               <h1 className="font-headline text-4xl font-bold tracking-tight md:text-5xl">
-                Privacy Policy
+                {t("title")}
               </h1>
               <p className="mt-4 text-lg text-muted-foreground">
-                Your privacy is important to us. Learn how we collect, use, and
-                protect your information.
+                {t("subtitle")}
               </p>
               <p className="mt-2 text-sm text-muted-foreground">
-                Last updated:{" "}
-                {new Date().toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
+                {t("lastUpdated", {
+                  date: new Date().toLocaleDateString(
+                    locale === "fr" ? "fr-FR" : "en-US",
+                    {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    },
+                  ),
                 })}
               </p>
             </div>
@@ -56,7 +64,7 @@ export default function PrivacyPolicyPage() {
               <aside className="hidden lg:block">
                 <div className="sticky top-24">
                   <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-4">
-                    On this page
+                    {t("onThisPage")}
                   </h3>
                   <nav className="space-y-2">
                     {sections.map((section) => (
@@ -76,49 +84,37 @@ export default function PrivacyPolicyPage() {
               <div className="lg:col-span-3">
                 <div className="prose prose-gray dark:prose-invert max-w-none">
                   <p className="text-lg text-muted-foreground">
-                    Nebula ("we," "us," or "our") is committed to protecting
-                    your privacy. This Privacy Policy explains how we collect,
-                    use, disclose, and safeguard your information when you use
-                    our platform and services. Please read this policy
-                    carefully. If you do not agree with the terms of this
-                    privacy policy, please do not access the site.
+                    {t("intro")}
                   </p>
 
                   <Separator className="my-8" />
 
                   <section id="collect" className="scroll-mt-24">
                     <h2 className="text-2xl font-semibold mb-4">
-                      1. Information We Collect
+                      {t("sections.collect.title")}
                     </h2>
                     <p className="text-muted-foreground mb-4">
-                      We may collect information about you in a variety of ways.
-                      The information we may collect on the Site includes:
+                      {t("sections.collect.p1")}
                     </p>
 
                     <Card className="mb-4">
                       <CardContent className="p-4">
-                        <h3 className="font-semibold mb-2">Personal Data</h3>
+                        <h3 className="font-semibold mb-2">
+                          {t("sections.collect.personalData.title")}
+                        </h3>
                         <p className="text-sm text-muted-foreground">
-                          Personally identifiable information, such as your
-                          name, email address, and telephone number, and
-                          demographic information, such as your age, gender,
-                          hometown, and interests, that you voluntarily give to
-                          us when you register with the Site or when you choose
-                          to participate in various activities related to the
-                          Site, such as online chat and message boards.
+                          {t("sections.collect.personalData.description")}
                         </p>
                       </CardContent>
                     </Card>
 
                     <Card>
                       <CardContent className="p-4">
-                        <h3 className="font-semibold mb-2">Derivative Data</h3>
+                        <h3 className="font-semibold mb-2">
+                          {t("sections.collect.derivativeData.title")}
+                        </h3>
                         <p className="text-sm text-muted-foreground">
-                          Information our servers automatically collect when you
-                          access the Site, such as your IP address, your browser
-                          type, your operating system, your access times, and
-                          the pages you have viewed directly before and after
-                          accessing the Site.
+                          {t("sections.collect.derivativeData.description")}
                         </p>
                       </CardContent>
                     </Card>
@@ -128,50 +124,43 @@ export default function PrivacyPolicyPage() {
 
                   <section id="use" className="scroll-mt-24">
                     <h2 className="text-2xl font-semibold mb-4">
-                      2. How We Use Your Information
+                      {t("sections.use.title")}
                     </h2>
                     <p className="text-muted-foreground mb-4">
-                      Having accurate information about you permits us to
-                      provide you with a smooth, efficient, and customized
-                      experience. Specifically, we may use information collected
-                      about you via the Site to:
+                      {t("sections.use.p1")}
                     </p>
                     <ul className="space-y-2 text-muted-foreground">
                       <li className="flex items-start gap-2">
                         <span className="text-primary mt-1">•</span>
-                        Create and manage your account.
+                        {t("sections.use.item1")}
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-primary mt-1">•</span>
-                        Email you regarding your account or order.
+                        {t("sections.use.item2")}
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-primary mt-1">•</span>
-                        Enable user-to-user communications.
+                        {t("sections.use.item3")}
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-primary mt-1">•</span>
-                        Generate a personal profile about you to make future
-                        visits to the Site more personalized.
+                        {t("sections.use.item4")}
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-primary mt-1">•</span>
-                        Monitor and analyze usage and trends to improve your
-                        experience with the Site.
+                        {t("sections.use.item5")}
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-primary mt-1">•</span>
-                        Notify you of updates to the Site.
+                        {t("sections.use.item6")}
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-primary mt-1">•</span>
-                        Offer new products, services, and/or recommendations to
-                        you.
+                        {t("sections.use.item7")}
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-primary mt-1">•</span>
-                        Request feedback and contact you about your use of the
-                        Site.
+                        {t("sections.use.item8")}
                       </li>
                     </ul>
                   </section>
@@ -180,26 +169,19 @@ export default function PrivacyPolicyPage() {
 
                   <section id="share" className="scroll-mt-24">
                     <h2 className="text-2xl font-semibold mb-4">
-                      3. How We Share Your Information
+                      {t("sections.share.title")}
                     </h2>
                     <p className="text-muted-foreground mb-4">
-                      We may share information we have collected about you in
-                      certain situations. Your information may be disclosed as
-                      follows:
+                      {t("sections.share.p1")}
                     </p>
 
                     <Card className="mb-4">
                       <CardContent className="p-4">
                         <h3 className="font-semibold mb-2">
-                          By Law or to Protect Rights
+                          {t("sections.share.byLaw.title")}
                         </h3>
                         <p className="text-sm text-muted-foreground">
-                          If we believe the release of information about you is
-                          necessary to respond to legal process, to investigate
-                          or remedy potential violations of our policies, or to
-                          protect the rights, property, and safety of others, we
-                          may share your information as permitted or required by
-                          any applicable law, rule, or regulation.
+                          {t("sections.share.byLaw.description")}
                         </p>
                       </CardContent>
                     </Card>
@@ -207,14 +189,10 @@ export default function PrivacyPolicyPage() {
                     <Card>
                       <CardContent className="p-4">
                         <h3 className="font-semibold mb-2">
-                          Third-Party Service Providers
+                          {t("sections.share.thirdParties.title")}
                         </h3>
                         <p className="text-sm text-muted-foreground">
-                          We may share your information with third parties that
-                          perform services for us or on our behalf, including
-                          payment processing, data analysis, email delivery,
-                          hosting services, customer service, and marketing
-                          assistance.
+                          {t("sections.share.thirdParties.description")}
                         </p>
                       </CardContent>
                     </Card>
@@ -224,23 +202,19 @@ export default function PrivacyPolicyPage() {
 
                   <section id="rights" className="scroll-mt-24">
                     <h2 className="text-2xl font-semibold mb-4">
-                      4. Your Rights and Choices
+                      {t("sections.rights.title")}
                     </h2>
                     <p className="text-muted-foreground mb-4">
-                      You have certain rights regarding your personal
-                      information. You may at any time review or change the
-                      information in your account or terminate your account by:
+                      {t("sections.rights.p1")}
                     </p>
                     <ul className="space-y-2 text-muted-foreground">
                       <li className="flex items-start gap-2">
                         <span className="text-primary mt-1">•</span>
-                        Logging into your account settings and updating your
-                        account.
+                        {t("sections.rights.item1")}
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-primary mt-1">•</span>
-                        Contacting us using the contact information provided
-                        below.
+                        {t("sections.rights.item2")}
                       </li>
                     </ul>
                   </section>
@@ -249,17 +223,10 @@ export default function PrivacyPolicyPage() {
 
                   <section id="security" className="scroll-mt-24">
                     <h2 className="text-2xl font-semibold mb-4">
-                      5. Data Security
+                      {t("sections.security.title")}
                     </h2>
                     <p className="text-muted-foreground">
-                      We use administrative, technical, and physical security
-                      measures to help protect your personal information. While
-                      we have taken reasonable steps to secure the personal
-                      information you provide to us, please be aware that
-                      despite our efforts, no security measures are perfect or
-                      impenetrable, and no method of data transmission can be
-                      guaranteed against any interception or other type of
-                      misuse.
+                      {t("sections.security.p1")}
                     </p>
                   </section>
 
@@ -267,14 +234,10 @@ export default function PrivacyPolicyPage() {
 
                   <section id="changes" className="scroll-mt-24">
                     <h2 className="text-2xl font-semibold mb-4">
-                      6. Changes to This Policy
+                      {t("sections.changes.title")}
                     </h2>
                     <p className="text-muted-foreground">
-                      We reserve the right to make changes to this Privacy
-                      Policy at any time and for any reason. We will alert you
-                      about any changes by updating the "Last updated" date of
-                      this Privacy Policy. You are encouraged to periodically
-                      review this Privacy Policy to stay informed of updates.
+                      {t("sections.changes.p1")}
                     </p>
                   </section>
                 </div>

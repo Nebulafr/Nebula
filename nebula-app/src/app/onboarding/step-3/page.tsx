@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, CheckCircle, Clock, Zap } from "lucide-react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/images/placeholder-images";
@@ -42,6 +43,8 @@ const availabilities = [
 ];
 
 function OnboardingStep3Content() {
+  const t = useTranslations("onboarding.student.step3");
+  const tCommon = useTranslations("onboarding.common");
   const [isLoading, setIsLoading] = useState(false);
   const image = PlaceHolderImages.find((img) => img.id === "benefit-schedule");
   const searchParams = useSearchParams();
@@ -67,9 +70,7 @@ function OnboardingStep3Content() {
 
   const handleFinish = async () => {
     if (!profile || !program || !skillLevel || !selectedAvailability) {
-      toast.error(
-        "Some information is missing. Please go back and complete all steps."
-      );
+      toast.error(t("missingInfo"));
       return;
     }
 
@@ -97,7 +98,7 @@ function OnboardingStep3Content() {
     } catch (error: any) {
       console.error("Error creating student profile:", error);
       toast.error(
-        error.message || "Could not save your profile. Please try again."
+        error.message || t("saveError")
       );
     } finally {
       setIsLoading(false);
@@ -118,10 +119,8 @@ function OnboardingStep3Content() {
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
         <div className="absolute bottom-8 left-8 text-white">
-          <h2 className="text-4xl font-bold">Step 3: Your Commitment</h2>
-          <p className="mt-2 max-w-lg">
-            Let us know how much time you can dedicate to your growth.
-          </p>
+          <h2 className="text-4xl font-bold">{t("title")}</h2>
+          <p className="mt-2 max-w-lg">{t("subtitle")}</p>
         </div>
       </div>
       <div className="flex h-full flex-col justify-center py-12 lg:col-span-2">
@@ -129,11 +128,11 @@ function OnboardingStep3Content() {
           <Progress value={100} className="mb-6 h-2" />
           <div className="text-left">
             <h1 className="font-headline text-4xl font-bold text-primary">
-              How much time can you commit?
+              {t("heading")}
             </h1>
             <p className="mt-2 text-lg text-muted-foreground">
-              This will help us find the perfect time for your coaching
-              sessions. <span className="text-destructive">*</span>
+              {t("description")}{" "}
+              <span className="text-destructive">*</span>
             </p>
           </div>
 
@@ -184,7 +183,7 @@ function OnboardingStep3Content() {
                   program || ""
                 )}`}
               >
-                <ArrowLeft className="mr-2 h-5 w-5" /> Back
+                <ArrowLeft className="mr-2 h-5 w-5" /> {tCommon("back")}
               </Link>
             </Button>
             <Button
@@ -192,7 +191,7 @@ function OnboardingStep3Content() {
               onClick={handleFinish}
               disabled={!isValid || isLoading}
             >
-              {isLoading ? "Creating Profile..." : "Finish"}
+              {isLoading ? t("creatingProfile") : t("finish")}
               {!isLoading && <CheckCircle className="ml-2 h-5 w-5" />}
             </Button>
           </div>

@@ -8,8 +8,11 @@ import { Footer } from "@/components/layout/footer";
 import { useParams } from "next/navigation";
 import { Header } from "@/components/layout/header";
 import { useProgramReviews } from "@/hooks";
+import { useTranslations, useLocale } from "next-intl";
 
 export default function ProgramReviewsPage() {
+  const t = useTranslations("programDetails");
+  const locale = useLocale();
   const params = useParams<{ slug: string }>();
 
   const {
@@ -30,14 +33,13 @@ export default function ProgramReviewsPage() {
           <section className="container py-12 md:py-20">
             <div className="text-center">
               <h1 className="font-headline text-4xl font-bold tracking-tighter text-primary md:text-5xl">
-                Program Not Found
+                {t("programNotFound")}
               </h1>
               <p className="mt-4 text-lg text-muted-foreground">
-                The program you're looking for doesn't exist or has been
-                removed.
+                {t("programNotFoundDesc")}
               </p>
               <Button asChild className="mt-6">
-                <Link href="/programs">Browse Programs</Link>
+                <Link href="/programs">{t("backToPrograms")}</Link>
               </Button>
             </div>
           </section>
@@ -56,7 +58,7 @@ export default function ProgramReviewsPage() {
             <Button variant="ghost" asChild>
               <Link href={`/programs/${params.slug}`}>
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Program
+                {t("backToPrograms")}
               </Link>
             </Button>
           </div>
@@ -64,11 +66,11 @@ export default function ProgramReviewsPage() {
           <div className="mb-8">
             <h1 className="font-headline text-4xl font-bold tracking-tighter text-primary md:text-5xl">
               {targetEntity?.title
-                ? `Reviews for ${targetEntity.title}`
-                : "Program Reviews"}
+                ? t("reviewsFor", { title: targetEntity.title })
+                : t("reviews")}
             </h1>
             <p className="mt-2 text-lg text-muted-foreground">
-              See what other students have to say about this program.
+              {t("programReviewsSummary")}
             </p>
 
             {targetEntity && (
@@ -77,8 +79,7 @@ export default function ProgramReviewsPage() {
                   <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
                   <span className="font-semibold">{targetEntity.rating}</span>
                   <span className="text-muted-foreground">
-                    ({targetEntity.totalReviews} review
-                    {targetEntity.totalReviews !== 1 ? "s" : ""})
+                    ({t("reviewsCount", { count: targetEntity.totalReviews })})
                   </span>
                 </div>
               </div>
@@ -88,12 +89,12 @@ export default function ProgramReviewsPage() {
           {loading ? (
             <div className="mt-12 flex items-center justify-center">
               <Loader2 className="h-8 w-8 animate-spin" />
-              <span className="ml-2">Loading reviews...</span>
+              <span className="ml-2">{t("loadingReviews")}</span>
             </div>
           ) : reviews.length === 0 ? (
             <div className="mt-12 text-center">
               <p className="text-lg text-muted-foreground">
-                No reviews available for this program yet.
+                {t("noReviewsAvailable")}
               </p>
             </div>
           ) : (
@@ -114,7 +115,7 @@ export default function ProgramReviewsPage() {
                         ))}
                         {review.isVerified && (
                           <span className="ml-2 text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
-                            Verified
+                            {t("verified")}
                           </span>
                         )}
                       </div>
@@ -130,10 +131,10 @@ export default function ProgramReviewsPage() {
                       <div className="flex justify-between items-end">
                         <div>
                           <p className="text-sm font-semibold">
-                            {review.reviewer?.fullName || "Anonymous"}
+                            {review.reviewer?.fullName || t("anonymous")}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            {new Date(review.createdAt).toLocaleDateString()}
+                            {new Date(review.createdAt).toLocaleDateString(locale === "fr" ? "fr-FR" : "en-US")}
                           </p>
                         </div>
                       </div>

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, ArrowRight, BarChart3, Bot, Leaf } from "lucide-react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/images/placeholder-images";
@@ -20,20 +21,20 @@ import {
 const skillLevelConfig = {
   [SkillLevel.BEGINNER]: {
     icon: <Leaf className="h-5 w-5 text-green-500" />,
-    title: "Beginner",
-    description: "Just starting out, 0-2 years of experience.",
+    titleKey: "beginner.title",
+    descriptionKey: "beginner.description",
     color: "bg-green-500/10",
   },
   [SkillLevel.INTERMEDIATE]: {
     icon: <BarChart3 className="h-5 w-5 text-blue-500" />,
-    title: "Intermediate",
-    description: "Have some experience, 2-5 years.",
+    titleKey: "intermediate.title",
+    descriptionKey: "intermediate.description",
     color: "bg-blue-500/10",
   },
   [SkillLevel.ADVANCED]: {
     icon: <Bot className="h-5 w-5 text-purple-500" />,
-    title: "Advanced",
-    description: "Expert in the field, 5+ years of experience.",
+    titleKey: "advanced.title",
+    descriptionKey: "advanced.description",
     color: "bg-purple-500/10",
   },
 };
@@ -44,6 +45,8 @@ const skillLevels = Object.values(SkillLevel).map((level) => ({
 }));
 
 function OnboardingStep2Content() {
+  const t = useTranslations("onboarding.student.step2");
+  const tCommon = useTranslations("onboarding.common");
   const image = PlaceHolderImages.find((img) => img.id === "about-hero");
   const searchParams = useSearchParams();
   const program = searchParams.get("program");
@@ -76,10 +79,8 @@ function OnboardingStep2Content() {
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
         <div className="absolute bottom-8 left-8 text-white">
-          <h2 className="text-4xl font-bold">Step 2: Your Skill Level</h2>
-          <p className="mt-2 max-w-lg">
-            This helps us tailor your experience to the right level.
-          </p>
+          <h2 className="text-4xl font-bold">{t("title")}</h2>
+          <p className="mt-2 max-w-lg">{t("subtitle")}</p>
         </div>
       </div>
       <div className="flex h-full flex-col justify-center py-12 lg:col-span-2">
@@ -87,10 +88,10 @@ function OnboardingStep2Content() {
           <Progress value={66} className="mb-6 h-2" />
           <div className="text-left">
             <h1 className="font-headline text-4xl font-bold text-primary">
-              What is your skill level?
+              {t("heading")}
             </h1>
             <p className="mt-2 text-lg text-muted-foreground">
-              This will help us match you with the right coaches and content.{" "}
+              {t("description")}{" "}
               <span className="text-destructive">*</span>
             </p>
           </div>
@@ -116,10 +117,10 @@ function OnboardingStep2Content() {
                   </div>
                   <div>
                     <h3 className="font-headline text-lg font-semibold">
-                      {level.title}
+                      {t(level.titleKey as any)}
                     </h3>
                     <p className="mt-1 text-sm text-muted-foreground">
-                      {level.description}
+                      {t(level.descriptionKey as any)}
                     </p>
                   </div>
                 </CardContent>
@@ -136,7 +137,7 @@ function OnboardingStep2Content() {
           <div className="mt-6 flex justify-between">
             <Button size="lg" variant="outline" asChild>
               <Link href="/onboarding/step-1">
-                <ArrowLeft className="mr-2 h-5 w-5" /> Back
+                <ArrowLeft className="mr-2 h-5 w-5" /> {tCommon("back")}
               </Link>
             </Button>
             <Button size="lg" asChild disabled={!isValid}>
@@ -145,7 +146,7 @@ function OnboardingStep2Content() {
                   program || ""
                 )}&skillLevel=${encodeURIComponent(selectedLevel || "")}`}
               >
-                Continue <ArrowRight className="ml-2 h-5 w-5" />
+                {tCommon("continue")} <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>
           </div>

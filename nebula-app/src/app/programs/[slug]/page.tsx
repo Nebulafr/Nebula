@@ -28,6 +28,7 @@ import { toast } from "react-toastify";
 import { Header } from "@/components/layout/header";
 import { useAuth } from "@/hooks/use-auth";
 import { useProgramBySlug } from "@/hooks";
+import { useTranslations, useLocale } from "next-intl";
 import {
   Dialog,
   DialogContent,
@@ -103,6 +104,8 @@ export default function ProgramDetailPage({
 }: {
   params: Promise<{ slug: string }>;
 }) {
+  const t = useTranslations("programDetails");
+  const locale = useLocale();
   const { slug } = use(params);
   const { profile, isStudent } = useAuth();
   const queryClient = useQueryClient();
@@ -206,10 +209,10 @@ export default function ProgramDetailPage({
             <p className="text-muted-foreground mb-8">
               {error instanceof Error
                 ? error.message
-                : "Failed to load program"}
+                : t("failedToLoadProgram")}
             </p>
             <Button asChild>
-              <Link href="/programs">Browse all programs</Link>
+              <Link href="/programs">{t("browseAll")}</Link>
             </Button>
           </div>
         </main>
@@ -224,12 +227,12 @@ export default function ProgramDetailPage({
         <Header />
         <main className="flex-1">
           <div className="container py-12 md:py-20 text-center">
-            <h1 className="text-4xl font-bold mb-4">Program not found</h1>
+            <h1 className="text-4xl font-bold mb-4">{t("programNotFound")}</h1>
             <p className="text-muted-foreground mb-8">
-              The program you're looking for doesn't exist.
+              {t("programNotFoundDesc")}
             </p>
             <Button asChild>
-              <Link href="/programs">Browse all programs</Link>
+              <Link href="/programs">{t("browseAll")}</Link>
             </Button>
           </div>
         </main>
@@ -239,22 +242,20 @@ export default function ProgramDetailPage({
 
   const handleEnrollClick = async () => {
     if (!profile) {
-      toast.error("Please log in to enroll in this program.");
+      toast.error(t("loginToEnroll"));
       router.replace("/login");
       return;
     }
 
     if (!selectedDate || !selectedTime) {
-      toast.error("No available schedule found for this program.");
+      toast.error(t("noSchedule"));
       return;
     }
 
     try {
       setEnrolling(true);
       if (!profile) {
-        toast.error(
-          "Please complete your student profile to enroll in programs.",
-        );
+        toast.error(t("completeProfile"));
         router.replace("/dashboard/profile");
         return;
       }
@@ -294,17 +295,17 @@ export default function ProgramDetailPage({
     e.preventDefault();
 
     if (!program) {
-      toast.error("Program information not available.");
+      toast.error(t("programInfoNotAvailable"));
       return;
     }
 
     if (rating === 0) {
-      toast.error("Please select a rating.");
+      toast.error(t("selectRating"));
       return;
     }
 
     if (!reviewText.trim()) {
-      toast.error("Please write a review.");
+      toast.error(t("writeReview"));
       return;
     }
 
@@ -356,10 +357,10 @@ export default function ProgramDetailPage({
           <div className="text-left">
             <div className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
               <Link href="/programs" className="hover:text-primary">
-                Programs
+                {t("backToPrograms")}
               </Link>
               <ChevronRight className="h-4 w-4" />
-              <span>{program.category?.name || "Program"}</span>
+              <span>{program.category?.name || t("fallbackCategory")}</span>
             </div>
             <h1 className="font-headline text-5xl font-bold tracking-tighter text-primary md:text-6xl">
               {program.title}
@@ -374,13 +375,13 @@ export default function ProgramDetailPage({
                   onClick={() => setEnrollmentStep(1)}
                   variant={enrollmentStep > 0 ? "outline" : "default"}
                 >
-                  <PlusCircle className="mr-2 h-5 w-5" /> Enroll now
+                  <PlusCircle className="mr-2 h-5 w-5" /> {t("enrollNow")}
                 </Button>
               )}
               {isEnrolled && (
                 <Button size="lg" variant="outline" asChild>
                   <Link href="/dashboard">
-                    <CheckCircle className="mr-2 h-5 w-5" /> Access Dashboard
+                    <CheckCircle className="mr-2 h-5 w-5" /> {t("accessDashboard")}
                   </Link>
                 </Button>
               )}
@@ -391,7 +392,7 @@ export default function ProgramDetailPage({
                 asChild
               >
                 <Link href="#modules">
-                  Read the Modules <ArrowRight className="ml-2 h-4 w-4" />
+                  {t("readModules")} <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
             </div>
@@ -403,7 +404,7 @@ export default function ProgramDetailPage({
             <div className="md:col-span-3">
               <div className="mb-12">
                 <h2 className="mb-6 font-headline text-2xl font-bold">
-                  Learning Objectives
+                  {t("learningObjectives")}
                 </h2>
                 <ul className="space-y-4 text-muted-foreground">
                   {program?.objectives?.map((obj, i) => (
@@ -430,7 +431,7 @@ export default function ProgramDetailPage({
                 ) : (
                   <>
                     <h2 className="mb-4 font-headline text-lg font-bold text-center">
-                      {program.currentEnrollments || 0} students enrolled so far
+                      {t("studentsEnrolled", { count: program.currentEnrollments || 0 })}
                     </h2>
                     <Card className="rounded-xl bg-secondary text-secondary-foreground min-h-48 flex flex-col justify-center">
                       <CardContent className="p-6 text-center">
@@ -441,8 +442,10 @@ export default function ProgramDetailPage({
                           </span>
                         </div>
                         <p className="mt-2 text-sm text-secondary-foreground/80">
-                          Rated {Number(program.rating || 0).toFixed(1)}/5 by{" "}
-                          {program.totalReviews || 0} students
+                          {t("ratedBy", {
+                            rating: Number(program.rating || 0).toFixed(1),
+                            count: program.totalReviews || 0,
+                          })}
                         </p>
                       </CardContent>
                     </Card>
@@ -469,7 +472,7 @@ export default function ProgramDetailPage({
                     className="w-full"
                     onClick={() => setEnrollmentStep(1)}
                   >
-                    <PlusCircle className="mr-2 h-5 w-5" /> Enroll Now
+                    <PlusCircle className="mr-2 h-5 w-5" /> {t("enrollNow")}
                   </Button>
                 )
               )}
@@ -481,7 +484,7 @@ export default function ProgramDetailPage({
           <div className="grid grid-cols-1 gap-16 md:grid-cols-3">
             <div className="md:col-span-2">
               <h2 className="mb-4 font-headline text-xl font-bold">
-                This program is run by
+                {t("runBy")}
               </h2>
               <div className="flex items-center gap-4">
                 <Avatar className="h-20 w-20">
@@ -516,19 +519,19 @@ export default function ProgramDetailPage({
               <div className="flex items-center gap-4 mt-6">
                 <Button asChild>
                   <Link href={`/coaches/${program.coach?.id}`}>
-                    View Profile
+                    {t("viewProfile")}
                   </Link>
                 </Button>
                 {isStudent && (
                   <Button variant="outline" onClick={handleMessageClick}>
                     <MessageCircle className="mr-2 h-4 w-4" />
-                    Message {program.coach?.user.fullName?.split(" ")[0]}
+                    {t("messageCoach", { name: program.coach?.user.fullName?.split(" ")[0] || "" })}
                   </Button>
                 )}
               </div>
             </div>
             <div className="md:col-span-1">
-              <h2 className="mb-4 font-headline text-xl font-bold">Reviews</h2>
+              <h2 className="mb-4 font-headline text-xl font-bold">{t("reviews")}</h2>
               {program?.reviews && program.reviews.length > 0 ? (
                 <Card className="rounded-xl border shadow-sm">
                   <CardContent className="p-6">
@@ -551,7 +554,7 @@ export default function ProgramDetailPage({
                     <p className="mt-4 text-sm font-semibold">
                       {program.reviews[0].reviewer.fullName},{" "}
                       <span className="font-normal text-muted-foreground">
-                        Student
+                        {t("student")}
                       </span>
                     </p>
 
@@ -584,10 +587,9 @@ export default function ProgramDetailPage({
                           {!reviewSubmitted ? (
                             <>
                               <DialogHeader>
-                                <DialogTitle>Share your review</DialogTitle>
+                                <DialogTitle>{t("shareReview")}</DialogTitle>
                                 <DialogDescription>
-                                  Let others know about your experience with
-                                  this program.
+                                  {t("shareReviewDesc")}
                                 </DialogDescription>
                               </DialogHeader>
                               <form
@@ -595,7 +597,7 @@ export default function ProgramDetailPage({
                                 className="grid gap-6 py-4"
                               >
                                 <div className="grid gap-2">
-                                  <Label>Your Rating</Label>
+                                  <Label>{t("yourRating")}</Label>
                                   <div className="flex items-center gap-1">
                                     {[...Array(5)].map((_, i) => {
                                       const starValue = i + 1;
@@ -620,11 +622,11 @@ export default function ProgramDetailPage({
                                 </div>
                                 <div className="grid gap-2">
                                   <Label htmlFor="review-text">
-                                    Share your thoughts
+                                    {t("shareThoughts")}
                                   </Label>
                                   <Textarea
                                     id="review-text"
-                                    placeholder="What did you like or dislike? What should other students know?"
+                                    placeholder={t("textareaPlaceholder")}
                                     rows={4}
                                     value={reviewText}
                                     onChange={(e) =>
@@ -643,8 +645,8 @@ export default function ProgramDetailPage({
                                     }
                                   >
                                     {isSubmittingReview
-                                      ? "Submitting..."
-                                      : "Submit Review"}
+                                      ? t("submitting")
+                                      : t("submitReview")}
                                   </Button>
                                 </DialogFooter>
                               </form>
@@ -653,16 +655,16 @@ export default function ProgramDetailPage({
                             <div className="text-center py-8">
                               <CheckCircle className="h-16 w-16 mx-auto mb-4 text-green-500" />
                               <h3 className="text-xl font-semibold">
-                                Thank You!
+                                {t("thankYou")}
                               </h3>
                               <p className="text-muted-foreground mt-2">
-                                Your review has been submitted successfully.
+                                {t("reviewSubmitted")}
                               </p>
                               <Button
                                 onClick={resetReviewForm}
                                 className="mt-6"
                               >
-                                Close
+                                {t("close")}
                               </Button>
                             </div>
                           )}
@@ -670,7 +672,7 @@ export default function ProgramDetailPage({
                       </Dialog>
                       <Button variant="link" className="px-0" asChild>
                         <Link href={`/programs/${slug}/reviews`}>
-                          View more reviews{" "}
+                          {t("viewMoreReviews")}{" "}
                           <ArrowRight className="ml-2 h-4 w-4" />
                         </Link>
                       </Button>
@@ -679,7 +681,7 @@ export default function ProgramDetailPage({
                 </Card>
               ) : (
                 <p className="text-muted-foreground text-sm">
-                  No reviews yet for this new program.
+                  {t("noReviewsYet")}
                 </p>
               )}
             </div>
@@ -688,7 +690,7 @@ export default function ProgramDetailPage({
 
         <section id="modules" className="container py-20">
           <h2 className="mb-8 font-headline text-3xl font-bold">
-            Program Modules
+            {t("programModules")}
           </h2>
           <Accordion
             type="single"
@@ -701,7 +703,7 @@ export default function ProgramDetailPage({
                 <AccordionTrigger className="text-lg font-semibold hover:no-underline text-left">
                   <div className="flex items-center gap-4">
                     <span>{mod.title}</span>
-                    <Badge variant="secondary">Week {mod.week}</Badge>
+                    <Badge variant="secondary">{t("week", { count: mod.week })}</Badge>
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="text-base text-muted-foreground pl-4 pb-4 font-normal">
@@ -732,13 +734,16 @@ function EnrollmentForm({
   onEnroll: () => void;
   onCancel: () => void;
 }) {
+  const t = useTranslations("programDetails");
+  const locale = useLocale();
+
   if (step === 1) {
     return (
       <Card className="rounded-xl border-border shadow-lg">
         <CardContent className="p-6">
           <div className="flex justify-between items-center mb-4">
             <h3 className="font-headline text-lg font-bold">
-              Join Next Cohort
+              {t("joinNextCohort")}
             </h3>
             <Button
               variant="ghost"
@@ -750,13 +755,13 @@ function EnrollmentForm({
             </Button>
           </div>
           <div className="text-center my-6">
-            <p className="text-muted-foreground">The next cohort starts on:</p>
+            <p className="text-muted-foreground">{t("nextCohortStarts")}</p>
             <p className="text-xl font-bold mt-1">
-              {selectedDate?.toLocaleDateString()} at {selectedTime}
+              {selectedDate?.toLocaleDateString(locale === "fr" ? "fr-FR" : "en-US")} at {selectedTime}
             </p>
           </div>
           <Button className="w-full" onClick={onEnroll} disabled={loading}>
-            {loading ? "Enrolling..." : "Enroll in Next Cohort"}
+            {loading ? t("submitting") : t("enrollNow")}
           </Button>
         </CardContent>
       </Card>
@@ -768,10 +773,9 @@ function EnrollmentForm({
       <Card className="rounded-xl border-none bg-green-50 text-green-900 shadow-lg">
         <CardContent className="p-6 text-center">
           <CheckCircle className="h-12 w-12 mx-auto mb-4" />
-          <h3 className="font-headline text-xl font-bold">You're In!</h3>
+          <h3 className="font-headline text-xl font-bold">{t("enrollSuccessTitle")}</h3>
           <p className="text-sm mt-2">
-            Welcome to the program. You can view your enrollment details on your
-            dashboard.
+            {t("enrollSuccessDesc")}
           </p>
           <div className="flex gap-2 mt-6">
             <Button
@@ -779,10 +783,10 @@ function EnrollmentForm({
               className="w-full bg-green-100 border-green-600 text-green-800 hover:bg-green-200"
               onClick={onCancel}
             >
-              Close
+              {t("close")}
             </Button>
             <Button className="w-full bg-green-700 hover:bg-green-800" asChild>
-              <Link href="/dashboard">Go to Dashboard</Link>
+              <Link href="/dashboard">{t("goToDashboard")}</Link>
             </Button>
           </div>
         </CardContent>

@@ -9,6 +9,7 @@ import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/images/placeholder-images";
 import { useCategories } from "@/hooks";
 import { Loader2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -34,6 +35,8 @@ const categoryColors: Record<string, string> = {
 };
 
 export default function OnboardingStep1() {
+  const t = useTranslations("onboarding.student.step1");
+  const tCommon = useTranslations("onboarding.common");
   const { data: categoriesResponse, isLoading: loading } = useCategories();
   const categories = categoriesResponse?.data?.categories || [];
 
@@ -57,7 +60,7 @@ export default function OnboardingStep1() {
       <div className="w-full min-h-screen flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p className="text-lg">Loading categories...</p>
+          <p className="text-lg">{t("categoriesLoading")}</p>
         </div>
       </div>
     );
@@ -77,10 +80,8 @@ export default function OnboardingStep1() {
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
         <div className="absolute bottom-8 left-8 text-white">
-          <h2 className="text-4xl font-bold">Step 1: Your Interests</h2>
-          <p className="mt-2 max-w-lg">
-            Let's start by understanding what you're here to achieve.
-          </p>
+          <h2 className="text-4xl font-bold">{t("title")}</h2>
+          <p className="mt-2 max-w-lg">{t("subtitle")}</p>
         </div>
       </div>
       <div className="flex h-full flex-col py-12 lg:col-span-2">
@@ -88,11 +89,11 @@ export default function OnboardingStep1() {
           <Progress value={33} className="h-2" />
           <div className="text-left">
             <h1 className="font-headline text-4xl font-bold text-primary">
-              Welcome to Nebula!
+              {t("welcome")}
             </h1>
             <p className="mt-2 text-lg text-muted-foreground">
-              Let&apos;s personalize your experience. To start, which program
-              are you interested in? <span className="text-destructive">*</span>
+              {t("description")}{" "}
+              <span className="text-destructive">*</span>
             </p>
           </div>
 
@@ -131,7 +132,7 @@ export default function OnboardingStep1() {
                         {category.name}
                       </h3>
                       <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
-                        Explore programs in {category.name.toLowerCase()}
+                        {t("explore", { category: category.name.toLowerCase() })}
                       </p>
                     </div>
                   </CardContent>
@@ -153,7 +154,7 @@ export default function OnboardingStep1() {
                   selectedProgram || ""
                 )}`}
               >
-                Continue <ArrowRight className="ml-2 h-5 w-5" />
+                {tCommon("continue")} <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>
           </div>

@@ -12,7 +12,10 @@ import { Header } from "@/components/layout/header";
 import { Separator } from "@/components/ui/separator";
 import { PlaceHolderImages } from "@/lib/images/placeholder-images";
 
+import { useTranslations } from "next-intl";
+
 export default function CareersPage() {
+  const t = useTranslations("careers");
   const heroImage = PlaceHolderImages.find((img) => img.id === "careers-hero");
   const lifeAtNebulaImage = PlaceHolderImages.find(
     (img) => img.id === "careers-life",
@@ -21,37 +24,33 @@ export default function CareersPage() {
   const values = [
     {
       icon: <Rocket className="h-8 w-8 text-primary" />,
-      title: "Mission-Driven",
-      description:
-        "We are passionate about empowering individuals to achieve their professional dreams.",
+      title: t("valueItems.mission.title"),
+      description: t("valueItems.mission.description"),
     },
     {
       icon: <HeartHandshake className="h-8 w-8 text-blue-500" />,
-      title: "Student-Centric",
-      description:
-        "Our students are at the heart of everything we build and every decision we make.",
+      title: t("valueItems.student.title"),
+      description: t("valueItems.student.description"),
     },
     {
       icon: <BrainCircuit className="h-8 w-8 text-purple-500" />,
-      title: "Embrace Innovation",
-      description:
-        "We constantly experiment and leverage technology to create better learning experiences.",
+      title: t("valueItems.innovation.title"),
+      description: t("valueItems.innovation.description"),
     },
     {
       icon: <Lightbulb className="h-8 w-8 text-yellow-500" />,
-      title: "Ownership & Impact",
-      description:
-        "We empower our team to take ownership and make a tangible impact on our mission.",
+      title: t("valueItems.ownership.title"),
+      description: t("valueItems.ownership.description"),
     },
   ];
 
   const benefits = [
-    "Competitive salary & equity",
-    "Comprehensive health insurance",
-    "Flexible work-from-anywhere policy",
-    "Generous vacation and parental leave",
-    "Wellness and learning stipends",
-    "Annual company retreats",
+    t("benefitItems.salary"),
+    t("benefitItems.health"),
+    t("benefitItems.remote"),
+    t("benefitItems.leave"),
+    t("benefitItems.stipend"),
+    t("benefitItems.retreat"),
   ];
 
   return (
@@ -72,20 +71,19 @@ export default function CareersPage() {
           <div className="absolute inset-0 bg-black/50" />
           <div className="relative container text-center">
             <h1 className="font-headline text-5xl font-bold tracking-tighter md:text-7xl">
-              Join Our Mission
+              {t("joinMission")}
             </h1>
             <p className="mt-4 max-w-2xl mx-auto font-body text-lg text-white/80 md:text-xl">
-              Help us democratize access to world-class career coaching and
-              build the future of professional development.
+              {t("joinMissionDesc")}
             </p>
           </div>
         </section>
 
         <section className="py-20 sm:py-32">
           <div className="container text-center">
-            <h2 className="font-headline text-4xl">Our Values</h2>
+            <h2 className="font-headline text-4xl">{t("values")}</h2>
             <p className="mx-auto mt-2 max-w-2xl text-lg text-muted-foreground">
-              The principles that guide our work and culture.
+              {t("valuesDesc")}
             </p>
             <div className="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
               {values.map((value) => (
@@ -112,11 +110,9 @@ export default function CareersPage() {
         <section id="open-roles" className="py-20 sm:py-32">
           <div className="container">
             <div className="text-center mb-12">
-              <h2 className="font-headline text-4xl">Open Roles</h2>
+              <h2 className="font-headline text-4xl">{t("openRoles")}</h2>
               <p className="mx-auto mt-2 max-w-2xl text-lg text-muted-foreground">
-                We don't have any open roles at the moment, but we're always
-                looking for talented people to join our team. Feel free to check
-                back later.
+                {t("noOpenRoles")}
               </p>
             </div>
           </div>
@@ -125,11 +121,9 @@ export default function CareersPage() {
         <section className="bg-primary/5 py-20 sm:py-32">
           <div className="container grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="font-headline text-4xl">Life at Nebula</h2>
+              <h2 className="font-headline text-4xl">{t("lifeAtNebula")}</h2>
               <p className="mt-4 text-lg text-muted-foreground">
-                We're a remote-first company with a focus on collaboration,
-                impact, and work-life balance. We believe in empowering our team
-                to do their best work, wherever they are.
+                {t("lifeDesc")}
               </p>
               <div className="mt-8 grid grid-cols-2 gap-4">
                 {benefits.map((benefit) => (

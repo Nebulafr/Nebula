@@ -39,9 +39,14 @@ export async function makeRequest<T = any>(
     headers?: Record<string, string>;
     requireAuth?: boolean;
     throwOnError?: boolean;
-  } = {}
+  } = {},
 ): Promise<ApiResponse<T>> {
-  const { body, headers = {}, requireAuth = true, throwOnError = false } = options;
+  const {
+    body,
+    headers = {},
+    requireAuth = true,
+    throwOnError = false,
+  } = options;
 
   const requestHeaders: Record<string, string> = {
     "Content-Type": "application/json",
@@ -144,7 +149,7 @@ export const apiPut = <T = any>(endpoint: string, body?: any, options?: any) =>
 export const apiPatch = <T = any>(
   endpoint: string,
   body?: any,
-  options?: any
+  options?: any,
 ) => makeRequest<T>(endpoint, "PATCH", { body, ...options });
 
 export const apiDelete = <T = any>(endpoint: string, options?: any) =>
@@ -191,3 +196,12 @@ export const formatDate = (date: Date): string => {
     day: "numeric",
   });
 };
+
+export function truncateText(
+  text: string | null | undefined,
+  maxLength: number,
+): string {
+  if (!text) return "";
+  if (text.length <= maxLength) return text;
+  return text.slice(0, maxLength).trim() + "...";
+}

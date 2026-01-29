@@ -6,26 +6,24 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Star, Loader2, Search } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, truncateText } from "@/lib/utils";
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
 import { useCategories, usePrograms } from "@/hooks";
 import { ProgramWithRelations } from "@/types/program";
 import { Input } from "@/components/ui/input";
+import { useTranslations } from "next-intl";
 
-function truncateText(text: string | null | undefined, maxLength: number): string {
-  if (!text) return "";
-  if (text.length <= maxLength) return text;
-  return text.slice(0, maxLength).trim() + "...";
-}
+
 
 export default function ProgramsPage() {
-  const [activeCategory, setActiveCategory] = useState("All");
+  const t = useTranslations("programs");
+  const [activeCategory, setActiveCategory] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const { data: categoriesResponse } = useCategories();
   const { data: programsResponse, isLoading: loading } = usePrograms({
     limit: 50,
-    category: activeCategory === "All" ? undefined : activeCategory,
+    category: activeCategory === "all" ? undefined : activeCategory,
     search: searchTerm || undefined,
   });
 
@@ -38,17 +36,15 @@ export default function ProgramsPage() {
       <main className="flex-1">
         <section className="container py-20 text-center">
           <h1 className="font-headline text-3xl font-bold tracking-tighter text-primary sm:text-4xl md:text-5xl lg:text-6xl">
-            Programs to help you grow
+            {t("title")}
           </h1>
           <p className="mx-auto mt-4 max-w-2xl font-body text-lg text-foreground/70">
-            This is an amazing text description of the programs available on the
-            Nebula platform. This text is intentionally long because we want
-            more characters to fill this space.
+            {t("description")}
           </p>
           <div className="mx-auto mt-8 relative max-w-xl">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             <Input
-              placeholder="Search by title, category or coach"
+              placeholder={t("searchPlaceholder")}
               className="h-12 w-full rounded-full pl-12"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -59,15 +55,15 @@ export default function ProgramsPage() {
               variant="outline"
               className={cn(
                 "rounded-full",
-                activeCategory === "All" && "bg-muted font-bold",
+                activeCategory === "all" && "bg-muted font-bold",
               )}
-              onClick={() => setActiveCategory("All")}
+              onClick={() => setActiveCategory("all")}
               disabled={loading}
             >
-              {loading && activeCategory === "All" && (
+              {loading && activeCategory === "all" && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
-              All
+              {t("all")}
             </Button>
             {categories.map((category: any) => (
               <Button
@@ -111,10 +107,10 @@ export default function ProgramsPage() {
                                   {program?.category?.name}
                                 </Badge>
                                 <h3 className="font-headline mt-3 text-base font-semibold leading-tight">
-                                  {truncateText(program.title, 60)}
+                                  {truncateText(program.title, 50)}
                                 </h3>
                                 <p className="mt-1 text-xs text-muted-foreground">
-                                  {truncateText(program.description, 120)}
+                                  {truncateText(program.description, 100)}
                                 </p>
                               </div>
 
@@ -135,10 +131,10 @@ export default function ProgramsPage() {
                                   <div className="flex-1 min-w-0">
                                     <p className="text-sm font-medium truncate">
                                       {program.coach?.user.fullName ||
-                                        "Unknown Coach"}
+                                        t("unknownCoach")}
                                     </p>
                                     <p className="text-xs text-muted-foreground truncate">
-                                      {program.coach?.title || "Coach"}
+                                      {program.coach?.title || t("coachFallback")}
                                     </p>
                                   </div>
                                 </div>
@@ -187,14 +183,14 @@ export default function ProgramsPage() {
           ) : (
             <div className="text-center py-20">
               <h3 className="text-xl font-semibold mb-2">
-                No Programs Found
+                {t("noProgramsFound")}
               </h3>
               <p className="text-muted-foreground">
                 {searchTerm
-                  ? `No programs found matching "${searchTerm}"${activeCategory !== "All" ? ` in the "${activeCategory}" category` : ""}.`
-                  : activeCategory === "All"
-                    ? "There are currently no programs available. Please check back later."
-                    : `No programs found in the "${activeCategory}" category.`}
+                  ? t("noProgramsMatching", { search: searchTerm, category: activeCategory })
+                  : activeCategory === "all"
+                    ? t("noProgramsAvailable")
+                    : t("noProgramsInCategory", { category: activeCategory })}
               </p>
             </div>
           )}

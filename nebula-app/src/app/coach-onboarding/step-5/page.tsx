@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/card";
 import { PlaceHolderImages } from "@/lib/images/placeholder-images";
 import { ArrowLeft, CheckCircle, Euro } from "lucide-react";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
 import { Progress } from "@/components/ui/progress";
@@ -26,6 +27,8 @@ import {
 } from "@/components/availability-settings";
 
 function CoachOnboardingStep5Content() {
+  const t = useTranslations("onboarding.coach.step5");
+  const tCommon = useTranslations("onboarding.common");
   const image = PlaceHolderImages.find((img) => img.id === "benefit-schedule");
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -55,7 +58,7 @@ function CoachOnboardingStep5Content() {
     e.preventDefault();
 
     if (!profile) {
-      toast.error("You must be logged in to submit an application.");
+      toast.error(t("loginRequired"));
       return;
     }
 
@@ -93,7 +96,7 @@ function CoachOnboardingStep5Content() {
       }, 100);
     } catch (error) {
       console.error("Error submitting coach application:", error);
-      toast.error("Could not submit your application. Please try again.");
+      toast.error(t("submitError"));
     } finally {
       setIsLoading(false);
     }
@@ -113,10 +116,8 @@ function CoachOnboardingStep5Content() {
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
         <div className="absolute bottom-8 left-8 text-white">
-          <h2 className="text-4xl font-bold">Step 5: Availability & Rates</h2>
-          <p className="mt-2 max-w-lg">
-            Finally, let's set your availability and compensation expectations.
-          </p>
+          <h2 className="text-4xl font-bold">{t("title")}</h2>
+          <p className="mt-2 max-w-lg">{t("description")}</p>
         </div>
       </div>
       <div className="flex h-full flex-col justify-center py-12 lg:col-span-2">
@@ -125,16 +126,16 @@ function CoachOnboardingStep5Content() {
           <Card className="border-none shadow-none">
             <CardHeader className="p-0 text-left">
               <CardTitle className="text-3xl font-bold text-primary">
-                Logistics
+                {t("heading")}
               </CardTitle>
               <CardDescription>
-                What is your availability and desired hourly rate?
+                {t("subheading")}
               </CardDescription>
             </CardHeader>
             <form onSubmit={handleSubmit}>
               <CardContent className="grid gap-6 p-0 mt-8">
                 <div className="grid gap-3">
-                  <Label>Weekly Availability</Label>
+                  <Label>{t("availability")}</Label>
                   <AvailabilitySettings
                     showHeader={false}
                     showSaveButton={false}
@@ -143,13 +144,13 @@ function CoachOnboardingStep5Content() {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="rate">Desired Hourly Rate (EUR)</Label>
+                  <Label htmlFor="rate">{t("rate")}</Label>
                   <div className="relative">
                     <Euro className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                     <Input
                       id="rate"
                       type="number"
-                      placeholder="e.g., 75"
+                      placeholder={t("placeholder")}
                       className="pl-10 h-14"
                       value={rate}
                       onChange={(e) => setRate(e.target.value)}
@@ -166,11 +167,11 @@ function CoachOnboardingStep5Content() {
                   disabled={isLoading}
                 >
                   <Link href={prevStepUrl}>
-                    <ArrowLeft className="mr-2 h-5 w-5" /> Back
+                    <ArrowLeft className="mr-2 h-5 w-5" /> {tCommon("back")}
                   </Link>
                 </Button>
                 <Button size="lg" type="submit" disabled={isLoading}>
-                  {isLoading ? "Submitting..." : "Submit Application"}
+                  {isLoading ? t("submitting") : t("submit")}
                   {!isLoading && <CheckCircle className="ml-2 h-5 w-5" />}
                 </Button>
               </div>

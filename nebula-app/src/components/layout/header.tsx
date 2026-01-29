@@ -39,7 +39,10 @@ export function Header() {
         : "/dashboard";
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header 
+      className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+      suppressHydrationWarning
+    >
       <div className="flex h-14 max-w-screen-2xl items-center px-header mx-auto">
         <div className="flex flex-1 items-center gap-10">
           <Link href="/" className="flex items-center gap-2">
@@ -51,11 +54,11 @@ export function Header() {
                 className="object-cover"
               />
             </div>
-            <span className="font-headline text-xl font-bold">
+            <span className="font-headline text-xl font-bold notranslate">
               Nebula
             </span>
           </Link>
-          <nav className="hidden items-center gap-4 md:flex flex-nowrap">
+          <nav className="hidden items-center gap-4 md:flex flex-nowrap notranslate">
             <Link
               href="/programs"
               className="font-menu text-sm font-medium text-foreground/60 transition-colors hover:text-foreground/80 whitespace-nowrap"
@@ -94,7 +97,7 @@ export function Header() {
             </Link>
           </nav>
         </div>
-        <div className="flex flex-1 items-center justify-end gap-2">
+        <div className="flex flex-1 items-center justify-end gap-2 notranslate">
           {profile ? (
             <>
               <Button

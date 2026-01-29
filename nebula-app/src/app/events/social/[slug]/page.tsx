@@ -25,6 +25,7 @@ import { useParams } from "next/navigation";
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
 import { useEventBySlug } from "@/hooks";
+import { useTranslations, useLocale } from "next-intl";
 import { Event } from "@/types/event";
 import {
   getDefaultAvatar,
@@ -34,6 +35,8 @@ import {
 } from "@/lib/event-utils";
 
 export default function SocialEventPage() {
+  const t = useTranslations("events.details");
+  const locale = useLocale();
   const params = useParams<{ slug: string }>();
   const slug = params.slug;
   const [showRegistration, setShowRegistration] = useState(false);
@@ -47,7 +50,7 @@ export default function SocialEventPage() {
   } = useEventBySlug(slug);
 
   const event = eventResponse?.data?.event || null;
-  const error = queryError ? "Event not found" : null;
+  const error = queryError ? t("eventNotFound") : null;
 
   const handlePaymentSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,7 +75,7 @@ export default function SocialEventPage() {
           <div className="flex items-center justify-center h-64">
             <div className="flex items-center gap-2 text-muted-foreground">
               <Loader2 className="h-6 w-6 animate-spin" />
-              Loading event...
+              {t("loading")}
             </div>
           </div>
         </main>
@@ -91,12 +94,12 @@ export default function SocialEventPage() {
               <Button variant="ghost" asChild>
                 <Link href="/events">
                   <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back to Events
+                  {t("backToEvents")}
                 </Link>
               </Button>
             </div>
             <div className="text-center">
-              <h1 className="text-2xl font-bold mb-4">Event Not Found</h1>
+              <h1 className="text-2xl font-bold mb-4">{t("eventNotFound")}</h1>
               <p className="text-muted-foreground">{error}</p>
             </div>
           </div>
@@ -115,18 +118,17 @@ export default function SocialEventPage() {
           <CardContent className="p-8 text-center text-foreground">
             <CheckCircle className="h-12 w-12 mx-auto mb-4 text-green-600" />
             <h3 className="font-headline text-2xl font-bold">
-              You're Registered!
+              {t("registered")}
             </h3>
             <p className="mt-2 text-muted-foreground">
-              Your spot for {event.title} is confirmed. We've sent a
-              confirmation to your email.
+              {t("registeredDesc", { title: event.title })}
             </p>
             <Button
               onClick={handleCloseSuccess}
               variant="outline"
               className="w-full mt-6 bg-transparent border-green-700 text-green-700 hover:bg-green-100 hover:text-green-800"
             >
-              Close
+              {t("close")}
             </Button>
           </CardContent>
         </Card>
@@ -145,28 +147,28 @@ export default function SocialEventPage() {
                   className="mb-4 -ml-4"
                 >
                   <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back
+                  {t("backToEvents")}
                 </Button>
-                <h3 className="font-semibold text-lg">Complete booking</h3>
+                <h3 className="font-semibold text-lg">{t("completeBooking")}</h3>
                 <p className="text-sm text-muted-foreground mt-1">
-                  You're booking for{" "}
-                  {new Date(event.date).toLocaleDateString("en-US", {
-                    weekday: "long",
-                    month: "long",
-                    day: "numeric",
-                  })}{" "}
-                  at{" "}
-                  {new Date(event.date).toLocaleTimeString("en-US", {
-                    hour: "numeric",
-                    minute: "2-digit",
-                    hour12: true,
+                  {t("bookingFor", {
+                    date: new Date(event.date).toLocaleDateString(locale === "fr" ? "fr-FR" : "en-US", {
+                      weekday: "long",
+                      month: "long",
+                      day: "numeric",
+                    }),
+                    time: new Date(event.date).toLocaleTimeString(locale === "fr" ? "fr-FR" : "en-US", {
+                      hour: "numeric",
+                      minute: "2-digit",
+                      hour12: locale !== "fr",
+                    })
                   })}
                 </p>
               </div>
               <p className="text-lg font-bold">
                 {event.isPublic
-                  ? "Free"
-                  : new Intl.NumberFormat("en-US", {
+                  ? t("free")
+                  : new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-US", {
                       style: "currency",
                       currency: "EUR",
                     }).format(25)}
@@ -175,12 +177,12 @@ export default function SocialEventPage() {
             <form onSubmit={handlePaymentSubmit}>
               <div className="grid gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="card">Card Details</Label>
+                  <Label htmlFor="card">{t("cardDetails")}</Label>
                   <div className="relative">
                     <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                     <Input
                       id="card"
-                      placeholder="Card number"
+                      placeholder={t("cardNumber")}
                       className="pl-10"
                       required
                     />
@@ -188,11 +190,11 @@ export default function SocialEventPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
-                    <Label htmlFor="expiry">Expiry</Label>
+                    <Label htmlFor="expiry">{t("expiry")}</Label>
                     <Input id="expiry" placeholder="MM/YY" required />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="cvc">CVC</Label>
+                    <Label htmlFor="cvc">{t("cvc")}</Label>
                     <Input id="cvc" placeholder="CVC" required />
                   </div>
                 </div>
@@ -229,7 +231,7 @@ export default function SocialEventPage() {
               </AvatarFallback>
             </Avatar>
             <p className="font-semibold">
-              {event.organizer?.fullName || "Unknown Organizer"}
+              {event.organizer?.fullName || t("unknownOrganizer")}
             </p>
             <Badge
               variant="outline"
@@ -245,29 +247,30 @@ export default function SocialEventPage() {
               <CardContent className="p-4 flex justify-between items-center">
                 <div>
                   <p className="font-semibold">
-                    {new Date(event.date).toLocaleDateString("en-US", {
+                    {new Date(event.date).toLocaleDateString(locale === "fr" ? "fr-FR" : "en-US", {
                       weekday: "long",
                       month: "long",
                       day: "numeric",
                     })}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {new Date(event.date).toLocaleTimeString("en-US", {
+                    {new Date(event.date).toLocaleTimeString(locale === "fr" ? "fr-FR" : "en-US", {
                       hour: "numeric",
                       minute: "2-digit",
-                      hour12: true,
+                      hour12: locale !== "fr",
                     })}
                   </p>
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-semibold">
-                    {getAccessTypeText(event.accessType)} / guest
+                    {t(event.accessType?.toLowerCase() === "free" ? "free" : "premium")} {t("perGuest")}
                   </p>
                   <Badge variant="outline" className="mt-1">
-                    {event.maxAttendees
-                      ? event.maxAttendees - event.attendees
-                      : 10}{" "}
-                    spots left
+                    {t("spotsLeft", {
+                      count: event.maxAttendees
+                        ? event.maxAttendees - event.attendees
+                        : 10
+                    })}
                   </Badge>
                 </div>
               </CardContent>
@@ -279,7 +282,7 @@ export default function SocialEventPage() {
               target="_blank"
               rel="noopener noreferrer"
             >
-              Register on Luma
+              {t("registerOnLuma")}
             </a>
           </Button>
         </CardContent>
@@ -296,7 +299,7 @@ export default function SocialEventPage() {
             <Button variant="ghost" asChild>
               <Link href="/events">
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Events
+                {t("backToEvents")}
               </Link>
             </Button>
           </div>
@@ -358,7 +361,7 @@ export default function SocialEventPage() {
                     <div className="flex items-start gap-4">
                       <MapPin className="h-5 w-5 text-muted-foreground mt-1" />
                       <div>
-                        <p className="font-semibold">Location</p>
+                        <p className="font-semibold">{t("location")}</p>
                         <p className="text-sm text-muted-foreground">
                           {event.location}
                         </p>
@@ -368,10 +371,11 @@ export default function SocialEventPage() {
                     <div className="flex items-start gap-4">
                       <Users className="h-5 w-5 text-muted-foreground mt-1" />
                       <div>
-                        <p className="font-semibold">Capacity</p>
+                        <p className="font-semibold">{t("capacity")}</p>
                         <p className="text-sm text-muted-foreground">
-                          This event has a maximum capacity of{" "}
-                          {event.maxAttendees || "unlimited"} participants.
+                          {event.maxAttendees
+                            ? t("capacityDesc", { count: event.maxAttendees })
+                            : t("capacityUnlimited")}
                         </p>
                       </div>
                     </div>
@@ -379,19 +383,19 @@ export default function SocialEventPage() {
                     <div className="flex items-start gap-4">
                       <Clock className="h-5 w-5 text-muted-foreground mt-1" />
                       <div>
-                        <p className="font-semibold">Date & Time</p>
+                        <p className="font-semibold">{t("dateTime")}</p>
                         <p className="text-sm text-muted-foreground">
-                          {new Date(event.date).toLocaleDateString("en-US", {
+                          {new Date(event.date).toLocaleDateString(locale === "fr" ? "fr-FR" : "en-US", {
                             weekday: "long",
                             year: "numeric",
                             month: "long",
                             day: "numeric",
                           })}{" "}
                           at{" "}
-                          {new Date(event.date).toLocaleTimeString("en-US", {
+                          {new Date(event.date).toLocaleTimeString(locale === "fr" ? "fr-FR" : "en-US", {
                             hour: "numeric",
                             minute: "2-digit",
-                            hour12: true,
+                            hour12: locale !== "fr",
                           })}
                         </p>
                       </div>
@@ -402,7 +406,7 @@ export default function SocialEventPage() {
                         <div className="flex items-start gap-4">
                           <Sun className="h-5 w-5 text-muted-foreground mt-1" />
                           <div>
-                            <p className="font-semibold">What to bring</p>
+                            <p className="font-semibold">{t("whatToBring")}</p>
                             <p className="text-sm text-muted-foreground">
                               {event.whatToBring}
                             </p>
@@ -416,7 +420,7 @@ export default function SocialEventPage() {
                         <div className="flex items-start gap-4">
                           <Sparkles className="h-5 w-5 text-muted-foreground mt-1" />
                           <div>
-                            <p className="font-semibold">Good to know</p>
+                            <p className="font-semibold">{t("goodToKnow")}</p>
                             <p className="text-sm text-muted-foreground">
                               {event.additionalInfo}
                             </p>
@@ -430,7 +434,7 @@ export default function SocialEventPage() {
                         <div className="flex items-start gap-4">
                           <Sparkles className="h-5 w-5 text-muted-foreground mt-1" />
                           <div>
-                            <p className="font-semibold">Tags</p>
+                            <p className="font-semibold">{t("tags")}</p>
                             <div className="flex flex-wrap gap-1 mt-1">
                               {event.tags.map((tag: any, index: number) => (
                                 <Badge

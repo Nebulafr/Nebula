@@ -16,6 +16,7 @@ import {
   GraduationCap,
 } from "lucide-react";
 import Link from "next/link";
+import { useTranslations, useLocale } from "next-intl";
 import { WeeklyTimeSlotPicker } from "@/components/ui/weekly-time-slot-picker";
 import { cn } from "@/lib/utils";
 import { useParams, useRouter } from "next/navigation";
@@ -42,6 +43,8 @@ import { reviewCoach } from "@/actions/reviews";
 import { createConversation } from "@/actions/messaging";
 
 export default function CoachDetailPage() {
+  const t = useTranslations("coachDetails");
+  const locale = useLocale();
   const [bookingStep, setBookingStep] = useState(0);
   const params = useParams<{ coachId: string }>();
   const router = useRouter();
@@ -70,7 +73,7 @@ export default function CoachDetailPage() {
 
   const handleBookClick = () => {
     if (!profile) {
-      toast.error("Please log in to book a session.");
+      toast.error(t("loginToBook"));
       router.replace("/login");
       return;
     }
@@ -85,7 +88,7 @@ export default function CoachDetailPage() {
 
   const handleTimeSelect = async () => {
     if (!date || !profile) {
-      toast.error("Please select a date and ensure you're logged in.");
+      toast.error(t("selectDateLogin"));
       return;
     }
 
@@ -101,14 +104,14 @@ export default function CoachDetailPage() {
           if (result.success) {
             setBookingStep(2); // Go to success step
           } else {
-            toast.error(result.error || "Failed to book session");
+            toast.error(result.error || t("failedToBook"));
           }
         },
         onError: (error: any) => {
           console.error("Booking failed:", error);
           toast.error(
             error.message ||
-              "There was an error booking your session. Please try again.",
+              t("bookingError"),
           );
         },
       },
@@ -117,13 +120,13 @@ export default function CoachDetailPage() {
 
   const handleMessageClick = async () => {
     if (!profile) {
-      toast.error("Please log in to send a message.");
+      toast.error(t("loginToMessage"));
       router.replace("/login");
       return;
     }
 
     if (!coach) {
-      toast.error("Coach information not available.");
+      toast.error(t("coachInfoNotAvailable"));
       return;
     }
 
@@ -144,7 +147,7 @@ export default function CoachDetailPage() {
       }
     } catch (error: any) {
       console.error("Error creating conversation:", error);
-      toast.error("Failed to start conversation. Please try again.");
+      toast.error(t("startConvFailed"));
     }
   };
 
@@ -152,17 +155,17 @@ export default function CoachDetailPage() {
     e.preventDefault();
 
     if (!coach) {
-      toast.error("Coach information not available.");
+      toast.error(t("coachInfoNotAvailable"));
       return;
     }
 
     if (rating === 0) {
-      toast.error("Please select a rating.");
+      toast.error(t("selectRating"));
       return;
     }
 
     if (!reviewText.trim()) {
-      toast.error("Please write a review.");
+      toast.error(t("writeReview"));
       return;
     }
 
@@ -230,12 +233,12 @@ export default function CoachDetailPage() {
         <Header />
         <main className="flex-1">
           <div className="container py-12 md:py-20 text-center">
-            <h1 className="text-4xl font-bold mb-4">Coach not found</h1>
+            <h1 className="text-4xl font-bold mb-4">{t("coachNotFound")}</h1>
             <p className="text-muted-foreground mb-8">
-              The coach you're looking for doesn't exist.
+              {t("coachNotFoundDesc")}
             </p>
             <Button asChild>
-              <Link href="/coaches">Browse all coaches</Link>
+              <Link href="/coaches">{t("browseAll")}</Link>
             </Button>
           </div>
         </main>
@@ -252,7 +255,7 @@ export default function CoachDetailPage() {
             <div className="md:col-span-2">
               <div className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
                 <Link href="/coaches" className="hover:text-primary">
-                  Coaches
+                  {t("backToCoaches")}
                 </Link>
                 <ChevronRight className="h-4 w-4" />
                 <span>{coach.fullName}</span>
@@ -285,7 +288,7 @@ export default function CoachDetailPage() {
               {coach.pastCompanies && coach.pastCompanies.length > 0 && (
                 <div className="mt-8">
                   <h4 className="text-sm font-semibold text-muted-foreground">
-                    {coach.fullName?.split(" ")[0] || "Coach"} has worked at:
+                    {t("workedAt", { name: coach.fullName?.split(" ")[0] || "Coach" })}
                   </h4>
                   <div className="mt-4 flex flex-wrap items-center gap-3">
                     {coach.pastCompanies
@@ -305,7 +308,7 @@ export default function CoachDetailPage() {
               {coach.programs && coach.programs.length > 0 && (
                 <div className="my-12">
                   <h2 className="mb-6 font-headline text-2xl font-bold">
-                    Programs by {coach.fullName}
+                    {t("programsBy", { name: coach.fullName })}
                   </h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     {coach.programs.map((program: any) => (
@@ -359,16 +362,10 @@ export default function CoachDetailPage() {
                   onEnroll={handleBookClick}
                   onCancel={handleCancelBooking}
                   onTimeSelect={handleTimeSelect}
-                  title="Book a session"
-                  subtitle="Find a time that works for you."
-                  enrollButtonText="Book now"
-                  slotSelectTitle="Select a time slot"
-                  successTitle="Session Booked!"
-                  successMessage="Your session has been confirmed. You can view your booking details on your dashboard."
-                  dashboardLink="/dashboard"
                   showMessageButton={isStudent}
                   onMessageClick={handleMessageClick}
                   coachAvailability={coach?.availability}
+                  t={t}
                 />
               </div>
             </div>
@@ -378,7 +375,7 @@ export default function CoachDetailPage() {
         <section className="container py-20">
           <div className="flex items-center justify-between mb-8">
             <h2 className="mb-8 font-headline text-3xl font-bold">
-              Reviews ({coach.totalReviews || coach.reviews?.length || 0})
+              {t("reviewsCount", { count: coach.totalReviews || coach.reviews?.length || 0 })}
             </h2>
             <Dialog
               open={isReviewDialogOpen}
@@ -412,10 +409,9 @@ export default function CoachDetailPage() {
                 {!reviewSubmitted ? (
                   <>
                     <DialogHeader>
-                      <DialogTitle>Share your review</DialogTitle>
+                      <DialogTitle>{t("shareReview")}</DialogTitle>
                       <DialogDescription>
-                        Let others know about your experience with{" "}
-                        {coach.fullName!}
+                        {t("shareReviewDesc", { name: coach.fullName! })}
                       </DialogDescription>
                     </DialogHeader>
                     <form
@@ -423,7 +419,7 @@ export default function CoachDetailPage() {
                       className="grid gap-6 py-4"
                     >
                       <div className="grid gap-2">
-                        <Label>Your Rating</Label>
+                        <Label>{t("yourRating")}</Label>
                         <div className="flex items-center gap-1">
                           {[...Array(5)].map((_, i) => {
                             const starValue = i + 1;
@@ -445,10 +441,10 @@ export default function CoachDetailPage() {
                         </div>
                       </div>
                       <div className="grid gap-2">
-                        <Label htmlFor="review-text">Share your thoughts</Label>
+                        <Label htmlFor="review-text">{t("shareThoughts")}</Label>
                         <Textarea
                           id="review-text"
-                          placeholder="What did you like or dislike? What should other students know?"
+                          placeholder={t("textareaPlaceholder")}
                           rows={4}
                           value={reviewText}
                           onChange={(e) => setReviewText(e.target.value)}
@@ -465,8 +461,8 @@ export default function CoachDetailPage() {
                           }
                         >
                           {isSubmittingReview
-                            ? "Submitting..."
-                            : "Submit Review"}
+                            ? t("submitting")
+                            : t("submitReview")}
                         </Button>
                       </DialogFooter>
                     </form>
@@ -475,17 +471,17 @@ export default function CoachDetailPage() {
                   <>
                     <DialogHeader>
                       <VisuallyHidden>
-                        <DialogTitle>Review Submitted</DialogTitle>
+                        <DialogTitle>{t("thankYou")}</DialogTitle>
                       </VisuallyHidden>
                     </DialogHeader>
                     <div className="text-center py-8">
                       <CheckCircle className="h-16 w-16 mx-auto mb-4 text-green-500" />
-                      <h3 className="text-xl font-semibold">Thank You!</h3>
+                      <h3 className="text-xl font-semibold">{t("thankYou")}</h3>
                       <p className="text-muted-foreground mt-2">
-                        Your review has been submitted successfully.
+                        {t("reviewSubmitted")}
                       </p>
                       <Button onClick={resetReviewForm} className="mt-6">
-                        Close
+                        {t("close")}
                       </Button>
                     </div>
                   </>
@@ -547,16 +543,10 @@ function EnrollmentForm({
   setSelectedDate,
   setSelectedTime,
   onTimeSelect,
-  title = "Ready to start?",
-  subtitle = "Enroll in this program to get personalized coaching.",
-  enrollButtonText = "Enroll now",
-  slotSelectTitle = "Select a time slot",
-  successTitle = "You're In!",
-  successMessage = "Welcome to the program. You can view your enrollment details on your dashboard.",
-  dashboardLink = "/dashboard",
   showMessageButton = false,
   onMessageClick,
   coachAvailability,
+  t,
 }: {
   step: number;
   loading?: boolean;
@@ -568,18 +558,13 @@ function EnrollmentForm({
   setSelectedDate: (date: Date | undefined) => void;
   setSelectedTime: (time: string) => void;
   onTimeSelect: () => void;
-  title?: string;
-  subtitle?: string;
-  enrollButtonText?: string;
-  slotSelectTitle?: string;
-  successTitle?: string;
-  successMessage?: string;
-  dashboardLink?: string;
   showMessageButton?: boolean;
   onMessageClick?: () => void;
   coachAvailability?: Record<string, any>;
+  t: any;
 }) {
   const { isStudent } = useAuth();
+  const locale = useLocale();
 
   const handleSlotSelect = (date: Date, time: string) => {
     setSelectedDate(date);
@@ -593,15 +578,14 @@ function EnrollmentForm({
           <CardContent className="p-6 text-center">
             <CheckCircle className="h-12 w-12 mx-auto mb-4 text-green-500" />
             <h3 className="font-headline text-xl font-bold text-green-700">
-              Already Enrolled!
+              {t("alreadyEnrolled")}
             </h3>
             <p className="text-muted-foreground mt-2 mb-6">
-              You're already part of this program. Access it from your
-              dashboard.
+              {t("alreadyEnrolledDesc")}
             </p>
             <div className="space-y-2">
               <Button size="lg" className="w-full" asChild>
-                <Link href={dashboardLink}>Go to Dashboard</Link>
+                <Link href="/dashboard">{t("goToDashboard")}</Link>
               </Button>
             </div>
           </CardContent>
@@ -612,11 +596,11 @@ function EnrollmentForm({
     return (
       <Card className="rounded-xl border shadow-lg">
         <CardContent className="p-6 text-center">
-          <h3 className="font-headline text-2xl font-bold">{title}</h3>
-          <p className="text-muted-foreground mt-2 mb-6">{subtitle}</p>
+          <h3 className="font-headline text-2xl font-bold">{t("readyToStart")}</h3>
+          <p className="text-muted-foreground mt-2 mb-6">{t("readyToStartDesc")}</p>
           {isStudent && (
             <Button size="lg" className="w-full" onClick={onEnroll}>
-              <PlusCircle className="mr-2 h-5 w-5" /> {enrollButtonText}
+              <PlusCircle className="mr-2 h-5 w-5" /> {t("bookNow")}
             </Button>
           )}
           {showMessageButton && onMessageClick && (
@@ -626,7 +610,7 @@ function EnrollmentForm({
               className="w-full mt-2"
               onClick={onMessageClick}
             >
-              <MessageCircle className="mr-2 h-5 w-5" /> Message
+              <MessageCircle className="mr-2 h-5 w-5" /> {t("message")}
             </Button>
           )}
         </CardContent>
@@ -641,7 +625,7 @@ function EnrollmentForm({
         <CardContent className="p-4">
           <div className="flex justify-between items-center mb-4">
             <h3 className="font-headline text-lg font-bold">
-              {slotSelectTitle}
+              {t("selectTimeSlot")}
             </h3>
             <Button
               variant="ghost"
@@ -669,7 +653,7 @@ function EnrollmentForm({
             disabled={!selectedDate || !selectedTime || loading}
             onClick={onTimeSelect}
           >
-            {loading ? "Processing..." : "Confirm Booking"}
+            {loading ? t("processing") : t("confirmBooking")}
           </Button>
         </CardContent>
       </Card>
@@ -682,16 +666,16 @@ function EnrollmentForm({
       <Card className="rounded-xl border-none bg-green-50 text-green-900">
         <CardContent className="p-6 text-center">
           <CheckCircle className="h-12 w-12 mx-auto mb-4" />
-          <h3 className="font-headline text-xl font-bold">{successTitle}</h3>
-          <p className="text-sm mt-2">{successMessage}</p>
+          <h3 className="font-headline text-xl font-bold">{t("sessionBooked")}</h3>
+          <p className="text-sm mt-2">{t("sessionBookedDesc")}</p>
           {selectedDate && selectedTime && (
             <div className="mt-4 p-3 bg-white/50 rounded-lg">
-              <p className="text-sm font-medium">Details:</p>
+              <p className="text-sm font-medium">{t("details")}</p>
               <p className="text-xs text-muted-foreground">
-                Date: {selectedDate.toLocaleDateString()}
+                {t("date", { date: selectedDate.toLocaleDateString(locale === "fr" ? "fr-FR" : "en-US") })}
               </p>
               <p className="text-xs text-muted-foreground">
-                Time: {selectedTime}
+                {t("time", { time: selectedTime })}
               </p>
             </div>
           )}
@@ -701,10 +685,10 @@ function EnrollmentForm({
               className="w-full bg-transparent border-green-700 text-green-700 hover:bg-green-100 hover:text-green-800"
               onClick={onCancel}
             >
-              Close
+              {t("close")}
             </Button>
             <Button className="w-full bg-green-700 hover:bg-green-800" asChild>
-              <Link href={dashboardLink}>Go to Dashboard</Link>
+              <Link href="/dashboard">{t("goToDashboard")}</Link>
             </Button>
           </div>
         </CardContent>

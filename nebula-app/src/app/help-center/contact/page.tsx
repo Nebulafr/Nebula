@@ -18,7 +18,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 
+import { useTranslations } from "next-intl";
+
 export default function ContactPage() {
+  const t = useTranslations("contact");
   const contactImage = PlaceHolderImages.find(
     (img) => img.id === "about-story",
   );
@@ -37,54 +40,53 @@ export default function ContactPage() {
                     className="flex items-center gap-2 mb-4 text-sm font-medium text-muted-foreground hover:text-foreground"
                   >
                     <ArrowLeft className="h-4 w-4" />
-                    Back to Help Center
+                    {t("backToHelp")}
                   </Link>
                   <CardTitle className="text-3xl font-bold text-primary">
-                    Contact Us
+                    {t("title")}
                   </CardTitle>
                   <CardDescription>
-                    We're excited to explore how we can work together. Please
-                    fill out the form below.
+                    {t("description")}
                   </CardDescription>
                 </CardHeader>
                 <form>
                   <CardContent className="grid gap-4 p-0 mt-6">
                     <div className="grid grid-cols-2 gap-4">
                       <div className="grid gap-2">
-                        <Label htmlFor="full-name">Full Name</Label>
-                        <Input id="full-name" placeholder="John Doe" required />
+                        <Label htmlFor="full-name">{t("fields.fullName")}</Label>
+                        <Input id="full-name" placeholder={t("fields.fullNamePlaceholder")} required />
                       </div>
                       <div className="grid gap-2">
-                        <Label htmlFor="email">Email Address</Label>
+                        <Label htmlFor="email">{t("fields.email")}</Label>
                         <Input
                           id="email"
                           type="email"
-                          placeholder="john.doe@example.edu"
+                          placeholder={t("fields.emailPlaceholder")}
                           required
                         />
                       </div>
                     </div>
                     <div className="grid gap-2">
                       <Label htmlFor="university">
-                        University / Institution
+                        {t("fields.university")}
                       </Label>
                       <Input
                         id="university"
-                        placeholder="Example University"
+                        placeholder={t("fields.universityPlaceholder")}
                         required
                       />
                     </div>
                     <div className="grid gap-2">
-                      <Label htmlFor="message">Message</Label>
+                      <Label htmlFor="message">{t("fields.message")}</Label>
                       <Textarea
                         id="message"
-                        placeholder="Tell us a bit about your institution and what you're looking for..."
+                        placeholder={t("fields.messagePlaceholder")}
                         required
                         rows={5}
                       />
                     </div>
                     <Button type="submit" className="w-full" size="lg">
-                      Send Message <Send className="ml-2 h-4 w-4" />
+                      {t("send")} <Send className="ml-2 h-4 w-4" />
                     </Button>
                   </CardContent>
                 </form>
@@ -104,11 +106,10 @@ export default function ContactPage() {
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
             <div className="absolute bottom-8 left-8 text-white">
               <h2 className="text-4xl font-bold">
-                Let's Build the Future Together
+                {t("futureTitle")}
               </h2>
               <p className="mt-2 max-w-lg">
-                Partner with us to create powerful learning experiences for your
-                students.
+                {t("futureDesc")}
               </p>
             </div>
           </div>

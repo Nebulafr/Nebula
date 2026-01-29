@@ -21,18 +21,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiPost } from "@/lib/utils";
+import { apiPost, truncateText } from "@/lib/utils";
 import { handleAndToastError } from "@/lib/error-handler";
 import { useTranslations } from "next-intl";
 
-function truncateText(
-  text: string | null | undefined,
-  maxLength: number,
-): string {
-  if (!text) return "";
-  if (text.length <= maxLength) return text;
-  return text.slice(0, maxLength).trim() + "...";
-}
 
 export interface IProgram extends Omit<
   Program,

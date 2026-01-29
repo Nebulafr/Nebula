@@ -14,6 +14,7 @@ import React from "react";
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
 import { useCategories, useCoaches } from "@/hooks";
+import { useTranslations } from "next-intl";
 
 // API response coach structure
 interface ApiCoach {
@@ -52,15 +53,16 @@ interface ApiCoachGroup {
 }
 
 function CoachesPageContent() {
+  const t = useTranslations("coaches");
   const searchParams = useSearchParams();
   const initialSearch = searchParams.get("search") || "";
-  const [activeCategory, setActiveCategory] = useState("All");
+  const [activeCategory, setActiveCategory] = useState("all");
   const [searchTerm, setSearchTerm] = useState(initialSearch);
 
   const { data: categoriesResponse } = useCategories();
   const { data: coachesResponse, isLoading: loading } = useCoaches({
     search: searchTerm,
-    category: activeCategory === "All" ? undefined : activeCategory,
+    category: activeCategory === "all" ? undefined : activeCategory,
     limit: 20,
   });
 
@@ -68,7 +70,7 @@ function CoachesPageContent() {
   const groupedCoaches = coachesResponse?.data?.groupedCoaches || [];
 
   const filteredGroups = groupedCoaches.filter((group: any) => {
-    if (activeCategory === "All") return group.items.length > 0;
+    if (activeCategory === "all") return group.items.length > 0;
     return group.group === activeCategory && group.items.length > 0;
   });
 
@@ -78,18 +80,16 @@ function CoachesPageContent() {
       <main className="flex-1">
         <section className="container py-20 text-center">
           <h1 className="font-headline text-3xl font-bold text-primary tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl">
-            Find the perfect coach for your goals
+            {t("title")}
           </h1>
           <p className="mx-auto mt-4 max-w-2xl font-body text-lg text-foreground/70">
-            Connect with experienced professionals who can guide you towards
-            your career objectives. Browse coaches by specialty and find the
-            perfect match.
+            {t("description")}
           </p>
 
           <div className="mx-auto mt-8 relative max-w-xl">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             <Input
-              placeholder="Search by name or specialty"
+              placeholder={t("searchPlaceholder")}
               className="h-12 w-full rounded-full pl-12"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -101,15 +101,15 @@ function CoachesPageContent() {
               variant="outline"
               className={cn(
                 "rounded-full",
-                activeCategory === "All" && "bg-muted font-bold",
+                activeCategory === "all" && "bg-muted font-bold",
               )}
-              onClick={() => setActiveCategory("All")}
+              onClick={() => setActiveCategory("all")}
               disabled={loading}
             >
-              {loading && activeCategory === "All" && (
+              {loading && activeCategory === "all" && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
-              All
+              {t("all")}
             </Button>
             {categories.map((category: any) => (
               <Button
@@ -194,11 +194,11 @@ function CoachesPageContent() {
                           <div className="mt-4 flex items-center justify-center gap-1">
                             <Users className="h-4 w-4 text-muted-foreground" />
                             <span className="text-sm text-muted-foreground">
-                              {coach.studentsCoached}+ students
+                              {t("studentsCount", { count: coach.studentsCoached })}
                             </span>
                           </div>
                           <Button variant="outline" className="mt-4 w-full">
-                            View Profile
+                            {t("viewProfile")}
                           </Button>
                         </CardContent>
                       </Card>
@@ -211,8 +211,8 @@ function CoachesPageContent() {
             <div className="text-center py-20">
               <p className="text-lg text-muted-foreground">
                 {searchTerm
-                  ? `No coaches found matching "${searchTerm}"`
-                  : "No coaches available at the moment"}
+                  ? t("noCoachesFound", { search: searchTerm })
+                  : t("noCoachesAvailable")}
               </p>
             </div>
           )}

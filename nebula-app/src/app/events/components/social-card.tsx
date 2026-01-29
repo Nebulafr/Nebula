@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ExternalLink, Star } from "lucide-react";
+import { useTranslations, useLocale } from "next-intl";
 import { Event } from "@/types/event";
 import { getEventGradientBackground, getDefaultAvatar, getDefaultBanner, getAccessTypeText } from "@/lib/event-utils";
 
@@ -15,8 +16,9 @@ interface SocialCardProps {
 }
 
 export function SocialCard({ event, index, previousIndex }: SocialCardProps) {
+  const t = useTranslations("events.upcoming");
+  const locale = useLocale();
   const eventDate = new Date(event.date);
-
 
   return (
     <Link href={`/events/social/${event.slug}`} className="block">
@@ -32,7 +34,7 @@ export function SocialCard({ event, index, previousIndex }: SocialCardProps) {
             />
           </div>
           <Badge className="absolute top-2 left-2 bg-white text-gray-800 hover:bg-gray-200">
-            {getAccessTypeText(event.accessType)}
+            {t(event.accessType?.toLowerCase() === "free" ? "free" : "premium")}
           </Badge>
         </div>
         <CardContent className="flex flex-1 flex-col p-4">
@@ -47,7 +49,7 @@ export function SocialCard({ event, index, previousIndex }: SocialCardProps) {
               </AvatarFallback>
             </Avatar>
             <p className="text-sm text-muted-foreground">
-              {event.organizer?.fullName || "Unknown"}, Organizer
+              {event.organizer?.fullName || t("failed")}
             </p>
             <Badge
               variant="outline"
@@ -57,15 +59,15 @@ export function SocialCard({ event, index, previousIndex }: SocialCardProps) {
               <span className="font-semibold">5.0</span>
             </Badge>
           </div>
-          <p className="text-sm text-muted-foreground mt-2">
-            {eventDate.toLocaleDateString("en-US", {
-              weekday: "long",
-              month: "long",
-              day: "numeric",
-              hour: "numeric",
-              minute: "2-digit",
-            })}
-          </p>
+          <div className="text-sm text-muted-foreground mt-2">
+            <p className="font-bold">
+              {eventDate.toLocaleDateString(locale === "fr" ? "fr-FR" : "en-US", {
+                weekday: "long",
+                month: "long",
+                day: "numeric",
+              })}
+            </p>
+          </div>
 
           <div className="flex-grow" />
 
@@ -82,8 +84,7 @@ export function SocialCard({ event, index, previousIndex }: SocialCardProps) {
                       </Avatar>
                     ))
                   : event.attendees > 0
-                  ? // Show placeholder avatars when we have attendee count but no specific attendee data
-                    Array.from({ length: Math.min(3, event.attendees) }).map(
+                  ? Array.from({ length: Math.min(3, event.attendees) }).map(
                       (_, i) => (
                         <Avatar
                           key={i}
@@ -98,18 +99,18 @@ export function SocialCard({ event, index, previousIndex }: SocialCardProps) {
                   : null}
               </div>
               {event.attendees > 0 && (
-                <span className="ml-3 text-sm font-medium text-muted-foreground">
+                <span className="ml-3 text-xs font-medium text-muted-foreground">
                   {event.attendees > 3 && `+${event.attendees - 3} `}
-                  {event.attendees === 1
-                    ? "1 person attending"
-                    : `${event.attendees} people attending`}
+                  {t("attending", { count: event.attendees })}
                 </span>
               )}
             </div>
           </div>
-          <Button className="mt-4 w-full bg-gray-900 text-white hover:bg-gray-800 pointer-events-none">
-            Register now <ExternalLink className="ml-2 h-4 w-4" />
-          </Button>
+          <div className="bg-white py-4 rounded-xl">
+            <Button className="w-2/3 bg-gray-900 text-white hover:bg-gray-800 text-left">
+              {t("register")} <ExternalLink className="ml-2 h-4 w-4" />
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </Link>

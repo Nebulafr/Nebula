@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { usePublicEvents } from "@/hooks";
+import { useTranslations } from "next-intl";
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
 import {
@@ -12,7 +13,8 @@ import {
 } from "./components";
 
 export default function EventsPage() {
-  const [activePriceFilter, setActivePriceFilter] = useState("All");
+  const t = useTranslations("events");
+  const [activePriceFilter, setActivePriceFilter] = useState("all");
   const [activeTypeFilter, setActiveTypeFilter] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -24,7 +26,7 @@ export default function EventsPage() {
     search: searchTerm || undefined,
     eventType: activeTypeFilter?.toUpperCase() || undefined,
     accessType:
-      activePriceFilter === "All" ? undefined : activePriceFilter.toLowerCase(),
+      activePriceFilter === "all" ? undefined : activePriceFilter,
   });
   const events = eventsResponse?.data?.events || [];
 
@@ -54,7 +56,7 @@ export default function EventsPage() {
       <main className="flex-1">
         <section className="container pt-12 pb-8 md:pt-24 md:pb-12 text-center">
           <h1 className="font-headline text-5xl font-bold tracking-tighter text-primary md:text-6xl">
-            Events
+            {t("title")}
           </h1>
           <PriceFilters
             activePriceFilter={activePriceFilter}
@@ -76,11 +78,11 @@ export default function EventsPage() {
         />
 
         {showWebinars && (
-          <EventSection title="Webinar" events={webinarEvents} />
+          <EventSection title={t("webinar")} events={webinarEvents} />
         )}
 
         {showSocial && (
-          <EventSection title="Social Experience" events={socialEvents} />
+          <EventSection title={t("socialExperience")} events={socialEvents} />
         )}
       </main>
       <Footer />

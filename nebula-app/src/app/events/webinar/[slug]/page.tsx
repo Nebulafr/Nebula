@@ -9,6 +9,7 @@ import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
 import { useParams } from "next/navigation";
 import { useEventBySlug } from "@/hooks";
+import { useTranslations, useLocale } from "next-intl";
 import {
   getDefaultAvatar,
   getDefaultBanner,
@@ -16,6 +17,9 @@ import {
 } from "@/lib/event-utils";
 
 export default function WebinarPage() {
+  const t = useTranslations("events.details");
+  const tCoach = useTranslations("coachDetails");
+  const locale = useLocale();
   const params = useParams<{ slug: string }>();
   const slug = params.slug;
 
@@ -26,7 +30,7 @@ export default function WebinarPage() {
   } = useEventBySlug(slug);
 
   const event = eventResponse?.data?.event || null;
-  const error = queryError ? "Webinar not found" : null;
+  const error = queryError ? t("webinarNotFound") : null;
 
   console.log({ event });
 
@@ -38,7 +42,7 @@ export default function WebinarPage() {
           <div className="flex items-center justify-center h-64">
             <div className="flex items-center gap-2 text-muted-foreground">
               <Loader2 className="h-6 w-6 animate-spin" />
-              Loading webinar...
+              {t("loadingWebinar")}
             </div>
           </div>
         </main>
@@ -57,12 +61,12 @@ export default function WebinarPage() {
               <Button variant="ghost" asChild>
                 <Link href="/events">
                   <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back to Events
+                  {t("backToEvents")}
                 </Link>
               </Button>
             </div>
             <div className="text-center">
-              <h1 className="text-2xl font-bold mb-4">Webinar Not Found</h1>
+              <h1 className="text-2xl font-bold mb-4">{t("webinarNotFound")}</h1>
               <p className="text-muted-foreground">{error}</p>
             </div>
           </div>
@@ -81,7 +85,7 @@ export default function WebinarPage() {
             <Button variant="ghost" asChild>
               <Link href="/events">
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Events
+                {t("backToEvents")}
               </Link>
             </Button>
           </div>
@@ -107,13 +111,13 @@ export default function WebinarPage() {
                       {event.title}
                     </h2>
                     <p className="text-white/80 mt-2">
-                      Hosted by {event.organizer?.fullName || "Expert Host"}
+                       {t("hostedBy")} {event.organizer?.fullName || "Expert Host"}
                     </p>
                   </div>
                 </div>
               </Card>
               <Card className="rounded-xl p-6">
-                <h3 className="font-semibold mb-4">Hosted by</h3>
+                <h3 className="font-semibold mb-4">{t("hostedBy")}</h3>
                 <div className="flex items-center gap-4">
                   <Avatar className="h-12 w-12">
                     <AvatarImage
@@ -133,8 +137,7 @@ export default function WebinarPage() {
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
                       <span>
-                        {event.organizer?.coach?.rating || 0} (
-                        {event.organizer?.coach?.totalReviews || 0} reviews)
+                        {event.organizer?.coach?.rating || 0} ({tCoach("reviewsCount", { count: event.organizer?.coach?.totalReviews || 0 })})
                       </span>
                     </div>
                   </div>
@@ -162,7 +165,7 @@ export default function WebinarPage() {
                   <div className="flex flex-col items-center">
                     <span className="text-xs uppercase text-muted-foreground">
                       {new Date(event.date)
-                        .toLocaleDateString("en-US", { month: "short" })
+                        .toLocaleDateString(locale === "fr" ? "fr-FR" : "en-US", { month: "short" })
                         .toUpperCase()}
                     </span>
                     <span className="text-2xl font-bold">
@@ -171,25 +174,25 @@ export default function WebinarPage() {
                   </div>
                   <div className="flex-1">
                     <p className="font-semibold">
-                      {new Date(event.date).toLocaleDateString("en-US", {
+                      {new Date(event.date).toLocaleDateString(locale === "fr" ? "fr-FR" : "en-US", {
                         weekday: "long",
                         month: "long",
                         day: "numeric",
                       })}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      {new Date(event.date).toLocaleTimeString("en-US", {
+                      {new Date(event.date).toLocaleTimeString(locale === "fr" ? "fr-FR" : "en-US", {
                         hour: "numeric",
                         minute: "2-digit",
-                        hour12: true,
+                        hour12: locale !== "fr",
                       })}{" "}
                       -{" "}
                       {new Date(
                         new Date(event.date).getTime() + 60 * 60 * 1000
-                      ).toLocaleTimeString("en-US", {
+                      ).toLocaleTimeString(locale === "fr" ? "fr-FR" : "en-US", {
                         hour: "numeric",
                         minute: "2-digit",
-                        hour12: true,
+                        hour12: locale !== "fr",
                       })}{" "}
                       CET
                     </p>
@@ -201,7 +204,7 @@ export default function WebinarPage() {
                     <Video className="h-6 w-6 text-muted-foreground" />
                   </div>
                   <div className="flex-1">
-                    <p className="font-semibold">Online event</p>
+                    <p className="font-semibold">{t("onlineEvent")}</p>
                   </div>
                 </div>
               </Card>
@@ -216,17 +219,17 @@ export default function WebinarPage() {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Register on Luma
+                  {t("registerOnLuma")}
                 </a>
               </Button>
 
               <div className="mt-12">
-                <h3 className="text-xl font-bold mb-4">About the event</h3>
+                <h3 className="text-xl font-bold mb-4">{t("aboutEvent")}</h3>
                 <div className="prose max-w-none text-muted-foreground">
                   <p>{event.description}</p>
                 </div>
                 <Button variant="link" className="px-0 mt-2">
-                  Show more &raquo;
+                  {t("showMore")} &raquo;
                 </Button>
               </div>
             </div>

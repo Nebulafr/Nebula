@@ -19,42 +19,40 @@ import Image from "next/image";
 import Link from "next/link";
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
+import { useTranslations } from "next-intl";
 
 export default function BecomeACoachPage() {
+  const t = useTranslations("becomeCoach");
+
   const howItWorks = [
     {
       icon: <CheckCircle className="h-8 w-8 text-primary" />,
-      title: "Apply & Get Approved",
-      description:
-        "Tell us about your experience and motivations. Once approved, you'll join a network of passionate professional.",
+      title: t("howItWorks.step1Title"),
+      description: t("howItWorks.step1Desc"),
     },
     {
       icon: <Users className="h-8 w-8 text-yellow-500" />,
-      title: "Get Matched with Students",
-      description:
-        "We'll connect you with students based on your expertise and availability.",
+      title: t("howItWorks.step2Title"),
+      description: t("howItWorks.step2Desc"),
     },
     {
       icon: <Wallet className="h-8 w-8 text-green-500" />,
-      title: "Coach & Get Paid",
-      description:
-        "Share your insights through 1-on-1 or group sessions - and earn for every session you deliver.",
+      title: t("howItWorks.step3Title"),
+      description: t("howItWorks.step3Desc"),
     },
   ];
 
   const testimonials = [
     {
-      name: "Jack Hugo",
-      role: "Senior Product Manager",
-      testimonial:
-        "Coaching on Nebula has been incredibly rewarding. It's amazing to see students grow - and getting paid to do it is a bonus.",
+      name: t("testimonials.jack.name"),
+      role: t("testimonials.jack.role"),
+      testimonial: t("testimonials.jack.quote"),
       avatar: "https://i.pravatar.cc/40?u=jack-hugo",
     },
     {
-      name: "Sarah Cuoco",
-      role: "Senior Product Manager",
-      testimonial:
-        "I love how flexible the platform is. I can share real-world insights on my own schedule and make a real difference.",
+      name: t("testimonials.sarah.name"),
+      role: t("testimonials.sarah.role"),
+      testimonial: t("testimonials.sarah.quote"),
       avatar: "https://i.pravatar.cc/40?u=sarah-cuoco",
     },
   ];
@@ -62,25 +60,22 @@ export default function BecomeACoachPage() {
   const benefits = [
     {
       icon: <Wallet className="h-10 w-10 text-primary" />,
-      title: "Earn Extra Income",
-      description:
-        "Monetize your professional expertise by guiding students with valuable career insights.",
+      title: t("benefits.incomeTitle"),
+      description: t("benefits.incomeDesc"),
       color: "bg-green-50",
       image: PlaceHolderImages.find((img) => img.id === "benefit-income"),
     },
     {
       icon: <CalendarDays className="h-10 w-10 text-blue-500" />,
-      title: "Flexible Coaching Schedule",
-      description:
-        "Don't change your routine. Decide when and how often you want to engage.",
+      title: t("benefits.scheduleTitle"),
+      description: t("benefits.scheduleDesc"),
       color: "bg-blue-50",
       image: PlaceHolderImages.find((img) => img.id === "benefit-schedule"),
     },
     {
       icon: <HeartHandshake className="h-10 w-10 text-purple-500" />,
-      title: "Make a Meaningful Impact",
-      description:
-        "Help shape future talent by making a tangible difference in their career paths.",
+      title: t("benefits.impactTitle"),
+      description: t("benefits.impactDesc"),
       color: "bg-purple-50",
       image: PlaceHolderImages.find((img) => img.id === "benefit-impact"),
     },
@@ -97,14 +92,14 @@ export default function BecomeACoachPage() {
       <main className="flex-1">
         <section className="container py-20 text-center md:py-32">
           <h1 className="font-headline text-5xl font-bold tracking-tighter text-primary md:text-7xl">
-            Inspire, Mentor, and Grow
+            {t("title")}
           </h1>
           <p className="mx-auto mt-4 max-w-2xl font-body text-lg text-foreground/70 md:text-xl">
-            Support future talent while earning on your own schedule
+            {t("subtitle")}
           </p>
           <div className="mt-8">
             <Button size="lg" asChild>
-              <Link href="/coach-signup">Become a Coach</Link>
+              <Link href="/coach-signup">{t("cta")}</Link>
             </Button>
           </div>
         </section>
@@ -144,7 +139,7 @@ export default function BecomeACoachPage() {
           <div className="container">
             <div className="text-center mb-12">
               <h2 className="font-headline text-4xl">
-                Here&apos;s what other coaches are saying
+                {t("testimonials.title")}
               </h2>
             </div>
             <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
@@ -185,7 +180,7 @@ export default function BecomeACoachPage() {
           <div className="container">
             <div className="text-left mb-12">
               <h2 className="font-headline text-4xl">
-                Enjoy these benefits & more...
+                {t("benefits.title")}
               </h2>
             </div>
             <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
@@ -227,16 +222,16 @@ export default function BecomeACoachPage() {
             <div className="order-1 md:col-span-2 bg-gray-200" />
             <div className="order-2 md:col-span-3 flex flex-col justify-center p-8 sm:p-16 text-left h-[200px]">
               <h2 className="font-headline text-4xl font-semibold">
-                Expand your network.
+                {t("network.title")}
               </h2>
               <h2 className="font-headline text-4xl mt-2 font-normal text-muted-foreground">
-                Join the Nebula Community
+                {t("network.subtitle")}
               </h2>
               <Link
                 href="/coach-signup"
                 className="inline-flex items-center text-primary font-semibold mt-6"
               >
-                Become a Coach <ArrowRight className="ml-2 h-4 w-4" />
+                {t("cta")} <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </div>
           </div>

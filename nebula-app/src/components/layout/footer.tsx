@@ -26,7 +26,10 @@ export function Footer() {
   };
 
   return (
-    <footer className="border-t bg-secondary text-secondary-foreground">
+    <footer 
+      className="border-t bg-secondary text-secondary-foreground"
+      suppressHydrationWarning
+    >
       <div className="container py-12">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           <div className="md:col-span-1">
@@ -39,7 +42,7 @@ export function Footer() {
                   className="object-cover"
                 />
               </div>
-              <span className="font-headline text-2xl font-bold">Nebula</span>
+              <span className="font-headline text-2xl font-bold notranslate">Nebula</span>
             </Link>
             <p className="mt-4 text-xs text-secondary-foreground/70">
               {t("description")}
@@ -98,7 +101,7 @@ export function Footer() {
             ))}
           </div>
         </div>
-        <div className="mt-8 border-t border-secondary-foreground/20 pt-8 text-center text-xs text-secondary-foreground/60">
+        <div className="mt-8 border-t border-secondary-foreground/20 pt-8 text-center text-xs text-secondary-foreground/60 notranslate">
           <p>
             {t("copyright", { year: new Date().getFullYear() })}
           </p>

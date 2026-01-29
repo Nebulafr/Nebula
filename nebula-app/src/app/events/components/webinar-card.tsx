@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ExternalLink } from "lucide-react";
+import { useTranslations, useLocale } from "next-intl";
 import { Event } from "@/types/event";
 import { getEventBackgroundColor, getDefaultAvatar, getAccessTypeText } from "@/lib/event-utils";
 
@@ -14,6 +15,8 @@ interface WebinarCardProps {
 }
 
 export function WebinarCard({ event, index, previousIndex }: WebinarCardProps) {
+  const t = useTranslations("events.upcoming");
+  const locale = useLocale();
   const eventDate = new Date(event.date);
   const backgroundColor = getEventBackgroundColor(index, previousIndex);
 
@@ -24,7 +27,7 @@ export function WebinarCard({ event, index, previousIndex }: WebinarCardProps) {
           className={`${backgroundColor} p-4 relative rounded-xl transition-transform group-hover:-translate-y-1 flex flex-col flex-grow`}
         >
           <Badge className="absolute top-4 left-4 bg-white text-gray-800 hover:bg-gray-200 z-10">
-            {getAccessTypeText(event.accessType)}
+            {t(event.accessType?.toLowerCase() === "free" ? "free" : "premium")}
           </Badge>
           <div className="flex items-start gap-4 pt-6 pb-4 flex-grow">
             <div className="flex-shrink-0">
@@ -40,23 +43,23 @@ export function WebinarCard({ event, index, previousIndex }: WebinarCardProps) {
             </div>
             <div className="flex flex-col gap-2">
               <p className="text-xs text-gray-600">
-                {event.organizer?.fullName || "Unknown"}
+                {event.organizer?.fullName || t("failed")}
               </p>
               <h4 className="font-semibold text-gray-800">{event.title}</h4>
               <div className="text-sm text-gray-600">
                 <div>
                   <p className="font-bold">
-                    {eventDate.toLocaleDateString("en-US", {
+                    {eventDate.toLocaleDateString(locale === "fr" ? "fr-FR" : "en-US", {
                       weekday: "long",
                       month: "long",
                       day: "numeric",
                     })}
                   </p>
                   <p>
-                    {eventDate.toLocaleTimeString("en-US", {
+                    {eventDate.toLocaleTimeString(locale === "fr" ? "fr-FR" : "en-US", {
                       hour: "numeric",
                       minute: "2-digit",
-                      hour12: true,
+                      hour12: locale !== "fr",
                     })}
                   </p>
                 </div>
@@ -89,16 +92,14 @@ export function WebinarCard({ event, index, previousIndex }: WebinarCardProps) {
             {event.attendees > 0 && (
               <span className="ml-3 text-xs font-medium text-muted-foreground">
                 {event.attendees > 3 && `+${event.attendees - 3} `}
-                {event.attendees === 1
-                  ? "1 person attending"
-                  : `${event.attendees} people attending`}
+                {t("attending", { count: event.attendees })}
               </span>
             )}
           </div>
         </div>
         <div className="bg-white py-4 rounded-xl">
           <Button className="w-2/3 bg-gray-900 text-white hover:bg-gray-800 text-left">
-            Register now <ExternalLink className="ml-2 h-4 w-4" />
+            {t("register")} <ExternalLink className="ml-2 h-4 w-4" />
           </Button>
         </div>
       </div>

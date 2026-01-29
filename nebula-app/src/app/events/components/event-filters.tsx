@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { Video, PartyPopper, Users, Star, Loader2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface EventFiltersProps {
   activeTypeFilter: string | null;
@@ -14,51 +15,52 @@ interface EventFiltersProps {
   loading: boolean;
 }
 
-const typeFilters = [
-  {
-    name: "Webinar",
-    icon: <Video className="mr-2 h-4 w-4" />,
-    tooltip: "Show only webinars. Click again to clear.",
-  },
-  {
-    name: "Social",
-    icon: <PartyPopper className="mr-2 h-4 w-4" />,
-    tooltip: "Show only social events. Click again to clear.",
-  },
-];
-
 export function EventFilters({
   activeTypeFilter,
   onTypeFilterClick,
   loading,
 }: EventFiltersProps) {
+  const t = useTranslations("events.filters");
+  const typeFilters = [
+    {
+      id: "Webinar",
+      key: "webinar",
+      icon: <Video className="mr-2 h-4 w-4" />,
+    },
+    {
+      id: "Social",
+      key: "social",
+      icon: <PartyPopper className="mr-2 h-4 w-4" />,
+    },
+  ];
+
   return (
     <div className="mx-auto mt-4 flex max-w-3xl justify-center gap-4">
       <TooltipProvider>
         {typeFilters.map((filter) => (
-          <Tooltip key={filter.name}>
+          <Tooltip key={filter.id}>
             <TooltipTrigger asChild>
               <Button
                 variant="outline"
-                className={cn(activeTypeFilter === filter.name && "bg-muted")}
-                onClick={() => onTypeFilterClick(filter.name)}
-                disabled={loading && activeTypeFilter === filter.name}
+                className={cn(activeTypeFilter === filter.id && "bg-muted")}
+                onClick={() => onTypeFilterClick(filter.id)}
+                disabled={loading && activeTypeFilter === filter.id}
               >
-                {loading && activeTypeFilter === filter.name ? (
+                {loading && activeTypeFilter === filter.id ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {filter.name}
+                    {t(filter.key)}
                   </>
                 ) : (
                   <>
                     {filter.icon}
-                    {filter.name}
+                    {t(filter.key)}
                   </>
                 )}
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              <p>{filter.tooltip}</p>
+              <p>{t(`${filter.key}Tooltip`)}</p>
             </TooltipContent>
           </Tooltip>
         ))}

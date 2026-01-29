@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/card";
 import { PlaceHolderImages } from "@/lib/images/placeholder-images";
 import { ArrowLeft, ArrowRight } from "lucide-react";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
 import { Progress } from "@/components/ui/progress";
@@ -25,6 +26,8 @@ import {
 import { Label } from "@/components/ui/label";
 
 function CoachOnboardingStep4Content() {
+  const t = useTranslations("onboarding.coach.step4");
+  const tCommon = useTranslations("onboarding.common");
   const image = PlaceHolderImages.find((img) => img.id === "coach-hero");
 
   const searchParams = useSearchParams();
@@ -81,10 +84,8 @@ function CoachOnboardingStep4Content() {
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
         <div className="absolute bottom-8 left-8 text-white">
-          <h2 className="text-4xl font-bold">Step 4: Your Coaching Style</h2>
-          <p className="mt-2 max-w-lg">
-            How do you approach guiding your students?
-          </p>
+          <h2 className="text-4xl font-bold">{t("title")}</h2>
+          <p className="mt-2 max-w-lg">{t("description")}</p>
         </div>
       </div>
       <div className="flex h-full flex-col justify-center py-12 lg:col-span-2">
@@ -93,17 +94,17 @@ function CoachOnboardingStep4Content() {
           <Card className="border-none shadow-none">
             <CardHeader className="p-0 text-left">
               <CardTitle className="text-3xl font-bold text-primary">
-                Your Approach
+                {t("heading")}
               </CardTitle>
               <CardDescription>
-                Briefly describe your coaching style. How do you help students
-                find solutions? <span className="text-destructive">*</span>
+                {t("subheading")}{" "}
+                <span className="text-destructive">*</span>
               </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4 p-0 mt-8">
               <div className="grid gap-2">
                 <div className="flex justify-between">
-                  <Label htmlFor="style">Coaching Style</Label>
+                  <Label htmlFor="style">{t("label")}</Label>
                   <span
                     className={`text-xs ${
                       charCount < 50
@@ -113,12 +114,12 @@ function CoachOnboardingStep4Content() {
                         : "text-green-600"
                     }`}
                   >
-                    {charCount}/1000 characters (min: 50)
+                    {t("charCount", { count: charCount })}
                   </span>
                 </div>
                 <Textarea
                   id="style"
-                  placeholder="e.g., 'I focus on asking powerful questions to help students uncover their own answers...'"
+                  placeholder={t("placeholder")}
                   rows={6}
                   className={errors.style ? "border-destructive" : ""}
                   {...register("style")}
@@ -134,12 +135,12 @@ function CoachOnboardingStep4Content() {
           <div className="flex justify-between">
             <Button size="lg" variant="outline" asChild>
               <Link href={prevStepUrl}>
-                <ArrowLeft className="mr-2 h-5 w-5" /> Back
+                <ArrowLeft className="mr-2 h-5 w-5" /> {tCommon("back")}
               </Link>
             </Button>
             <Button size="lg" asChild disabled={!isValid}>
               <Link href={nextStepUrl}>
-                Continue <ArrowRight className="ml-2 h-5 w-5" />
+                {tCommon("continue")} <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>
           </div>

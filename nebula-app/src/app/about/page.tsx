@@ -10,7 +10,10 @@ import { Separator } from "@/components/ui/separator";
 import { Header } from "@/components/layout/header";
 import { PlaceHolderImages } from "@/lib/images/placeholder-images";
 
+import { useTranslations } from "next-intl";
+
 export default function AboutPage() {
+  const t = useTranslations("about");
   const heroImage = PlaceHolderImages.find((img) => img.id === "about-hero");
   const storyImage = PlaceHolderImages.find((img) => img.id === "about-story");
 
@@ -43,12 +46,10 @@ export default function AboutPage() {
           <div className="absolute inset-0 bg-black/50" />
           <div className="relative container pb-20 text-left">
             <h1 className="font-headline text-5xl font-bold tracking-tighter md:text-7xl">
-              Our Mission
+              {t("mission")}
             </h1>
             <p className="mt-4 max-w-3xl font-body text-lg text-white/80 md:text-xl">
-              To democratize access to world-class career coaching and empower
-              individuals to achieve their professional dreams, regardless of
-              their background or location.
+              {t("missionDesc")}
             </p>
           </div>
         </section>
@@ -56,15 +57,11 @@ export default function AboutPage() {
         <section className="py-20 sm:py-32">
           <div className="container grid grid-cols-1 md:grid-cols-3 md:gap-12">
             <div className="md:col-span-1">
-              <h2 className="font-headline text-4xl">About Us</h2>
+              <h2 className="font-headline text-4xl">{t("aboutUs")}</h2>
             </div>
             <div className="md:col-span-2">
               <p className="text-[28px] font-medium text-muted-foreground">
-                We’re not an AI platform. At our core, we champion
-                human-centered interactions. That doesn’t mean we’re against AI
-                — far from it. In fact, AI is a powerful enabler of our mission:
-                connecting students with coaches for real-world job immersion
-                and growth.
+                {t("aboutUsDesc")}
               </p>
             </div>
           </div>
@@ -77,20 +74,12 @@ export default function AboutPage() {
         <section className="py-20 sm:py-32">
           <div className="container grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="font-headline text-4xl">Our Story</h2>
+              <h2 className="font-headline text-4xl">{t("ourStory")}</h2>
               <p className="mt-4 text-lg text-muted-foreground">
-                Nebula was born from a simple observation: countless talented
-                students were graduating with strong academic knowledge but
-                lacked the practical, real-world skills and connections to land
-                their dream jobs. We saw an opportunity to bridge this gap.
+                {t("storyP1")}
               </p>
               <p className="mt-4 text-lg text-muted-foreground">
-                Founded by a team of experienced professionals and educators,
-                Nebula was created to connect students with industry experts
-                through immersive, hands-on learning experiences. We believe
-                that mentorship is the key to unlocking potential, and we are
-                dedicated to building a community where knowledge is shared and
-                careers are launched.
+                {t("storyP2")}
               </p>
             </div>
             {storyImage && (
@@ -114,7 +103,7 @@ export default function AboutPage() {
         <section className="py-20 sm:py-32">
           <div className="container grid grid-cols-1 md:grid-cols-3 md:gap-12">
             <div className="md:col-span-1">
-              <h2 className="font-headline text-4xl">Our Partners</h2>
+              <h2 className="font-headline text-4xl">{t("partners")}</h2>
             </div>
             <div className="md:col-span-2 grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-12 items-center mt-8 md:mt-0">
               {partners.map((partner) => (
@@ -140,12 +129,10 @@ export default function AboutPage() {
             <Card className="rounded-2xl bg-primary border-none">
               <CardContent className="p-12 text-center">
                 <h2 className="font-headline text-4xl text-primary-foreground">
-                  Join Our Team
+                  {t("joinTeam")}
                 </h2>
                 <p className="mt-4 max-w-2xl text-lg text-primary-foreground/80 mx-auto">
-                  We're always looking for passionate individuals to join us on
-                  our mission. If you believe in the power of mentorship, we'd
-                  love to hear from you.
+                  {t("joinTeamDesc")}
                 </p>
                 <Button
                   asChild
@@ -153,7 +140,7 @@ export default function AboutPage() {
                   className="mt-8 bg-white text-primary hover:bg-white/90"
                 >
                   <Link href="/become-a-coach">
-                    Become a Coach <ArrowRight className="ml-2 h-5 w-5" />
+                    {t("becomeCoach")} <ArrowRight className="ml-2 h-5 w-5" />
                   </Link>
                 </Button>
               </CardContent>

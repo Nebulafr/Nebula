@@ -15,12 +15,7 @@ import {
 import Link from "next/link";
 import { Program } from "@/generated/prisma";
 import { useTranslations } from "next-intl";
-
-function truncateText(text: string | null | undefined, maxLength: number): string {
-  if (!text) return "";
-  if (text.length <= maxLength) return text;
-  return text.slice(0, maxLength).trim() + "...";
-}
+import { truncateText } from "@/lib/utils";
 
 type ProgramWithRelations = Program & {
   category: {
@@ -59,7 +54,9 @@ export function RecommendedPrograms({
     return (
       <div>
         <div className="flex items-center justify-between">
-          <h3 className="text-xl font-bold tracking-tight">{t("browsePrograms")}</h3>
+          <h3 className="text-xl font-bold tracking-tight">
+            {t("browsePrograms")}
+          </h3>
           <Button variant="link" disabled>
             {tc("seeAll")} <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
@@ -81,7 +78,9 @@ export function RecommendedPrograms({
   return (
     <div>
       <div className="flex items-center justify-between">
-        <h3 className="text-xl font-bold tracking-tight">{t("browsePrograms")}</h3>
+        <h3 className="text-xl font-bold tracking-tight">
+          {t("browsePrograms")}
+        </h3>
         <Button variant="link" asChild>
           <Link href="/programs">
             {tc("seeAll")} <ArrowRight className="ml-2 h-4 w-4" />
@@ -165,7 +164,7 @@ export function RecommendedPrograms({
                                       <AvatarImage src={attendee} />
                                       <AvatarFallback>A</AvatarFallback>
                                     </Avatar>
-                                  )
+                                  ),
                                 )}
                               </div>
                               {program._count?.enrollments > 3 && (

@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PlaceHolderImages } from "@/lib/images/placeholder-images";
 import { ArrowRight, Linkedin } from "lucide-react";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
 import { Progress } from "@/components/ui/progress";
@@ -23,6 +24,8 @@ import {
 } from "@/lib/validations";
 
 export default function CoachOnboardingStep1() {
+  const t = useTranslations("onboarding.coach.step1");
+  const tCommon = useTranslations("onboarding.common");
   const image = PlaceHolderImages.find((img) => img.id === "about-story");
 
   const {
@@ -56,12 +59,8 @@ export default function CoachOnboardingStep1() {
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
         <div className="absolute bottom-8 left-8 text-white">
-          <h2 className="text-4xl font-bold">
-            Step 1: Your Professional Background
-          </h2>
-          <p className="mt-2 max-w-lg">
-            Let's start with your current role and professional presence.
-          </p>
+          <h2 className="text-4xl font-bold">{t("title")}</h2>
+          <p className="mt-2 max-w-lg">{t("description")}</p>
         </div>
       </div>
       <div className="flex h-full flex-col justify-center py-12 lg:col-span-2">
@@ -70,21 +69,20 @@ export default function CoachOnboardingStep1() {
           <Card className="border-none shadow-none">
             <CardHeader className="p-0 text-left">
               <CardTitle className="text-3xl font-bold text-primary">
-                Your Role & Profile
+                {t("heading")}
               </CardTitle>
               <CardDescription>
-                What's your current professional role? Please share your
-                LinkedIn profile as well.
+                {t("subheading")}
               </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-6 p-0 mt-6">
               <div className="grid gap-2">
                 <Label htmlFor="role">
-                  Current Role <span className="text-destructive">*</span>
+                  {t("role")} <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="role"
-                  placeholder="e.g., Senior Product Manager"
+                  placeholder={t("rolePlaceholder")}
                   className={`h-14 ${errors.role ? "border-destructive" : ""}`}
                   {...register("role")}
                 />
@@ -94,11 +92,11 @@ export default function CoachOnboardingStep1() {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="company">
-                  Company <span className="text-destructive">*</span>
+                  {t("company")} <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="company"
-                  placeholder="e.g., Google"
+                  placeholder={t("companyPlaceholder")}
                   className={`h-14 ${errors.company ? "border-destructive" : ""}`}
                   {...register("company")}
                 />
@@ -110,13 +108,13 @@ export default function CoachOnboardingStep1() {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="linkedin">
-                  LinkedIn Profile URL <span className="text-destructive">*</span>
+                  {t("linkedin")} <span className="text-destructive">*</span>
                 </Label>
                 <div className="relative">
                   <Linkedin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <Input
                     id="linkedin"
-                    placeholder="https://linkedin.com/in/your-profile"
+                    placeholder={t("linkedinPlaceholder")}
                     className={`pl-10 h-14 ${
                       errors.linkedin ? "border-destructive" : ""
                     }`}

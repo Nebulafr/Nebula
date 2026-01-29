@@ -16,32 +16,31 @@ import { PlayCircle } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { Footer } from "@/components/layout/footer";
-import { Header } from "@/components/layout/header";
+import { useTranslations } from "next-intl";
 import { universityLogosArray } from "@/lib/images/universities";
+import { Header } from "@/components/layout/header";
 
 export default function UniversitiesPage() {
+  const t = useTranslations("universities");
   const schoolLogos = universityLogosArray;
 
   const benefits = [
     {
       icon: "/custom-images/career-prep.svg",
-      title: "Enhance Employability",
-      description:
-        "Equip your students with the real-world skills and interview practice they need to stand out to top employers.",
+      title: t("benefits.employability.title"),
+      description: t("benefits.employability.description"),
       color: "bg-primary/10",
     },
     {
       icon: "/custom-images/school.svg",
-      title: "Activate Your Alumni Network",
-      description:
-        "Transform your alumni from a passive resource into an active, engaged community of mentors, strengthening ties back to your institution.",
+      title: t("benefits.alumni.title"),
+      description: t("benefits.alumni.description"),
       color: "bg-blue-500/10",
     },
     {
       icon: "/custom-images/get-matched.svg",
-      title: "Scale Career Services",
-      description:
-        "Supplement your existing career services with on-demand, expert coaching from a global network of professionals.",
+      title: t("benefits.scale.title"),
+      description: t("benefits.scale.description"),
       color: "bg-purple-500/10",
     },
   ];
@@ -49,57 +48,42 @@ export default function UniversitiesPage() {
   const howItWorks = [
     {
       step: 1,
-      title: "Partner with Us",
-      description:
-        "We'll work with you to create a custom plan that fits the needs of your institution and your students.",
+      title: t("howItWorks.step1.title"),
+      description: t("howItWorks.step1.description"),
     },
     {
       step: 2,
-      title: "Onboard Students",
-      description:
-        "Students sign up and get personalized recommendations for coaches and programs based on their career interests.",
+      title: t("howItWorks.step2.title"),
+      description: t("howItWorks.step2.description"),
     },
     {
       step: 3,
-      title: "Track Progress",
-      description:
-        "Gain insights into student engagement and career readiness through our dedicated university dashboard.",
+      title: t("howItWorks.step3.title"),
+      description: t("howItWorks.step3.description"),
     },
   ];
 
   const faqs = [
     {
-      question:
-        "How much does it cost for a university to partner with Nebula?",
-      answer:
-        "Our partnership is free for a stipulated time, which is mutually agreed upon with each university. We offer flexible pilot programs to demonstrate value before any long-term commitment.",
+      question: t("faqs.q1.question"),
+      answer: t("faqs.q1.answer"),
     },
     {
-      question: "How are the coaches selected?",
-      answer:
-        "We work directly with you to recruit and onboard coaches from your own talented alumni network. This ensures that students receive guidance from professionals who share their academic background and can provide highly relevant industry insights.",
+      question: t("faqs.q2.question"),
+      answer: t("faqs.q2.answer"),
     },
     {
-      question:
-        "Can we integrate Nebula with our existing career services platform?",
-      answer:
-        "While direct technical integrations are not yet available, we partner closely with your career services team. We collaborate to design and implement a seamless job immersion program that complements your existing offerings, leveraging coaches from your alumni network.",
+      question: t("faqs.q3.question"),
+      answer: t("faqs.q3.answer"),
     },
   ];
 
   const videoImage = PlaceHolderImages.find(
-    (img: ImagePlaceholder) => img.id === "about-story"
+    (img: ImagePlaceholder) => img.id === "about-story",
   );
   const problemImage = PlaceHolderImages.find(
-    (img: ImagePlaceholder) => img.id === "about-hero"
+    (img: ImagePlaceholder) => img.id === "about-hero",
   );
-  const solutionImage = PlaceHolderImages.find(
-    (img: ImagePlaceholder) => img.id === "coach-network"
-  );
-
-  // Add custom image for the learning path
-  const learningPathImage = "/custom-images/learning-path.svg";
-  const skillAssessmentImage = "/custom-images/skill-assessment.svg";
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -107,17 +91,17 @@ export default function UniversitiesPage() {
       <main className="flex-1">
         <section className="container py-20 text-center md:py-32">
           <h1 className="font-headline text-6xl font-bold tracking-tighter text-primary md:text-8xl">
-            Experiential Learning +
+            {t("title")}
           </h1>
           <h1 className="font-headline text-6xl font-bold tracking-tighter text-muted-foreground md:text-8xl">
-            Career Prep
+            {t("subtitle")}
           </h1>
         </section>
 
         <section className="py-12 bg-primary/5">
           <div className="container text-center">
             <p className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-              IN CONVERSATION WITH LEADING BUSINESS SCHOOLS
+              {t("inConversation")}
             </p>
             <div className="mt-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 items-center">
               {schoolLogos.map((logo) => (
@@ -140,16 +124,13 @@ export default function UniversitiesPage() {
             <Card className="bg-gradient-to-br from-primary/5 to-blue-500/10 border-none rounded-xl p-12 flex flex-col justify-center">
               <CardContent className="p-0">
                 <div className="text-sm font-semibold uppercase tracking-wider text-primary">
-                  The Problem
+                  {t("problem.title")}
                 </div>
                 <p className="mt-4 text-lg text-muted-foreground">
-                  Universities excel at providing theoretical knowledge, but
-                  students often struggle to bridge the gap between academia and
-                  the practical demands of the job market.
+                  {t("problem.p1")}
                 </p>
                 <p className="mt-4 text-lg text-muted-foreground">
-                  They lack exposure to real-world business challenges and the
-                  specific interview skills needed to land competitive roles.
+                  {t("problem.p2")}
                 </p>
               </CardContent>
             </Card>
@@ -170,25 +151,19 @@ export default function UniversitiesPage() {
         <section className="pb-20 sm:pb-32">
           <div className="container grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="md:col-span-1 py-12">
-              <h2 className="font-headline text-4xl">Our Solution</h2>
+              <h2 className="font-headline text-4xl">{t("solution.title")}</h2>
               <p className="mt-4 text-sm text-muted-foreground">
-                A powerful, internal ecosystem for practical skill-building.
+                {t("solution.p1")}
               </p>
             </div>
             <div className="md:col-span-3">
               <Card className="h-full rounded-xl">
                 <CardContent className="p-12">
                   <p className="text-lg text-muted-foreground">
-                    Nebula partners with your institution to design a custom job
-                    immersion program. We leverage your most valuable asset,
-                    your alumni network, to connect experienced professionals
-                    with current students for 1-on-1 coaching.
+                    {t("solution.p2")}
                   </p>
                   <p className="mt-4 text-lg text-muted-foreground">
-                    This creates a powerful, internal ecosystem where students
-                    practice real-world case studies and gain practical skills
-                    directly from experts who have walked the same path, giving
-                    them the confidence to launch their careers.
+                    {t("solution.p3")}
                   </p>
                 </CardContent>
               </Card>
@@ -199,9 +174,7 @@ export default function UniversitiesPage() {
         <section className="bg-primary/5 py-20 sm:py-32">
           <div className="container">
             <div className="mb-12 text-left">
-              <h2 className="font-headline text-4xl">
-                Benefits for Your Institution
-              </h2>
+              <h2 className="font-headline text-4xl">{t("benefits.title")}</h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {benefits.map((benefit) => (
@@ -237,7 +210,9 @@ export default function UniversitiesPage() {
         <section className="py-20 sm:py-32">
           <div className="container">
             <div className="text-center mb-12">
-              <h2 className="font-headline text-4xl">How It Works</h2>
+              <h2 className="font-headline text-4xl">
+                {t("howItWorks.title")}
+              </h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
               {howItWorks.map((step) => (
@@ -263,11 +238,10 @@ export default function UniversitiesPage() {
         <section className="bg-primary text-primary-foreground py-20 sm:py-32">
           <div className="container text-center">
             <h2 className="font-headline text-4xl md:text-5xl">
-              Ready to empower your students?
+              {t("cta.title")}
             </h2>
             <p className="mt-4 max-w-2xl mx-auto text-lg text-primary-foreground/80">
-              Partner with Nebula to give your students the competitive edge
-              they need to succeed in today's job market.
+              {t("cta.description")}
             </p>
             <div className="mt-8">
               <Button
@@ -275,7 +249,7 @@ export default function UniversitiesPage() {
                 variant="secondary"
                 className="bg-white text-primary hover:bg-white/90"
               >
-                Request a Demo
+                {t("cta.button")}
               </Button>
             </div>
           </div>
@@ -284,11 +258,11 @@ export default function UniversitiesPage() {
         <section className="py-20 sm:py-32">
           <div className="container">
             <div className="text-center mb-12">
-              <h2 className="font-headline text-4xl">One More Thing...</h2>
+              <h2 className="font-headline text-4xl">
+                {t("oneMoreThing.title")}
+              </h2>
               <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
-                By partnering with us, you’ll gain early access to our
-                next-generation virtual workplace simulation, currently in
-                development, designed to feel real, dynamic, and challenging.
+                {t("oneMoreThing.description")}
               </p>
             </div>
             <div className="relative aspect-video rounded-xl overflow-hidden group mt-8">
@@ -311,9 +285,7 @@ export default function UniversitiesPage() {
         <section className="bg-primary/5 py-20 sm:py-32">
           <div className="container max-w-4xl">
             <div className="text-center mb-12">
-              <h2 className="font-headline text-4xl">
-                Frequently Asked Questions
-              </h2>
+              <h2 className="font-headline text-4xl">{t("faqs.title")}</h2>
             </div>
             <Accordion type="single" collapsible className="w-full">
               {faqs.map((faq, i) => (
@@ -333,17 +305,14 @@ export default function UniversitiesPage() {
         <section className="py-20 sm:py-32">
           <div className="container text-center">
             <h2 className="font-headline text-4xl md:text-5xl">
-              Take the Next Step
+              {t("nextStep.title")}
             </h2>
             <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-              Let's discuss how Nebula can help your students achieve their
-              career goals.
+              {t("nextStep.description")}
             </p>
             <div className="mt-8">
               <Button size="lg" asChild>
-                <Link href="/help-center/contact">
-                  Contact our Partnerships Team
-                </Link>
+                <Link href="/help-center/contact">{t("nextStep.button")}</Link>
               </Button>
             </div>
           </div>

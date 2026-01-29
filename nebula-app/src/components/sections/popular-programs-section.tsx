@@ -5,14 +5,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Star } from "lucide-react";
 import { usePopularPrograms } from "@/hooks";
-import { Button } from "../ui/button";
 import { useTranslations } from "next-intl";
-
-function truncateText(text: string | null | undefined, maxLength: number): string {
-  if (!text) return "";
-  if (text.length <= maxLength) return text;
-  return text.slice(0, maxLength).trim() + "...";
-}
+import { truncateText } from "@/lib/utils";
 
 export function PopularProgramsSection() {
   const t = useTranslations("programs.popular");
@@ -126,7 +120,7 @@ export function PopularProgramsSection() {
                                   <AvatarImage src={attendee} />
                                   <AvatarFallback>A</AvatarFallback>
                                 </Avatar>
-                              )
+                              ),
                             )}
                           </div>
                           {program._count?.enrollments > 0 && (
@@ -152,9 +146,7 @@ export function PopularProgramsSection() {
             ))
           ) : (
             <div className="col-span-full text-center">
-              <p className="text-muted-foreground">
-                {t("empty")}
-              </p>
+              <p className="text-muted-foreground">{t("empty")}</p>
             </div>
           )}
         </div>
