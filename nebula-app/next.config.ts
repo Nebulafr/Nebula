@@ -14,14 +14,6 @@ const nextConfig: NextConfig = {
     };
     return config;
   },
-  turbopack: {
-    rules: {
-      "*.svg": {
-        loaders: ["@svgr/webpack"],
-        as: "*.js",
-      },
-    },
-  },
   images: {
     minimumCacheTTL: 60 * 60 * 24 * 7, // Cache images for 7 days
     remotePatterns: [
@@ -80,12 +72,6 @@ const nextConfig: NextConfig = {
         pathname: "/**",
       },
     ],
-  },
-  typescript: {
-    ignoreBuildErrors: false,
-  },
-  eslint: {
-    ignoreDuringBuilds: false,
   },
 };
 
