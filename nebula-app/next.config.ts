@@ -7,12 +7,11 @@ const withNextIntl = createNextIntlPlugin(
 );
 
 const nextConfig: NextConfig = {
-  webpack: (config) => {
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      "@/generated/prisma": path.resolve(__dirname, "./generated/prisma"),
-    };
-    return config;
+
+  turbopack: {
+    resolveAlias: {
+      "@/generated/prisma": "./generated/prisma"
+    },
   },
   images: {
     minimumCacheTTL: 60 * 60 * 24 * 7, // Cache images for 7 days
