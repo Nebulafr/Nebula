@@ -1,0 +1,20 @@
+{
+  "name": "nebula-monorepo",
+  "private": true,
+  "workspaces": [
+    "nebula-app",
+    "nebula-messaging"
+  ],
+  "scripts": {
+    "dev:app": "npm run dev -w nebula-app",
+    "dev:messaging": "npm run dev -w nebula-messaging",
+    "build:app": "npm run build -w nebula-app",
+    "build:messaging": "npm run build -w nebula-messaging",
+    "build": "npm run build -ws",
+    "dev": "concurrently \"npm run dev:app\" \"npm run dev:messaging\"",
+    "install:all": "npm install"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
