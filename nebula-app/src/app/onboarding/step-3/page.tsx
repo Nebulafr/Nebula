@@ -43,8 +43,8 @@ const availabilities = [
 ];
 
 function OnboardingStep3Content() {
-  const t = useTranslations("onboarding.student.step3");
-  const tCommon = useTranslations("onboarding.common");
+  const t = useTranslations("common.onboarding.student.step3");
+  const tCommon = useTranslations("common.onboarding.common");
   const [isLoading, setIsLoading] = useState(false);
   const image = PlaceHolderImages.find((img) => img.id === "benefit-schedule");
   const searchParams = useSearchParams();

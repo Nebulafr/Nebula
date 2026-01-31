@@ -12,7 +12,9 @@
     "build:messaging": "npm run build -w nebula-messaging",
     "build": "npm run build -ws",
     "dev": "concurrently \"npm run dev:app\" \"npm run dev:messaging\"",
-    "install:all": "npm install"
+    "install:app": "npm install -w nebula-app",
+    "install:messaging": "npm install -w nebula-messaging",
+    "install:all": "npm install -ws"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"

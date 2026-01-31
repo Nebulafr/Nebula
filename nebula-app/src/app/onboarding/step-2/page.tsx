@@ -45,8 +45,8 @@ const skillLevels = Object.values(SkillLevel).map((level) => ({
 }));
 
 function OnboardingStep2Content() {
-  const t = useTranslations("onboarding.student.step2");
-  const tCommon = useTranslations("onboarding.common");
+  const t = useTranslations("common.onboarding.student.step2");
+  const tCommon = useTranslations("common.onboarding.common");
   const image = PlaceHolderImages.find((img) => img.id === "about-hero");
   const searchParams = useSearchParams();
   const program = searchParams.get("program");

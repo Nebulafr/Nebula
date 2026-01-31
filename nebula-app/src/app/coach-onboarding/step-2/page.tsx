@@ -28,8 +28,8 @@ import {
 } from "@/lib/validations";
 
 function CoachOnboardingStep2Content() {
-  const t = useTranslations("onboarding.coach.step2");
-  const tCommon = useTranslations("onboarding.common");
+  const t = useTranslations("common.onboarding.coach.step2");
+  const tCommon = useTranslations("common.onboarding.common");
   const image = PlaceHolderImages.find((img) => img.id === "about-hero");
   const [inputValue, setInputValue] = useState("");
   const { data: categoriesResponse, isLoading: loading } = useCategories();

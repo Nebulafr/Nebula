@@ -26,8 +26,8 @@ import {
 import { Label } from "@/components/ui/label";
 
 function CoachOnboardingStep4Content() {
-  const t = useTranslations("onboarding.coach.step4");
-  const tCommon = useTranslations("onboarding.common");
+  const t = useTranslations("common.onboarding.coach.step4");
+  const tCommon = useTranslations("common.onboarding.common");
   const image = PlaceHolderImages.find((img) => img.id === "coach-hero");
 
   const searchParams = useSearchParams();

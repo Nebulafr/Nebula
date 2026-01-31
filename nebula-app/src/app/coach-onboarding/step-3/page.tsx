@@ -26,8 +26,8 @@ import {
 import { Label } from "@/components/ui/label";
 
 function CoachOnboardingStep3Content() {
-  const t = useTranslations("onboarding.coach.step3");
-  const tCommon = useTranslations("onboarding.common");
+  const t = useTranslations("common.onboarding.coach.step3");
+  const tCommon = useTranslations("common.onboarding.common");
   const image = PlaceHolderImages.find((img) => img.id === "benefit-impact");
 
   const searchParams = useSearchParams();

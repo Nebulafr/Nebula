@@ -24,8 +24,8 @@ import {
 } from "@/lib/validations";
 
 export default function CoachOnboardingStep1() {
-  const t = useTranslations("onboarding.coach.step1");
-  const tCommon = useTranslations("onboarding.common");
+  const t = useTranslations("common.onboarding.coach.step1");
+  const tCommon = useTranslations("common.onboarding.common");
   const image = PlaceHolderImages.find((img) => img.id === "about-story");
 
   const {

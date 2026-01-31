@@ -35,8 +35,8 @@ const categoryColors: Record<string, string> = {
 };
 
 export default function OnboardingStep1() {
-  const t = useTranslations("onboarding.student.step1");
-  const tCommon = useTranslations("onboarding.common");
+  const t = useTranslations("common.onboarding.student.step1");
+  const tCommon = useTranslations("common.onboarding.common");
   const { data: categoriesResponse, isLoading: loading } = useCategories();
   const categories = categoriesResponse?.data?.categories || [];
 

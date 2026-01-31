@@ -12,12 +12,12 @@ export interface FirebaseConfig {
 }
 
 const firebaseConfig: FirebaseConfig = {
-  apiKey: "AIzaSyByA_xtg5L6Vmj_e4tsyOs2c3ekVblOnTU",
-  authDomain: "nebula-experiment-234646-4d174.firebaseapp.com",
-  projectId: "nebula-experiment-234646-4d174",
-  storageBucket: "nebula-experiment-234646-4d174.firebasestorage.app",
-  messagingSenderId: "187194032912",
-  appId: "1:187194032912:web:d8d9046d77fd7df5bfdb95",
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "",
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "",
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "",
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "",
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "",
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "",
 };
 
 const app =
