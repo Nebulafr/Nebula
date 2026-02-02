@@ -200,6 +200,39 @@
   },
   "dashboard": {
     "welcome": "Welcome back, {name}!",
+    "settings": {
+      "security": {
+        "title": "Security",
+        "passwordLabel": "Password",
+        "passwordDescription": "Update your password here. Please choose a strong one.",
+        "currentPassword": "Current Password",
+        "newPassword": "New Password",
+        "confirmNewPassword": "Confirm New Password",
+        "changePassword": "Change Password",
+        "changingPassword": "Changing Password...",
+        "googleUserNote": "You signed in with Google. Password management is handled by your Google account."
+      },
+      "avatar": {
+        "change": "Change Photo",
+        "uploading": "Uploading...",
+        "errorFileType": "Please select a valid image file (JPEG, PNG, or WebP)",
+        "errorFileSize": "File size must be less than 5MB",
+        "uploadSuccess": "Avatar uploaded successfully",
+        "uploadError": "Failed to upload avatar",
+        "save": "Save Photo",
+        "cancel": "Cancel"
+      },
+      "profile": {
+        "title": "Profile Information",
+        "fullName": "Full Name",
+        "email": "Email Address",
+        "emailNote": "Email cannot be changed for security reasons",
+        "save": "Save Profile",
+        "saving": "Saving...",
+        "success": "Profile updated successfully",
+        "error": "Failed to update profile"
+      }
+    },
     "student": {
       "browsePrograms": "Browse Programs",
       "suggestedCoaches": "Suggested Coaches",
@@ -313,10 +346,18 @@
         "stats": {
           "upcoming": "Upcoming Sessions",
           "completed": "Completed This Month",
-          "hours": "Coaching Hours"
+          "hours": "Coaching Hours",
+          "sessionsThisMonth": "Sessions This Month",
+          "activeStudents": "Active Students",
+          "totalSessions": "Total Sessions",
+          "averageRating": "Average Rating",
+          "vsLastMonth": "vs last month",
+          "reviewsCount": "{count, plural, one {# review} other {# reviews}}"
         },
         "calendar": {
-          "title": "Session Calendar"
+          "title": "Session Calendar",
+          "today": "Today",
+          "more": "more"
         },
         "list": {
           "title": "Sessions for {date}",
@@ -327,6 +368,30 @@
           "cancel": "Cancel",
           "comingSoon": "Coming soon!",
           "noMeetingLink": "No meeting link available for this session."
+        },
+        "sessionsList": {
+          "title": "Sessions",
+          "selectDateShort": "Select a date",
+          "newSession": "New Session",
+          "noSessions": "No sessions scheduled",
+          "selectDifferent": "Try selecting a different date",
+          "selectDate": "Select a date to view sessions",
+          "createSession": "Create Session"
+        },
+        "sessionItem": {
+          "studentsCount": "{count, plural, one {# student} other {# students}}",
+          "status": {
+            "SCHEDULED": "Scheduled",
+            "IN_PROGRESS": "In Progress",
+            "COMPLETED": "Completed",
+            "CANCELLED": "Cancelled"
+          },
+          "actions": {
+            "start": "Start",
+            "viewDetails": "View Details",
+            "reschedule": "Reschedule",
+            "cancel": "Cancel"
+          }
         }
       },
       "programs": {
@@ -540,7 +605,9 @@
           "errorFileType": "Please select a valid image file (JPEG, PNG, or WebP)",
           "errorFileSize": "File size must be less than 5MB",
           "uploadSuccess": "Avatar uploaded successfully",
-          "uploadError": "Failed to upload avatar"
+          "uploadError": "Failed to upload avatar",
+          "save": "Save Photo",
+          "cancel": "Cancel"
         },
         "profile": {
           "title": "My Profile",
@@ -948,7 +1015,7 @@
       "hasAccount": "Already have an account?",
       "fullName": "Full Name",
       "fullNamePlaceholder": "John Doe",
-      "passwordHint": "Must be at least 6 characters",
+      "passwordHint": "Strong password required (min. 8 chars, incl. uppercase, lowercase, number, and special character)",
       "passwordMismatch": "Passwords do not match",
       "googleSignUp": "Sign up with Google"
     },
@@ -980,6 +1047,23 @@
         "description": "Click the link in your email to reset your password. If you don't see it, check your spam folder.",
         "tryDifferent": "Try different email",
         "backToSignIn": "Back to Sign In"
+      }
+    },
+    "resetPassword": {
+      "title": "Set New Password",
+      "subtitle": "Please enter your new password below.",
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm New Password",
+      "resetButton": "Reset Password",
+      "resetting": "Resetting...",
+      "success": {
+        "title": "Password Reset Successfully",
+        "description": "Your password has been reset. You can now log in with your new password.",
+        "backToLogin": "Go to Login"
+      },
+      "error": {
+        "invalidToken": "The reset link is invalid or has expired. Please request a new one.",
+        "mismatch": "Passwords do not match."
       }
     },
     "fields": {
@@ -1425,6 +1509,16 @@
     },
     "send": "Send Message",
     "futureTitle": "Let's Build the Future Together",
-    "futureDesc": "Partner with us to create powerful learning experiences for your students."
+    "futureDesc": "Partner with us to create powerful learning experiences for your students.",
+    "verifyEmail": {
+      "title": "Verifying Email",
+      "subtitle": "Please wait while we verify your email address...",
+      "success": "Email Verified!",
+      "successDesc": "Your email address has been successfully verified. You can now sign in to your account.",
+      "error": "Verification Failed",
+      "errorDesc": "The verification link is invalid or has expired.",
+      "backToLogin": "Back to Login",
+      "verifying": "Verifying..."
+    }
   }
 }

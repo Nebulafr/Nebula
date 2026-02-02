@@ -19,8 +19,21 @@ import { UserRole } from "@/generated/prisma";
 import { useAuth } from "@/hooks/use-auth";
 import { handleAndToastError } from "@/lib/error-handler";
 import { AuthPageGuard } from "@/components/auth/protected-route";
-import { toast } from "react-toastify";
 import { useTranslations } from "next-intl";
+import { signinSchema } from "@/lib/validations";
+import { z } from "zod";
+import { toast } from "react-toastify";
+import { cn } from "@/lib/utils";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 
 function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -61,16 +74,31 @@ export default function LoginPage() {
   const t = useTranslations("auth.login");
   const f = useTranslations("auth.fields");
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const form = useForm<z.infer<typeof signinSchema>>({
+    resolver: zodResolver(signinSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+
+  const handleLogin = async (values: z.infer<typeof signinSchema>) => {
     if (loading) return;
 
     setLoading(true);
 
     try {
-      const response = await signIn({ email, password });
+      const response = await signIn({
+        email: values.email,
+        password: values.password,
+      });
     } catch (error) {
-      handleAndToastError(error, t("signingIn") === "Signing in..." ? "Failed to sign in" : "Échec de la connexion");
+      handleAndToastError(
+        error,
+        t("signingIn") === "Signing in..."
+          ? "Failed to sign in"
+          : "Échec de la connexion"
+      );
     } finally {
       setLoading(false);
     }
@@ -135,63 +163,77 @@ export default function LoginPage() {
                   {t("subtitle")}
                 </CardDescription>
               </CardHeader>
-              <form onSubmit={handleLogin}>
-                <CardContent className="grid gap-4 p-0 mt-6">
-                  <div className="grid gap-2">
-                    <Label htmlFor="email">{f("email")}</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder={f("emailPlaceholder")}
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      disabled={loading}
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(handleLogin)}>
+                  <CardContent className="grid gap-4 p-0 mt-6">
+                    <FormField
+                      control={form.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem className="grid gap-2 space-y-0">
+                          <FormLabel>{f("email")}</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              type="email"
+                              placeholder={f("emailPlaceholder")}
+                              disabled={loading}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
-                  </div>
-                  <div className="grid gap-2">
-                    <div className="flex items-center">
-                      <Label htmlFor="password">{f("password")}</Label>
-                      <Link
-                        href="/forgot-password"
-                        className="ml-auto inline-block text-sm underline hover:no-underline"
-                      >
-                        {f("forgotPassword")}
-                      </Link>
-                    </div>
-                    <div className="relative">
-                      <Input
-                        id="password"
-                        type={showPassword ? "text" : "password"}
-                        required
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        disabled={loading}
-                        className="pr-10"
-                      />
-                      <button
-                        type="button"
-                        className="absolute inset-y-0 right-0 flex items-center pr-3"
-                        onClick={() => setShowPassword(!showPassword)}
-                      >
-                        {showPassword ? (
-                          <EyeOff className="h-4 w-4 text-muted-foreground" />
-                        ) : (
-                          <Eye className="h-4 w-4 text-muted-foreground" />
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                  <Button
-                    type="submit"
-                    className="w-full"
-                    size="lg"
-                    disabled={loading}
-                  >
-                    {loading ? t("signingIn") : t("signIn")}
-                  </Button>
-                </CardContent>
-              </form>
+                    <FormField
+                      control={form.control}
+                      name="password"
+                      render={({ field }) => (
+                        <FormItem className="grid gap-2 space-y-0">
+                          <div className="flex items-center">
+                            <FormLabel>{f("password")}</FormLabel>
+                            <Link
+                              href="/forgot-password"
+                              className="ml-auto inline-block text-sm underline hover:no-underline"
+                            >
+                              {f("forgotPassword")}
+                            </Link>
+                          </div>
+                          <div className="relative">
+                            <FormControl>
+                              <Input
+                                {...field}
+                                type={showPassword ? "text" : "password"}
+                                disabled={loading}
+                                className="pr-10"
+                              />
+                            </FormControl>
+                            <button
+                              type="button"
+                              className="absolute inset-y-0 right-0 flex items-center pr-3"
+                              onClick={() => setShowPassword(!showPassword)}
+                            >
+                              {showPassword ? (
+                                <EyeOff className="h-4 w-4 text-muted-foreground" />
+                              ) : (
+                                <Eye className="h-4 w-4 text-muted-foreground" />
+                              )}
+                            </button>
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <Button
+                      type="submit"
+                      className="w-full"
+                      size="lg"
+                      disabled={loading}
+                    >
+                      {loading ? t("signingIn") : t("signIn")}
+                    </Button>
+                  </CardContent>
+                </form>
+              </Form>
               <div className="relative mt-4">
                 <div className="absolute inset-0 flex items-center">
                   <span className="w-full border-t" />

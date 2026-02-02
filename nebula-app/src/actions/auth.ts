@@ -1,6 +1,6 @@
 import { auth } from "@/firebase/client";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { apiPost } from "@/lib/utils";
+import { apiPost, apiGet } from "@/lib/utils";
 
 export async function signUpWithEmail(data: any) {
   return apiPost("/auth/register", data, {
@@ -46,8 +46,22 @@ export async function signUpWithGoogle(role: string = "student") {
   }
 }
 
-export async function resetPassword(email: string) {
-  return apiPost("/auth/reset-password", { email }, {
+export async function requestPasswordReset(email: string) {
+  return apiPost("/auth/forgot-password", { email }, {
+    requireAuth: false,
+    throwOnError: true,
+  });
+}
+
+export async function completePasswordReset(token: string, data: any) {
+  return apiPost(`/auth/reset-password?token=${token}`, data, {
+    requireAuth: false,
+    throwOnError: true,
+  });
+}
+
+export async function verifyEmail(token: string) {
+  return apiGet(`/auth/verify-email?token=${token}`, {
     requireAuth: false,
     throwOnError: true,
   });

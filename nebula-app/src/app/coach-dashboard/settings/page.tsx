@@ -24,7 +24,10 @@ export default function CoachSettingsPage() {
   const [isPayoutLoading, setIsPayoutLoading] = useState(false);
   const [isPasswordLoading, setIsPasswordLoading] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [previewFile, setPreviewFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [formData, setFormData] = useState<ProfileFormData>({
     title: "",
     bio: "",
@@ -68,9 +71,7 @@ export default function CoachSettingsPage() {
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -88,14 +89,27 @@ export default function CoachSettingsPage() {
       return;
     }
 
+    const url = URL.createObjectURL(file);
+    setPreviewFile(file);
+    setPreviewUrl(url);
+
+    // Clear the file input so the same file can be selected again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const handleConfirmUpload = async () => {
+    if (!previewFile) return;
+
     setIsUploadingAvatar(true);
     try {
-      const response = await uploadUserAvatar(file);
+      const response = await uploadUserAvatar(previewFile);
 
       if (response.success) {
-        // Refresh the profile to get the new avatar URL
         await refreshUser();
         toast.success(t("avatar.uploadSuccess"));
+        handleCancelPreview();
       } else {
         toast.error(response.message || t("avatar.uploadError"));
       }
@@ -103,23 +117,39 @@ export default function CoachSettingsPage() {
       toast.error(t("errorUnexpected"));
     } finally {
       setIsUploadingAvatar(false);
-      // Clear the file input
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
     }
   };
 
-  const handleSave = async () => {
+  const handleCancelPreview = () => {
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
+    setPreviewFile(null);
+    setPreviewUrl(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
+
+  const handleSave = async (data: ProfileFormData) => {
     if (!profile) return;
 
     setIsLoading(true);
     try {
-      const response = await updateCoachProfile(formData);
+      const response = await updateCoachProfile(data);
 
       if (response.success) {
         // Profile updated successfully
         toast.success(t("profile.uploadSuccess") || "Profile updated");
+        await refreshUser(); // Refresh user to get updated coach data
       } else {
         toast.error(response.message || t("profile.errorUpdate"));
       }
@@ -198,9 +228,12 @@ export default function CoachSettingsPage() {
             <div className="md:col-span-1">
               <ProfileAvatar
                 avatarUrl={profile?.avatarUrl || undefined}
+                previewUrl={previewUrl || undefined}
                 fullName={profile?.fullName || ""}
                 title={formData.title}
                 onChangePhoto={handleChangePhoto}
+                onSave={handleConfirmUpload}
+                onCancel={handleCancelPreview}
                 isUploading={isUploadingAvatar}
               />
               <input
@@ -214,7 +247,6 @@ export default function CoachSettingsPage() {
             <div className="md:col-span-2">
               <ProfileForm
                 formData={formData}
-                onFormDataChange={handleFormDataChange}
                 onSave={handleSave}
                 isLoading={isLoading}
               />

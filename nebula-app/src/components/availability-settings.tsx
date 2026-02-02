@@ -67,7 +67,7 @@ export function AvailabilitySettings({
   loading = false,
   disabled = false,
 }: AvailabilitySettingsProps) {
-  const t = useTranslations("dashboard.coach.schedule.availability");
+  const t = useTranslations("dashboard.coach.availability");
   const commonT = useTranslations("common");
 
   // Only use hooks if showSaveButton is true (dashboard mode)

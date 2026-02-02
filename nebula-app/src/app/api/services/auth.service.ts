@@ -13,6 +13,8 @@ import HttpException, {
 } from "../utils/http-exception";
 import { RESPONSE_CODE } from "@/types";
 import { sendSuccess } from "../utils/send-response";
+import { EmailService } from "./email.service";
+import crypto from "crypto";
 
 export class AuthService {
   static generateAccessToken(userId: string): string {
@@ -44,20 +46,36 @@ export class AuthService {
     }
 
     const hashedPassword = await this.hashPassword(password);
+    
+    // Generate verification token
+    const verificationToken = crypto.randomBytes(32).toString("hex");
+    const verificationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
     const user = await prisma.user.create({
       data: {
         email,
         hashedPassword,
         fullName,
         role,
-        status: "ACTIVE",
+        status: "PENDING",
+        verificationToken,
+        verificationTokenExpires,
       },
     });
 
-    const accessToken = this.generateAccessToken(user.id);
+    // Send verification email
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const verificationUrl = `${baseUrl}/verify-email?token=${verificationToken}`;
+    
+    await EmailService.sendVerificationEmail(
+      email,
+      fullName || "Nebula User",
+      verificationUrl
+    );
+
     return sendSuccess(
-      { accessToken, user },
-      "Account created successfully",
+      { user },
+      "Account created. Please check your email to verify your account.",
       201
     );
   }
@@ -78,8 +96,55 @@ export class AuthService {
       throw new UnauthorizedException("Invalid email or password");
     }
 
+    if (user.status === "PENDING") {
+      throw new UnauthorizedException(
+        "Please verify your email address to sign in"
+      );
+    }
+
+    if (user.status === "SUSPENDED" || user.status === "INACTIVE") {
+      throw new UnauthorizedException("Your account is not active");
+    }
+
     const accessToken = this.generateAccessToken(user.id);
     return sendSuccess({ accessToken, user }, "Signed in successfully");
+  }
+
+  static async verifyEmail(token: string) {
+    const user = await prisma.user.findUnique({
+      where: { verificationToken: token },
+    });
+
+    if (!user) {
+      throw new HttpException(
+        RESPONSE_CODE.VALIDATION_ERROR,
+        "Invalid or expired verification token",
+        400
+      );
+    }
+
+    if (
+      user.verificationTokenExpires &&
+      user.verificationTokenExpires < new Date()
+    ) {
+      throw new HttpException(
+        RESPONSE_CODE.VALIDATION_ERROR,
+        "Verification token has expired",
+        400
+      );
+    }
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        status: "ACTIVE",
+        emailVerified: new Date(),
+        verificationToken: null,
+        verificationTokenExpires: null,
+      },
+    });
+
+    return sendSuccess(null, "Email verified successfully. You can now sign in.");
   }
 
   static async googleAuth(data: GoogleAuthData) {
@@ -273,5 +338,59 @@ export class AuthService {
         500
       );
     }
+  }
+
+  static async forgotPassword(email: string) {
+    const user = await this.findUserByEmail(email);
+    
+    // We don't want to reveal if the email exists for security (standard practice)
+    // But we check if the user exists and has a password
+    if (user && user.hashedPassword) {
+      const resetToken = crypto.randomBytes(32).toString("hex");
+      const resetTokenExpires = new Date(Date.now() + 1 * 60 * 60 * 1000); // 1 hour
+
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { resetToken, resetTokenExpires },
+      });
+
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+      const resetUrl = `${baseUrl}/reset-password?token=${resetToken}`;
+
+      await EmailService.sendPasswordResetEmail(
+        email,
+        user.fullName || "Nebula User",
+        resetUrl
+      );
+    }
+
+    return sendSuccess(null, "If an account exists with that email, we've sent instructions to reset your password.");
+  }
+
+  static async resetPassword(token: string, data: any) {
+    const user = await prisma.user.findUnique({
+      where: { resetToken: token },
+    });
+
+    if (!user || (user.resetTokenExpires && user.resetTokenExpires < new Date())) {
+      throw new HttpException(
+        RESPONSE_CODE.VALIDATION_ERROR,
+        "Invalid or expired reset token",
+        400
+      );
+    }
+
+    const hashedPassword = await this.hashPassword(data.newPassword);
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        hashedPassword,
+        resetToken: null,
+        resetTokenExpires: null,
+      },
+    });
+
+    return sendSuccess(null, "Password successfully reset. You can now sign in with your new password.");
   }
 }

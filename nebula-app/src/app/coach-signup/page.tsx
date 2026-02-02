@@ -21,6 +21,19 @@ import { useAuthActions } from "@/hooks/use-auth";
 import { AuthPageGuard } from "@/components/auth/protected-route";
 import { handleAndToastError } from "@/lib/error-handler";
 import { toast } from "react-toastify";
+import { signupSchema } from "@/lib/validations";
+import { z } from "zod";
+import { cn } from "@/lib/utils";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 
 function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -51,12 +64,19 @@ function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
   );
 }
 
+const coachSignupFormSchema = signupSchema
+  .extend({
+    confirmPassword: z.string().min(1, "Please confirm your password"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
+type CoachSignupFormValues = z.infer<typeof coachSignupFormSchema>;
+
 export default function CoachSignupPage() {
   const signupImage = PlaceHolderImages.find((img) => img.id === "about-story");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [fullName, setFullName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const { signUp, signInWithGoogle } = useAuthActions();
@@ -66,26 +86,36 @@ export default function CoachSignupPage() {
   const tl = useTranslations("auth.login");
   const c = useTranslations("common");
 
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (loading) return;
+  const form = useForm<CoachSignupFormValues>({
+    resolver: zodResolver(coachSignupFormSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+      confirmPassword: "",
+      fullName: "",
+      role: UserRole.COACH,
+    },
+  });
 
-    if (password !== confirmPassword) {
-      toast.error(ts("passwordMismatch"));
-      return;
-    }
+  const handleSignup = async (values: CoachSignupFormValues) => {
+    if (loading) return;
 
     setLoading(true);
 
     try {
       const response = await signUp({
-        email,
-        password,
-        fullName,
+        email: values.email,
+        password: values.password,
+        fullName: values.fullName,
         role: UserRole.COACH,
       });
     } catch (error: any) {
-      handleAndToastError(error, ts("signingUp") === "Creating account..." ? "Failed to create account" : "Échec de la création du compte");
+      handleAndToastError(
+        error,
+        ts("signingUp") === "Creating account..."
+          ? "Failed to create account"
+          : "Échec de la création du compte"
+      );
     } finally {
       setLoading(false);
     }
@@ -148,99 +178,124 @@ export default function CoachSignupPage() {
                   {t("subtitle")}
                 </CardDescription>
               </CardHeader>
-              <form onSubmit={handleSignup}>
-                <CardContent className="grid gap-4 p-0 mt-6">
-                  <div className="grid gap-2">
-                    <Label htmlFor="full-name">{ts("fullName")}</Label>
-                    <Input
-                      id="full-name"
-                      placeholder={ts("fullNamePlaceholder")}
-                      required
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(handleSignup)}>
+                  <CardContent className="grid gap-4 p-0 mt-6">
+                    <FormField
+                      control={form.control}
+                      name="fullName"
+                      render={({ field }) => (
+                        <FormItem className="grid gap-2 space-y-0">
+                          <FormLabel>{ts("fullName")}</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              placeholder={ts("fullNamePlaceholder")}
+                              disabled={loading}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="email">{f("email")}</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder={f("emailPlaceholder")}
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                    <FormField
+                      control={form.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem className="grid gap-2 space-y-0">
+                          <FormLabel>{f("email")}</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              type="email"
+                              placeholder={f("emailPlaceholder")}
+                              disabled={loading}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="password">{f("password")}</Label>
-                    <div className="relative">
-                      <Input
-                        id="password"
-                        type={showPassword ? "text" : "password"}
-                        required
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="pr-10"
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                        onClick={() => setShowPassword(!showPassword)}
-                      >
-                        {showPassword ? (
-                          <EyeOff className="h-4 w-4" />
-                        ) : (
-                          <Eye className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="confirm-password">{f("confirmPassword")}</Label>
-                    <div className="relative">
-                      <Input
-                        id="confirm-password"
-                        type={showPassword ? "text" : "password"}
-                        required
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        className="pr-10"
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                        onClick={() => setShowPassword(!showPassword)}
-                      >
-                        {showPassword ? (
-                          <EyeOff className="h-4 w-4" />
-                        ) : (
-                          <Eye className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </div>
-                    {confirmPassword && password !== confirmPassword && (
-                      <p className="text-xs text-destructive">
-                        {ts("passwordMismatch")}
-                      </p>
-                    )}
-                    <p className="text-xs text-muted-foreground">
-                      {ts("passwordHint")}
-                    </p>
-                  </div>
-                  <Button
-                    type="submit"
-                    className="w-full"
-                    size="lg"
-                    disabled={loading || password !== confirmPassword}
-                  >
-                    {loading ? ts("signingUp") : t("signUp")}
-                  </Button>
-                </CardContent>
-              </form>
+                    <FormField
+                      control={form.control}
+                      name="password"
+                      render={({ field }) => (
+                        <FormItem className="grid gap-2 space-y-0">
+                          <FormLabel>{f("password")}</FormLabel>
+                          <div className="relative">
+                            <FormControl>
+                              <Input
+                                {...field}
+                                type={showPassword ? "text" : "password"}
+                                disabled={loading}
+                                className="pr-10"
+                              />
+                            </FormControl>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                              onClick={() => setShowPassword(!showPassword)}
+                            >
+                              {showPassword ? (
+                                <EyeOff className="h-4 w-4" />
+                              ) : (
+                                <Eye className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="confirmPassword"
+                      render={({ field }) => (
+                        <FormItem className="grid gap-2 space-y-0">
+                          <FormLabel>{f("confirmPassword")}</FormLabel>
+                          <div className="relative">
+                            <FormControl>
+                              <Input
+                                {...field}
+                                type={showPassword ? "text" : "password"}
+                                disabled={loading}
+                                className="pr-10"
+                              />
+                            </FormControl>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                              onClick={() => setShowPassword(!showPassword)}
+                            >
+                              {showPassword ? (
+                                <EyeOff className="h-4 w-4" />
+                              ) : (
+                                <Eye className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </div>
+                          <FormMessage />
+                          <p className="text-xs text-muted-foreground">
+                            {ts("passwordHint")}
+                          </p>
+                        </FormItem>
+                      )}
+                    />
+                    <Button
+                      type="submit"
+                      className="w-full"
+                      size="lg"
+                      disabled={loading}
+                    >
+                      {loading ? ts("signingUp") : t("signUp")}
+                    </Button>
+                  </CardContent>
+                </form>
+              </Form>
               <Button
                 variant="outline"
                 className="w-full mt-4"

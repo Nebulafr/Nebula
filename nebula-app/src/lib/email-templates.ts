@@ -2,13 +2,51 @@ export type EmailTemplateType =
   | "APPLICATION_RECEIVED"
   | "APPLICATION_APPROVED"
   | "PROGRAM_LIVE"
-  | "APPLICATION_DECLINED";
+  | "APPLICATION_DECLINED"
+  | "VERIFY_EMAIL"
+  | "RESET_PASSWORD";
 
 interface TemplateParams {
   firstName: string;
+  verificationUrl?: string;
+  resetUrl?: string;
 }
 
 export const emailTemplates = {
+  VERIFY_EMAIL: ({ firstName, verificationUrl }: TemplateParams) => ({
+    subject: "Verify your Nebula account",
+    html: `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+        <h2 style="color: #0d9488;">Welcome to Nebula, ${firstName}!</h2>
+        <p>Thank you for signing up. Please verify your email address to activate your account and start exploring our coaching programs.</p>
+        <div style="margin: 30px 0; text-align: center;">
+          <a href="${verificationUrl}" style="background-color: #0d9488; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Verify Email Address</a>
+        </div>
+        <p style="color: #64748b; font-size: 14px;">If the button doesn't work, you can copy and paste this link into your browser:</p>
+        <p style="color: #64748b; font-size: 14px; word-break: break-all;">${verificationUrl}</p>
+        <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+        <p style="color: #94a3b8; font-size: 12px;">This link will expire in 24 hours. If you didn't create an account, you can safely ignore this email.</p>
+        <p style="color: #94a3b8; font-size: 12px;">&copy; ${new Date().getFullYear()} Nebula. All rights reserved.</p>
+      </div>
+    `,
+  }),
+  RESET_PASSWORD: ({ firstName, resetUrl }: TemplateParams) => ({
+    subject: "Reset your Nebula password",
+    html: `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+        <h2 style="color: #0d9488;">Hello ${firstName},</h2>
+        <p>We received a request to reset your Nebula password. Click the button below to choose a new password:</p>
+        <div style="margin: 30px 0; text-align: center;">
+          <a href="${resetUrl}" style="background-color: #0d9488; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Reset Password</a>
+        </div>
+        <p style="color: #64748b; font-size: 14px;">If the button doesn't work, you can copy and paste this link into your browser:</p>
+        <p style="color: #64748b; font-size: 14px; word-break: break-all;">${resetUrl}</p>
+        <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+        <p style="color: #94a3b8; font-size: 12px;">This link will expire in 1 hour. If you didn't request a password reset, you can safely ignore this email.</p>
+        <p style="color: #94a3b8; font-size: 12px;">&copy; ${new Date().getFullYear()} Nebula. All rights reserved.</p>
+      </div>
+    `,
+  }),
   APPLICATION_RECEIVED: ({ firstName }: TemplateParams) => ({
     subject: "We’ve received your Immersion Program application",
     html: `

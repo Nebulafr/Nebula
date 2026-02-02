@@ -3,7 +3,8 @@ import { getUserProfile } from "@/actions/user";
 import {
   signUpWithEmail,
   signInWithEmail,
-  resetPassword,
+  requestPasswordReset,
+  completePasswordReset,
 } from "@/actions/auth";
 import { signInWithGoogle } from "@/firebase/auth";
 import { SignupData, SigninData } from "@/lib/validations";
@@ -80,12 +81,23 @@ export function useGoogleSignIn() {
   });
 }
 
-export function useResetPassword() {
+export function useRequestPasswordReset() {
   return useMutation({
-    mutationFn: (email: string) => resetPassword(email),
+    mutationFn: (email: string) => requestPasswordReset(email),
     onSuccess: () => {},
     onError: (error: any) => {
       handleAndToastError(error, "Failed to send reset email");
+    },
+  });
+}
+
+export function useCompletePasswordReset() {
+  return useMutation({
+    mutationFn: ({ token, data }: { token: string; data: any }) =>
+      completePasswordReset(token, data),
+    onSuccess: () => {},
+    onError: (error: any) => {
+      handleAndToastError(error, "Failed to reset password");
     },
   });
 }

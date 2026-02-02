@@ -200,6 +200,39 @@
   },
   "dashboard": {
     "welcome": "Bon retour, {name} !",
+    "settings": {
+      "security": {
+        "title": "Sécurité",
+        "passwordLabel": "Mot de passe",
+        "passwordDescription": "Mettez à jour votre mot de passe ici. Veuillez en choisir un fort.",
+        "currentPassword": "Mot de passe actuel",
+        "newPassword": "Nouveau mot de passe",
+        "confirmNewPassword": "Confirmer le nouveau mot de passe",
+        "changePassword": "Changer le mot de passe",
+        "changingPassword": "Changement du mot de passe...",
+        "googleUserNote": "Vous vous êtes connecté avec Google. La gestion du mot de passe est gérée par votre compte Google."
+      },
+      "avatar": {
+        "change": "Changer la photo",
+        "uploading": "Téléchargement...",
+        "errorFileType": "Veuillez sélectionner un fichier image valide (JPEG, PNG ou WebP)",
+        "errorFileSize": "La taille du fichier doit être inférieure à 5 Mo",
+        "uploadSuccess": "Avatar téléchargé avec succès",
+        "uploadError": "Échec du téléchargement de l'avatar",
+        "save": "Enregistrer la photo",
+        "cancel": "Annuler"
+      },
+      "profile": {
+        "title": "Informations de profil",
+        "fullName": "Nom complet",
+        "email": "Adresse e-mail",
+        "emailNote": "L'e-mail ne peut pas être modifié pour des raisons de sécurité",
+        "save": "Enregistrer le profil",
+        "saving": "Enregistrement...",
+        "success": "Profil mis à jour avec succès",
+        "error": "Échec de la mise à jour du profil"
+      }
+    },
     "student": {
       "browsePrograms": "Parcourir les programmes",
       "suggestedCoaches": "Coachs suggérés",
@@ -313,10 +346,18 @@
         "stats": {
           "upcoming": "Sessions à venir",
           "completed": "Terminées ce mois-ci",
-          "hours": "Heures de coaching"
+          "hours": "Heures de coaching",
+          "sessionsThisMonth": "Sessions ce mois-ci",
+          "activeStudents": "Étudiants actifs",
+          "totalSessions": "Total des sessions",
+          "averageRating": "Note moyenne",
+          "vsLastMonth": "vs mois dernier",
+          "reviewsCount": "{count, plural, one {# avis} other {# avis}}"
         },
         "calendar": {
-          "title": "Calendrier des sessions"
+          "title": "Calendrier des sessions",
+          "today": "Aujourd'hui",
+          "more": "plus"
         },
         "list": {
           "title": "Sessions pour le {date}",
@@ -327,6 +368,30 @@
           "cancel": "Annuler",
           "comingSoon": "Bientôt disponible !",
           "noMeetingLink": "Aucun lien de réunion disponible pour cette session."
+        },
+        "sessionsList": {
+          "title": "Sessions",
+          "selectDateShort": "Sélectionner une date",
+          "newSession": "Nouvelle session",
+          "noSessions": "Aucune session prévue",
+          "selectDifferent": "Essayez de sélectionner une autre date",
+          "selectDate": "Sélectionnez une date pour voir les sessions",
+          "createSession": "Créer une session"
+        },
+        "sessionItem": {
+          "studentsCount": "{count, plural, one {# étudiant} other {# étudiants}}",
+          "status": {
+            "SCHEDULED": "Programmée",
+            "IN_PROGRESS": "En cours",
+            "COMPLETED": "Terminée",
+            "CANCELLED": "Annulée"
+          },
+          "actions": {
+            "start": "Démarrer",
+            "viewDetails": "Voir les détails",
+            "reschedule": "Reprogrammer",
+            "cancel": "Annuler"
+          }
         }
       },
       "programs": {
@@ -540,7 +605,9 @@
           "errorFileType": "Veuillez sélectionner un fichier image valide (JPEG, PNG ou WebP)",
           "errorFileSize": "La taille du fichier doit être inférieure à 5 Mo",
           "uploadSuccess": "Avatar téléchargé avec succès",
-          "uploadError": "Échec du téléchargement de l'avatar"
+          "uploadError": "Échec du téléchargement de l'avatar",
+          "save": "Enregistrer la photo",
+          "cancel": "Annuler"
         },
         "profile": {
           "title": "Mon profil",
@@ -951,7 +1018,7 @@
       "hasAccount": "Vous avez déjà un compte ?",
       "fullName": "Nom complet",
       "fullNamePlaceholder": "John Doe",
-      "passwordHint": "Au moins 6 caractères",
+      "passwordHint": "Mot de passe fort requis (min. 8 caractères, incluant majuscule, minuscule, chiffre et caractère spécial)",
       "passwordMismatch": "Les mots de passe ne correspondent pas",
       "googleSignUp": "S'inscrire avec Google"
     },
@@ -983,6 +1050,23 @@
         "description": "Cliquez sur le lien dans votre email pour réinitialiser votre mot de passe. Si vous ne le voyez pas, vérifiez vos spams.",
         "tryDifferent": "Essayer un autre email",
         "backToSignIn": "Retour à la connexion"
+      }
+    },
+    "resetPassword": {
+      "title": "Définir un nouveau mot de passe",
+      "subtitle": "Veuillez saisir votre nouveau mot de passe ci-dessous.",
+      "newPassword": "Nouveau mot de passe",
+      "confirmPassword": "Confirmer le nouveau mot de passe",
+      "resetButton": "Réinitialiser le mot de passe",
+      "resetting": "Réinitialisation...",
+      "success": {
+        "title": "Mot de passe réinitialisé",
+        "description": "Votre mot de passe a été réinitialisé avec succès. Vous pouvez maintenant vous connecter.",
+        "backToLogin": "Aller à la connexion"
+      },
+      "error": {
+        "invalidToken": "Le lien est invalide ou a expiré. Veuillez en demander un nouveau.",
+        "mismatch": "Les mots de passe ne correspondent pas."
       }
     },
     "fields": {
@@ -1421,6 +1505,16 @@
     },
     "send": "Envoyer le message",
     "futureTitle": "Construisons l'avenir ensemble",
-    "futureDesc": "Associez-vous à nous pour créer des expériences d'apprentissage puissantes pour vos étudiants."
+    "futureDesc": "Associez-vous à nous pour créer des expériences d'apprentissage puissantes pour vos étudiants.",
+    "verifyEmail": {
+      "title": "Vérification de l'e-mail",
+      "subtitle": "Veuillez patienter pendant que nous vérifions votre adresse e-mail...",
+      "success": "E-mail vérifié !",
+      "successDesc": "Votre adresse e-mail a été vérifiée avec succès. Vous pouvez maintenant vous connecter à votre compte.",
+      "error": "Échec de la vérification",
+      "errorDesc": "Le lien de vérification est invalide ou a expiré.",
+      "backToLogin": "Retour à la connexion",
+      "verifying": "Vérification..."
+    }
   }
 }

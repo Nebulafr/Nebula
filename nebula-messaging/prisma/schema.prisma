@@ -25,6 +25,7 @@ enum UserStatus {
   ACTIVE
   INACTIVE
   SUSPENDED
+  PENDING
 }
 
 enum SkillLevel {
@@ -110,9 +111,14 @@ model User {
   email          String     @unique
   hashedPassword String?    @map("hashed_password") // For email auth (optional)
   role           UserRole   @default(STUDENT)
-  status         UserStatus @default(ACTIVE)
+  status         UserStatus @default(PENDING)
   fullName       String?    @map("full_name")
   avatarUrl      String?    @map("avatar_url")
+  emailVerified  DateTime?  @map("email_verified")
+  verificationToken String? @unique @map("verification_token")
+  verificationTokenExpires DateTime? @map("verification_token_expires")
+  resetToken      String?    @unique @map("reset_token")
+  resetTokenExpires DateTime? @map("reset_token_expires")
   createdAt      DateTime   @default(now()) @map("created_at")
   updatedAt      DateTime   @updatedAt @map("updated_at")
 

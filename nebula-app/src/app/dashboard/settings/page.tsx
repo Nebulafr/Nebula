@@ -1,64 +1,92 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { updateUserProfile, uploadUserAvatar, changePassword } from "@/actions/user";
 import { toast } from "react-toastify";
 import { ProfileSection } from "./components/profile-section";
 import { SecuritySection } from "./components/security-section";
 import { type UpdateProfileData, type ChangePasswordData } from "@/lib/validations";
+import { useTranslations } from "next-intl";
 
 export default function StudentSettingsPage() {
+  const t = useTranslations("dashboard.settings");
   const { profile, refreshUser } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [isPasswordLoading, setIsPasswordLoading] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [previewFile, setPreviewFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleChangePhoto = () => {
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
     // Validate file type
     const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
     if (!allowedTypes.includes(file.type)) {
-      toast.error("Please select a valid image file (JPEG, PNG, or WebP)");
+      toast.error(t("avatar.errorFileType"));
       return;
     }
 
     // Validate file size (max 5MB)
     const maxSize = 5 * 1024 * 1024; // 5MB
     if (file.size > maxSize) {
-      toast.error("File size must be less than 5MB");
+      toast.error(t("avatar.errorFileSize"));
       return;
     }
 
-    setIsUploadingAvatar(true);
-    try {
-      const response = await uploadUserAvatar(file);
+    const url = URL.createObjectURL(file);
+    setPreviewFile(file);
+    setPreviewUrl(url);
 
-      if (response.success) {
-        // Refresh the profile to get the new avatar URL
-        await refreshUser();
-      } else {
-        toast.error(response.message || "Failed to upload avatar");
-      }
-    } catch (error) {
-      toast.error("An unexpected error occurred while uploading");
-    } finally {
-      setIsUploadingAvatar(false);
-      // Clear the file input
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
+    // Clear the file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
     }
   };
+
+  const handleConfirmUpload = async () => {
+    if (!previewFile) return;
+
+    setIsUploadingAvatar(true);
+    try {
+      const response = await uploadUserAvatar(previewFile);
+
+      if (response.success) {
+        toast.success(t("avatar.uploadSuccess"));
+        await refreshUser();
+        handleCancelPreview();
+      } else {
+        toast.error(response.message || t("avatar.uploadError"));
+      }
+    } catch (error) {
+      toast.error(t("errorUnexpected") || "An unexpected error occurred while uploading");
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
+
+  const handleCancelPreview = () => {
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
+    setPreviewFile(null);
+    setPreviewUrl(null);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
 
   const handleSaveProfile = async (data: UpdateProfileData) => {
     setIsLoading(true);
@@ -129,8 +157,11 @@ export default function StudentSettingsPage() {
           email: profile.email,
           avatarUrl: profile.avatarUrl || undefined,
         }}
+        previewUrl={previewUrl}
         onSave={handleSaveProfile}
         onChangePhoto={handleChangePhoto}
+        onConfirmUpload={handleConfirmUpload}
+        onCancelPreview={handleCancelPreview}
         isLoading={isLoading}
         isUploadingAvatar={isUploadingAvatar}
       />

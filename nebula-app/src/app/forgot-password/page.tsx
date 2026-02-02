@@ -18,7 +18,7 @@ import { handleAndToastError } from "@/lib/error-handler";
 import { useTranslations } from "next-intl";
 
 export default function ForgotPasswordPage() {
-  const { resetPassword } = useAuth();
+  const { requestPasswordReset } = useAuth();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const t = useTranslations("auth.forgotPassword");
@@ -32,7 +32,7 @@ export default function ForgotPasswordPage() {
     setLoading(true);
 
     try {
-      await resetPassword(email);
+      await requestPasswordReset(email);
       setEmailSent(true);
     } catch (error) {
       handleAndToastError(error, t("sending") === "Sending..." ? "Failed to send reset link" : "Échec de l'envoi du lien");

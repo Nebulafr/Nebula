@@ -382,6 +382,56 @@ export class EmailService {
     }
   }
 
+  static async sendVerificationEmail(
+    email: string,
+    firstName: string,
+    verificationUrl: string
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      const template = emailTemplates.VERIFY_EMAIL({
+        firstName,
+        verificationUrl,
+      });
+
+      return this.sendEmail({
+        to: email,
+        subject: template.subject,
+        html: template.html,
+      });
+    } catch (error: any) {
+      console.error("Failed to send verification email:", error);
+      return {
+        success: false,
+        error: error.message || "Failed to send verification email",
+      };
+    }
+  }
+
+  static async sendPasswordResetEmail(
+    email: string,
+    firstName: string,
+    resetUrl: string
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      const template = emailTemplates.RESET_PASSWORD({
+        firstName,
+        resetUrl,
+      });
+
+      return this.sendEmail({
+        to: email,
+        subject: template.subject,
+        html: template.html,
+      });
+    } catch (error: any) {
+      console.error("Failed to send password reset email:", error);
+      return {
+        success: false,
+        error: error.message || "Failed to send password reset email",
+      };
+    }
+  }
+
   static validateConfiguration(): boolean {
     const requiredEnvVars = [
       "SMTP_HOST",

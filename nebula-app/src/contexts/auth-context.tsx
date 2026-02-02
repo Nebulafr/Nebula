@@ -9,7 +9,8 @@ import { getUserProfile } from "@/actions/user";
 import {
   signUpWithEmail,
   signInWithEmail,
-  resetPassword,
+  requestPasswordReset,
+  completePasswordReset,
 } from "@/actions/auth";
 import { signInWithGoogle } from "@/firebase/auth";
 import { ApiResponse } from "@/types";
@@ -32,7 +33,8 @@ export interface AuthContextValue {
   signIn: (data: SigninData) => Promise<ApiResponse<AuthResponse>>;
   signInWithGoogle: (role?: UserRole) => Promise<ApiResponse<AuthResponse>>;
   signOut: () => Promise<void>;
-  resetPassword: (email: string) => Promise<ApiResponse<any>>;
+  requestPasswordReset: (email: string) => Promise<ApiResponse<any>>;
+  completePasswordReset: (token: string, data: any) => Promise<ApiResponse<any>>;
 }
 
 export const AuthContext = createContext<AuthContextValue | undefined>(
@@ -90,9 +92,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
           throw result;
         }
 
-        if (result.data) {
-          storeAuthData(result.data);
-          updateUserState(result.data.user);
+        if (result.data && (result.data as AuthResponse).accessToken) {
+          storeAuthData(result.data as AuthResponse);
+          updateUserState((result.data as AuthResponse).user);
         }
         return result;
       } catch (error) {
@@ -135,8 +137,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
     [handleAuthAction],
   );
 
-  const handleResetPassword = useCallback(
-    (email: string) => resetPassword(email),
+  const handleRequestPasswordReset = useCallback(
+    (email: string) => requestPasswordReset(email),
+    [],
+  );
+
+  const handleCompletePasswordReset = useCallback(
+    (token: string, data: any) => completePasswordReset(token, data),
     [],
   );
 
@@ -159,7 +166,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     signIn,
     signInWithGoogle: googleSignIn,
     signOut: handleSignOut,
-    resetPassword: handleResetPassword,
+    requestPasswordReset: handleRequestPasswordReset,
+    completePasswordReset: handleCompletePasswordReset,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
