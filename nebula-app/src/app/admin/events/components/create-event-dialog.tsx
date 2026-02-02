@@ -338,8 +338,8 @@ export function CreateEventDialog({
                       <SelectValue placeholder={t("location")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="online">Online</SelectItem>
-                      <SelectItem value="in-person">In-person</SelectItem>
+                      <SelectItem value="online">{t("online")}</SelectItem>
+                      <SelectItem value="in-person">{t("inPerson")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

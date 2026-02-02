@@ -1,7 +1,7 @@
 "use client";
 import { createContext, useEffect, useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
 import { storeAuthData, clearAuthData } from "@/lib/auth-storage";
+import { makeRequest } from "@/lib/utils";
 import { UserRole } from "@/generated/prisma";
 import { UserProfile, AuthState } from "@/hooks/use-user";
 import { SignupData, SigninData } from "@/lib/validations";
@@ -14,6 +14,7 @@ import {
 } from "@/actions/auth";
 import { signInWithGoogle } from "@/firebase/auth";
 import { ApiResponse } from "@/types";
+import { useRouter } from "next/navigation";
 
 interface AuthResponse {
   accessToken: string;
@@ -55,6 +56,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     if (!userData) {
       setAuthState("UNAUTHENTICATED");
+      router.push("/login");
       return;
     }
 
@@ -108,10 +110,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const handleSignOut = useCallback(async () => {
     try {
-      await fetch("/api/auth/logout", {
-        method: "POST",
-        credentials: "include",
-      });
+      await makeRequest("/auth/logout", "POST", { requireAuth: false });
     } catch (error) {
       console.warn("API logout failed:", error);
     } finally {

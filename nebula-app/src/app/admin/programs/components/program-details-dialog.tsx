@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { formatUserName, getUserInitials } from "@/lib/chat-utils";
 import { AdminProgram } from "@/types/program";
+import { useTranslations } from "next-intl";
 
 interface Category {
   id?: string;
@@ -45,6 +46,7 @@ export function ProgramDetailsDialog({
   onReassignCategory,
   loading = false,
 }: ProgramDetailsDialogProps) {
+  const t = useTranslations("dashboard.admin");
   const [selectedCategory, setSelectedCategory] = useState("");
 
   useEffect(() => {
@@ -86,7 +88,7 @@ export function ProgramDetailsDialog({
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-start gap-4">
             <Label htmlFor="program-description" className="text-right pt-2">
-              Description
+              {t("description")}
             </Label>
             <p
               id="program-description"
@@ -98,7 +100,7 @@ export function ProgramDetailsDialog({
 
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="program-category" className="text-right">
-              Category
+              {t("category")}
             </Label>
             <Select
               value={selectedCategory}
@@ -106,7 +108,7 @@ export function ProgramDetailsDialog({
               disabled={loading}
             >
               <SelectTrigger id="program-category" className="col-span-3">
-                <SelectValue placeholder="Select a category" />
+                <SelectValue placeholder={t("selectCategory")} />
               </SelectTrigger>
               <SelectContent>
                 {categories.map((category) => (
@@ -122,7 +124,7 @@ export function ProgramDetailsDialog({
         <DialogFooter>
           <DialogClose asChild>
             <Button type="button" variant="outline" onClick={onClose}>
-              Close
+              {t("close")}
             </Button>
           </DialogClose>
           <Button
@@ -130,10 +132,11 @@ export function ProgramDetailsDialog({
             onClick={handleReassign}
             disabled={loading || selectedCategory === program.category.name}
           >
-            {loading ? "Updating..." : "Reassign Category"}
+            {loading ? t("updating") : t("reassignCategory")}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
+

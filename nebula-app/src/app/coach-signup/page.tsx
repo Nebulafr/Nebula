@@ -19,7 +19,6 @@ import { UserRole } from "@/generated/prisma";
 import { useTranslations } from "next-intl";
 import { useAuthActions } from "@/hooks/use-auth";
 import { AuthPageGuard } from "@/components/auth/protected-route";
-import { handleAndToastError } from "@/lib/error-handler";
 import { toast } from "react-toastify";
 import { signupSchema } from "@/lib/validations";
 import { z } from "zod";
@@ -110,12 +109,12 @@ export default function CoachSignupPage() {
         role: UserRole.COACH,
       });
     } catch (error: any) {
-      handleAndToastError(
-        error,
-        ts("signingUp") === "Creating account..."
-          ? "Failed to create account"
-          : "Échec de la création du compte"
-      );
+      const errorMessage = error instanceof Error ? error.message.toLowerCase() : "";
+      if (errorMessage.includes("exists") || errorMessage.includes("already")) {
+        toast.error(ts("emailExists"));
+      } else {
+        toast.error(ts("signupFailed"));
+      }
     } finally {
       setLoading(false);
     }
@@ -130,7 +129,7 @@ export default function CoachSignupPage() {
       const response = await signInWithGoogle(UserRole.COACH);
     } catch (error: any) {
       if (error?.message !== "Redirecting to Google sign-in...") {
-        handleAndToastError(error, tl("signingIn") === "Signing in..." ? "Failed to sign in with Google" : "Échec de la connexion avec Google");
+        toast.error(ts("googleSignupFailed"));
       }
     } finally {
       setLoading(false);

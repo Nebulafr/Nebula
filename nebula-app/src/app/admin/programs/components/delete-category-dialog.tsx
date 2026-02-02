@@ -10,6 +10,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useTranslations } from "next-intl";
 
 interface DeleteCategoryDialogProps {
   categoryName: string | null;
@@ -26,6 +27,8 @@ export function DeleteCategoryDialog({
   onConfirm,
   loading = false,
 }: DeleteCategoryDialogProps) {
+  const t = useTranslations("dashboard.admin");
+
   const handleConfirm = () => {
     if (categoryName) {
       onConfirm(categoryName);
@@ -36,16 +39,15 @@ export function DeleteCategoryDialog({
     <AlertDialog open={isOpen} onOpenChange={onClose}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+          <AlertDialogTitle>{t("areYouSure")}</AlertDialogTitle>
           <AlertDialogDescription>
-            This will permanently delete the &quot;{categoryName}&quot; category. 
-            This action cannot be undone.
+            {categoryName && t("deleteCategoryDesc", { name: categoryName })}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={loading}>Cancel</AlertDialogCancel>
+          <AlertDialogCancel disabled={loading}>{t("cancel")}</AlertDialogCancel>
           <AlertDialogAction onClick={handleConfirm} disabled={loading}>
-            {loading ? "Deleting..." : "Delete"}
+            {loading ? t("deleting") : t("delete")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

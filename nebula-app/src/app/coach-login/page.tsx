@@ -19,7 +19,6 @@ import { UserRole } from "@/generated/prisma";
 import { toast } from "react-toastify";
 import { useAuthActions } from "@/hooks/use-auth";
 import { AuthPageGuard } from "@/components/auth/protected-route";
-import { handleAndToastError } from "@/lib/error-handler";
 import { useTranslations } from "next-intl";
 
 function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
@@ -75,7 +74,12 @@ export default function CoachLoginPage() {
       const response = await signIn({ email, password });
     } catch (error: any) {
       console.error("Coach login error:", error);
-      handleAndToastError(error, tl("signingIn") === "Signing in..." ? "Failed to sign in" : "Échec de la connexion");
+      const errorMessage = error instanceof Error ? error.message.toLowerCase() : "";
+      if (errorMessage.includes("invalid") && (errorMessage.includes("email") || errorMessage.includes("password"))) {
+        toast.error(tl("invalidCredentials"));
+      } else {
+        toast.error(tl("loginFailed"));
+      }
     } finally {
       setLoading(false);
     }
@@ -91,7 +95,7 @@ export default function CoachLoginPage() {
     } catch (error: any) {
       console.error("Coach Google login error:", error);
       if (error?.message !== "Redirecting to Google sign-in...") {
-        handleAndToastError(error, tl("signingIn") === "Signing in..." ? "Failed to sign in with Google" : "Échec de la connexion avec Google");
+        toast.error(tl("googleLoginFailed"));
       }
     } finally {
       setLoading(false);

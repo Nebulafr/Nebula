@@ -28,6 +28,7 @@ import {
 import { format } from "date-fns";
 import { formatUserName, getUserInitials } from "@/lib/chat-utils";
 import { AdminProgram } from "@/types/program";
+import { useTranslations } from "next-intl";
 
 interface ProgramsTableProps {
   programs: AdminProgram[];
@@ -51,17 +52,6 @@ function getStatusVariant(status: string) {
   }
 }
 
-function getStatusLabel(status: string) {
-  switch (status) {
-    case "ACTIVE":
-      return "Active";
-    case "INACTIVE":
-      return "Inactive";
-    default:
-      return status;
-  }
-}
-
 export function ProgramsTable({
   programs,
   loading = false,
@@ -69,16 +59,24 @@ export function ProgramsTable({
   onProgramAction,
   onViewDetails,
 }: ProgramsTableProps) {
+  const t = useTranslations("dashboard.admin");
+
+  const getStatusLabel = (status: string) => {
+    if (status === "ACTIVE") return t("statusActive");
+    if (status === "INACTIVE") return t("statusInactive");
+    return status;
+  };
+
   if (loading) {
     return (
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Program Title</TableHead>
-            <TableHead>Coach</TableHead>
-            <TableHead>Category</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Created</TableHead>
+            <TableHead>{t("programTitle")}</TableHead>
+            <TableHead>{t("coach")}</TableHead>
+            <TableHead>{t("category")}</TableHead>
+            <TableHead>{t("status")}</TableHead>
+            <TableHead>{t("created")}</TableHead>
             <TableHead></TableHead>
           </TableRow>
         </TableHeader>
@@ -117,11 +115,11 @@ export function ProgramsTable({
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Program Title</TableHead>
-          <TableHead>Coach</TableHead>
-          <TableHead>Category</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead>Created</TableHead>
+          <TableHead>{t("programTitle")}</TableHead>
+          <TableHead>{t("coach")}</TableHead>
+          <TableHead>{t("category")}</TableHead>
+          <TableHead>{t("status")}</TableHead>
+          <TableHead>{t("created")}</TableHead>
           <TableHead></TableHead>
         </TableRow>
       </TableHeader>
@@ -132,7 +130,7 @@ export function ProgramsTable({
               colSpan={6}
               className="text-center py-8 text-muted-foreground"
             >
-              No programs found matching your criteria.
+              {t("noProgramsFoundDesc")}
             </TableCell>
           </TableRow>
         ) : (
@@ -184,7 +182,7 @@ export function ProgramsTable({
                       <DropdownMenuItem
                         onClick={() => onViewDetails?.(program)}
                       >
-                        View Details
+                        {t("viewDetails")}
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       {program.status === "INACTIVE" && (
@@ -201,8 +199,8 @@ export function ProgramsTable({
                             <CheckCircle className="mr-2 h-4 w-4" />
                           )}
                           {loadingActions[program.id] === "activate"
-                            ? "Activating..."
-                            : "Activate"}
+                            ? t("activating")
+                            : t("activate")}
                         </DropdownMenuItem>
                       )}
                       {program.status === "ACTIVE" && (
@@ -219,8 +217,8 @@ export function ProgramsTable({
                             <PauseCircle className="mr-2 h-4 w-4" />
                           )}
                           {loadingActions[program.id] === "deactivate"
-                            ? "Deactivating..."
-                            : "Deactivate"}
+                            ? t("deactivating")
+                            : t("deactivate")}
                         </DropdownMenuItem>
                       )}
                       <DropdownMenuSeparator />
@@ -229,7 +227,7 @@ export function ProgramsTable({
                         onClick={() => onProgramAction?.(program.id, "delete")}
                       >
                         <Trash2 className="mr-2 h-4 w-4" />
-                        Delete
+                        {t("delete")}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>

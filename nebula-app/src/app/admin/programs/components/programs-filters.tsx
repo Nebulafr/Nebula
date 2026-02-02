@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Search, ChevronDown, Plus, Check, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 interface Category {
   id?: string;
@@ -44,6 +45,7 @@ export function ProgramsFilters({
   onDeleteCategory,
   loading = false,
 }: ProgramsFiltersProps) {
+  const t = useTranslations("dashboard.admin");
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [newCategory, setNewCategory] = useState("");
 
@@ -79,7 +81,7 @@ export function ProgramsFilters({
       <div className="relative w-full max-w-sm">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
-          placeholder="Search programs or coaches..."
+          placeholder={t("searchPrograms")}
           className="pl-9"
           value={searchTerm || ""}
           onChange={(e) => onSearchChange(e.target.value)}
@@ -88,9 +90,9 @@ export function ProgramsFilters({
       <div className="flex items-center gap-2">
         <Tabs value={statusFilter} onValueChange={onStatusFilterChange}>
           <TabsList>
-            <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="active">Active</TabsTrigger>
-            <TabsTrigger value="inactive">Inactive</TabsTrigger>
+            <TabsTrigger value="all">{t("all")}</TabsTrigger>
+            <TabsTrigger value="active">{t("active")}</TabsTrigger>
+            <TabsTrigger value="inactive">{t("inactive")}</TabsTrigger>
           </TabsList>
         </Tabs>
         <DropdownMenu
@@ -104,7 +106,7 @@ export function ProgramsFilters({
                 categoryFilter !== "all" && "bg-muted font-bold"
               )}
             >
-              Categories <ChevronDown className="h-4 w-4" />
+              {t("categories")} <ChevronDown className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -114,7 +116,7 @@ export function ProgramsFilters({
                 onKeyDown={(e) => e.stopPropagation()}
               >
                 <Input
-                  placeholder="New category..."
+                  placeholder={t("newCategoryPlaceholder")}
                   value={newCategory}
                   onChange={(e) => setNewCategory(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleAddCategory()}
@@ -127,7 +129,7 @@ export function ProgramsFilters({
             ) : (
               <>
                 <DropdownMenuItem onSelect={() => handleCategorySelect("All")}>
-                  All Categories
+                  {t("allCategories")}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 {categories.map((cat) => (
@@ -162,7 +164,7 @@ export function ProgramsFilters({
                     }}
                   >
                     <Plus className="mr-2 h-4 w-4" />
-                    Add Category
+                    {t("addCategory")}
                   </DropdownMenuItem>
                 )}
               </>
@@ -173,3 +175,4 @@ export function ProgramsFilters({
     </div>
   );
 }
+

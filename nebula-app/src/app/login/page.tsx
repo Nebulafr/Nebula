@@ -17,7 +17,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { UserRole } from "@/generated/prisma";
 import { useAuth } from "@/hooks/use-auth";
-import { handleAndToastError } from "@/lib/error-handler";
 import { AuthPageGuard } from "@/components/auth/protected-route";
 import { useTranslations } from "next-intl";
 import { signinSchema } from "@/lib/validations";
@@ -93,12 +92,13 @@ export default function LoginPage() {
         password: values.password,
       });
     } catch (error) {
-      handleAndToastError(
-        error,
-        t("signingIn") === "Signing in..."
-          ? "Failed to sign in"
-          : "Échec de la connexion"
-      );
+      // Check if it's an invalid credentials error from the server
+      const errorMessage = error instanceof Error ? error.message.toLowerCase() : "";
+      if (errorMessage.includes("invalid") && (errorMessage.includes("email") || errorMessage.includes("password"))) {
+        toast.error(t("invalidCredentials"));
+      } else {
+        toast.error(t("loginFailed"));
+      }
     } finally {
       setLoading(false);
     }
@@ -118,7 +118,7 @@ export default function LoginPage() {
       ) {
         return;
       }
-      handleAndToastError(error, "Failed to sign in with Google");
+      toast.error(t("googleLoginFailed"));
     } finally {
       setLoading(false);
     }

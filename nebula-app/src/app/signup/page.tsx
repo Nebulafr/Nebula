@@ -19,7 +19,6 @@ import { UserRole } from "@/generated/prisma";
 import { toast } from "react-toastify";
 import { AuthPageGuard } from "@/components/auth/protected-route";
 import { useAuthActions } from "@/hooks/use-auth";
-import { handleAndToastError } from "@/lib/error-handler";
 import { useTranslations } from "next-intl";
 import { signupSchema } from "@/lib/validations";
 import { z } from "zod";
@@ -112,12 +111,12 @@ export default function SignupPage() {
         toast.success(response.message || "Please check your email to verify your account");
       }
     } catch (error: any) {
-      handleAndToastError(
-        error,
-        t("signingUp") === "Creating account..."
-          ? "Failed to create account"
-          : "Échec de la création du compte"
-      );
+      const errorMessage = error instanceof Error ? error.message.toLowerCase() : "";
+      if (errorMessage.includes("exists") || errorMessage.includes("already")) {
+        toast.error(t("emailExists"));
+      } else {
+        toast.error(t("signupFailed"));
+      }
     } finally {
       setLoading(false);
     }
@@ -132,7 +131,7 @@ export default function SignupPage() {
       const response = await signInWithGoogle(UserRole.STUDENT);
     } catch (error: any) {
       if (error?.message !== "Redirecting to Google sign-in...") {
-        handleAndToastError(error, "Failed to sign in with Google");
+        toast.error(t("googleSignupFailed"));
       }
     } finally {
       setLoading(false);
