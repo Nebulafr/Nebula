@@ -3,7 +3,7 @@
 import {
   Users,
   Settings,
-  CircleHelp,
+  LogOut,
   PanelLeft,
   Search,
   Bell,
@@ -33,6 +33,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { usePathname } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/use-auth";
 
 function TopBar() {
   const t = useTranslations("common");
@@ -101,6 +102,12 @@ export default function AdminLayout({
 }) {
   const pathname = usePathname();
   const t = useTranslations("common");
+  const { signOut } = useAuth();
+
+  const handleLogout = async () => {
+    await signOut();
+  };
+
   return (
     <SidebarProvider>
       <Sidebar collapsible="icon">
@@ -193,16 +200,6 @@ export default function AdminLayout({
           <SidebarMenu>
             <CollapseButton />
             <SidebarMenuItem>
-              <Link href="/help-center">
-                <SidebarMenuButton tooltip={t("help")} asChild>
-                  <div>
-                    <CircleHelp />
-                    <span>{t("help")}</span>
-                  </div>
-                </SidebarMenuButton>
-              </Link>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
               <Link href="/admin/settings">
                 <SidebarMenuButton
                   tooltip={t("settings")}
@@ -215,6 +212,15 @@ export default function AdminLayout({
                   </div>
                 </SidebarMenuButton>
               </Link>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                tooltip={t("logout")}
+                onClick={handleLogout}
+              >
+                <LogOut />
+                <span>{t("logout")}</span>
+              </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarFooter>

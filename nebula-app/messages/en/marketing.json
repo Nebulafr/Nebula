@@ -1,0 +1,177 @@
+{
+  "becomeCoach": {
+    "title": "Inspire, Mentor, and Grow",
+    "subtitle": "Support future talent while earning on your own schedule",
+    "cta": "Become a Coach",
+    "howItWorks": {
+      "step1Title": "Apply & Get Approved",
+      "step1Desc": "Tell us about your experience and motivations. Once approved, you'll join a network of passionate professional.",
+      "step2Title": "Get Matched with Students",
+      "step2Desc": "We'll connect you with students based on your expertise and availability.",
+      "step3Title": "Coach & Get Paid",
+      "step3Desc": "Share your insights through 1-on-1 or group sessions - and earn for every session you deliver."
+    },
+    "testimonials": {
+      "title": "Here's what other coaches are saying",
+      "jack": {
+        "name": "Jack Hugo",
+        "role": "Senior Product Manager",
+        "quote": "Coaching on Nebula has been incredibly rewarding. It's amazing to see students grow - and getting paid to do it is a bonus."
+      },
+      "sarah": {
+        "name": "Sarah Cuoco",
+        "role": "Senior Product Manager",
+        "quote": "I love how flexible the platform is. I can share real-world insights on my own schedule and make a real difference."
+      }
+    },
+    "benefits": {
+      "title": "Enjoy these benefits & more...",
+      "incomeTitle": "Earn Extra Income",
+      "incomeDesc": "Monetize your professional expertise by guiding students with valuable career insights.",
+      "scheduleTitle": "Flexible Coaching Schedule",
+      "scheduleDesc": "Don't change your routine. Decide when and how often you want to engage.",
+      "impactTitle": "Make a Meaningful Impact",
+      "impactDesc": "Help shape future talent by making a tangible difference in their career paths."
+    },
+    "network": {
+      "title": "Expand your network.",
+      "subtitle": "Join the Nebula Community"
+    }
+  },
+  "hero": {
+    "heading": "Empower your career\njourney with Nebula",
+    "description": "Get online career coaching from the world's leading experts to help you land your dream job.",
+    "searchPlaceholder": "Search for a coach or specialty...",
+    "stats": {
+      "coaches": "Top Coaches",
+      "companies": "Companies",
+      "users": "Users Helped"
+    }
+  },
+  "home": {
+    "intermediate": "We’re not just an AI platform. Our qualified coaches work alongside you, offering expert guidance that elevates your experience and accelerates your growth.",
+    "features": {
+      "vetted": {
+        "title": "Vetted Coaches, Proven Results",
+        "description": "Our coaches are industry leaders with years of experience in their respective fields."
+      },
+      "personalized": {
+        "title": "Personalized Learning Paths",
+        "description": "Tailored guidance to help you achieve your specific career goals and aspirations."
+      },
+      "flexible": {
+        "title": "Flexible Scheduling & Support",
+        "description": "Book sessions that fit your schedule and get support from our dedicated team."
+      }
+    },
+    "testimonials": {
+      "title": "This is what your peers have to say",
+      "sarah": {
+        "role": "UX Designer",
+        "content": "Nebula connected me with a fantastic coach who helped me land my dream job. The personalized advice was a game-changer!"
+      },
+      "david": {
+        "role": "Software Engineer",
+        "content": "The mock interviews were incredibly realistic. I felt so much more confident going into the real thing. Highly recommend!"
+      },
+      "emily": {
+        "role": "Product Manager",
+        "content": "I was feeling stuck in my career. My coach provided the clarity and strategy I needed to move forward. Thank you, Nebula!"
+      }
+    }
+  },
+  "network": {
+    "title": "Global Community of Coaches",
+    "description": "Our network comprises professionals from world-renowned institutions and top-tier companies. We bridge the gap between academic theory and real-world application, offering you unparalleled access to insider knowledge and career opportunities.",
+    "button": "Explore the Network"
+  },
+  "programs": {
+    "title": "Programs to help you grow",
+    "description": "Nebula Immersion Programs are selective, cohort-based experiences led by industry experts. Gain practical skills and real-world project experience.",
+    "searchPlaceholder": "Search by title, category or coach",
+    "all": "All",
+    "popular": {
+      "title": "Popular Programs",
+      "subtitle": "Explore our most sought-after coaching programs designed for success.",
+      "empty": "No popular programs at the moment."
+    },
+    "noProgramsFound": "No Programs Found",
+    "noProgramsMatching": "No programs found matching \"{search}\"{category, select, all {} other { in the \"{category}\" category}}.",
+    "noProgramsAvailable": "There are currently no programs available. Please check back later.",
+    "noProgramsInCategory": "No programs found in the \"{category}\" category.",
+    "unknownCoach": "Unknown Coach",
+    "coachFallback": "Coach"
+  },
+  "coaches": {
+    "title": "Find the perfect coach for your goals",
+    "description": "Connect with experienced professionals who can guide you towards your career objectives. Browse coaches by specialty and find the perfect match.",
+    "searchPlaceholder": "Search by name or specialty",
+    "all": "All",
+    "studentsCount": "{count}+ students",
+    "viewProfile": "View Profile",
+    "noCoachesFound": "No coaches found matching \"{search}\"",
+    "noCoachesAvailable": "No coaches available at the moment"
+  },
+  "events": {
+    "title": "Events",
+    "webinar": "Webinar",
+    "socialExperience": "Social Experience",
+    "searchPlaceholder": "Search events by title or coach",
+    "filters": {
+      "all": "All",
+      "free": "Free",
+      "premium": "Premium",
+      "webinar": "Webinar",
+      "webinarTooltip": "Show only webinars. Click again to clear.",
+      "social": "Social",
+      "socialTooltip": "Show only social events. Click again to clear."
+    },
+    "upcoming": {
+      "title": "Upcoming Events",
+      "subtitle": "Join live sessions with industry experts to level up your skills.",
+      "empty": "No upcoming events at the moment.",
+      "failed": "Failed to load events",
+      "register": "Register now",
+      "attending": "{count, plural, one {# person attending} other {# people attending}}",
+      "free": "Free",
+      "premium": "Premium"
+    },
+    "details": {
+      "backToEvents": "Back to Events",
+      "loading": "Loading event...",
+      "eventNotFound": "Event Not Found",
+      "registered": "You're Registered!",
+      "registeredDesc": "Your spot for {title} is confirmed. We've sent a confirmation to your email.",
+      "close": "Close",
+      "completeBooking": "Complete booking",
+      "bookingFor": "You're booking for {date} at {time}",
+      "free": "Free",
+      "premium": "Premium",
+      "cardDetails": "Card Details",
+      "cardNumber": "Card number",
+      "expiry": "Expiry",
+      "cvc": "CVC",
+      "confirmPayment": "Confirm Payment",
+      "unknownOrganizer": "Unknown Organizer",
+      "perGuest": "/ guest",
+      "spotsLeft": "{count} spots left",
+      "registerOnLuma": "Register on Luma",
+      "location": "Location",
+      "capacity": "Capacity",
+      "capacityDesc": "This event has a maximum capacity of {count} participants.",
+      "capacityUnlimited": "This event has an unlimited capacity.",
+      "dateTime": "Date & Time",
+      "whatToBring": "What to bring",
+      "goodToKnow": "Good to know",
+      "tags": "Tags",
+      "aboutEvent": "About the event",
+      "showMore": "Show more",
+      "showLess": "Show less",
+      "loadingWebinar": "Loading webinar...",
+      "webinarNotFound": "Webinar Not Found",
+      "hostedBy": "Hosted by",
+      "guestHost": "{name} (Guest Host)",
+      "onlineEvent": "Online event"
+    }
+  }
+}

@@ -1,0 +1,178 @@
+{
+  "common": {
+    "search": "Search",
+    "loading": "Loading...",
+    "coaches": "Coaches",
+    "browseCoaches": "Browse Coaches",
+    "activeCoaches": "Active Coaches",
+    "programs": "Programs",
+    "events": "Events",
+    "universities": "For Universities",
+    "becomeCoach": "Become a coach",
+    "nebulaAi": "Nebula Ai",
+    "dashboard": "Dashboard",
+    "logout": "Log Out",
+    "loggingOut": "Log Out...",
+    "login": "Log In",
+    "signup": "Sign Up",
+    "getStarted": "Get Started",
+    "onboarding": {
+      "student": {
+        "step1": {
+          "title": "Step 1: Your Interests",
+          "subtitle": "Let's start by understanding what you're here to achieve.",
+          "welcome": "Welcome to Nebula!",
+          "description": "Let's personalize your experience. To start, which program are you interested in?",
+          "categoriesLoading": "Loading categories...",
+          "explore": "Explore programs in {category}"
+        },
+        "step2": {
+          "title": "Step 2: Your Skill Level",
+          "subtitle": "This helps us tailor your experience to the right level.",
+          "heading": "What is your skill level?",
+          "description": "This will help us match you with the right coaches and content.",
+          "beginner": {
+            "title": "Beginner",
+            "description": "Just starting out, 0-2 years of experience."
+          },
+          "intermediate": {
+            "title": "Intermediate",
+            "description": "Have some experience, 2-5 years."
+          },
+          "advanced": {
+            "title": "Advanced",
+            "description": "Expert in the field, 5+ years of experience."
+          }
+        },
+        "step3": {
+          "title": "Step 3: Your Commitment",
+          "subtitle": "Let us know how much time you can dedicate to your growth.",
+          "heading": "How much time can you commit?",
+          "description": "This will help us find the perfect time for your coaching sessions.",
+          "finish": "Finish",
+          "creatingProfile": "Creating Profile...",
+          "availability": {
+            "short": {
+              "title": "30 mins / week",
+              "description": "A quick check-in."
+            },
+            "standard": {
+              "title": "1 hour / week",
+              "description": "A standard session."
+            },
+            "long": {
+              "title": "2+ hours / week",
+              "description": "Ready to dive deep."
+            }
+          },
+          "missingInfo": "Some information is missing. Please go back and complete all steps.",
+          "saveError": "Could not save your profile. Please try again."
+        }
+      },
+      "coach": {
+        "step1": {
+          "title": "Step 1: Your Professional Background",
+          "description": "Let's start with your current role and professional presence.",
+          "heading": "Your Role & Profile",
+          "subheading": "What's your current professional role? Please share your LinkedIn profile as well.",
+          "role": "Current Role",
+          "company": "Company",
+          "linkedin": "LinkedIn Profile URL",
+          "rolePlaceholder": "e.g., Senior Product Manager",
+          "companyPlaceholder": "e.g., Google",
+          "linkedinPlaceholder": "https://linkedin.com/in/your-profile"
+        },
+        "step2": {
+          "title": "Step 2: Areas of Expertise",
+          "description": "Help students find you by listing your specialties.",
+          "heading": "Your Expertise",
+          "subheading": "What are your key areas of expertise? Add a few tags that best describe your skills.",
+          "suggested": "Suggested Categories",
+          "custom": "Add Custom Specialty",
+          "placeholder": "Type a specialty and press Enter...",
+          "selected": "Selected Specialties",
+          "loading": "Loading categories..."
+        },
+        "step3": {
+          "title": "Step 3: Your Motivation",
+          "description": "Help us understand what drives you to help others succeed.",
+          "heading": "Your \"Why\"",
+          "subheading": "What motivates you to coach and mentor others?",
+          "label": "Motivation",
+          "placeholder": "Share a brief summary of why you're passionate about coaching...",
+          "charCount": "{count}/1000 characters (min: 50)"
+        },
+        "step4": {
+          "title": "Step 4: Your Coaching Style",
+          "description": "How do you approach guiding your students?",
+          "heading": "Your Approach",
+          "subheading": "Briefly describe your coaching style. How do you help students find solutions?",
+          "label": "Coaching Style",
+          "placeholder": "e.g., 'I focus on asking powerful questions to help students uncover their own answers...'",
+          "charCount": "{count}/1000 characters (min: 50)"
+        },
+        "step5": {
+          "title": "Step 5: Availability & Rates",
+          "description": "Finally, let's set your availability and compensation expectations.",
+          "heading": "Logistics",
+          "subheading": "What is your availability and desired hourly rate?",
+          "availability": "Weekly Availability",
+          "hourlyRate": "Desired Hourly Rate (EUR)",
+          "ratePlaceholder": "e.g., 75",
+          "submit": "Submit Application",
+          "submitting": "Submitting...",
+          "authError": "You must be logged in to submit an application.",
+          "submitError": "Could not submit your application. Please try again."
+        }
+      },
+      "common": {
+        "back": "Back",
+        "continue": "Continue",
+        "loading": "Loading..."
+      }
+    },
+    "about": "About Us",
+    "careers": "Careers",
+    "helpCenter": "Help Center",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service",
+    "mySessions": "My Sessions",
+    "messaging": "Messaging",
+    "schedule": "Schedule",
+    "students": "Students",
+    "payouts": "Payouts",
+    "users": "Users",
+    "settings": "Settings",
+    "help": "Help",
+    "collapse": "Collapse",
+    "goToHomepage": "Go to Homepage",
+    "seeAll": "See All",
+    "reviews": "Reviews",
+    "admin": "Admin",
+    "days": {
+      "monday": "Monday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday",
+      "thursday": "Thursday",
+      "friday": "Friday",
+      "saturday": "Saturday",
+      "sunday": "Sunday"
+    }
+  },
+  "footer": {
+    "copyright": "© {year} Nebula, Inc. All rights reserved.",
+    "description": "Empower your career journey.",
+    "sections": {
+      "programs": "Programs",
+      "company": "Company",
+      "resources": "Resources",
+      "connect": "Connect"
+    },
+    "links": {
+      "career": "Career Programs"
+    }
+  },
+  "companies": {
+    "subtitle": "Some of our coaches work here"
+  }
+}

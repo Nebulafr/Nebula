@@ -117,9 +117,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     } finally {
       clearAuthData();
       updateUserState(null);
-      router.push("/login");
     }
-  }, [router, updateUserState]);
+  }, [updateUserState]);
 
   const signUp = useCallback(
     (data: SignupData) => handleAuthAction(() => signUpWithEmail(data)),

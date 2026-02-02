@@ -1,0 +1,432 @@
+{
+  "programDetails": {
+    "browseAll": "Parcourir tous les programmes",
+    "failedSubmitting": "Échec de l'envoi de l'avis. Veuillez réessayer.",
+    "backToPrograms": "Programmes",
+    "fallbackCategory": "Programme",
+    "enrollNow": "S'inscrire maintenant",
+    "accessDashboard": "Accéder au tableau de bord",
+    "readModules": "Lire les modules",
+    "learningObjectives": "Objectifs d'apprentissage",
+    "studentsEnrolled": "{count, plural, one {# étudiant inscrit pour le moment} other {# étudiants inscrits pour le moment}}",
+    "ratedBy": "Noté {rating}/5 par {count} étudiants",
+    "runBy": "Ce programme est dirigé par",
+    "viewProfile": "Voir le profil",
+    "messageCoach": "Message à {name}",
+    "reviews": "Avis",
+    "student": "Étudiant",
+    "shareReview": "Partagez votre avis",
+    "shareReviewDesc": "Faites part de votre expérience avec ce programme aux autres.",
+    "yourRating": "Votre note",
+    "shareThoughts": "Partagez vos réflexions",
+    "textareaPlaceholder": "Qu'avez-vous aimé ou non ? Que devraient savoir les autres étudiants ?",
+    "submitting": "Envoi en cours...",
+    "submitReview": "Envoyer l'avis",
+    "thankYou": "Merci !",
+    "reviewSubmitted": "Votre avis a été envoyé avec succès.",
+    "close": "Fermer",
+    "viewMoreReviews": "Voir plus d'avis",
+    "noReviewsYet": "Pas encore d'avis pour ce nouveau programme.",
+    "programModules": "Modules du programme",
+    "week": "Semaine {count}",
+    "joinNextCohort": "Rejoindre la prochaine cohorte",
+    "nextCohortStarts": "La prochaine cohorte commence le :",
+    "enrollSuccessTitle": "Vous y êtes !",
+    "enrollSuccessDesc": "Bienvenue dans le programme. Vous pouvez consulter les détails de votre inscription sur votre tableau de bord.",
+    "goToDashboard": "Aller au tableau de bord",
+    "programNotFound": "Programme non trouvé",
+    "reviewsFor": "Avis pour {title}",
+    "programReviewsSummary": "Découvrez ce que les autres étudiants disent de ce programme.",
+    "loadingReviews": "Chargement des avis...",
+    "noReviewsAvailable": "Aucun avis disponible pour ce programme pour le moment.",
+    "viewProgramProfile": "Voir le programme"
+  },
+  "coachDetails": {
+    "coachNotFound": "Coach non trouvé",
+    "coachNotFoundDesc": "Le coach que vous recherchez n'existe pas.",
+    "browseAll": "Parcourir tous les coachs",
+    "loginToBook": "Veuillez vous connecter pour réserver une séance.",
+    "selectDateLogin": "Veuillez sélectionner une date et assurez-vous d'être connecté.",
+    "loginToMessage": "Veuillez vous connecter pour envoyer un message.",
+    "coachInfoNotAvailable": "Informations sur le coach non disponibles.",
+    "startConvFailed": "Échec du démarrage de la conversation. Veuillez réessayer.",
+    "backToCoaches": "Coachs",
+    "workedAt": "{name} a travaillé chez :",
+    "programsBy": "Programmes par {name}",
+    "bookSession": "Réserver une séance",
+    "findTime": "Trouvez un créneau qui vous convient.",
+    "bookNow": "Réserver maintenant",
+    "selectTimeSlot": "Sélectionner un créneau horaire",
+    "sessionBooked": "Séance réservée !",
+    "sessionBookedDesc": "Votre séance a été confirmée. Vous pouvez consulter les détails de votre réservation sur votre tableau de bord.",
+    "alreadyEnrolled": "Déjà inscrit !",
+    "alreadyEnrolledDesc": "Vous faites déjà partie de ce programme. Accédez-y depuis votre tableau de bord.",
+    "readyToStart": "Prêt à commencer ?",
+    "readyToStartDesc": "Inscrivez-vous à ce programme pour bénéficier d'un coaching personnalisé.",
+    "message": "Message",
+    "confirmBooking": "Confirmer la réservation",
+    "processing": "Traitement en cours...",
+    "details": "Détails :",
+    "date": "Date : {date}",
+    "time": "Heure : {time}",
+    "reviewsCount": "Avis ({count})",
+    "anonymous": "Anonyme",
+    "noReviewsYet": "Pas encore d'avis.",
+    "viewAllReviews": "Voir tous les avis"
+  },
+  "reviewsPage": {
+    "loading": "Chargement des avis...",
+    "anonymous": "Anonyme",
+    "verified": "Vérifié"
+  },
+  "universities": {
+    "title": "Apprentissage Expérientiel +",
+    "subtitle": "Préparation à la Carrière",
+    "inConversation": "EN CONVERSATION AVEC LES MEILLEURES ÉCOLES DE COMMERCE",
+    "problem": {
+      "title": "Le Problème",
+      "p1": "Les universités excellent dans la transmission de connaissances théoriques, mais les étudiants ont souvent du mal à combler le fossé entre le monde académique et les exigences pratiques du marché du travail.",
+      "p2": "Ils manquent d'exposition aux défis réels des entreprises et aux compétences spécifiques en entretien nécessaires pour décrocher des rôles compétitifs."
+    },
+    "solution": {
+      "title": "Notre Solution",
+      "p1": "Un écosystème interne puissant pour le renforcement des compétences pratiques.",
+      "p2": "Nebula s'associe à votre institution pour concevoir un programme d'immersion professionnelle sur mesure. Nous exploitons votre atout le plus précieux, votre réseau d'alumni, pour mettre en relation des professionnels expérimentés avec des étudiants actuels pour un coaching individuel.",
+      "p3": "Cela crée un écosystème interne puissant où les étudiants pratiquent des études de cas réelles et acquièrent des compétences pratiques directement auprès d'experts qui ont suivi le même chemin, leur donnant la confiance nécessaire pour lancer leur carrière."
+    },
+    "benefits": {
+      "title": "Avantages pour Votre Institution",
+      "employability": {
+        "title": "Améliorer l'Employabilité",
+        "description": "Équipez vos étudiants des compétences réelles et de la pratique des entretiens dont ils ont besoin pour se démarquer auprès des meilleurs employeur."
+      },
+      "alumni": {
+        "title": "Activer votre Réseau d'Alumni",
+        "description": "Transformez vos alumni d'une ressource passive en une communauté active et engagée de mentors, renforçant les liens avec votre institution."
+      },
+      "scale": {
+        "title": "Faire évoluer les Services de Carrière",
+        "description": "Complétez vos services de carrière existants avec un coaching expert à la demande provenant d'un réseau mondial de professionnels."
+      }
+    },
+    "howItWorks": {
+      "title": "Comment Ça Marche",
+      "step1": {
+        "title": "Devenir Partenaire",
+        "description": "Nous élaborerons avec vous un plan personnalisé qui répond aux besoins de votre institution et de vos étudiants."
+      },
+      "step2": {
+        "title": "Onboarding des Étudiants",
+        "description": "Les étudiants s'inscrivent et reçoivent des recommandations personnalisées de coachs et de programmes en fonction de leurs intérêts de carrière."
+      },
+      "step3": {
+        "title": "Suivre les Progrès",
+        "description": "Obtenez des informations sur l'engagement des étudiants et leur préparation à la carrière grâce à notre tableau de bord universitaire dédié."
+      }
+    },
+    "cta": {
+      "title": "Prêt à autonomiser vos étudiants ?",
+      "description": "Associez-vous à Nebula pour donner à vos étudiants l'avantage concurrentiel dont ils ont besoin pour réussir sur le marché du travail d'aujourd'hui.",
+      "button": "Demander une Démo"
+    },
+    "oneMoreThing": {
+      "title": "Une Dernière Chose...",
+      "description": "En devenant partenaire, vous bénéficierez d'un accès anticipé à notre simulation de lieu de travail virtuel de nouvelle génération, actuellement en développement, conçue pour être réelle, dynamique et stimulante."
+    },
+    "faqs": {
+      "title": "Questions Fréquemment Posées",
+      "q1": {
+        "question": "Combien coûte un partenariat avec Nebula pour une université ?",
+        "answer": "Notre partenariat est gratuit pendant une période stipulée, convenue mutuellement avec chaque université. Nous proposons des programmes pilotes flexibles pour démontrer la valeur avant tout engagement à long terme."
+      },
+      "q2": {
+        "question": "Comment les coachs sont-ils sélectionnés ?",
+        "answer": "Nous travaillons directement avec vous pour recruter et intégrer des coachs issus de votre propre réseau d'alumni talentueux. Cela garantit que les étudiants reçoivent des conseils de professionnels qui partagent leur parcours académique et peuvent fournir des informations sectorielles hautement pertinentes."
+      },
+      "q3": {
+        "question": "Pouvons-nous intégrer Nebula à notre plateforme de services de carrière existante ?",
+        "answer": "Bien que les intégrations techniques directes ne soient pas encore disponibles, nous travaillons en étroite collaboration avec votre équipe de services de carrière. Nous collaborons pour concevoir et mettre en œuvre un programme d'immersion professionnelle fluide qui complète vos offres existantes, en s'appuyant sur des coachs de votre réseau d'alumni."
+      }
+    },
+    "nextStep": {
+      "title": "Passez à l'Étape Suivante",
+      "description": "Discutons de la manière dont Nebula peut aider vos étudiants à atteindre leurs objectifs de carrière.",
+      "button": "Contacter notre Équipe de Partenariats"
+    }
+  },
+  "privacyPolicy": {
+    "title": "Politique de confidentialité",
+    "subtitle": "Votre vie privée est importante pour nous. Découvrez comment nous collectons, utilisons et protégeons vos informations.",
+    "lastUpdated": "Dernière mise à jour : {date}",
+    "onThisPage": "Sur cette page",
+    "intro": "Nebula (« nous », « notre » ou « nos ») s'engage à protéger votre vie privée. Cette politique de confidentialité explique comment nous collectons, utilisons, divulguons et sauvegardons vos informations lorsque vous utilisez notre plateforme et nos services. Veuillez lire attentivement cette politique. Si vous n'acceptez pas les termes de cette politique de confidentialité, veuillez ne pas accéder au site.",
+    "sections": {
+      "collect": {
+        "title": "1. Informations que nous collectons",
+        "p1": "Nous pouvons collecter des informations vous concernant de diverses manières. Les informations que nous pouvons collecter sur le Site incluent :",
+        "personalData": {
+          "title": "Données personnelles",
+          "description": "Informations personnellement identifiables, telles que votre nom, votre adresse e-mail et votre numéro de téléphone, ainsi que des informations démographiques, telles que votre âge, votre sexe, votre ville d'origine et vos centres d'intérêt, que vous nous fournissez volontairement lorsque vous vous inscrivez sur le Site ou lorsque vous choisissez de participer à diverses activités liées au Site, telles que les discussions en ligne et les forums de messages."
+        },
+        "derivativeData": {
+          "title": "Données dérivées",
+          "description": "Informations que nos serveurs collectent automatiquement lorsque vous accédez au Site, telles que votre adresse IP, votre type de navigateur, votre système d'exploitation, vos heures d'accès et les pages que vous avez consultées directement avant et après avoir accédé au Site."
+        }
+      },
+      "use": {
+        "title": "2. Comment nous utilisons vos informations",
+        "p1": "Le fait de disposer d'informations précises à votre sujet nous permet de vous offrir une expérience fluide, efficace et personnalisée. Plus précisément, nous pouvons utiliser les informations collectées à votre sujet via le Site pour :",
+        "item1": "Créer et gérer votre compte.",
+        "item2": "Vous envoyer un e-mail concernant votre compte ou votre commande.",
+        "item3": "Activer les communications d'utilisateur à utilisateur.",
+        "item4": "Générer un profil personnel vous concernant pour rendre vos futures visites sur le Site plus personnalisées.",
+        "item5": "Surveiller et analyser l'utilisation et les tendances pour améliorer votre expérience avec le Site.",
+        "item6": "Vous informer des mises à jour du Site.",
+        "item7": "Vous proposer de nouveaux produits, services et/ou recommandations.",
+        "item8": "Demander des commentaires et vous contacter au sujet de votre utilisation du Site."
+      },
+      "share": {
+        "title": "3. Comment nous partageons vos informations",
+        "p1": "Nous pouvons partager les informations que nous avons collectées à votre sujet dans certaines situations. Vos informations peuvent être divulguées comme suit :",
+        "byLaw": {
+          "title": "Par la loi ou pour protéger les droits",
+          "description": "Si nous pensons que la divulgation d'informations vous concernant est nécessaire pour répondre à une procédure légale, pour enquêter sur des violations potentielles de nos politiques ou pour y remédier, ou pour protéger les droits, la propriété et la sécurité d'autrui, nous pouvons partager vos informations comme le permet ou l'exige toute loi, règle ou réglementation applicable."
+        },
+        "thirdParties": {
+          "title": "Prestataires de services tiers",
+          "description": "Nous pouvons partager vos informations avec des tiers qui effectuent des services pour nous ou en notre nom, y compris le traitement des paiements, l'analyse des données, l'envoi d'e-mails, les services d'hébergement, le service client et l'assistance marketing."
+        }
+      },
+      "rights": {
+        "title": "4. Vos droits et choix",
+        "p1": "Vous avez certains droits concernant vos informations personnelles. Vous pouvez à tout moment consulter ou modifier les informations de votre compte ou résilier votre compte en :",
+        "item1": "Vous connectant aux paramètres de votre compte et en mettant à jour votre compte.",
+        "item2": "Nous contactant en utilisant les coordonnées fournies ci-dessous."
+      },
+      "security": {
+        "title": "5. Sécurité des données",
+        "p1": "Nous utilisons des mesures de sécurité administratives, techniques et physiques pour aider à protéger vos informations personnelles. Bien que nous ayons pris des mesures raisonnables pour sécuriser les informations personnelles que vous nous fournissez, sachez que malgré nos efforts, aucune mesure de sécurité n'est parfaite ou impénétrable, et qu'aucune méthode de transmission de données ne peut être garantie contre toute interception ou autre type d'utilisation abusive."
+      },
+      "changes": {
+        "title": "6. Modifications de cette politique",
+        "p1": "Nous nous réservons le droit d'apporter des modifications à cette politique de confidentialité à tout moment et pour n'importe quelle raison. Nous vous alerterons de tout changement en mettant à jour la date de « Dernière mise à jour » de cette politique de confidentialité. Vous êtes encouragé à consulter périodiquement cette politique de confidentialité pour rester informé des mises à jour."
+      }
+    }
+  },
+  "termsOfService": {
+    "title": "Conditions d'utilisation",
+    "subtitle": "Veuillez lire attentivement ces conditions avant d'utiliser notre plateforme.",
+    "lastUpdated": "Dernière mise à jour : {date}",
+    "onThisPage": "Sur cette page",
+    "intro": "Bienvenue sur Nebula ! Ces conditions d'utilisation (« Conditions ») régissent votre utilisation de notre site web, de notre plateforme et de nos services (collectivement, les « Services »). Veuillez lire attentivement ces Conditions avant d'utiliser nos Services.",
+    "sections": {
+      "acceptance": {
+        "title": "1. Acceptation des conditions",
+        "p1": "En accédant à nos Services ou en les utilisant, vous acceptez d'être lié par ces Conditions et par notre Politique de confidentialité. Si vous n'acceptez pas ces Conditions, vous ne pouvez pas utiliser nos Services. Nous pouvons modifier ces Conditions à tout moment, et une telle modification prendra effet dès sa publication sur cette page."
+      },
+      "accounts": {
+        "title": "2. Comptes d'utilisateurs",
+        "p1": "Pour accéder à certaines fonctionnalités de nos Services, vous devrez peut-être créer un compte. Vous êtes responsable du maintien de la confidentialité des informations de votre compte et de toutes les activités qui se produisent sous votre compte. Vous acceptez de nous informer immédiatement de toute utilisation non autorisée de votre compte."
+      },
+      "responsibilities": {
+        "title": "3. Responsabilités de l'utilisateur",
+        "p1": "Vous acceptez d'utiliser nos Services uniquement à des fins licites. Vous êtes responsable de votre propre conduite et de vos communications lors de l'utilisation de nos Services et de toutes les conséquences qui en découlent. Vous acceptez de ne pas :",
+        "item1": "Utiliser les Services à des fins frauduleuses ou illégales.",
+        "item2": "Publier ou transmettre tout contenu abusif, diffamatoire, obscène ou autrement répréhensible.",
+        "item3": "Enfreindre les droits de propriété intellectuelle d'autrui.",
+        "item4": "Interférer avec ou perturber les Services ou les serveurs ou réseaux connectés aux Services."
+      },
+      "ip": {
+        "title": "4. Propriété intellectuelle",
+        "p1": "Tout le contenu et les documents disponibles sur Nebula, y compris, mais sans s'y limiter, le texte, les graphiques, le nom du site web, le code, les images et les logos, sont la propriété intellectuelle de Nebula et sont protégés par les lois applicables sur le droit d'auteur et les marques de commerce. Toute utilisation inappropriée, y compris, mais sans s'y limiter, la reproduction, la distribution, l'affichage ou la transmission de tout contenu sur ce site est strictement interdite, sauf autorisation spécifique de Nebula."
+      },
+      "termination": {
+        "title": "5. Résiliation",
+        "p1": "Nous pouvons résilier ou suspendre votre accès à nos Services à tout moment, sans préavis ni responsabilité, pour quelque raison que ce soit, y compris, sans s'y limiter, si vous enfreignez les Conditions. En cas de résiliation, votre droit d'utiliser les Services cessera immédiatement."
+      },
+      "disclaimers": {
+        "title": "6. Clause de non-responsabilité",
+        "p1": "Nos Services sont fournis « tels quels » et « tels que disponibles » sans aucune garantie d'aucune sorte, expresse ou implicite. Nebula ne garantit pas que les Services seront ininterrompus, sans erreur ou exempts de virus ou d'autres composants nocifs."
+      },
+      "liability": {
+        "title": "7. Limitation de responsabilité",
+        "p1": "En aucun cas Nebula, ni ses directeurs, employés, partenaires, agents, fournisseurs ou affiliés, ne seront responsables des dommages indirects, accessoires, spéciaux, consécutifs ou punitifs, y compris, sans s'y limiter, la perte de profits, de données, d'utilisation, de clientèle ou d'autres pertes intangibles, résultant de votre accès à ou de votre utilisation de ou de votre incapacité à accéder à ou à utiliser les Services."
+      },
+      "governing": {
+        "title": "8. Loi applicable",
+        "p1": "Ces Conditions seront régies et interprétées conformément aux lois de la juridiction dans laquelle notre société est basée, sans égard à ses dispositions en matière de conflit de lois."
+      }
+    }
+  },
+  "about": {
+    "mission": "Notre mission",
+    "missionDesc": "Démocratiser l'accès à un coaching de carrière de classe mondiale et permettre aux individus de réaliser leurs rêves professionnels, quels que soient leur origine ou leur situation géographique.",
+    "aboutUs": "À propos de nous",
+    "aboutUsDesc": "Nous ne sommes pas une plateforme d'IA. Au fond, nous défendons les interactions centrées sur l'humain. Cela ne signifie pas que nous sommes contre l'IA, bien au contraire. En fait, l'IA est un puissant catalyseur de notre mission : connecter les étudiants avec des coachs pour une immersion et une croissance professionnelle dans le monde réel.",
+    "ourStory": "Notre histoire",
+    "storyP1": "Nebula est née d'un simple constat : d'innombrables étudiants talentueux obtenaient leur diplôme avec de solides connaissances académiques mais manquaient des compétences pratiques et des connexions nécessaires pour décrocher l'emploi de leurs rêves. Nous avons vu l'opportunité de combler ce fossé.",
+    "storyP2": "Fondée par une équipe de professionnels et d'éducateurs expérimentés, Nebula a été créée pour connecter les étudiants avec des experts du secteur grâce à des expériences d'apprentissage immersives et pratiques. Nous pensons que le mentorat est la clé pour libérer le potentiel et nous nous engageons à bâtir une communauté où le savoir est partagé et les carrières sont lancées.",
+    "partners": "Nos partenaires",
+    "joinTeam": "Rejoignez notre équipe",
+    "joinTeamDesc": "Nous sommes toujours à la recherche de personnes passionnées pour nous rejoindre dans notre mission. Si vous croyez au pouvoir du mentorat, nous serions ravis de vous entendre.",
+    "becomeCoach": "Devenir coach"
+  },
+  "careers": {
+    "joinMission": "Rejoignez notre mission",
+    "joinMissionDesc": "Aidez-nous à démocratiser l'accès au coaching de carrière de classe mondiale et à construire l'avenir du développement professionnel.",
+    "values": "Nos valeurs",
+    "valuesDesc": "Les principes qui guident notre travail et notre culture.",
+    "valueItems": {
+      "mission": {
+        "title": "Axé sur la mission",
+        "description": "Nous sommes passionnés par l'autonomisation des individus pour qu'ils réalisent leurs rêves professionnels."
+      },
+      "student": {
+        "title": "Centré sur l'étudiant",
+        "description": "Nos étudiants sont au cœur de tout ce que nous construisons et de chaque décision que nous prenons."
+      },
+      "innovation": {
+        "title": "Adopter l'innovation",
+        "description": "Nous expérimentons constamment et exploitons la technologie pour créer de meilleures expériences d'apprentissage."
+      },
+      "ownership": {
+        "title": "Propriété et impact",
+        "description": "Nous donnons à notre équipe les moyens de s'approprier leur mission et d'avoir un impact tangible sur celle-ci."
+      }
+    },
+    "openRoles": "Postes ouverts",
+    "noOpenRoles": "Nous n'avons aucun poste ouvert pour le moment, mais nous sommes toujours à la recherche de personnes talentueuses pour rejoindre notre équipe. N'hésitez pas à revenir plus tard.",
+    "lifeAtNebula": "La vie chez Nebula",
+    "lifeDesc": "Nous sommes une entreprise privilégiant le télétravail, axée sur la collaboration, l'impact et l'équilibre entre vie professionnelle et vie privée. Nous croyons qu'il faut donner à notre équipe les moyens de donner le meilleur d'elle-même, où qu'elle soit.",
+    "benefitItems": {
+      "salary": "Salaire compétitif et équité",
+      "health": "Assurance santé complète",
+      "remote": "Politique flexible de travail de n'importe où",
+      "leave": "Congés et congés parentaux généreux",
+      "stipend": "Allocations bien-être et formation",
+      "retreat": "Séminaires annuels d'entreprise"
+    }
+  },
+  "helpCenter": {
+    "title": "Comment pouvons-nous vous aider ?",
+    "subtitle": "Trouvez des réponses à vos questions, explorez des articles et tirez le meilleur parti de Nebula.",
+    "searchPlaceholder": "Rechercher des sujets, des questions ou des mots-clés",
+    "categories": "Catégories",
+    "contactSupport": "Contacter le support",
+    "noResults": "Aucune question trouvée correspondant à votre recherche.",
+    "notSelected": "Sélectionnez une catégorie ou effectuez une recherche ci-dessus",
+    "notSelectedDesc": "Choisissez un sujet dans la barre latérale pour afficher les articles et les FAQ associés.",
+    "stillNeedHelp": "Vous avez encore besoin d'aide ?",
+    "stillNeedHelpDesc": "Notre équipe est là pour vous aider. Contactez-nous pour un soutien personnalisé.",
+    "chatWithUs": "Discutez avec nous",
+    "emailSupport": "Support par e-mail",
+    "catItems": {
+      "gettingStarted": {
+        "title": "Mise en route",
+        "description": "Nouveau sur Nebula ? Trouvez tout ce dont vous avez besoin pour commencer votre voyage."
+      },
+      "account": {
+        "title": "Compte et profil",
+        "description": "Gérez les paramètres de votre compte, votre profil et vos notifications."
+      },
+      "billing": {
+        "title": "Facturation et abonnements",
+        "description": "Trouvez des informations sur les paiements, les factures et les forfaits."
+      },
+      "programs": {
+        "title": "Programmes et coaching",
+        "description": "Découvrez comment fonctionnent nos programmes et nos séances de coaching."
+      },
+      "events": {
+        "title": "Événements et webinaires",
+        "description": "Trouvez des détails sur les événements en direct et les webinaires à venir."
+      },
+      "troubleshooting": {
+        "title": "Dépannage",
+        "description": "Vous rencontrez des problèmes techniques ? Trouvez des solutions ici."
+      },
+      "guidelines": {
+        "title": "Règles de la communauté",
+        "description": "Découvrez nos règles pour une communauté sûre et solidaire."
+      },
+      "faqs": {
+        "title": "FAQ",
+        "description": "Trouvez des réponses aux questions fréquemment posées."
+      }
+    },
+    "faqs": {
+      "gettingStarted": [
+        {
+          "question": "Comment m'inscrire sur Nebula ?",
+          "answer": "Vous pouvez créer un compte étudiant en cliquant sur le bouton « S'inscrire » sur notre page d'accueil. Si vous êtes un coach, vous pouvez postuler via la page « Devenir coach »."
+        },
+        {
+          "question": "Comment se déroule le processus d'intégration ?",
+          "answer": "Notre processus d'intégration est un flux rapide en trois étapes où vous nous parlez de vos intérêts, de votre niveau de compétence et de votre engagement. Cela nous aide à personnaliser votre tableau de bord avec des programmes et des coachs pertinents."
+        }
+      ],
+      "account": [
+        {
+          "question": "Comment réinitialiser mon mot de passe ?",
+          "answer": "Vous pouvez réinitialiser votre mot de passe en cliquant sur le lien « Mot de passe oublié ? » sur la page de connexion. Vous recevrez un e-mail avec des instructions pour créer un nouveau mot de passe."
+        },
+        {
+          "question": "Comment puis-je mettre à jour les informations de mon profil ?",
+          "answer": "Vous pouvez mettre à jour votre nom, votre adresse e-mail et d'autres informations personnelles dans la section « Paramètres » de votre tableau de bord."
+        }
+      ],
+      "billing": [
+        {
+          "question": "Puis-je changer mon forfait d'abonnement ?",
+          "answer": "Oui, vous pouvez passer à un forfait supérieur ou inférieur, ou résilier votre abonnement à tout moment à partir de vos paramètres de facturation. Les modifications prendront effet à la fin de votre cycle de facturation actuel."
+        },
+        {
+          "question": "Quelle est la politique de remboursement ?",
+          "answer": "Nous offrons une garantie satisfait ou remboursé de 30 jours sur tous nos forfaits d'abonnement. Si vous n'êtes pas satisfait, vous pouvez demander un remboursement complet dans les 30 jours suivant votre achat."
+        }
+      ],
+      "programs": [
+        {
+          "question": "Comment s'inscrire à un programme ou réserver une séance ?",
+          "answer": "Pour vous inscrire à un programme, visitez la page du programme et cliquez sur « S'inscrire ». Pour les séances individuelles, vous pouvez réserver une heure directement depuis la page de profil d'un coach. Toutes vos réservations apparaîtront dans la section « Mes séances » de votre tableau de bord."
+        },
+        {
+          "question": "Quelle est la différence entre un programme et une séance individuelle ?",
+          "answer": "Les programmes sont des expériences structurées, basées sur des cohortes et s'étalant sur plusieurs semaines, axées sur un objectif de carrière spécifique. Les séances individuelles sont des réunions ponctuelles que vous pouvez réserver avec un coach pour obtenir des conseils personnalisés sur n'importe quel sujet."
+        },
+        {
+          "question": "Puis-je obtenir un certificat après avoir terminé un programme ?",
+          "answer": "Oui, une fois un programme terminé avec succès, un certificat numérique de réussite pourra être téléchargé à partir de la section « Mes séances » de votre tableau de bord."
+        },
+        {
+          "question": "Comment les coachs sont-ils sélectionnés ?",
+          "answer": "Nos coachs sont soumis à un processus de sélection rigoureux qui comprend un examen de leur expérience professionnelle, de leurs qualifications en coaching et une évaluation pratique. Nous ne nous associons qu'avec des experts de haut niveau pour vous garantir des conseils de la plus haute qualité."
+        }
+      ],
+      "events": [
+        {
+          "question": "Comment s'inscrire à un événement ou un webinaire ?",
+          "answer": "Vous pouvez vous inscrire à n'importe quel événement ou webinaire directement depuis la page « Événements ». Une fois inscrit, vous recevrez un e-mail de confirmation avec tous les détails."
+        }
+      ]
+    }
+  },
+  "contact": {
+    "backToHelp": "Retour au Centre d'aide",
+    "title": "Contactez-nous",
+    "description": "Nous sommes impatients de découvrir comment nous pouvons travailler ensemble. Veuillez remplir le formulaire ci-dessous.",
+    "fields": {
+      "fullName": "Nom complet",
+      "fullNamePlaceholder": "Jean Dupont",
+      "email": "Adresse e-mail",
+      "emailPlaceholder": "jean.dupont@exemple.edu",
+      "university": "Université / Institution",
+      "universityPlaceholder": "Exemple d'université",
+      "message": "Message",
+      "messagePlaceholder": "Parlez-nous un peu de votre institution et de ce que vous recherchez..."
+    },
+    "send": "Envoyer le message",
+    "futureTitle": "Construisons l'avenir ensemble",
+    "futureDesc": "Associez-vous à nous pour créer des expériences d'apprentissage puissantes pour vos étudiants."
+  }
+}

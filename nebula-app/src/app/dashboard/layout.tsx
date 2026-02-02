@@ -5,7 +5,7 @@ import {
   Briefcase,
   Users,
   Settings,
-  CircleHelp,
+  LogOut,
   MessageSquare,
   Search,
   Bell,
@@ -100,7 +100,11 @@ export default function DashboardLayout({
   const t = useTranslations("common");
   const tc = useTranslations("dashboard.coach");
   const pathname = usePathname();
-  const { profile } = useAuth();
+  const { profile, signOut } = useAuth();
+
+  const handleLogout = async () => {
+    await signOut();
+  };
 
   return (
     <SidebarProvider>
@@ -202,16 +206,6 @@ export default function DashboardLayout({
           <SidebarMenu>
             <CollapseButton />
             <SidebarMenuItem>
-              <Link href="#">
-                <SidebarMenuButton tooltip={t("help")} asChild>
-                  <div>
-                    <CircleHelp />
-                    <span>{t("help")}</span>
-                  </div>
-                </SidebarMenuButton>
-              </Link>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
               <Link href="/dashboard/settings">
                 <SidebarMenuButton
                   tooltip={t("settings")}
@@ -225,8 +219,18 @@ export default function DashboardLayout({
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                tooltip={t("logout")}
+                onClick={handleLogout}
+              >
+                <LogOut />
+                <span>{t("logout")}</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
           </SidebarMenu>
         </SidebarFooter>
+
       </Sidebar>
       <SidebarInset>
         <TopBar />

@@ -1,0 +1,177 @@
+{
+  "becomeCoach": {
+    "title": "Inspirer, Mentorer et Grandir",
+    "subtitle": "Soutenez les futurs talents tout en gagnant selon votre propre emploi du temps",
+    "cta": "Devenir coach",
+    "howItWorks": {
+      "step1Title": "Postulez et soyez approuvé",
+      "step1Desc": "Parlez-nous de votre expérience et de vos motivations. Une fois approuvé, vous rejoindrez un réseau de professionnels passionnés.",
+      "step2Title": "Soyez mis en relation avec des étudiants",
+      "step2Desc": "Nous vous mettrons en relation avec des étudiants en fonction de votre expertise et de votre disponibilité.",
+      "step3Title": "Coachez et soyez payé",
+      "step3Desc": "Partagez vos connaissances via des sessions individuelles ou de groupe - et gagnez pour chaque session que vous animez."
+    },
+    "testimonials": {
+      "title": "Voici ce que disent les autres coachs",
+      "jack": {
+        "name": "Jack Hugo",
+        "role": "Senior Product Manager",
+        "quote": "Coacher sur Nebula a été incroyablement enrichissant. C'est génial de voir les étudiants progresser - et être payé pour le faire est un bonus."
+      },
+      "sarah": {
+        "name": "Sarah Cuoco",
+        "role": "Senior Product Manager",
+        "quote": "J'adore la flexibilité de la plateforme. Je peux partager des connaissances concrètes selon mon propre emploi du temps et faire une réelle différence."
+      }
+    },
+    "benefits": {
+      "title": "Profitez de ces avantages et bien plus encore...",
+      "incomeTitle": "Gagnez un revenu supplémentaire",
+      "incomeDesc": "Monétisez votre expertise professionnelle en guidant les étudiants avec des conseils de carrière précieux.",
+      "scheduleTitle": "Emploi du temps de coaching flexible",
+      "scheduleDesc": "Ne changez pas votre routine. Décidez quand et à quelle fréquence vous souhaitez vous engager.",
+      "impactTitle": "Ayez un impact significatif",
+      "impactDesc": "Aidez à façonner les futurs talents en faisant une différence tangible dans leur parcours professionnel."
+    },
+    "network": {
+      "title": "Développez votre réseau.",
+      "subtitle": "Rejoignez la communauté Nebula"
+    }
+  },
+  "hero": {
+    "heading": "Propulsez votre carrière\navec Nebula",
+    "description": "Bénéficiez du coaching de carrière en ligne des meilleurs experts mondiaux pour vous aider à décrocher l'emploi de vos rêves.",
+    "searchPlaceholder": "Rechercher un coach ou une spécialité...",
+    "stats": {
+      "coaches": "Meilleurs Coachs",
+      "companies": "Entreprises",
+      "users": "Utilisateurs aidés"
+    }
+  },
+  "home": {
+    "intermediate": "Nous ne sommes pas seulement une plateforme d'IA. Nos coachs qualifiés travaillent à vos côtés, offrant des conseils d'experts qui améliorent votre expérience et accélèrent votre croissance.",
+    "features": {
+      "vetted": {
+        "title": "Coachs sélectionnés, résultats prouvés",
+        "description": "Nos coachs sont des leaders de l'industrie avec des années d'expérience dans leurs domaines respectifs."
+      },
+      "personalized": {
+        "title": "Parcours d'apprentissage personnalisés",
+        "description": "Un accompagnement sur mesure pour vous aider à atteindre vos objectifs et aspirations de carrière spécifiques."
+      },
+      "flexible": {
+        "title": "Horaires flexibles et assistance",
+        "description": "Réservez des séances qui correspondent à votre emploi du temps et bénéficiez du soutien de notre équipe dédiée."
+      }
+    },
+    "testimonials": {
+      "title": "Voici ce que vos pairs ont à dire",
+      "sarah": {
+        "role": "UX Designer",
+        "content": "Nebula m'a mise en relation avec un coach fantastique qui m'a aidée à décrocher l'emploi de mes rêves. Les conseils personnalisés ont tout changé !"
+      },
+      "david": {
+        "role": "Ingénieur Logiciel",
+        "content": "Les entretiens blancs étaient incroyablement réalistes. Je me sentais tellement plus confiant pour le vrai entretien. Je recommande vivement !"
+      },
+      "emily": {
+        "role": "Chef de Produit",
+        "content": "Je me sentais bloquée dans ma carrière. Mon coach m'a apporté la clarté et la stratégie dont j'avais besoin pour avancer. Merci, Nebula !"
+      }
+    }
+  },
+  "network": {
+    "title": "Communauté mondiale de Coachs",
+    "description": "Notre réseau se compose de professionnels issus d'institutions de renommée mondiale et d'entreprises de premier plan. Nous comblons le fossé entre la théorie académique et l'application dans le monde réel, en vous offrant un accès inégalé aux connaissances d'initiés et aux opportunités de carrière.",
+    "button": "Explorer le réseau"
+  },
+  "programs": {
+    "title": "Des programmes pour vous aider à progresser",
+    "description": "Les programmes d'immersion Nebula sont des expériences sélectives, basées sur des cohortes et dirigées par des experts du secteur. Acquérez des compétences pratiques et une expérience de projet concrète.",
+    "searchPlaceholder": "Rechercher par titre, catégorie ou coach",
+    "all": "Tous",
+    "popular": {
+      "title": "Programmes Populaires",
+      "subtitle": "Explorez nos programmes de coaching les plus demandés, conçus pour la réussite.",
+      "empty": "Aucun programme populaire pour le moment."
+    },
+    "noProgramsFound": "Aucun programme trouvé",
+    "noProgramsMatching": "Aucun programme trouvé correspondant à \"{search}\"{category, select, all {} other { dans la catégorie \"{category}\"}}.",
+    "noProgramsAvailable": "Il n'y a actuellement aucun programme disponible. Veuillez revenir plus tard.",
+    "noProgramsInCategory": "Aucun programme trouvé dans la catégorie \"{category}\".",
+    "unknownCoach": "Coach inconnu",
+    "coachFallback": "Coach"
+  },
+  "coaches": {
+    "title": "Trouvez le coach idéal pour vos objectifs",
+    "description": "Connectez-vous avec des professionnels expérimentés qui pourront vous guider vers vos objectifs de carrière. Parcourez les coachs par spécialité et trouvez celui qui vous correspond.",
+    "searchPlaceholder": "Rechercher par nom ou spécialité",
+    "all": "Tous",
+    "studentsCount": "{count}+ étudiants",
+    "viewProfile": "Voir le profil",
+    "noCoachesFound": "Aucun coach trouvé correspondant à \"{search}\"",
+    "noCoachesAvailable": "Aucun coach disponible pour le moment"
+  },
+  "events": {
+    "title": "Événements",
+    "webinar": "Webinaire",
+    "socialExperience": "Expérience sociale",
+    "searchPlaceholder": "Rechercher des événements par titre ou coach",
+    "filters": {
+      "all": "Tous",
+      "free": "Gratuit",
+      "premium": "Premium",
+      "webinar": "Webinaire",
+      "webinarTooltip": "Afficher uniquement les webinaires. Cliquez à nouveau pour effacer.",
+      "social": "Social",
+      "socialTooltip": "Afficher uniquement les événements sociaux. Cliquez à nouveau pour effacer."
+    },
+    "upcoming": {
+      "title": "Événements à venir",
+      "subtitle": "Rejoignez des sessions en direct avec des experts du secteur pour améliorer vos compétences.",
+      "empty": "Aucun événement à venir pour le moment.",
+      "failed": "Échec du chargement des événements",
+      "register": "S'inscrire maintenant",
+      "attending": "{count, plural, one {# personne participe} other {# personnes participent}}",
+      "free": "Gratuit",
+      "premium": "Premium"
+    },
+    "details": {
+      "backToEvents": "Retour aux événements",
+      "loading": "Chargement de l'événement...",
+      "eventNotFound": "Événement non trouvé",
+      "registered": "Vous êtes inscrit !",
+      "registeredDesc": "Votre place pour {title} est confirmée. Nous avons envoyé une confirmation à votre adresse e-mail.",
+      "close": "Fermer",
+      "completeBooking": "Compléter la réservation",
+      "bookingFor": "Vous réservez pour {date} à {time}",
+      "free": "Gratuit",
+      "premium": "Premium",
+      "cardDetails": "Détails de la carte",
+      "cardNumber": "Numéro de carte",
+      "expiry": "Expiration",
+      "cvc": "CVC",
+      "confirmPayment": "Confirmer le paiement",
+      "unknownOrganizer": "Organisateur inconnu",
+      "perGuest": "/ invité",
+      "spotsLeft": "{count} places restantes",
+      "registerOnLuma": "S'inscrire sur Luma",
+      "location": "Emplacement",
+      "capacity": "Capacité",
+      "capacityDesc": "Cet événement a une capacité maximale de {count} participants.",
+      "capacityUnlimited": "Cet événement a une capacité illimitée.",
+      "dateTime": "Date et heure",
+      "whatToBring": "Ce qu'il faut apporter",
+      "goodToKnow": "Bon à savoir",
+      "tags": "Mots-clés",
+      "aboutEvent": "À propos de l'événement",
+      "showMore": "En savoir plus",
+      "showLess": "Voir moins",
+      "loadingWebinar": "Chargement du webinaire...",
+      "webinarNotFound": "Webinaire non trouvé",
+      "hostedBy": "Animé par",
+      "guestHost": "{name} (Hôte invité)",
+      "onlineEvent": "Événement en ligne"
+    }
+  }
+}

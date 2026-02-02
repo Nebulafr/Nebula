@@ -12,6 +12,7 @@
     "build:messaging": "npm run build -w nebula-messaging",
     "build": "npm run build -ws",
     "dev": "concurrently \"npm run dev:app\" \"npm run dev:messaging\"",
+    "start": "concurrently \"npm run start:app\" \"npm run start:messaging\"",
     "install:app": "npm install -w nebula-app",
     "install:messaging": "npm install -w nebula-messaging",
     "install:all": "npm install -ws"
