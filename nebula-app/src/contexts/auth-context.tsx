@@ -14,7 +14,7 @@ import {
 } from "@/actions/auth";
 import { signInWithGoogle } from "@/firebase/auth";
 import { ApiResponse } from "@/types";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 interface AuthResponse {
   accessToken: string;
@@ -50,22 +50,42 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [authState, setAuthState] = useState<AuthState>("LOADING");
   const router = useRouter();
+  const pathname = usePathname();
 
-  const updateUserState = useCallback((userData: UserProfile | null) => {
-    setProfile(userData);
+  const isPublicRoute = useCallback((path: string) => {
+    const publicRoutes = [
+      "/login",
+      "/signup",
+      "/forgot-password",
+      "/reset-password",
+      "/verify-email",
+      "/coach-login",
+      "/coach-signup",
+      "/",
+    ];
+    return publicRoutes.some(
+      (route) => path === route || path.startsWith(`${route}/`),
+    );
+  }, []);
 
-    if (!userData) {
-      setAuthState("UNAUTHENTICATED");
-      router.push("/login");
-      return;
-    }
+  const updateUserState = useCallback(
+    (userData: UserProfile | null) => {
+      setProfile(userData);
+
+      if (!userData) {
+        setAuthState("UNAUTHENTICATED");
+        if (!isPublicRoute(pathname)) {
+          router.push("/login");
+        }
+        return;
+      }
 
     const hasProfile =
       userData.role === "ADMIN" || userData.coach || userData.student;
     setAuthState(
       hasProfile ? "AUTHENTICATED_WITH_PROFILE" : "AUTHENTICATED_NO_PROFILE",
     );
-  }, []);
+  }, [pathname, router, isPublicRoute]);
 
   const refreshUser = useCallback(async () => {
     try {
