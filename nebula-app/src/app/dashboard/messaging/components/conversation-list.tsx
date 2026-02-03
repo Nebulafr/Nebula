@@ -11,7 +11,6 @@ import {
   formatMessagePreview,
   formatUnreadCount,
 } from "@/lib/chat-utils";
-import { useEffect } from "react";
 import { Conversation } from "@/generated/prisma";
 
 interface ConversationListProps {
@@ -96,17 +95,13 @@ export function ConversationList({
 }: ConversationListProps) {
   const filteredConversations = conversations.filter(
     (convo) =>
-      convo.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      convo.lastMessage.toLowerCase().includes(searchTerm.toLowerCase())
+      (convo.name || "").toLowerCase().includes((searchTerm || "").toLowerCase()) ||
+      (convo.lastMessage || "").toLowerCase().includes((searchTerm || "").toLowerCase())
   );
-
-  useEffect(() => {
-    onConversationSelect(selectedConversation!);
-  }, [selectedConversation]);
 
   if (loading) {
     return (
-      <div className="w-80 bg-white border-r border-gray-200">
+      <div className="w-80 bg-white border-r border-gray-200 flex flex-col h-full">
         {/* Search Bar */}
         <div className="p-4">
           <div className="relative">
@@ -121,7 +116,7 @@ export function ConversationList({
         </div>
 
         {/* Loading skeleton */}
-        <ScrollArea className="h-[calc(100vh-5rem)]">
+        <ScrollArea className="flex-1">
           <div className="p-4 space-y-4">
             {[1, 2, 3, 4, 5].map((i) => (
               <div key={i} className="flex items-center gap-3 p-4">
@@ -139,7 +134,7 @@ export function ConversationList({
   }
 
   return (
-    <div className="w-80 bg-white border-r border-gray-200">
+    <div className="w-80 bg-white border-r border-gray-200 flex flex-col h-full">
       {/* Search Bar */}
       <div className="p-4">
         <div className="relative">
@@ -154,7 +149,7 @@ export function ConversationList({
       </div>
 
       {/* Conversations List */}
-      <ScrollArea className="h-[calc(100vh-5rem)]">
+      <ScrollArea className="flex-1">
         <div className="p-4 space-y-4">
           {filteredConversations.length === 0 ? (
             <div className="p-8 text-center text-gray-500">

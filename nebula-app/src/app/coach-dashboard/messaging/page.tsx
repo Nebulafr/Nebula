@@ -282,7 +282,7 @@ function CoachMessagingPageContent() {
     typingUser && typingUser.conversationId === selectedConversation?.id;
 
   return (
-    <div className="flex max-h-[calc(100vh-2.5rem)] min-h-0 bg-gray-50">
+    <div className="flex h-full bg-gray-50 overflow-hidden">
       <ConversationList
         conversations={conversations}
         selectedConversation={selectedConversation}
@@ -296,7 +296,7 @@ function CoachMessagingPageContent() {
         {selectedConversation ? (
           <>
             <ChatHeader conversation={selectedConversation} />
-            <div className="flex-1 min-h-0 overflow-hidden">
+            <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
               <MessageList messages={currentMessages} />
             </div>
             {showTypingIndicator && (
@@ -324,7 +324,7 @@ export default function CoachMessagingPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex h-screen items-center justify-center">
+        <div className="flex h-full items-center justify-center">
           <div className="text-lg">{t("loading")}</div>
         </div>
       }

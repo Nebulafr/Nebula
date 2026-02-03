@@ -273,7 +273,7 @@ function StudentMessagingPageContent() {
 
   if (loading) {
     return (
-      <div className="flex h-[calc(100vh-3.5rem)] items-center justify-center">
+      <div className="flex h-full items-center justify-center">
         <div className="text-muted-foreground">Loading conversations...</div>
       </div>
     );
@@ -283,7 +283,7 @@ function StudentMessagingPageContent() {
     typingUser && typingUser.conversationId === selectedConversation?.id;
 
   return (
-    <div className="flex h-[calc(100vh-3.5rem)] max-h-screen bg-gray-50">
+    <div className="flex h-full bg-gray-50 overflow-hidden">
       <ConversationList
         conversations={conversations}
         selectedConversation={selectedConversation}
@@ -300,7 +300,7 @@ function StudentMessagingPageContent() {
               conversation={selectedConversation}
               onBack={() => setSelectedConversation(null)}
             />
-            <div className="flex-1 min-h-0 overflow-hidden">
+            <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
               <MessageList messages={currentMessages} />
             </div>
             {showTypingIndicator && (

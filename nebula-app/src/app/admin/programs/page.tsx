@@ -152,7 +152,7 @@ export default function AdminProgramsPage() {
               <Input
                 placeholder={t("searchPrograms")}
                 className="pl-9"
-                value={searchTerm}
+                value={searchTerm || ""}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>

@@ -34,7 +34,7 @@ export function EventsHeader({
         <Input
           placeholder={t("searchEvents")}
           className="pl-9"
-          value={searchTerm}
+          value={searchTerm || ""}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
       </div>

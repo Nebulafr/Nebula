@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { cn } from "@/lib/utils";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import {
   SidebarProvider,
@@ -253,8 +254,8 @@ export default function CoachDashboardLayout({
         </Sidebar>
         <SidebarInset>
           <TopBar />
-          <main className="flex-1 overflow-auto">
-            <div className="h-full dashboard-container py-6">{children}</div>
+          <main className={cn("flex-1", pathname.includes("/messaging") ? "overflow-hidden" : "overflow-auto")}>
+            <div className={cn("h-full", !pathname.includes("/messaging") && "dashboard-container py-6")}>{children}</div>
           </main>
         </SidebarInset>
       </SidebarProvider>

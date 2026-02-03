@@ -31,15 +31,17 @@ export const publicRoutes = [
   "/become-a-coach",
 ];
 
+interface RequestOptions {
+  body?: any;
+  headers?: Record<string, string>;
+  requireAuth?: boolean;
+  throwOnError?: boolean;
+}
+
 export async function makeRequest<T = any>(
   endpoint: string,
   method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH",
-  options: {
-    body?: any;
-    headers?: Record<string, string>;
-    requireAuth?: boolean;
-    throwOnError?: boolean;
-  } = {},
+  options: RequestOptions = {},
 ): Promise<ApiResponse<T>> {
   const {
     body,
@@ -56,13 +58,13 @@ export async function makeRequest<T = any>(
   if (requireAuth) {
     const token = getAccessToken();
     if (!token) {
-      const errorResponse = {
+      const err = {
         success: false,
         error: "Authentication required",
         message: "Please log in to continue",
       };
-      if (throwOnError) throw new Error(errorResponse.message);
-      return errorResponse;
+      if (throwOnError) throw new Error(err.message);
+      return err;
     }
     requestHeaders.Authorization = `Bearer ${token}`;
   }
@@ -73,87 +75,84 @@ export async function makeRequest<T = any>(
     credentials: "include",
   };
 
-  if (body && method !== "GET" && method !== "DELETE") {
+  if (body && !["GET", "DELETE"].includes(method)) {
     config.body = JSON.stringify(body);
   }
 
   try {
     const response = await fetch(`/api${endpoint}`, config);
 
-    if (response.status === 401 && requireAuth) {
+    // Auto-clear invalid tokens
+    if (response.status === 401) {
       if (typeof window !== "undefined") {
         localStorage.removeItem("accessToken");
         sessionStorage.removeItem("accessToken");
       }
-      const errorResponse = {
-        success: false,
-        error: "Session expired",
-        message: "Your session has expired. Please log in again.",
-      };
-      if (throwOnError) throw new Error(errorResponse.message);
-      return errorResponse;
     }
 
-    const result = await response.json();
-
-    if (!response.ok) {
-      const errorResponse = {
-        success: false,
-        error: result.error || result.message || `HTTP ${response.status}`,
-        message: result.message || "Request failed",
-        code: result.code,
-      };
-      if (throwOnError) throw new Error(errorResponse.message);
-      return errorResponse;
+    let result: any;
+    try {
+      result = await response.json();
+    } catch {
+      result = { success: response.ok };
     }
 
-    if (result.success === false) {
+    if (!response.ok || result.success === false) {
+      const errorMsg = result.message || result.error || "Request failed";
       const errorResponse = {
         success: false,
-        error: result.error || result.message || "Request failed",
-        message: result.message || "Request failed",
-        code: result.code,
+        error: result.error || errorMsg,
+        message: errorMsg,
+        code: result.code || `HTTP_${response.status}`,
       };
+      
       if (throwOnError) throw new Error(errorResponse.message);
       return errorResponse;
     }
 
     return {
       success: true,
-      data: result.data,
+      data: result.data as T,
       message: result.message || "Success",
       code: result.code,
     };
   } catch (error: any) {
-    console.error(`API request failed [${method} /api${endpoint}]:`, error);
-
-    const errorResponse = {
+    if (throwOnError) throw error;
+    
+    console.error(`API Error [${method} ${endpoint}]:`, error);
+    return {
       success: false,
       error: "Network error",
       message: error.message || "Failed to connect to server",
     };
-    if (throwOnError) throw error;
-    return errorResponse;
   }
 }
 
-export const apiGet = <T = any>(endpoint: string, options?: any) =>
+export const apiGet = <T = any>(endpoint: string, options?: RequestOptions) =>
   makeRequest<T>(endpoint, "GET", options);
 
-export const apiPost = <T = any>(endpoint: string, body?: any, options?: any) =>
-  makeRequest<T>(endpoint, "POST", { body, ...options });
+export const apiPost = <T = any>(
+  endpoint: string,
+  body?: any,
+  options?: RequestOptions,
+) => makeRequest<T>(endpoint, "POST", { ...options, body });
 
-export const apiPut = <T = any>(endpoint: string, body?: any, options?: any) =>
-  makeRequest<T>(endpoint, "PUT", { body, ...options });
+export const apiPut = <T = any>(
+  endpoint: string,
+  body?: any,
+  options?: RequestOptions,
+) => makeRequest<T>(endpoint, "PUT", { ...options, body });
 
 export const apiPatch = <T = any>(
   endpoint: string,
   body?: any,
-  options?: any,
-) => makeRequest<T>(endpoint, "PATCH", { body, ...options });
+  options?: RequestOptions,
+) => makeRequest<T>(endpoint, "PATCH", { ...options, body });
 
-export const apiDelete = <T = any>(endpoint: string, options?: any) =>
-  makeRequest<T>(endpoint, "DELETE", options);
+export const apiDelete = <T = any>(
+  endpoint: string,
+  options?: RequestOptions,
+) => makeRequest<T>(endpoint, "DELETE", options);
 
 export const capitalize = (str: string) =>
   str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();

@@ -94,7 +94,7 @@ export default function AdminReviewsPage() {
             <Input
               placeholder={t("searchReviews")}
               className="pl-9"
-              value={searchTerm}
+              value={searchTerm || ""}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>

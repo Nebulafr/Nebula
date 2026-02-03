@@ -41,7 +41,7 @@ export function ConversationList({
 
   if (loading) {
     return (
-      <div className="w-80 bg-white border-r border-gray-200">
+      <div className="w-80 bg-white border-r border-gray-200 flex flex-col h-full">
         <div className="p-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -52,7 +52,7 @@ export function ConversationList({
             />
           </div>
         </div>
-        <ScrollArea className="h-[calc(100vh-5rem)]">
+        <ScrollArea className="flex-1">
           <div className="space-y-4 p-4">
             {[1, 2, 3, 4, 5].map((i) => (
               <div key={i} className="flex items-center gap-3 p-3">
@@ -71,7 +71,7 @@ export function ConversationList({
   }
 
   return (
-    <div className="w-80 bg-white border-r border-gray-200">
+    <div className="w-80 bg-white border-r border-gray-200 flex flex-col h-full">
       {/* Search Bar */}
       <div className="p-4">
         <div className="relative">
@@ -86,7 +86,7 @@ export function ConversationList({
       </div>
 
       {/* Conversations List */}
-      <ScrollArea className="h-[calc(100vh-5rem)]">
+      <ScrollArea className="flex-1">
         <div className="p-4 space-y-4">
           {filteredConversations.length === 0 ? (
             <div className="p-8 text-center text-gray-500">

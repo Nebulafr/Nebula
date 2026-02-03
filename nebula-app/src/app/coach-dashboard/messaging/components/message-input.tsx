@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Send, Paperclip } from "lucide-react";
 
 interface MessageInputProps {
@@ -43,12 +42,13 @@ export function MessageInput({
     <div className="border-t border-gray-200 bg-white p-6">
       <form onSubmit={handleSubmit} className="flex items-center w-full">
         <div className="flex-1 relative">
-          <Input
-            value={message || ""}
+          <input
+            type="text"
+            value={message}
             onChange={handleChange}
             placeholder={placeholder}
-            className="w-full pr-24 py-3 px-4 rounded-xl border border-gray-200 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
             disabled={disabled}
+            className="w-full pr-24 py-3 px-4 rounded-xl border border-gray-200 bg-white text-base placeholder:text-gray-400 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 transition-all"
           />
           
           {/* Right-side action area */}

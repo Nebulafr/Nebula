@@ -37,6 +37,8 @@ export interface FormattedConversation {
   time: string;
   unread: number;
   role: string;
+  otherUserId: string;
+  coachId?: string;
 }
 
 export interface FormattedMessage {

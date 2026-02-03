@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, MoreVertical } from "lucide-react";
@@ -16,7 +17,20 @@ export function ChatHeader({
   onBack,
   onMoreOptions,
 }: ChatHeaderProps) {
+  const router = useRouter();
+
+  if (!conversation) {
+    return null;
+  }
+
   const headerInfo = formatChatHeader(conversation);
+
+  const handleAvatarClick = () => {
+    const coachId = conversation.coachId || conversation.otherUserId;
+    if (coachId) {
+      router.push(`/coaches/${coachId}`);
+    }
+  };
 
   return (
     <div className="flex items-center justify-between border-b border-gray-200 bg-white p-6">
@@ -29,16 +43,27 @@ export function ChatHeader({
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <Avatar className="h-10 w-10">
-          <AvatarImage src={conversation.avatar} />
-          <AvatarFallback className="bg-gray-100 text-gray-600 font-medium">
-            {headerInfo.initials}
-          </AvatarFallback>
-        </Avatar>
+        <button
+          onClick={handleAvatarClick}
+          className="cursor-pointer hover:opacity-80 transition-opacity"
+          title="View coach profile"
+        >
+          <Avatar className="h-10 w-10">
+            <AvatarImage src={conversation.avatar} />
+            <AvatarFallback className="bg-gray-100 text-gray-600 font-medium">
+              {headerInfo.initials}
+            </AvatarFallback>
+          </Avatar>
+        </button>
         <div>
-          <h2 className="font-semibold text-lg text-gray-900">
-            {headerInfo.displayName}
-          </h2>
+          <button
+            onClick={handleAvatarClick}
+            className="text-left hover:underline"
+          >
+            <h2 className="font-semibold text-lg text-gray-900">
+              {headerInfo.displayName}
+            </h2>
+          </button>
           <p className="text-sm text-gray-500 font-medium">
             {headerInfo.displayRole}
           </p>

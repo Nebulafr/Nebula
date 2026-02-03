@@ -26,7 +26,7 @@ export function SearchBar({
           <Input
             type="search"
             placeholder={t("searchPlaceholder")}
-            value={searchTerm}
+            value={searchTerm || ""}
             onChange={(e) => onSearchChange(e.target.value)}
             className="h-14 w-full rounded-full border pl-10 focus-visible:ring-0"
           />

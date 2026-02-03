@@ -46,7 +46,7 @@ export default function ProgramsPage() {
             <Input
               placeholder={t("searchPlaceholder")}
               className="h-12 w-full rounded-full pl-12"
-              value={searchTerm}
+              value={searchTerm || ""}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>

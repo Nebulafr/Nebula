@@ -188,7 +188,7 @@ export default function HelpCenterPage() {
                 <Input
                   placeholder={t("searchPlaceholder")}
                   className="h-14 rounded-full pl-12"
-                  value={searchTerm}
+                  value={searchTerm || ""}
                   onChange={handleSearchChange}
                 />
               </div>

@@ -12,13 +12,17 @@ interface ChatHeaderProps {
 }
 
 export function ChatHeader({ conversation, onMenuClick }: ChatHeaderProps) {
+  if (!conversation) {
+    return null;
+  }
+
   const headerInfo = formatChatHeader(conversation);
 
   return (
     <div className="flex items-center justify-between border-b border-gray-200 bg-white p-6">
       <div className="flex items-center space-x-4">
         <Avatar className="h-10 w-10">
-          <AvatarImage src={(conversation as any).user.avatarUrl} />
+          <AvatarImage src={(conversation as any)?.user?.avatarUrl} />
           <AvatarFallback className="bg-gray-100 text-gray-600 font-medium">
             {headerInfo.initials}
           </AvatarFallback>

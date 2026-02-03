@@ -33,6 +33,8 @@ const formatConversation = (
     time: formatTime(conv.messages[0]?.createdAt),
     unread: getUserUnreadCount(conv.participants, userId),
     role: otherParticipant?.user.role || "STUDENT",
+    otherUserId: otherParticipant?.user.id || "",
+    coachId: otherParticipant?.user.coach?.id,
   };
 };
 
@@ -60,6 +62,9 @@ const fetchUserConversations = async (userId: string) => {
               fullName: true,
               avatarUrl: true,
               role: true,
+              coach: {
+                select: { id: true },
+              },
             },
           },
         },
