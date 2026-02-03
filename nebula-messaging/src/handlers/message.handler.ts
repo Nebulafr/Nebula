@@ -6,6 +6,8 @@ import type {
   AuthenticatedSocket,
   MessageData,
   LoadMessagesData,
+  ConversationUpdateEmit,
+  TypingIndicator,
 } from "../types";
 
 const extractMessageData = (data: MessageData) => ({
@@ -51,6 +53,40 @@ const emitMessageEdited = (
   socket.emit("message_edited", { messageId, content });
 };
 
+const emitConversationUpdate = (
+  io: Server,
+  conversationId: string,
+  lastMessage: string,
+  senderId: string,
+  senderName: string
+) => {
+  const update: ConversationUpdateEmit = {
+    conversationId,
+    lastMessage,
+    lastMessageTime: new Date(),
+    senderId,
+    senderName,
+  };
+  // Emit to all users who might have this conversation
+  io.emit("conversation_updated", update);
+};
+
+const emitTypingIndicator = (
+  io: Server,
+  conversationId: string,
+  userId: string,
+  userName: string,
+  isTyping: boolean
+) => {
+  const indicator: TypingIndicator = {
+    conversationId,
+    userId,
+    userName,
+    isTyping,
+  };
+  io.to(conversationId).emit("typing_indicator", indicator);
+};
+
 const checkParticipantAccess = async (
   conversationId: string,
   userId: string
@@ -88,6 +124,7 @@ const handleSendMessage =
   (io: Server) => async (socket: AuthenticatedSocket, data: MessageData) => {
     try {
       const userId = getUserId(socket)!;
+      const userName = socket.data.user?.fullName || "Unknown";
       const { conversationId, content, type } = extractMessageData(data);
 
       const isParticipant = await checkParticipantAccess(
@@ -108,10 +145,11 @@ const handleSendMessage =
         ConversationService.updateUnreadCount(conversationId, userId),
       ]);
 
+      // Emit new message to conversation room
       emitNewMessage(io, conversationId, message);
-      console.log(
-        `Message sent in conversation ${conversationId} by user ${userId}`
-      );
+
+      // Emit conversation update to all clients for sidebar refresh
+      emitConversationUpdate(io, conversationId, content, userId, userName);
     } catch (error) {
       console.error("Error in sendMessage handler:", error);
       handleError(socket, "Failed to send message");
@@ -184,8 +222,32 @@ const handleEditMessage = async (
   }
 };
 
+const handleTypingStart =
+  (io: Server) => async (socket: AuthenticatedSocket, conversationId: string) => {
+    try {
+      const userId = getUserId(socket)!;
+      const userName = socket.data.user?.fullName || "Someone";
+      emitTypingIndicator(io, conversationId, userId, userName, true);
+    } catch (error) {
+      console.error("Error in typingStart handler:", error);
+    }
+  };
+
+const handleTypingStop =
+  (io: Server) => async (socket: AuthenticatedSocket, conversationId: string) => {
+    try {
+      const userId = getUserId(socket)!;
+      const userName = socket.data.user?.fullName || "Someone";
+      emitTypingIndicator(io, conversationId, userId, userName, false);
+    } catch (error) {
+      console.error("Error in typingStop handler:", error);
+    }
+  };
+
 export const loadMessages = requireAuth(handleLoadMessages);
 export const sendMessage = (io: Server) => requireAuth(handleSendMessage(io));
 export const markRead = requireAuth(handleMarkRead);
 export const deleteMessage = requireAuth(handleDeleteMessage);
 export const editMessage = requireAuth(handleEditMessage);
+export const typingStart = (io: Server) => requireAuth(handleTypingStart(io));
+export const typingStop = (io: Server) => requireAuth(handleTypingStop(io));

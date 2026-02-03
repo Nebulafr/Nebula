@@ -3,13 +3,9 @@
 import { useEffect, useRef } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import { Conversation } from "@/generated/prisma";
 
 interface MessageListProps {
   messages: any[];
-  conversation: Conversation;
-  currentUserId: string;
-  loading?: boolean;
 }
 
 interface MessageBubbleProps {
@@ -69,7 +65,9 @@ function MessageBubble({ message, isOwnMessage }: MessageBubbleProps) {
       {isOwnMessage && (
         <div className="flex-shrink-0">
           <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-            <span className="text-xs font-medium text-primary">S</span>
+            <span className="text-xs font-medium text-primary">
+              {message.sender?.charAt(0) || "U"}
+            </span>
           </div>
         </div>
       )}
@@ -77,12 +75,7 @@ function MessageBubble({ message, isOwnMessage }: MessageBubbleProps) {
   );
 }
 
-export function MessageList({
-  messages,
-  conversation,
-  currentUserId,
-  loading = false,
-}: MessageListProps) {
+export function MessageList({ messages }: MessageListProps) {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -92,37 +85,6 @@ export function MessageList({
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages]);
-
-  if (loading) {
-    return (
-      <ScrollArea className="flex-1">
-        <div className="space-y-6 p-6">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <div
-              key={i}
-              className={cn(
-                "flex items-end gap-3",
-                i % 2 === 0 ? "justify-end" : "justify-start"
-              )}
-            >
-              {i % 2 !== 0 && (
-                <div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse" />
-              )}
-              <div
-                className={cn(
-                  "max-w-xs md:max-w-md p-3 rounded-2xl bg-gray-200 animate-pulse",
-                  i % 2 === 0 ? "h-16" : "h-12"
-                )}
-              />
-              {i % 2 === 0 && (
-                <div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse" />
-              )}
-            </div>
-          ))}
-        </div>
-      </ScrollArea>
-    );
-  }
 
   return (
     <ScrollArea ref={scrollAreaRef} className="flex-1">

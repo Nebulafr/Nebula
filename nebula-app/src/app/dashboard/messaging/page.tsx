@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createAuthenticatedSocket } from "@/lib/socket";
 import { useAuth } from "@/hooks/use-auth";
@@ -12,7 +12,14 @@ import { ChatHeader } from "./components/chat-header";
 import { MessageList } from "./components/message-list";
 import { MessageInput } from "./components/message-input";
 import { EmptyState } from "./components/empty-state";
+import { TypingIndicator } from "./components/typing-indicator";
 import { Conversation, Message } from "@/generated/prisma";
+
+interface TypingUser {
+  conversationId: string;
+  userId: string;
+  userName: string;
+}
 
 function StudentMessagingPageContent() {
   const searchParams = useSearchParams();
@@ -36,14 +43,16 @@ function StudentMessagingPageContent() {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [socket, setSocket] = useState<any>(null);
+  const [typingUser, setTypingUser] = useState<TypingUser | null>(null);
 
-  console.log({ currentMessages, selectedConversation });
+  // Refs for typing indicator debouncing
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isTypingRef = useRef(false);
 
   const loadConversations = async () => {
     try {
       const response = await getUserConversations(currentUser.id, 10);
       if (response.success) {
-        console.log("📋 Student conversations loaded via API:", response.data);
         setConversations(response.data);
         setLoading(false);
       }
@@ -53,23 +62,58 @@ function StudentMessagingPageContent() {
     }
   };
 
+  // Handle conversation updates from socket
+  const handleConversationUpdate = useCallback((data: any) => {
+    setConversations((prev) => {
+      const updated = prev.map((c) =>
+        c.id === data.conversationId
+          ? {
+              ...c,
+              lastMessage: data.lastMessage,
+              lastMessageTime: new Date(data.lastMessageTime),
+            }
+          : c
+      );
+      // Sort by most recent message
+      return updated.sort(
+        (a, b) =>
+          new Date(b.lastMessageTime || 0).getTime() -
+          new Date(a.lastMessageTime || 0).getTime()
+      );
+    });
+  }, []);
+
+  // Handle typing indicator
+  const handleTypingIndicator = useCallback(
+    (data: any) => {
+      if (data.userId === currentUser.id) return; // Ignore own typing
+
+      if (data.isTyping) {
+        setTypingUser({
+          conversationId: data.conversationId,
+          userId: data.userId,
+          userName: data.userName,
+        });
+      } else if (typingUser?.userId === data.userId) {
+        setTypingUser(null);
+      }
+    },
+    [currentUser.id, typingUser?.userId]
+  );
+
   useEffect(() => {
     if (conversationId && conversations.length > 0) {
       const convo = conversations.find((c) => c.id === conversationId);
       if (convo && convo.id !== selectedConversation?.id) {
-        // Clear current messages first to avoid showing stale data
         setCurrentMessages([]);
         setSelectedConversation(convo);
 
-        // Join the conversation room and load messages
-        if (socket && socket.connected) {
-          console.log("Student joining conversation room:", convo.id);
+        if (socket?.connected) {
           socket.emit("join_conversation", convo.id);
           socket.emit("load_messages", { conversationId: convo.id });
         }
       }
     } else if (!conversationId) {
-      // Clear selection if no conversationId in URL
       setSelectedConversation(null);
       setCurrentMessages([]);
     }
@@ -77,42 +121,47 @@ function StudentMessagingPageContent() {
 
   useEffect(() => {
     if (currentUser.token && currentUser.id) {
-      console.log("Creating authenticated socket connection for student");
       const newSocket = createAuthenticatedSocket(currentUser.token);
       newSocket.connect();
       setSocket(newSocket);
 
       newSocket.on("connect", () => {
-        console.log("Student socket connected:", newSocket.id);
         loadConversations();
       });
 
       newSocket.on("messages_loaded", (data: any) => {
-        console.log("📨 Student messages loaded via socket:", data);
-        console.log("Current selectedConversation:", selectedConversation?.id);
-        console.log("Data conversationId:", data.conversationId);
-
         setCurrentMessages(data.messages || []);
       });
 
       newSocket.on("new_message", (message: any) => {
-        setCurrentMessages((prev) => [
-          ...prev,
-          {
-            id: message.id,
-            sender: message.sender.fullName || "Unknown",
-            text: message.content,
-            timestamp: new Date(message.createdAt).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            }),
-            isMe: message.senderId === currentUser.id,
-            type: message.type,
-            isRead: false,
-            isEdited: false,
-          } as any,
-        ]);
+        setCurrentMessages((prev) => {
+          // Remove any optimistic message with temp id and add the real one
+          const filtered = prev.filter(
+            (m: any) => !m.id?.startsWith("temp-") || m.text !== message.content
+          );
+          return [
+            ...filtered,
+            {
+              id: message.id,
+              sender: message.sender.fullName || "Unknown",
+              text: message.content,
+              timestamp: new Date(message.createdAt).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              }),
+              isMe: message.senderId === currentUser.id,
+              type: message.type,
+              isRead: false,
+              isEdited: false,
+            } as any,
+          ];
+        });
+        // Clear typing indicator when message received
+        setTypingUser(null);
       });
+
+      newSocket.on("conversation_updated", handleConversationUpdate);
+      newSocket.on("typing_indicator", handleTypingIndicator);
 
       newSocket.on("error", (error: any) => {
         console.error("Student socket error:", error);
@@ -122,6 +171,8 @@ function StudentMessagingPageContent() {
         newSocket.off("connect");
         newSocket.off("messages_loaded");
         newSocket.off("new_message");
+        newSocket.off("conversation_updated");
+        newSocket.off("typing_indicator");
         newSocket.off("error");
         newSocket.disconnect();
         setSocket(null);
@@ -140,9 +191,31 @@ function StudentMessagingPageContent() {
   }, [selectedConversation, socket]);
 
   const handleSelectConversation = async (conversation: Conversation) => {
-    // Update URL to reflect selected conversation
     router.push(`/dashboard/messaging?conversationId=${conversation?.id}`);
   };
+
+  // Emit typing indicator with debounce
+  const handleTypingStart = useCallback(() => {
+    if (!socket?.connected || !selectedConversation) return;
+
+    if (!isTypingRef.current) {
+      isTypingRef.current = true;
+      socket.emit("typing_start", selectedConversation.id);
+    }
+
+    // Clear existing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    // Set new timeout to stop typing indicator after 2 seconds of no input
+    typingTimeoutRef.current = setTimeout(() => {
+      if (isTypingRef.current && socket?.connected && selectedConversation) {
+        isTypingRef.current = false;
+        socket.emit("typing_stop", selectedConversation.id);
+      }
+    }, 2000);
+  }, [socket, selectedConversation]);
 
   const handleSendMessage = async (messageText: string) => {
     if (!selectedConversation || sending) return;
@@ -150,32 +223,49 @@ function StudentMessagingPageContent() {
     try {
       setSending(true);
 
+      // Stop typing indicator
+      if (isTypingRef.current && socket?.connected) {
+        isTypingRef.current = false;
+        socket.emit("typing_stop", selectedConversation.id);
+      }
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+
       if (!socket || !socket.connected) {
         console.error("Socket not connected");
         return;
       }
 
-      console.log("Student sending message:", {
-        conversationId: selectedConversation.id,
-        content: messageText,
+      // Optimistic update - add message immediately
+      const optimisticMessage = {
+        id: `temp-${Date.now()}`,
+        sender: currentUser.name,
+        text: messageText,
+        timestamp: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        isMe: true,
         type: "TEXT",
-      });
+        isRead: false,
+        isEdited: false,
+        pending: true,
+      };
+      setCurrentMessages((prev) => [...prev, optimisticMessage as any]);
 
-      // Join conversation room if not already joined
-      socket.emit("join_conversation", selectedConversation.id);
-
+      // Send via socket - no need to reload conversations anymore
       socket.emit("send_message", {
         conversationId: selectedConversation.id,
         content: messageText,
         type: "TEXT",
       });
-
-      // Reload conversations to update last message and order
-      await loadConversations();
-
-      handleSelectConversation(selectedConversation);
     } catch (error) {
       console.error("Error sending message:", error);
+      // Remove the optimistic message on error
+      setCurrentMessages((prev) =>
+        prev.filter((m: any) => !m.id?.startsWith("temp-"))
+      );
     } finally {
       setSending(false);
     }
@@ -188,6 +278,9 @@ function StudentMessagingPageContent() {
       </div>
     );
   }
+
+  const showTypingIndicator =
+    typingUser && typingUser.conversationId === selectedConversation?.id;
 
   return (
     <div className="flex h-[calc(100vh-3.5rem)] max-h-screen bg-gray-50">
@@ -208,15 +301,15 @@ function StudentMessagingPageContent() {
               onBack={() => setSelectedConversation(null)}
             />
             <div className="flex-1 min-h-0 overflow-hidden">
-              <MessageList
-                messages={currentMessages}
-                conversation={selectedConversation}
-                currentUserId={currentUser.id}
-              />
+              <MessageList messages={currentMessages} />
             </div>
+            {showTypingIndicator && (
+              <TypingIndicator userName={typingUser.userName} />
+            )}
             <div className="flex-shrink-0">
               <MessageInput
                 onSendMessage={handleSendMessage}
+                onTyping={handleTypingStart}
                 disabled={sending}
                 placeholder="Type a message to your coach..."
               />

@@ -3,8 +3,8 @@ import { Server } from "socket.io";
 import dotenv from "dotenv";
 import { prisma } from "./lib/prisma";
 import { createAuthMiddleware } from "./middleware/auth.middleware";
-import * as ConversationHandler from ".//handlers/conversation.handler";
-import * as MessageHandler from ".//handlers/message.handler";
+import * as ConversationHandler from "./handlers/conversation.handler";
+import * as MessageHandler from "./handlers/message.handler";
 import type {
   AuthenticatedSocket,
   ServerConfig,
@@ -65,9 +65,6 @@ const registerEventHandlers = (socket: AuthenticatedSocket, io: Server) => {
   socket.on("leave_conversation", (conversationId: string) =>
     ConversationHandler.leaveConversation(socket, conversationId)
   );
-  socket.on("mark_read", (conversationId: string) =>
-    ConversationHandler.markAsRead(socket, conversationId)
-  );
 
   socket.on("load_messages", (data: any) =>
     MessageHandler.loadMessages(socket, data)
@@ -83,6 +80,14 @@ const registerEventHandlers = (socket: AuthenticatedSocket, io: Server) => {
   );
   socket.on("edit_message", (data: any) =>
     MessageHandler.editMessage(socket, data)
+  );
+
+  // Typing indicators
+  socket.on("typing_start", (conversationId: string) =>
+    MessageHandler.typingStart(io)(socket, conversationId)
+  );
+  socket.on("typing_stop", (conversationId: string) =>
+    MessageHandler.typingStop(io)(socket, conversationId)
   );
 
   socket.on("disconnect", () => logDisconnection(socket.id));

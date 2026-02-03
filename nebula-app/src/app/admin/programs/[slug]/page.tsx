@@ -377,7 +377,8 @@ export default function ProgramDetailsPage({
                     disabled={updateProgramStatusMutation.isPending}
                   >
                     {updateProgramStatusMutation.isPending &&
-                    updateProgramStatusMutation.variables?.action === "reject" ? (
+                    updateProgramStatusMutation.variables?.action ===
+                      "reject" ? (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     ) : null}
                     Reject
@@ -387,7 +388,8 @@ export default function ProgramDetailsPage({
                     disabled={updateProgramStatusMutation.isPending}
                   >
                     {updateProgramStatusMutation.isPending &&
-                    updateProgramStatusMutation.variables?.action === "approve" ? (
+                    updateProgramStatusMutation.variables?.action ===
+                      "approve" ? (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     ) : null}
                     Approve
@@ -403,7 +405,8 @@ export default function ProgramDetailsPage({
                   disabled={updateProgramStatusMutation.isPending}
                 >
                   {updateProgramStatusMutation.isPending &&
-                  updateProgramStatusMutation.variables?.action === "activate" ? (
+                  updateProgramStatusMutation.variables?.action ===
+                    "activate" ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   ) : null}
                   Publish Program
@@ -418,7 +421,8 @@ export default function ProgramDetailsPage({
                   disabled={updateProgramStatusMutation.isPending}
                 >
                   {updateProgramStatusMutation.isPending &&
-                  updateProgramStatusMutation.variables?.action === "deactivate" ? (
+                  updateProgramStatusMutation.variables?.action ===
+                    "deactivate" ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   ) : null}
                   Deactivate
@@ -432,7 +436,8 @@ export default function ProgramDetailsPage({
                   disabled={updateProgramStatusMutation.isPending}
                 >
                   {updateProgramStatusMutation.isPending &&
-                  updateProgramStatusMutation.variables?.action === "activate" ? (
+                  updateProgramStatusMutation.variables?.action ===
+                    "activate" ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   ) : null}
                   Reactivate
@@ -613,18 +618,11 @@ export default function ProgramDetailsPage({
                         );
                         const extension =
                           decodedFileName.split(".").pop()?.toLowerCase() || "";
-                        const downloadUrl = materialUrl.includes("cloudinary")
-                          ? materialUrl.replace(
-                              "/upload/",
-                              "/upload/fl_attachment/",
-                            )
-                          : materialUrl;
 
                         return (
                           <a
                             key={idx}
-                            href={downloadUrl}
-                            download={decodedFileName}
+                            href={materialUrl}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex items-center justify-between gap-2 p-2 rounded-md bg-muted/50 hover:bg-muted transition-colors"
@@ -722,7 +720,9 @@ export default function ProgramDetailsPage({
       <Dialog open={cohortDialogOpen} onOpenChange={setCohortDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{isCreatingCohort ? "Create Cohort" : "Edit Cohort"}</DialogTitle>
+            <DialogTitle>
+              {isCreatingCohort ? "Create Cohort" : "Edit Cohort"}
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
@@ -784,9 +784,12 @@ export default function ProgramDetailsPage({
             </Button>
             <Button
               onClick={handleSaveCohort}
-              disabled={updateCohortMutation.isPending || createCohortMutation.isPending}
+              disabled={
+                updateCohortMutation.isPending || createCohortMutation.isPending
+              }
             >
-              {(updateCohortMutation.isPending || createCohortMutation.isPending) && (
+              {(updateCohortMutation.isPending ||
+                createCohortMutation.isPending) && (
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
               )}
               {isCreatingCohort ? "Create Cohort" : "Save Changes"}

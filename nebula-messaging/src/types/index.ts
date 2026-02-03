@@ -76,6 +76,21 @@ export interface ServerConfig {
   corsOrigins: (string | RegExp)[];
 }
 
+export interface ConversationUpdateEmit {
+  conversationId: string;
+  lastMessage: string;
+  lastMessageTime: Date;
+  senderId: string;
+  senderName: string;
+}
+
+export interface TypingIndicator {
+  conversationId: string;
+  userId: string;
+  userName: string;
+  isTyping: boolean;
+}
+
 export interface GlobalSocketServer {
   io: Server<any, any, any, SocketData>;
 }
@@ -83,3 +98,4 @@ export interface GlobalSocketServer {
 declare global {
   var socketServer: GlobalSocketServer | undefined;
 }
+

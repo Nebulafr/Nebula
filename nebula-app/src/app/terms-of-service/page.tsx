@@ -84,9 +84,7 @@ export default function TermsOfServicePage() {
               {/* Main Content */}
               <div className="lg:col-span-3">
                 <div className="prose prose-gray dark:prose-invert max-w-none">
-                  <p className="text-lg text-muted-foreground">
-                    {t("intro")}
-                  </p>
+                  <p className="text-lg text-muted-foreground">{t("intro")}</p>
 
                   <Separator className="my-8" />
 

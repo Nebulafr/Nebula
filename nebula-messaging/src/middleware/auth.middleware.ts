@@ -37,12 +37,8 @@ const fetchUserById = async (userId: string) => {
 };
 
 const validateToken = async (token: string) => {
-  console.log({ token });
-
   const decoded = validateJwtToken(token);
   if (!decoded) return null;
-
-  console.log({ decoded });
 
   const user = await fetchUserById(decoded.userId);
 

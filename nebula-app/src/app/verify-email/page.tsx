@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { toast } from "react-toastify";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -19,12 +20,14 @@ function VerifyEmailContent() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const t = useTranslations("auth.verifyEmail");
   const router = useRouter();
 
   useEffect(() => {
     const verifyToken = async () => {
       if (!token) {
+        setErrorMessage("missingToken");
         setStatus("error");
         return;
       }
@@ -34,15 +37,28 @@ function VerifyEmailContent() {
         if (response.success) {
           setStatus("success");
         } else {
+          setErrorMessage("verificationFailed");
           setStatus("error");
         }
-      } catch (error) {
+      } catch (error: any) {
+        setErrorMessage(error?.message || "verificationFailed");
         setStatus("error");
       }
     };
 
     verifyToken();
   }, [token]);
+
+  // Show toast when error occurs
+  useEffect(() => {
+    if (status === "error" && errorMessage) {
+      // Check if it's a translation key or a custom message
+      const message = errorMessage === "missingToken" || errorMessage === "verificationFailed" 
+        ? t(errorMessage) 
+        : errorMessage;
+      toast.error(message);
+    }
+  }, [status, errorMessage, t]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/50 px-4 py-12">

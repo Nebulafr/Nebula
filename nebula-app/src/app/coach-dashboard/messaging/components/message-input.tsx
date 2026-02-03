@@ -7,12 +7,14 @@ import { Send, Paperclip } from "lucide-react";
 
 interface MessageInputProps {
   onSendMessage: (message: string) => void;
+  onTyping?: () => void;
   disabled?: boolean;
   placeholder?: string;
 }
 
 export function MessageInput({
   onSendMessage,
+  onTyping,
   disabled = false,
   placeholder = "Type a message...",
 }: MessageInputProps) {
@@ -26,9 +28,15 @@ export function MessageInput({
     }
   };
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setMessage(e.target.value);
+    if (e.target.value && onTyping) {
+      onTyping();
+    }
+  };
+
   const handleAttachment = () => {
     // TODO: Implement file attachment
-    console.log("Attachment clicked");
   };
 
   return (
@@ -37,7 +45,7 @@ export function MessageInput({
         <div className="flex-1 relative">
           <Input
             value={message || ""}
-            onChange={(e) => setMessage(e.target.value)}
+            onChange={handleChange}
             placeholder={placeholder}
             className="w-full pr-24 py-3 px-4 rounded-xl border border-gray-200 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
             disabled={disabled}

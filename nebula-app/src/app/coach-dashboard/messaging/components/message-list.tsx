@@ -6,7 +6,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface MessageListProps {
   messages: any[];
-  currentUserId?: string;
 }
 
 export function MessageList({ messages }: MessageListProps) {
@@ -100,7 +99,9 @@ function MessageBubble({ message, isOwnMessage }: MessageBubbleProps) {
       {isOwnMessage && (
         <div className="flex-shrink-0">
           <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-            <span className="text-xs font-medium text-primary">M</span>
+            <span className="text-xs font-medium text-primary">
+              {message.sender?.charAt(0) || "U"}
+            </span>
           </div>
         </div>
       )}

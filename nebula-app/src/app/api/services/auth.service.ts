@@ -28,7 +28,7 @@ export class AuthService {
 
   static async verifyPassword(
     password: string,
-    hashedPassword: string
+    hashedPassword: string,
   ): Promise<boolean> {
     return bcrypt.compare(password, hashedPassword);
   }
@@ -41,12 +41,12 @@ export class AuthService {
       throw new HttpException(
         RESPONSE_CODE.USER_ALREADY_EXIST,
         "An account with this email already exists",
-        400
+        400,
       );
     }
 
     const hashedPassword = await this.hashPassword(password);
-    
+
     // Generate verification token
     const verificationToken = crypto.randomBytes(32).toString("hex");
     const verificationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
@@ -66,17 +66,17 @@ export class AuthService {
     // Send verification email
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
     const verificationUrl = `${baseUrl}/verify-email?token=${verificationToken}`;
-    
+
     await EmailService.sendVerificationEmail(
       email,
       fullName || "Nebula User",
-      verificationUrl
+      verificationUrl,
     );
 
     return sendSuccess(
       { user },
       "Account created. Please check your email to verify your account.",
-      201
+      201,
     );
   }
 
@@ -90,7 +90,7 @@ export class AuthService {
 
     const isValidPassword = await this.verifyPassword(
       password,
-      user.hashedPassword
+      user.hashedPassword,
     );
     if (!isValidPassword) {
       throw new UnauthorizedException("Invalid email or password");
@@ -98,7 +98,7 @@ export class AuthService {
 
     if (user.status === "PENDING") {
       throw new UnauthorizedException(
-        "Please verify your email address to sign in"
+        "Please verify your email address to sign in",
       );
     }
 
@@ -119,7 +119,7 @@ export class AuthService {
       throw new HttpException(
         RESPONSE_CODE.VALIDATION_ERROR,
         "Invalid or expired verification token",
-        400
+        400,
       );
     }
 
@@ -130,7 +130,7 @@ export class AuthService {
       throw new HttpException(
         RESPONSE_CODE.VALIDATION_ERROR,
         "Verification token has expired",
-        400
+        400,
       );
     }
 
@@ -144,7 +144,10 @@ export class AuthService {
       },
     });
 
-    return sendSuccess(null, "Email verified successfully. You can now sign in.");
+    return sendSuccess(
+      null,
+      "Email verified successfully. You can now sign in.",
+    );
   }
 
   static async googleAuth(data: GoogleAuthData) {
@@ -171,7 +174,7 @@ export class AuthService {
       const accessToken = this.generateAccessToken(user.id);
       return sendSuccess(
         { accessToken, user },
-        "Account linked and signed in successfully"
+        "Account linked and signed in successfully",
       );
     }
 
@@ -194,7 +197,7 @@ export class AuthService {
     return sendSuccess(
       { accessToken, user },
       "Account created successfully",
-      201
+      201,
     );
   }
 
@@ -241,7 +244,7 @@ export class AuthService {
   static async updateProfile(userId: string, data: any) {
     try {
       // Only allow updating specific fields for security
-      const allowedFields = ['fullName', 'avatarUrl'];
+      const allowedFields = ["fullName", "avatarUrl"];
       const updateData: any = {};
 
       for (const field of allowedFields) {
@@ -254,7 +257,7 @@ export class AuthService {
         throw new HttpException(
           RESPONSE_CODE.VALIDATION_ERROR,
           "No valid fields provided for update",
-          400
+          400,
         );
       }
 
@@ -267,7 +270,7 @@ export class AuthService {
           email: true,
           avatarUrl: true,
           role: true,
-        }
+        },
       });
 
       return sendSuccess({ user: updatedUser }, "Profile updated successfully");
@@ -278,7 +281,7 @@ export class AuthService {
       throw new HttpException(
         RESPONSE_CODE.INTERNAL_SERVER_ERROR,
         "Failed to update profile",
-        500
+        500,
       );
     }
   }
@@ -293,7 +296,7 @@ export class AuthService {
         select: {
           id: true,
           hashedPassword: true,
-        }
+        },
       });
 
       if (!user) {
@@ -304,14 +307,14 @@ export class AuthService {
         throw new HttpException(
           RESPONSE_CODE.VALIDATION_ERROR,
           "Cannot change password for accounts signed in with Google",
-          400
+          400,
         );
       }
 
       // Verify current password
       const isValidPassword = await this.verifyPassword(
         currentPassword,
-        user.hashedPassword
+        user.hashedPassword,
       );
 
       if (!isValidPassword) {
@@ -324,7 +327,7 @@ export class AuthService {
       // Update password
       await prisma.user.update({
         where: { id: userId },
-        data: { hashedPassword }
+        data: { hashedPassword },
       });
 
       return sendSuccess(null, "Password changed successfully");
@@ -335,14 +338,14 @@ export class AuthService {
       throw new HttpException(
         RESPONSE_CODE.INTERNAL_SERVER_ERROR,
         "Failed to change password",
-        500
+        500,
       );
     }
   }
 
   static async forgotPassword(email: string) {
     const user = await this.findUserByEmail(email);
-    
+
     // We don't want to reveal if the email exists for security (standard practice)
     // But we check if the user exists and has a password
     if (user && user.hashedPassword) {
@@ -354,17 +357,21 @@ export class AuthService {
         data: { resetToken, resetTokenExpires },
       });
 
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+      const baseUrl =
+        process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
       const resetUrl = `${baseUrl}/reset-password?token=${resetToken}`;
 
       await EmailService.sendPasswordResetEmail(
         email,
         user.fullName || "Nebula User",
-        resetUrl
+        resetUrl,
       );
     }
 
-    return sendSuccess(null, "If an account exists with that email, we've sent instructions to reset your password.");
+    return sendSuccess(
+      null,
+      "If an account exists with that email, we've sent instructions to reset your password.",
+    );
   }
 
   static async resetPassword(token: string, data: any) {
@@ -372,11 +379,14 @@ export class AuthService {
       where: { resetToken: token },
     });
 
-    if (!user || (user.resetTokenExpires && user.resetTokenExpires < new Date())) {
+    if (
+      !user ||
+      (user.resetTokenExpires && user.resetTokenExpires < new Date())
+    ) {
       throw new HttpException(
         RESPONSE_CODE.VALIDATION_ERROR,
         "Invalid or expired reset token",
-        400
+        400,
       );
     }
 
@@ -391,6 +401,9 @@ export class AuthService {
       },
     });
 
-    return sendSuccess(null, "Password successfully reset. You can now sign in with your new password.");
+    return sendSuccess(
+      null,
+      "Password successfully reset. You can now sign in with your new password.",
+    );
   }
 }

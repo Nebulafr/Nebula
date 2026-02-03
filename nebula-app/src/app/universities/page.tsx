@@ -19,9 +19,11 @@ import { Footer } from "@/components/layout/footer";
 import { useTranslations } from "next-intl";
 import { universityLogosArray } from "@/lib/images/universities";
 import { Header } from "@/components/layout/header";
+import { useRouter } from "next/navigation";
 
 export default function UniversitiesPage() {
   const t = useTranslations("universities");
+  const router = useRouter();
   const schoolLogos = universityLogosArray;
 
   const benefits = [
@@ -248,6 +250,7 @@ export default function UniversitiesPage() {
                 size="lg"
                 variant="secondary"
                 className="bg-white text-primary hover:bg-white/90"
+                onClick={() => router.push("/help-center/contact")}
               >
                 {t("cta.button")}
               </Button>
