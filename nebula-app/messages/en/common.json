@@ -16,6 +16,8 @@
     "login": "Log In",
     "signup": "Sign Up",
     "getStarted": "Get Started",
+    "fullName": "Full Name",
+    "optional": "Optional",
     "onboarding": {
       "student": {
         "step1": {

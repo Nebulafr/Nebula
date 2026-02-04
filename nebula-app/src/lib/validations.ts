@@ -90,6 +90,13 @@ export const bookSessionSchema = z.object({
   date: z.string(),
   startTime: z.string(),
   duration: z.number().default(60),
+  timezone: z.string().optional(),
+});
+
+export const rescheduleSessionSchema = z.object({
+  date: z.string(),
+  startTime: z.string(),
+  timezone: z.string().optional(),
 });
 
 export const createReviewSchema = z.object({
@@ -177,6 +184,7 @@ export const updateStudentSchema = z.object({
 });
 
 export const createCoachSchema = z.object({
+  fullName: z.string().min(1, "Full name is required").max(100),
   email: z.string().email("Valid email is required"),
   title: z.string().min(1, "Title is required").max(100),
   bio: z.string().min(10, "Bio must be at least 10 characters").max(1000),
@@ -197,6 +205,7 @@ export const createCoachSchema = z.object({
 });
 
 export const updateCoachProfileSchema = z.object({
+  fullName: z.string().min(1, "Full name is required").max(100),
   title: z.string().min(1, "Title is required").max(100),
   bio: z.string().min(10, "Bio must be at least 10 characters").max(1000),
   style: z.string().min(1, "Coaching style is required"),

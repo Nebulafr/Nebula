@@ -68,6 +68,7 @@ function CoachOnboardingStep5Content() {
       const specialties = specialtiesParam ? JSON.parse(specialtiesParam) : [];
 
       const coachData = {
+        fullName: profile.fullName || "",
         email: profile.email as string,
         userId: profile.id,
         title: role || "",

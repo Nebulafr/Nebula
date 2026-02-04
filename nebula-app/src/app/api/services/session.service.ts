@@ -14,11 +14,12 @@ interface BookSessionData {
   startTime: string;
   duration?: number;
   studentUserId: string;
+  timezone?: string;
 }
 
 export class SessionService {
   static async bookSession(data: BookSessionData) {
-    const { coachId, date, startTime, duration = 60, studentUserId } = data;
+    const { coachId, date, startTime, duration = 60, studentUserId, timezone: providedTimezone } = data;
 
     // Get coach with Google Calendar tokens and user details
     const coach = await prisma.coach.findUnique({
@@ -61,7 +62,7 @@ export class SessionService {
     }
 
     // Calculate session times
-    const timezone = student.timeZone || "UTC";
+    const timezone = providedTimezone || student.timeZone || "UTC";
     const sessionDateTime = moment.tz(
       `${date.split("T")[0]} ${startTime}`,
       "YYYY-MM-DD HH:mm",
@@ -75,6 +76,13 @@ export class SessionService {
     const sessionEndTime = sessionDateTime.clone().add(duration, "minutes");
     const sessionStartDate = sessionDateTime.toDate();
     const sessionEndDate = sessionEndTime.toDate();
+
+    // Check for availability
+    await this.verifyCoachAvailability(
+      coach,
+      sessionDateTime,
+      duration
+    );
 
     // Check for conflicts
     await this.checkForConflictingSessions(
@@ -139,6 +147,58 @@ export class SessionService {
         : "Session booked successfully",
       201
     );
+  }
+
+  private static async verifyCoachAvailability(
+    coach: any,
+    sessionDateTime: moment.Moment,
+    duration: number
+  ) {
+    if (!coach.availability) {
+      // If no availability is set, we might want to allow booking or block it.
+      // For now, let's assume it's required for booking.
+      return;
+    }
+
+    try {
+      const availability = JSON.parse(coach.availability);
+      const dayName = sessionDateTime.format("dddd").toLowerCase();
+      const dayAvail = availability[dayName];
+
+      if (!dayAvail || !dayAvail.enabled) {
+        throw new BadRequestException(`Coach is not available on ${dayName}`);
+      }
+
+      const [startHour, startMinute] = dayAvail.startTime.split(":").map(Number);
+      const [endHour, endMinute] = dayAvail.endTime.split(":").map(Number);
+
+      const slotStartMinutes =
+        sessionDateTime.hours() * 60 + sessionDateTime.minutes();
+      const slotEndMinutes = slotStartMinutes + duration;
+
+      const availStartMinutes = startHour * 60 + startMinute;
+      const availEndMinutes = endHour * 60 + endMinute;
+
+      if (
+        slotStartMinutes < availStartMinutes ||
+        slotEndMinutes > availEndMinutes
+      ) {
+        throw new BadRequestException(
+          `Requested time ${sessionDateTime.format("HH:mm")} - ${sessionDateTime
+            .clone()
+            .add(duration, "minutes")
+            .format("HH:mm")} is outside of coach's available hours (${
+            dayAvail.startTime
+          } - ${dayAvail.endTime})`
+        );
+      }
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      console.error("Error parsing coach availability:", error);
+      // If JSON parsing fails, we might want to log it and skip validation or block
+    }
   }
 
   private static async checkForConflictingSessions(
@@ -583,7 +643,52 @@ export class SessionService {
         notes: reason ? `Cancellation reason: ${reason}` : "Session cancelled",
         updatedAt: new Date(),
       },
+      include: {
+        coach: {
+          include: {
+            user: true,
+          },
+        },
+        attendance: {
+          include: {
+            student: {
+              include: {
+                user: true,
+              },
+            },
+          },
+        },
+      },
     });
+
+    // Handle Google Calendar deletion if applicable
+    if (session.googleEventId && session.coach.googleCalendarAccessToken) {
+      try {
+        await this.deleteGoogleCalendarEvent(
+          session.coach,
+          session.googleEventId
+        );
+      } catch (error) {
+        console.error("Error deleting Google Calendar event:", error);
+      }
+    }
+
+    // Send email notifications
+    const student = session.attendance[0]?.student;
+    if (session.coach.user?.email && student?.user?.email) {
+      await EmailService.sendSessionCancelledEmails(
+        session.coach.user.email,
+        student.user.email,
+        {
+          studentName: student.user.fullName || "Student",
+          coachName: session.coach.user.fullName || "Coach",
+          sessionDate: session.scheduledTime.toISOString(),
+          duration: session.duration,
+          reason,
+          cancelledBy: userRole === "COACH" ? session.coach.user.fullName || "Coach" : student.user.fullName || "Student",
+        }
+      );
+    }
 
     return sendSuccess(
       { session: this.transformSession(cancelledSession) },
@@ -591,9 +696,237 @@ export class SessionService {
     );
   }
 
+  private static async deleteGoogleCalendarEvent(coach: any, eventId: string) {
+    const { deleteCalendarEvent } = await import("@/lib/google-api");
+    const result = await deleteCalendarEvent(
+      eventId,
+      coach.googleCalendarAccessToken,
+      coach.googleCalendarRefreshToken
+    );
+
+    if (result.newAccessToken) {
+      await prisma.coach.update({
+        where: { id: coach.id },
+        data: { googleCalendarAccessToken: result.newAccessToken },
+      });
+    }
+  }
+
+
   private static transformSessions(sessions: any[]) {
     return sessions.map((session) => this.transformSession(session));
   }
+
+  static async rescheduleSession({
+    sessionId,
+    date,
+    startTime,
+    userId,
+    userRole,
+    timezone: providedTimezone,
+  }: {
+    sessionId: string;
+    date: string;
+    startTime: string;
+    userId: string;
+    userRole: string;
+    timezone?: string;
+  }) {
+    const session = await prisma.session.findUnique({
+      where: { id: sessionId },
+      include: {
+        coach: true,
+        attendance: {
+          include: {
+            student: {
+              include: {
+                user: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!session) {
+      throw new NotFoundException("Session not found");
+    }
+
+    // Check permissions
+    const hasPermission =
+      userRole === "ADMIN" ||
+      (userRole === "COACH" && session.coach.userId === userId) ||
+      (userRole === "STUDENT" &&
+        session.attendance.some((att) => att.student.userId === userId));
+
+    if (!hasPermission) {
+      throw new BadRequestException(
+        "You don't have permission to reschedule this session"
+      );
+    }
+
+    if (session.status !== "SCHEDULED") {
+      throw new BadRequestException(
+        `Cannot reschedule a session that is ${session.status.toLowerCase()}`
+      );
+    }
+
+    const { coach } = session;
+    const student = session.attendance[0]?.student;
+
+    // Parse new time
+    // Parse date and time correctly. If date is ISO, extract only the date part to avoid timezone shifts
+    const timezone = providedTimezone || student?.timeZone || "UTC";
+    const datePart = moment(date).format("YYYY-MM-DD");
+    const sessionDateTime = moment.tz(
+      `${datePart} ${startTime}`,
+      "YYYY-MM-DD HH:mm",
+      timezone
+    );
+    const sessionEndTime = sessionDateTime.clone().add(session.duration, "minutes");
+    const sessionStartDate = sessionDateTime.toDate();
+    const sessionEndDate = sessionEndTime.toDate();
+
+    // Check for availability
+    await this.verifyCoachAvailability(
+      coach,
+      sessionDateTime,
+      session.duration
+    );
+
+    // Check for conflicts
+    const conflictingSessions = await prisma.session.findMany({
+      where: {
+        coachId: coach.id,
+        status: "SCHEDULED",
+        id: { not: sessionId }, // Exclude current session
+        OR: [
+          {
+            AND: [
+              { scheduledTime: { lte: sessionStartDate } },
+              {
+                scheduledTime: {
+                  gte: new Date(
+                    sessionStartDate.getTime() - 60000 * session.duration
+                  ),
+                },
+              },
+            ],
+          },
+          {
+            AND: [
+              { scheduledTime: { gte: sessionStartDate } },
+              { scheduledTime: { lt: sessionEndDate } },
+            ],
+          },
+        ],
+      },
+    });
+
+    if (conflictingSessions.length > 0) {
+      throw new BadRequestException(
+        "The new time slot conflicts with an existing session"
+      );
+    }
+
+    // Update session
+    const updatedSession = await prisma.session.update({
+      where: { id: sessionId },
+      data: {
+        scheduledTime: sessionStartDate,
+        updatedAt: new Date(),
+      },
+      include: {
+        coach: {
+          include: {
+            user: {
+              select: {
+                fullName: true,
+                email: true,
+                avatarUrl: true,
+              },
+            },
+          },
+        },
+        attendance: {
+          include: {
+            student: {
+              include: {
+                user: {
+                  select: {
+                    fullName: true,
+                    email: true,
+                    avatarUrl: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // Handle Google Calendar update if applicable
+    if (session.googleEventId && coach.googleCalendarAccessToken) {
+      try {
+        await this.updateGoogleCalendarEvent(
+          coach,
+          session.googleEventId,
+          sessionDateTime,
+          sessionEndTime
+        );
+      } catch (error) {
+        console.error("Error updating Google Calendar event:", error);
+      }
+    }
+
+    // Send email notifications
+    if (updatedSession.coach.user?.email && student?.user?.email) {
+      await EmailService.sendSessionRescheduledEmails(
+        updatedSession.coach.user.email,
+        student.user.email,
+        {
+          studentName: student.user.fullName || "Student",
+          coachName: updatedSession.coach.user.fullName || "Coach",
+          sessionDate: sessionStartDate.toISOString(),
+          oldDate: session.scheduledTime.toISOString(),
+          duration: session.duration,
+          rescheduledBy: userRole === "COACH" ? updatedSession.coach.user.fullName || "Coach" : student.user.fullName || "Student",
+          meetLink: session.meetLink || undefined,
+        }
+      );
+    }
+
+    return sendSuccess(
+      { session: this.transformSession(updatedSession) },
+      "Session rescheduled successfully"
+    );
+  }
+
+
+  private static async updateGoogleCalendarEvent(
+    coach: any,
+    eventId: string,
+    startTime: moment.Moment,
+    endTime: moment.Moment
+  ) {
+    const { updateCalendarEvent } = await import("@/lib/google-api");
+    const result = await updateCalendarEvent(
+      eventId,
+      startTime.toISOString(),
+      endTime.toISOString(),
+      coach.googleCalendarAccessToken,
+      coach.googleCalendarRefreshToken
+    );
+
+    if (result.newAccessToken) {
+      await prisma.coach.update({
+        where: { id: coach.id },
+        data: { googleCalendarAccessToken: result.newAccessToken },
+      });
+    }
+  }
+
 
   private static transformSession(session: any) {
     return {

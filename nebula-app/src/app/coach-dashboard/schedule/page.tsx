@@ -6,12 +6,19 @@ import { SessionsList } from "./components/appointments-list";
 import { ScheduleStats } from "./components/schedule-stats";
 import { AvailabilitySettings } from "@/components/availability-settings";
 import { Session } from "./components/appointment-item";
-import { useCoachSessions, useCoachStats } from "@/hooks/use-schedule-queries";
 import { toast } from "react-toastify";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar, Settings } from "lucide-react";
-
 import { useTranslations } from "next-intl";
+import { CancelSessionDialog } from "./components/cancel-session-dialog";
+import { RescheduleSessionDialog } from "./components/reschedule-session-dialog";
+import { 
+  useCoachSessions, 
+  useCoachStats, 
+  useCancelCoachSession, 
+  useRescheduleCoachSession 
+} from "@/hooks/use-schedule-queries";
+
 
 export default function SchedulePage() {
   const t = useTranslations("dashboard.coach.schedule");
@@ -42,6 +49,12 @@ export default function SchedulePage() {
     });
   }, [sessions, selectedDate]);
 
+  const { mutateAsync: cancelSession, isPending: isCancelling } = useCancelCoachSession();
+  const { mutateAsync: rescheduleSession, isPending: isRescheduling } = useRescheduleCoachSession();
+
+  const [sessionToCancel, setSessionToCancel] = useState<Session | null>(null);
+  const [sessionToReschedule, setSessionToReschedule] = useState<Session | null>(null);
+
   const handleViewDetails = (session: Session) => {
     console.log("View details for:", session);
   };
@@ -55,12 +68,42 @@ export default function SchedulePage() {
   };
 
   const handleReschedule = (session: Session) => {
-    console.log("Reschedule:", session);
+    setSessionToReschedule(session);
   };
 
   const handleCancel = (session: Session) => {
-    console.log("Cancel:", session);
+    setSessionToCancel(session);
   };
+
+  const onConfirmCancel = async (reason: string) => {
+    if (!sessionToCancel) return;
+    try {
+      await cancelSession({ sessionId: sessionToCancel.id, reason });
+      toast.success(t("list.cancelSuccess") || "Session cancelled successfully");
+      setSessionToCancel(null);
+    } catch (error) {
+      // Error handled by hook
+    }
+  };
+
+  const onConfirmReschedule = async (date: Date, startTime: string) => {
+    if (!sessionToReschedule) return;
+    try {
+      await rescheduleSession({
+        sessionId: sessionToReschedule.id,
+        data: {
+          date: date.toISOString().split("T")[0],
+          startTime,
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        },
+      });
+      toast.success(t("list.rescheduleSuccess") || "Session rescheduled successfully");
+      setSessionToReschedule(null);
+    } catch (error) {
+      // Error handled by hook
+    }
+  };
+
 
   const handleCreateSession = () => {
     //
@@ -85,7 +128,7 @@ export default function SchedulePage() {
           </TabsTrigger>
           <TabsTrigger value="availability" className="gap-2">
             <Settings className="h-4 w-4" />
-            {t("tabs.availability")}
+            {t("tabs.availabilityTab")}
           </TabsTrigger>
         </TabsList>
 
@@ -120,6 +163,23 @@ export default function SchedulePage() {
           </div>
         </TabsContent>
       </Tabs>
+
+      <CancelSessionDialog
+        session={sessionToCancel}
+        isOpen={!!sessionToCancel}
+        onClose={() => setSessionToCancel(null)}
+        onConfirm={onConfirmCancel}
+        isLoading={isCancelling}
+      />
+
+      <RescheduleSessionDialog
+        session={sessionToReschedule}
+        isOpen={!!sessionToReschedule}
+        onClose={() => setSessionToReschedule(null)}
+        onConfirm={onConfirmReschedule}
+        isLoading={isRescheduling}
+      />
     </div>
+
   );
 }

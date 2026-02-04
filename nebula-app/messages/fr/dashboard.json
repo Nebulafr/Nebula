@@ -66,6 +66,7 @@
       "time": "Heure",
       "joinCall": "Rejoindre l'appel",
       "noLink": "Pas de lien",
+      "status": "Statut",
       "noSessionsToday": "Aucune session prévue pour aujourd'hui",
       "recentPayouts": "Paiements récents",
       "payoutCount": "Vous avez effectué {count} paiements ce mois-ci.",
@@ -142,7 +143,7 @@
         "subtitle": "Gérez vos sessions de coaching et votre disponibilité",
         "tabs": {
           "sessions": "Sessions",
-          "availability": "Disponibilité"
+          "availabilityTab": "Disponibilité"
         },
         "stats": {
           "upcoming": "Sessions à venir",
@@ -168,7 +169,9 @@
           "reschedule": "Reprogrammer",
           "cancel": "Annuler",
           "comingSoon": "Bientôt disponible !",
-          "noMeetingLink": "Aucun lien de réunion disponible pour cette session."
+          "noMeetingLink": "Aucun lien de réunion disponible pour cette session.",
+          "cancelSuccess": "Session annulée avec succès",
+          "rescheduleSuccess": "Session reprogrammée avec succès"
         },
         "sessionsList": {
           "title": "Sessions",
@@ -193,6 +196,20 @@
             "reschedule": "Reprogrammer",
             "cancel": "Annuler"
           }
+        },
+        "cancelDialog": {
+          "title": "Annuler la session",
+          "description": "Êtes-vous sûr de vouloir annuler \"{title}\" ? Cette action informera tous les étudiants.",
+          "reasonLabel": "Raison de l'annulation (Optionnel)",
+          "reasonPlaceholder": "ex: Conflit imprévu, raisons de santé...",
+          "confirmButton": "Annuler la session"
+        },
+        "rescheduleDialog": {
+          "title": "Reprogrammer la session",
+          "description": "Sélectionnez une nouvelle date et heure pour \"{title}\".",
+          "dateLabel": "Nouvelle date",
+          "timeLabel": "Nouvelle heure",
+          "confirmButton": "Reprogrammer la session"
         }
       },
       "programs": {
@@ -412,8 +429,10 @@
           "cancel": "Annuler"
         },
         "profile": {
-          "title": "Mon profil",
-          "description": "Mettez à jour les informations de votre profil public.",
+          "title": "Paramètres du profil",
+          "description": "Gérez vos informations de profil public et vos détails de coaching.",
+          "fullName": "Nom complet",
+          "fullNameDescription": "C'est votre nom public affiché aux étudiants.",
           "professionalTitle": "Titre professionnel",
           "professionalTitlePlaceholder": "ex: Ingénieur logiciel senior",
           "hourlyRate": "Taux horaire ($)",
@@ -442,6 +461,7 @@
           "availabilityDesc": "Définissez votre disponibilité hebdomadaire pour les sessions de coaching",
           "save": "Enregistrer les modifications",
           "saving": "Enregistrement...",
+          "saveSuccess": "Profil mis à jour avec succès",
           "errorUpdate": "Échec de la mise à jour du profil",
           "errorUnexpected": "Une erreur inattendue s'est produite"
         },
@@ -491,7 +511,14 @@
         "notAvailable": "Pas disponible",
         "to": "à",
         "saving": "Enregistrement...",
-        "save": "Enregistrer la disponibilité"
+        "save": "Enregistrer la disponibilité",
+        "monday": "Lundi",
+        "tuesday": "Mardi",
+        "wednesday": "Mercredi",
+        "thursday": "Jeudi",
+        "friday": "Vendredi",
+        "saturday": "Samedi",
+        "sunday": "Dimanche"
       }
     },
     "admin": {

@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { bookSessionSchema } from "@/lib/validations";
+import { bookSessionSchema, rescheduleSessionSchema } from "@/lib/validations";
 import { SessionService } from "../services/session.service";
 import {
   BadRequestException,
@@ -41,6 +41,7 @@ export class SessionController {
       startTime: payload.startTime,
       duration: payload.duration,
       studentUserId: user.id,
+      timezone: payload.timezone,
     });
   }
 
@@ -125,5 +126,36 @@ export class SessionController {
       user.role,
       body.reason
     );
+  }
+
+  async rescheduleSession(
+    request: NextRequest,
+    context: { params: Promise<{ sessionId: string }> }
+  ) {
+    const user = (request as any).user;                     
+
+    if (!user) {
+      throw new UnauthorizedException("Authentication required");
+    }
+
+    let body;
+    try {
+      body = await request.json();
+    } catch (error) {
+      throw new BadRequestException("Invalid JSON body");
+    }
+
+    const payload = rescheduleSessionSchema.parse(body);
+
+    const { sessionId } = await context.params;
+
+    return await SessionService.rescheduleSession({
+      sessionId,
+      date: payload.date,
+      startTime: payload.startTime,
+      userId: user.id,
+      userRole: user.role,
+      timezone: payload.timezone,
+    });
   }
 }

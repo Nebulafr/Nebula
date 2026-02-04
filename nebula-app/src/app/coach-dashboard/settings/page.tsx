@@ -29,6 +29,7 @@ export default function CoachSettingsPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState<ProfileFormData>({
+    fullName: "",
     title: "",
     bio: "",
     style: "",
@@ -47,6 +48,7 @@ export default function CoachSettingsPage() {
     if (profile && profile.coach) {
       const coachProfile = profile.coach;
       setFormData({
+        fullName: profile.fullName || "",
         title: coachProfile.title || "",
         bio: coachProfile.bio || "",
         style: coachProfile.style || "",
@@ -148,7 +150,7 @@ export default function CoachSettingsPage() {
 
       if (response.success) {
         // Profile updated successfully
-        toast.success(t("profile.uploadSuccess") || "Profile updated");
+        toast.success(t("profile.saveSuccess") || "Profile updated");
         await refreshUser(); // Refresh user to get updated coach data
       } else {
         toast.error(response.message || t("profile.errorUpdate"));

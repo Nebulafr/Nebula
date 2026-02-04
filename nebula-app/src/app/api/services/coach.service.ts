@@ -147,6 +147,12 @@ export class CoachService {
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")}-${userId.substring(0, 8)}`;
 
+    // Update user's full name if provided
+    await prisma.user.update({
+      where: { id: userId },
+      data: { fullName: data.fullName },
+    });
+
     const newProfile = await prisma.coach.create({
       data: {
         userId,
@@ -170,40 +176,48 @@ export class CoachService {
   }
 
   static async updateCoach(userId: string, data: CoachUpdateData) {
-    const updatedProfile = await prisma.coach.upsert({
-      where: { userId },
-      update: {
-        userId,
-        title: data.title,
-        bio: data.bio,
-        style: data.style,
-        specialties: data.specialties,
-        hourlyRate: data.hourlyRate,
-        pastCompanies: data.pastCompanies || [],
-        linkedinUrl: data.linkedinUrl || null,
-        availability: data.availability,
-        qualifications: data.qualifications || [],
-        experience: data.experience || null,
-        timezone: data.timezone || null,
-        languages: data.languages || [],
-        updatedAt: new Date(),
-      },
-      create: {
-        userId,
-        title: data.title,
-        bio: data.bio,
-        style: data.style,
-        specialties: data.specialties,
-        hourlyRate: data.hourlyRate,
-        pastCompanies: data.pastCompanies || [],
-        linkedinUrl: data.linkedinUrl || null,
-        availability: data.availability,
-        qualifications: data.qualifications || [],
-        experience: data.experience || null,
-        timezone: data.timezone || null,
-        languages: data.languages || [],
-        updatedAt: new Date(),
-      },
+    const updatedProfile = await prisma.$transaction(async (tx) => {
+      // Update user's full name
+      await tx.user.update({
+        where: { id: userId },
+        data: { fullName: data.fullName },
+      });
+
+      return await tx.coach.upsert({
+        where: { userId },
+        update: {
+          userId,
+          title: data.title,
+          bio: data.bio,
+          style: data.style,
+          specialties: data.specialties,
+          hourlyRate: data.hourlyRate,
+          pastCompanies: data.pastCompanies || [],
+          linkedinUrl: data.linkedinUrl || null,
+          availability: data.availability,
+          qualifications: data.qualifications || [],
+          experience: data.experience || null,
+          timezone: data.timezone || null,
+          languages: data.languages || [],
+          updatedAt: new Date(),
+        },
+        create: {
+          userId,
+          title: data.title,
+          bio: data.bio,
+          style: data.style,
+          specialties: data.specialties,
+          hourlyRate: data.hourlyRate,
+          pastCompanies: data.pastCompanies || [],
+          linkedinUrl: data.linkedinUrl || null,
+          availability: data.availability,
+          qualifications: data.qualifications || [],
+          experience: data.experience || null,
+          timezone: data.timezone || null,
+          languages: data.languages || [],
+          updatedAt: new Date(),
+        },
+      });
     });
 
     return sendSuccess(updatedProfile, "Coach profile updated successfully");

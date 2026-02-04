@@ -16,6 +16,8 @@
     "login": "Connexion",
     "signup": "S'inscrire",
     "getStarted": "Commencer",
+    "fullName": "Nom complet",
+    "optional": "Facultatif",
     "onboarding": {
       "student": {
         "step1": {

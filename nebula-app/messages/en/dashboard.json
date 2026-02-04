@@ -66,6 +66,7 @@
       "time": "Time",
       "joinCall": "Join Call",
       "noLink": "No Link",
+      "status": "Status",
       "noSessionsToday": "No sessions scheduled for today",
       "recentPayouts": "Recent Payouts",
       "payoutCount": "You made {count} payouts this month.",
@@ -142,7 +143,7 @@
         "subtitle": "Manage your coaching sessions and availability",
         "tabs": {
           "sessions": "Sessions",
-          "availability": "Availability"
+          "availabilityTab": "Availability"
         },
         "stats": {
           "upcoming": "Upcoming Sessions",
@@ -168,7 +169,9 @@
           "reschedule": "Reschedule",
           "cancel": "Cancel",
           "comingSoon": "Coming soon!",
-          "noMeetingLink": "No meeting link available for this session."
+          "noMeetingLink": "No meeting link available for this session.",
+          "cancelSuccess": "Session cancelled successfully",
+          "rescheduleSuccess": "Session rescheduled successfully"
         },
         "sessionsList": {
           "title": "Sessions",
@@ -193,6 +196,20 @@
             "reschedule": "Reschedule",
             "cancel": "Cancel"
           }
+        },
+        "cancelDialog": {
+          "title": "Cancel Session",
+          "description": "Are you sure you want to cancel \"{title}\"? This action will notify all students.",
+          "reasonLabel": "Cancellation Reason (Optional)",
+          "reasonPlaceholder": "e.g., Unexpected conflict, health reasons...",
+          "confirmButton": "Cancel Session"
+        },
+        "rescheduleDialog": {
+          "title": "Reschedule Session",
+          "description": "Select a new date and time for \"{title}\".",
+          "dateLabel": "New Date",
+          "timeLabel": "New Time",
+          "confirmButton": "Reschedule Session"
         }
       },
       "programs": {
@@ -412,8 +429,10 @@
           "cancel": "Cancel"
         },
         "profile": {
-          "title": "My Profile",
-          "description": "Update your public profile information.",
+          "title": "Profile Settings",
+          "description": "Manage your public profile information and coaching details.",
+          "fullName": "Full Name",
+          "fullNameDescription": "This is your public name displayed to students.",
           "professionalTitle": "Professional Title",
           "professionalTitlePlaceholder": "e.g., Senior Software Engineer",
           "hourlyRate": "Hourly Rate ($)",
@@ -442,6 +461,7 @@
           "availabilityDesc": "Set your weekly availability for coaching sessions",
           "save": "Save Changes",
           "saving": "Saving...",
+          "saveSuccess": "Profile updated successfully",
           "errorUpdate": "Failed to update profile",
           "errorUnexpected": "An unexpected error occurred"
         },
@@ -491,7 +511,14 @@
         "notAvailable": "Not available",
         "to": "to",
         "saving": "Saving...",
-        "save": "Save Availability"
+        "save": "Save Availability",
+        "monday": "Monday",
+        "tuesday": "Tuesday",
+        "wednesday": "Wednesday",
+        "thursday": "Thursday",
+        "friday": "Friday",
+        "saturday": "Saturday",
+        "sunday": "Sunday"
       }
     },
     "admin": {

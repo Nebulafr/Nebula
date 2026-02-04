@@ -5,6 +5,7 @@ import {
   createCoachSession,
   updateCoachSession,
   cancelCoachSession,
+  rescheduleCoachSession,
   getCoachAvailability,
   saveCoachAvailability,
   DayAvailability,
@@ -102,6 +103,30 @@ export function useCancelCoachSession() {
     },
     onError: (error: any) => {
       handleAndToastError(error, "Failed to cancel session.");
+    },
+  });
+}
+
+export function useRescheduleCoachSession() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      sessionId,
+      data,
+    }: {
+      sessionId: string;
+      data: {
+        date: string;
+        startTime: string;
+        timezone?: string;
+      };
+    }) => rescheduleCoachSession(sessionId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [COACH_SESSIONS_QUERY_KEY] });
+    },
+    onError: (error: any) => {
+      handleAndToastError(error, "Failed to reschedule session.");
     },
   });
 }

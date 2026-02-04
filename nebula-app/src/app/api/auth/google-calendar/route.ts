@@ -8,14 +8,14 @@ export async function GET(request: NextRequest) {
   if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
     return NextResponse.json(
       { error: "Missing Google credentials" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 
   const oauth2Client = new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET,
-    `${process.env.NEXTAUTH_URL}/api/auth/google-calendar`
+    `${process.env.NEXTAUTH_URL}/api/auth/google-calendar`,
   );
 
   if (!code) {
@@ -47,8 +47,6 @@ export async function GET(request: NextRequest) {
     const state = searchParams.get("state");
     const stateData = state ? JSON.parse(state) : {};
 
-    console.log({ tokens, stateData });
-
     // Redirect back to admin events page with access token and form state
     const redirectUrl = new URL("/coach-dashboard", process.env.NEXTAUTH_URL);
     redirectUrl.searchParams.set("access_token", tokens.access_token || "");
@@ -61,7 +59,7 @@ export async function GET(request: NextRequest) {
     console.error("Error getting access token:", error);
     return NextResponse.json(
       { error: "Failed to get access token" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

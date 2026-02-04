@@ -23,10 +23,25 @@ import { CoachRoute } from "@/components/auth/protected-route";
 import { useAuth } from "@/hooks/use-auth";
 import { useSearchParams } from "next/navigation";
 import { useEffect, Suspense } from "react";
-
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { cn, apiPost } from "@/lib/utils";
 import { toast } from "react-toastify";
-import { apiPost } from "@/lib/utils";
-import { useCoachSessions, useCoachStats } from "@/hooks/use-session-queries";
+import {
+  useCoachSessions,
+  useCoachStats,
+  useCancelSession,
+} from "@/hooks/use-session-queries";
 import { getDefaultAvatar } from "@/lib/event-utils";
 import { useTranslations } from "next-intl";
 
@@ -39,6 +54,21 @@ function CoachDashboardContent() {
   const { data: todaySessionsData, isLoading: isLoadingSessions } =
     useCoachSessions("upcoming");
   const { data: statsData } = useCoachStats();
+  const { mutate: cancelSession, isPending: isCancelling } =
+    useCancelSession();
+
+  const handleCancel = (sessionId: string) => {
+    cancelSession(
+      { sessionId },
+      {
+        onSuccess: (result) => {
+          if (result.success) {
+            toast.success(t("sessionCancelled"));
+          }
+        },
+      }
+    );
+  };
 
   const stats = statsData?.data;
 
@@ -173,10 +203,11 @@ function CoachDashboardContent() {
             <CardContent>
               <Table>
                 <TableHeader>
-                  <TableRow>
+                   <TableRow>
                     <TableHead>{t("student")}</TableHead>
                     <TableHead>{t("time")}</TableHead>
-                    <TableHead></TableHead>
+                    <TableHead>{t("status")}</TableHead>
+                    <TableHead className="text-right">{t("payouts.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -225,18 +256,81 @@ function CoachDashboardContent() {
                             }
                           )}
                         </TableCell>
-                        <TableCell>
-                          {session.meetLink ? (
-                            <Button variant="outline" size="sm" asChild>
-                              <Link href={session.meetLink} target="_blank">
-                                {t("joinCall")}
-                              </Link>
-                            </Button>
-                          ) : (
-                            <Button variant="outline" size="sm" disabled>
-                              {t("noLink")}
-                            </Button>
-                          )}
+                         <TableCell>
+                          <Badge
+                            variant={
+                              session.status === "SCHEDULED"
+                                ? "outline"
+                                : "secondary"
+                            }
+                            className={cn(
+                              session.status === "CANCELLED" &&
+                                "bg-red-50 text-red-700 border-red-200"
+                            )}
+                          >
+                            {session.status?.charAt(0) +
+                              session.status?.slice(1).toLowerCase()}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            {session.status === "SCHEDULED" && (
+                              <>
+                                {session.meetLink ? (
+                                  <Button variant="outline" size="sm" asChild>
+                                    <Link href={session.meetLink} target="_blank">
+                                      {t("joinCall")}
+                                    </Link>
+                                  </Button>
+                                ) : (
+                                  <Button variant="outline" size="sm" disabled>
+                                    {t("noLink")}
+                                  </Button>
+                                )}
+
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                      disabled={isCancelling}
+                                    >
+                                      {isCancelling ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                      ) : (
+                                        t("schedule.list.cancel")
+                                      )}
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>
+                                        {t("schedule.sessionItem.actions.cancel")}
+                                      </AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        Are you sure you want to cancel this
+                                        coaching session with{" "}
+                                        {session.students[0]?.fullName}? This
+                                        action cannot be undone.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>
+                                        {tc("cancel")}
+                                      </AlertDialogCancel>
+                                      <AlertDialogAction
+                                        onClick={() => handleCancel(session.id)}
+                                        className="bg-red-600 hover:bg-red-700"
+                                      >
+                                        {t("schedule.sessionItem.actions.cancel")}
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              </>
+                            )}
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))

@@ -28,12 +28,27 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { useStudentSessions } from "@/hooks/use-session-queries";
+import {
+  useStudentSessions,
+  useCancelSession,
+} from "@/hooks/use-session-queries";
 import { getDefaultAvatar } from "@/lib/event-utils";
 import {
   useActiveEnrollments,
   useCompletedEnrollments,
 } from "@/hooks/use-enrollment-queries";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { toast } from "react-toastify";
 
 function getMaterialIcon(type: string) {
   switch (type.toLowerCase()) {
@@ -60,6 +75,22 @@ function SessionCard({
   const currentTime = new Date();
   const isSessionPast = sessionDate < currentTime;
 
+  const { mutate: cancelSession, isPending: isCancelling } =
+    useCancelSession();
+
+  const handleCancel = () => {
+    cancelSession(
+      { sessionId: session.id },
+      {
+        onSuccess: (result) => {
+          if (result.success) {
+            toast.success("Session cancelled successfully");
+          }
+        },
+      }
+    );
+  };
+
   return (
     <Card
       className={cn("relative overflow-hidden", isNext && "border-primary")}
@@ -70,7 +101,7 @@ function SessionCard({
         </div>
       )}
       <CardContent className="p-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 items-center gap-6">
           <div className="md:col-span-1 flex items-center gap-4">
             <Avatar className="h-16 w-16">
               <AvatarImage
@@ -93,7 +124,7 @@ function SessionCard({
             </div>
           </div>
 
-          <div className="md:col-span-1 grid grid-cols-3 gap-4 text-sm">
+          <div className="md:col-span-2 grid grid-cols-3 gap-4 text-sm">
             <div>
               <p className="text-muted-foreground font-semibold">Time</p>
               <p>
@@ -108,26 +139,74 @@ function SessionCard({
               <p>{sessionDate.toLocaleDateString()}</p>
             </div>
             <div>
-              <p className="text-muted-foreground font-semibold">Session</p>
-              <p>
+              <p className="text-muted-foreground font-semibold">Status</p>
+              <Badge
+                variant={
+                  session.status === "SCHEDULED" ? "outline" : "secondary"
+                }
+                className={cn(
+                  session.status === "CANCELLED" &&
+                    "bg-red-50 text-red-700 border-red-200"
+                )}
+              >
                 {session.status?.charAt(0) +
                   session.status?.slice(1).toLowerCase()}
-              </p>
+              </Badge>
             </div>
           </div>
 
-          <div className="md:col-span-1 flex items-center justify-end gap-2">
+          <div className="md:col-span-1 flex flex-col sm:flex-row items-center justify-end gap-2">
             {!isSessionPast &&
               session.status === "SCHEDULED" &&
               session.meetLink && (
-                <Button asChild>
+                <Button asChild className="w-full sm:w-auto">
                   <Link href={session.meetLink} target="_blank">
                     <Computer className="mr-2 h-4 w-4" />
-                    Join Meeting
+                    Join
                   </Link>
                 </Button>
               )}
-            {isSessionPast && <Badge variant="secondary">Completed</Badge>}
+
+            {!isSessionPast && session.status === "SCHEDULED" && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full sm:w-auto text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                    disabled={isCancelling}
+                  >
+                    {isCancelling ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      "Cancel"
+                    )}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Cancel Session</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to cancel this coaching session
+                      with {session.coach?.fullName}? This action cannot be
+                      undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Keep Session</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleCancel}
+                      className="bg-red-600 hover:bg-red-700"
+                    >
+                      Yes, Cancel Session
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+
+            {isSessionPast && session.status !== "CANCELLED" && (
+              <Badge variant="secondary">Completed</Badge>
+            )}
           </div>
         </div>
       </CardContent>

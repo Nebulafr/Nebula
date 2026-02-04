@@ -151,3 +151,112 @@ export async function createCalendarEvent(
     throw new Error("Failed to create Google Calendar event.");
   }
 }
+/**
+ * Updates an existing Google Calendar event.
+ * @param {string} eventId - The ID of the event to update.
+ * @param {string} startTime - The new start time in ISO 8601 format.
+ * @param {string} endTime - The new end time in ISO 8601 format.
+ * @param {string} accessToken - Google OAuth2 access token.
+ * @param {string} refreshToken - Google OAuth2 refresh token (optional).
+ * @returns {Promise<{ newAccessToken?: string }>} - Optionally a new access token if refreshed.
+ */
+export async function updateCalendarEvent(
+  eventId: string,
+  startTime: string,
+  endTime: string,
+  accessToken: string,
+  refreshToken?: string
+): Promise<{ newAccessToken?: string }> {
+  const auth = new google.auth.OAuth2(
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_SECRET,
+    `${process.env.NEXTAUTH_URL}/coach-dashboard`
+  );
+
+  auth.setCredentials({
+    access_token: accessToken,
+    refresh_token: refreshToken,
+  });
+
+  const calendar = google.calendar({ version: "v3", auth });
+
+  try {
+    await calendar.events.patch({
+      calendarId: "primary",
+      eventId: eventId,
+      requestBody: {
+        start: { dateTime: startTime, timeZone: "UTC" },
+        end: { dateTime: endTime, timeZone: "UTC" },
+      },
+    });
+
+    const credentials = auth.credentials;
+    const newAccessToken = credentials.access_token !== accessToken ? credentials.access_token : undefined;
+
+    return { newAccessToken: newAccessToken as string | undefined };
+  } catch (error: any) {
+    console.error("Error updating Google Calendar event:", error);
+    if (error.code === 401 && refreshToken) {
+      await auth.refreshAccessToken();
+      const retryResponse = await calendar.events.patch({
+        calendarId: "primary",
+        eventId: eventId,
+        requestBody: {
+          start: { dateTime: startTime, timeZone: "UTC" },
+          end: { dateTime: endTime, timeZone: "UTC" },
+        },
+      });
+      return { newAccessToken: auth.credentials.access_token as string };
+    }
+    throw new Error("Failed to update Google Calendar event.");
+  }
+}
+
+/**
+ * Deletes an existing Google Calendar event.
+ * @param {string} eventId - The ID of the event to delete.
+ * @param {string} accessToken - Google OAuth2 access token.
+ * @param {string} refreshToken - Google OAuth2 refresh token (optional).
+ * @returns {Promise<{ newAccessToken?: string }>} - Optionally a new access token if refreshed.
+ */
+export async function deleteCalendarEvent(
+  eventId: string,
+  accessToken: string,
+  refreshToken?: string
+): Promise<{ newAccessToken?: string }> {
+  const auth = new google.auth.OAuth2(
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_SECRET,
+    `${process.env.NEXTAUTH_URL}/coach-dashboard`
+  );
+
+  auth.setCredentials({
+    access_token: accessToken,
+    refresh_token: refreshToken,
+  });
+
+  const calendar = google.calendar({ version: "v3", auth });
+
+  try {
+    await calendar.events.delete({
+      calendarId: "primary",
+      eventId: eventId,
+    });
+
+    const credentials = auth.credentials;
+    const newAccessToken = credentials.access_token !== accessToken ? credentials.access_token : undefined;
+
+    return { newAccessToken: newAccessToken as string | undefined };
+  } catch (error: any) {
+    console.error("Error deleting Google Calendar event:", error);
+    if (error.code === 401 && refreshToken) {
+      await auth.refreshAccessToken();
+      await calendar.events.delete({
+        calendarId: "primary",
+        eventId: eventId,
+      });
+      return { newAccessToken: auth.credentials.access_token as string };
+    }
+    throw new Error("Failed to delete Google Calendar event.");
+  }
+}

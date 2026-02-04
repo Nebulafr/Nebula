@@ -432,10 +432,71 @@ export class EmailService {
     }
   }
 
+  static async sendSessionCancelledEmails(
+    coachEmail: string,
+    studentEmail: string,
+    data: SessionBookingEmailData & { reason?: string; cancelledBy: string }
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      const subject = `Session Cancelled: ${data.studentName} & ${data.coachName}`;
+      
+      const html = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px;">
+          <h2 style="color: #ef4444;">Session Cancelled</h2>
+          <p>The coaching session scheduled for <strong>${new Date(data.sessionDate).toLocaleString()}</strong> has been cancelled by <strong>${data.cancelledBy}</strong>.</p>
+          ${data.reason ? `<p><strong>Reason:</strong> ${data.reason}</p>` : ""}
+          <p>If you have any questions, please contact the other party or bridge the gap through our messaging system.</p>
+          <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
+          <p style="font-size: 12px; color: #6b7280;">© ${new Date().getFullYear()} Nebula. All rights reserved.</p>
+        </div>
+      `;
+
+      const coachResult = await this.sendEmail({ to: coachEmail, subject, html });
+      const studentResult = await this.sendEmail({ to: studentEmail, subject, html });
+
+      return { success: coachResult.success && studentResult.success };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  static async sendSessionRescheduledEmails(
+    coachEmail: string,
+    studentEmail: string,
+    data: SessionBookingEmailData & { oldDate: string; rescheduledBy: string }
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      const subject = `Session Rescheduled: ${data.studentName} & ${data.coachName}`;
+      
+      const html = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px;">
+          <h2 style="color: #3b82f6;">Session Rescheduled</h2>
+          <p>The coaching session has been rescheduled by <strong>${data.rescheduledBy}</strong>.</p>
+          <div style="background-color: #f3f4f6; padding: 15px; border-radius: 6px; margin: 20px 0;">
+            <p style="margin: 0;"><strong>Old Time:</strong> ${new Date(data.oldDate).toLocaleString()}</p>
+            <p style="margin: 5px 0 0 0;"><strong>New Time:</strong> ${new Date(data.sessionDate).toLocaleString()}</p>
+            <p style="margin: 5px 0 0 0;"><strong>Duration:</strong> ${data.duration} minutes</p>
+          </div>
+          ${data.meetLink ? `<p><strong>Meeting Link:</strong> <a href="${data.meetLink}">${data.meetLink}</a></p>` : ""}
+          <p style="text-align: center; margin: 30px 0;">
+            <a href="${process.env.NEXTAUTH_URL}/dashboard" style="background-color: #059669; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">View in Dashboard</a>
+          </p>
+          <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
+          <p style="font-size: 12px; color: #6b7280;">© ${new Date().getFullYear()} Nebula. All rights reserved.</p>
+        </div>
+      `;
+
+      const coachResult = await this.sendEmail({ to: coachEmail, subject, html });
+      const studentResult = await this.sendEmail({ to: studentEmail, subject, html });
+
+      return { success: coachResult.success && studentResult.success };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  }
+
   static validateConfiguration(): boolean {
     const requiredEnvVars = [
-      "SMTP_HOST",
-      "SMTP_PORT",
       "SMTP_USER",
       "SMTP_PASSWORD",
     ];

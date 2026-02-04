@@ -1,4 +1,4 @@
-import { apiGet, apiPost, apiPut, apiDelete } from "@/lib/utils";
+import { apiGet, apiPost, apiPut, apiDelete, apiPatch } from "@/lib/utils";
 
 export async function bookCoachSession({
   coachId,
@@ -55,11 +55,22 @@ export async function updateCoachSession(
     notes?: string;
   }
 ) {
-  return apiPut(`/coaches/sessions/${sessionId}`, data, { throwOnError: true });
+  return apiPatch(`/sessions/${sessionId}`, data, { throwOnError: true });
+}
+
+export async function rescheduleCoachSession(
+  sessionId: string,
+  data: {
+    date: string;
+    startTime: string;
+    timezone?: string;
+  }
+) {
+  return apiPost(`/sessions/${sessionId}/reschedule`, data, { throwOnError: true });
 }
 
 export async function cancelCoachSession(sessionId: string, reason?: string) {
-  return apiPut(`/coaches/sessions/${sessionId}/cancel`, { reason }, { throwOnError: true });
+  return apiPost(`/sessions/${sessionId}/cancel`, { reason }, { throwOnError: true });
 }
 
 // Coach availability actions
