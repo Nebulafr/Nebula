@@ -1,7 +1,7 @@
 "use client";
 import { createContext, useEffect, useState, useCallback } from "react";
 import { storeAuthData, clearAuthData } from "@/lib/auth-storage";
-import { makeRequest } from "@/lib/utils";
+import { makeRequest, publicRoutes } from "@/lib/utils";
 import { UserRole } from "@/generated/prisma";
 import { UserProfile, AuthState } from "@/hooks/use-user";
 import { SignupData, SigninData } from "@/lib/validations";
@@ -35,7 +35,10 @@ export interface AuthContextValue {
   signInWithGoogle: (role?: UserRole) => Promise<ApiResponse<AuthResponse>>;
   signOut: () => Promise<void>;
   requestPasswordReset: (email: string) => Promise<ApiResponse<any>>;
-  completePasswordReset: (token: string, data: any) => Promise<ApiResponse<any>>;
+  completePasswordReset: (
+    token: string,
+    data: any,
+  ) => Promise<ApiResponse<any>>;
 }
 
 export const AuthContext = createContext<AuthContextValue | undefined>(
@@ -53,16 +56,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const pathname = usePathname();
 
   const isPublicRoute = useCallback((path: string) => {
-    const publicRoutes = [
-      "/login",
-      "/signup",
-      "/forgot-password",
-      "/reset-password",
-      "/verify-email",
-      "/coach-login",
-      "/coach-signup",
-      "/",
-    ];
     return publicRoutes.some(
       (route) => path === route || path.startsWith(`${route}/`),
     );
@@ -80,12 +73,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return;
       }
 
-    const hasProfile =
-      userData.role === "ADMIN" || userData.coach || userData.student;
-    setAuthState(
-      hasProfile ? "AUTHENTICATED_WITH_PROFILE" : "AUTHENTICATED_NO_PROFILE",
-    );
-  }, [pathname, router, isPublicRoute]);
+      const hasProfile =
+        userData.role === "ADMIN" || userData.coach || userData.student;
+      setAuthState(
+        hasProfile ? "AUTHENTICATED_WITH_PROFILE" : "AUTHENTICATED_NO_PROFILE",
+      );
+    },
+    [pathname, router, isPublicRoute],
+  );
 
   const refreshUser = useCallback(async () => {
     try {

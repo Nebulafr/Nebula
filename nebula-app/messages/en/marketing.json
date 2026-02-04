@@ -93,7 +93,8 @@
     "popular": {
       "title": "Popular Programs",
       "subtitle": "Explore our most sought-after coaching programs designed for success.",
-      "empty": "No popular programs at the moment."
+      "empty": "No popular programs at the moment.",
+      "free": "Free"
     },
     "noProgramsFound": "No Programs Found",
     "noProgramsMatching": "No programs found matching \"{search}\"{category, select, all {} other { in the \"{category}\" category}}.",

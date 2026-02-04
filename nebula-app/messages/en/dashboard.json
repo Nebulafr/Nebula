@@ -209,6 +209,7 @@
             "inactive": "Inactive",
             "rejected": "Rejected"
           },
+          "free": "Free",
           "actions": {
             "edit": "Edit",
             "viewDetails": "View Details",

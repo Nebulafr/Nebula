@@ -574,7 +574,7 @@ function EnrollmentForm({
   if (step === 0) {
     if (isEnrolled) {
       return (
-        <Card className="rounded-xl border shadow-lg">
+        <Card key="enrolled-card" className="rounded-xl border shadow-lg notranslate">
           <CardContent className="p-6 text-center">
             <CheckCircle className="h-12 w-12 mx-auto mb-4 text-green-500" />
             <h3 className="font-headline text-xl font-bold text-green-700">
@@ -594,10 +594,10 @@ function EnrollmentForm({
     }
 
     return (
-      <Card className="rounded-xl border shadow-lg">
+      <Card key={`step-${step}`} className="rounded-xl border shadow-lg notranslate">
         <CardContent className="p-6 text-center">
-          <h3 className="font-headline text-2xl font-bold">{t("readyToStart")}</h3>
-          <p className="text-muted-foreground mt-2 mb-6">{t("readyToStartDesc")}</p>
+          <h3 className="font-headline text-2xl font-bold">{t("bookSession")}</h3>
+          <p className="text-muted-foreground mt-2 mb-6">{t("findTime")}</p>
           {isStudent && (
             <Button size="lg" className="w-full" onClick={onEnroll}>
               <PlusCircle className="mr-2 h-5 w-5" /> {t("bookNow")}
@@ -621,7 +621,7 @@ function EnrollmentForm({
   // Step 1: Weekly time slot picker (combined date and time selection)
   if (step === 1) {
     return (
-      <Card className="rounded-xl border shadow-lg w-[600px]">
+      <Card key={`step-${step}`} className="rounded-xl border shadow-lg w-[600px] notranslate">
         <CardContent className="p-4">
           <div className="flex justify-between items-center mb-4">
             <h3 className="font-headline text-lg font-bold">
@@ -663,7 +663,7 @@ function EnrollmentForm({
   // Step 2: Success state
   if (step === 2) {
     return (
-      <Card className="rounded-xl border-none bg-green-50 text-green-900">
+      <Card key={`step-${step}`} className="rounded-xl border-none bg-green-50 text-green-900 notranslate">
         <CardContent className="p-6 text-center">
           <CheckCircle className="h-12 w-12 mx-auto mb-4" />
           <h3 className="font-headline text-xl font-bold">{t("sessionBooked")}</h3>

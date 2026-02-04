@@ -93,7 +93,8 @@
     "popular": {
       "title": "Programmes Populaires",
       "subtitle": "Explorez nos programmes de coaching les plus demandés, conçus pour la réussite.",
-      "empty": "Aucun programme populaire pour le moment."
+      "empty": "Aucun programme populaire pour le moment.",
+      "free": "Gratuit"
     },
     "noProgramsFound": "Aucun programme trouvé",
     "noProgramsMatching": "Aucun programme trouvé correspondant à \"{search}\"{category, select, all {} other { dans la catégorie \"{category}\"}}.",

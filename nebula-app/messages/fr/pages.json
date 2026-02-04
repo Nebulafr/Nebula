@@ -2,6 +2,10 @@
   "programDetails": {
     "browseAll": "Parcourir tous les programmes",
     "failedSubmitting": "Échec de l'envoi de l'avis. Veuillez réessayer.",
+    "noSchedule": "Veuillez sélectionner une date et une heure pour vous inscrire.",
+    "loginToEnroll": "Veuillez vous connecter pour vous inscrire à ce programme.",
+    "completeProfile": "Veuillez compléter votre profil avant de vous inscrire.",
+    "failedToLoadProgram": "Échec du chargement des détails du programme.",
     "backToPrograms": "Programmes",
     "fallbackCategory": "Programme",
     "enrollNow": "S'inscrire maintenant",
@@ -35,6 +39,7 @@
     "enrollSuccessDesc": "Bienvenue dans le programme. Vous pouvez consulter les détails de votre inscription sur votre tableau de bord.",
     "goToDashboard": "Aller au tableau de bord",
     "programNotFound": "Programme non trouvé",
+    "programNotFoundDesc": "Le programme que vous recherchez n'existe pas ou a été supprimé.",
     "reviewsFor": "Avis pour {title}",
     "programReviewsSummary": "Découvrez ce que les autres étudiants disent de ce programme.",
     "loadingReviews": "Chargement des avis...",
@@ -87,7 +92,12 @@
     "close": "Fermer",
     "goToDashboard": "Aller au tableau de bord",
     "noReviewsYet": "Pas encore d'avis.",
-    "viewAllReviews": "Voir tous les avis"
+    "viewAllReviews": "Voir tous les avis",
+    "backToProfile": "Retour au profil du coach",
+    "reviewsFor": "Avis pour {name}",
+    "reviewsSummary": "Découvrez ce que les autres disent du coaching avec {name}.",
+    "browseCoaches": "Parcourir les coachs",
+    "verified": "Vérifié"
   },
   "reviewsPage": {
     "loading": "Chargement des avis...",

@@ -1,6 +1,7 @@
 import { Info } from "lucide-react";
 import { Event } from "@/types/event";
-import { EventCard } from "./event-card";
+import { WebinarCard } from "@/components/cards/webinar-card";
+import { SocialCard } from "@/components/cards/social-card";
 
 interface EventSectionProps {
   title: string;
@@ -18,12 +19,21 @@ export function EventSection({ title, events }: EventSectionProps) {
       </div>
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         {events.map((event, index) => (
-          <EventCard 
-            key={event.id} 
-            event={event} 
-            index={index}
-            previousIndex={index > 0 ? index - 1 : undefined}
-          />
+          event.eventType === "WEBINAR" ? (
+            <WebinarCard 
+              key={event.id} 
+              event={event} 
+              index={index}
+              previousIndex={index > 0 ? index - 1 : undefined}
+            />
+          ) : (
+            <SocialCard 
+              key={event.id} 
+              event={event} 
+              index={index}
+              previousIndex={index > 0 ? index - 1 : undefined}
+            />
+          )
         ))}
       </div>
     </section>

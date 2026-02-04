@@ -1,5 +1,6 @@
 import React, { ReactNode, CSSProperties } from "react";
 import { Card } from "@/components/ui/card";
+import { FeatureCard } from "@/components/cards/feature-card";
 
 interface FeatureCard {
   icon: ReactNode;
@@ -14,24 +15,13 @@ export function FeaturesSection({ cards }: { cards: FeatureCard[] }) {
       <div className="container">
         <div className="grid gap-8 md:grid-cols-3">
           {cards.map((card, i) => (
-            <Card
+            <FeatureCard
               key={i}
-              className="rounded-xl border p-6 text-card-foreground shadow-md"
-              style={{ backgroundColor: "#FFFEF8" }}
-            >
-              <div
-                className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10"
-                style={card.customStyle}
-              >
-                {card.icon}
-              </div>
-              <h3 className="mt-6 font-headline text-xl font-semibold">
-                {card.title}
-              </h3>
-              <p className="mt-2 text-base text-muted-foreground">
-                {card.description}
-              </p>
-            </Card>
+              icon={card.icon}
+              title={card.title}
+              description={card.description}
+              customStyle={card.customStyle}
+            />
           ))}
         </div>
       </div>

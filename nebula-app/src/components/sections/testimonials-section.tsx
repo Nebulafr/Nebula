@@ -3,6 +3,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useTranslations } from "next-intl";
+import { TestimonialCard } from "@/components/cards/testimonial-card";
 
 export function TestimonialsSection({
   testimonials,
@@ -25,32 +26,13 @@ export function TestimonialsSection({
         </div>
         <div className="mt-12 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
           {testimonials.map((testimonial, index) => (
-            <Card
+            <TestimonialCard
               key={index}
-              className="relative aspect-[4/5] w-full overflow-hidden rounded-xl"
-            >
-              {testimonial.avatar && (
-                <Image
-                  src={testimonial.avatar.imageUrl}
-                  alt={testimonial.avatar.description}
-                  fill
-                  className="object-cover transition-transform duration-300 ease-in-out group-hover:scale-105"
-                  data-ai-hint={testimonial.avatar.imageHint}
-                />
-              )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-              <CardContent className="absolute inset-0 flex flex-col justify-end p-6 text-white">
-                <p className="font-serif text-lg leading-snug">
-                  &quot;{testimonial.testimonial}&quot;
-                </p>
-                <div className="mt-4">
-                  <h4 className="font-headline text-lg font-semibold">
-                    {testimonial.name}
-                  </h4>
-                  <p className="text-sm text-white/80">{testimonial.role}</p>
-                </div>
-              </CardContent>
-            </Card>
+              name={testimonial.name}
+              role={testimonial.role}
+              testimonial={testimonial.testimonial}
+              avatar={testimonial.avatar}
+            />
           ))}
         </div>
         <div className="mt-12 text-center">

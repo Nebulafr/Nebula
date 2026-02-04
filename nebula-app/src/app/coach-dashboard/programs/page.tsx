@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { PlusCircle, Briefcase } from "lucide-react";
 import { usePrograms } from "@/hooks";
 import { useAuth } from "@/hooks/use-auth";
-import { ProgramCard } from "./components/program-card";
+import { CoachProgramCard } from "@/components/cards/coach-program-card";
 
 import { useTranslations } from "next-intl";
 
@@ -86,7 +86,7 @@ export default function CoachProgramsPage() {
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {programs.map((program: any) => (
-            <ProgramCard key={program.id} program={program} />
+            <CoachProgramCard key={program.id} program={program} />
           ))}
         </div>
       )}

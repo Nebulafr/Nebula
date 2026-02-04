@@ -13,48 +13,42 @@ import {
   Loader2,
 } from "lucide-react";
 import Link from "next/link";
-import { Program } from "@/generated/prisma";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiPost, truncateText } from "@/lib/utils";
-import { handleAndToastError } from "@/lib/error-handler";
+import { truncateText } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 
-
-export interface IProgram extends Omit<
-  Program,
-  "category" | "coach" | "rating" | "currentEnrollments"
-> {
+export interface CoachProgramData {
+  id: string;
+  title: string;
+  slug?: string;
+  description: string;
+  status: string;
+  price?: number;
+  rating?: number | null;
+  currentEnrollments?: number;
   category: {
     id: string;
     name: string;
-    slug?: string;
-  };
-  coach: any;
-  modules?: any[];
-  attendees?: string[];
-  otherAttendees?: number;
-  rating?: number | null;
-  currentEnrollments?: number;
-  students?: number;
-  _count?: {
-    enrollments?: number;
-    reviews?: number;
   };
 }
 
-interface ProgramCardProps {
-  program: IProgram;
+interface CoachProgramCardProps {
+  program: CoachProgramData;
+  onAction?: (action: string, program: CoachProgramData) => void;
+  isActionPending?: boolean;
 }
 
-export function ProgramCard({ program }: ProgramCardProps) {
+export function CoachProgramCard({
+  program,
+  onAction,
+  isActionPending,
+}: CoachProgramCardProps) {
   const t = useTranslations("dashboard.coach.programs.card");
-  const queryClient = useQueryClient();
 
   const getStatusBadge = (status: string) => {
     const statusConfig: Record<
@@ -81,22 +75,6 @@ export function ProgramCard({ program }: ProgramCardProps) {
 
   const statusBadge = getStatusBadge(program.status);
 
-  const submitMutation = useMutation({
-    mutationFn: async () => {
-      return apiPost(`/programs/id/${program.id}/submit`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["programs"] });
-    },
-    onError: (error: any) => {
-      handleAndToastError(error, t("submitError"));
-    },
-  });
-
-  const handleSubmit = () => {
-    submitMutation.mutate();
-  };
-
   return (
     <Card className="flex flex-col">
       <CardContent className="p-4 flex flex-col flex-1">
@@ -110,11 +88,7 @@ export function ProgramCard({ program }: ProgramCardProps) {
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 -mt-1 -mr-1"
-              >
+              <Button variant="ghost" size="icon" className="h-8 w-8 -mt-1 -mr-1">
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -129,15 +103,20 @@ export function ProgramCard({ program }: ProgramCardProps) {
                   {t("actions.viewDetails")}
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem>{t("actions.addSession")}</DropdownMenuItem>
-              <DropdownMenuItem className="text-destructive">
+              <DropdownMenuItem onClick={() => onAction?.("addSession", program)}>
+                {t("actions.addSession")}
+              </DropdownMenuItem>
+              <DropdownMenuItem className="text-destructive" onClick={() => onAction?.("archive", program)}>
                 {t("actions.archive")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        <div className="mb-2">
+        <div className="mb-2 flex items-center justify-between">
           <Badge variant={statusBadge.variant}>{statusBadge.label}</Badge>
+          <span className="text-sm font-bold text-foreground">
+            {program.price === 0 || !program.price ? t("free") : `$${program.price}`}
+          </span>
         </div>
         <h3 className="font-semibold text-lg">
           {truncateText(program.title, 50)}
@@ -162,7 +141,7 @@ export function ProgramCard({ program }: ProgramCardProps) {
         </div>
         <div className="flex-grow" />
 
-        {/* Show Submit button for APPROVED programs */}
+        {/* Action buttons based on status */}
         {program.status === "APPROVED" && (
           <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
             <p className="text-sm text-blue-700 dark:text-blue-300 mb-2">
@@ -170,10 +149,10 @@ export function ProgramCard({ program }: ProgramCardProps) {
             </p>
             <Button
               className="w-full"
-              onClick={handleSubmit}
-              disabled={submitMutation.isPending}
+              onClick={() => onAction?.("submit", program)}
+              disabled={isActionPending}
             >
-              {submitMutation.isPending ? (
+              {isActionPending ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
                 <FileSignature className="mr-2 h-4 w-4" />
@@ -183,7 +162,6 @@ export function ProgramCard({ program }: ProgramCardProps) {
           </div>
         )}
 
-        {/* Show different actions based on status */}
         {program.status === "ACTIVE" && (
           <div className="flex items-center gap-2 w-full mt-6">
             <Button variant="outline" className="w-full" asChild>
@@ -191,7 +169,9 @@ export function ProgramCard({ program }: ProgramCardProps) {
                 {t("actions.viewDetails")}
               </Link>
             </Button>
-            <Button className="w-full">{t("actions.runProgram")}</Button>
+            <Button className="w-full" onClick={() => onAction?.("run", program)}>
+              {t("actions.runProgram")}
+            </Button>
           </div>
         )}
 

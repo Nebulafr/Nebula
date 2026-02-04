@@ -29,6 +29,14 @@ export const publicRoutes = [
   "/help-center",
   "/events",
   "/become-a-coach",
+  "/reset-password",
+  "/verify-email",
+  "/universities",
+  "/privacy-policy",
+  "/terms-of-service",
+  "/careers",
+  "/nebula-ai",
+  "/help-center",
 ];
 
 interface RequestOptions {
@@ -105,7 +113,7 @@ export async function makeRequest<T = any>(
         message: errorMsg,
         code: result.code || `HTTP_${response.status}`,
       };
-      
+
       if (throwOnError) throw new Error(errorResponse.message);
       return errorResponse;
     }
@@ -118,7 +126,7 @@ export async function makeRequest<T = any>(
     };
   } catch (error: any) {
     if (throwOnError) throw error;
-    
+
     console.error(`API Error [${method} ${endpoint}]:`, error);
     return {
       success: false,
