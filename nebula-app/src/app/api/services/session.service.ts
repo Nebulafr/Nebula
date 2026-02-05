@@ -63,8 +63,12 @@ export class SessionService {
 
     // Calculate session times
     const timezone = providedTimezone || student.timeZone || "UTC";
+    
+    // Extract only the date part if it's an ISO string to avoid timezone shifts during initial parse
+    const datePart = date.includes("T") ? date.split("T")[0] : date;
+    
     const sessionDateTime = moment.tz(
-      `${date.split("T")[0]} ${startTime}`,
+      `${datePart} ${startTime}`,
       "YYYY-MM-DD HH:mm",
       timezone
     );
@@ -775,9 +779,9 @@ export class SessionService {
     const student = session.attendance[0]?.student;
 
     // Parse new time
-    // Parse date and time correctly. If date is ISO, extract only the date part to avoid timezone shifts
     const timezone = providedTimezone || student?.timeZone || "UTC";
-    const datePart = moment(date).format("YYYY-MM-DD");
+    // Parse date and time correctly. Avoid timezone shifts during initial parse.
+    const datePart = date.includes("T") ? date.split("T")[0] : date;
     const sessionDateTime = moment.tz(
       `${datePart} ${startTime}`,
       "YYYY-MM-DD HH:mm",

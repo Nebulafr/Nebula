@@ -1,4 +1,5 @@
 import { apiGet, apiPost, apiPut, apiDelete, apiPatch } from "@/lib/utils";
+import { format } from "date-fns";
 
 export async function bookCoachSession({
   coachId,
@@ -13,7 +14,7 @@ export async function bookCoachSession({
 }) {
   const sessionData = {
     coachId,
-    date: date.toISOString(),
+    date: format(date, "yyyy-MM-dd"),
     startTime: time,
     duration,
   };

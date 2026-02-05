@@ -6,7 +6,16 @@ export const moduleSchema = z.object({
   title: z.string().min(1, "Module title is required"),
   week: z.number().min(1, "Week number must be at least 1"),
   description: z.string().min(1, "Module description is required"),
-  materials: z.array(z.string().url("Material must be a valid URL")).optional(),
+  materials: z
+    .array(
+      z.object({
+        url: z.string().url("Material must be a valid URL"),
+        name: z.string().optional(),
+        type: z.string().optional(),
+        size: z.number().optional(),
+      })
+    )
+    .optional(),
 });
 
 export const createProgramSchema = z.object({

@@ -78,12 +78,12 @@ export const uploadFileFromClient = async (
 export const uploadMultipleFilesFromClient = async (
   files: File[],
   folder: string = "nebula-materials",
-): Promise<string[]> => {
+): Promise<any[]> => {
   const uploadPromises = files.map((file) =>
     uploadFileFromClient(file, folder),
   );
   const results = await Promise.all(uploadPromises);
-  return results.map((result) => result.url);
+  return results;
 };
 
 // Legacy exports for backward compatibility

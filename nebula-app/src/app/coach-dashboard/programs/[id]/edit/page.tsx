@@ -33,7 +33,7 @@ interface ProgramModule {
   title: string;
   week: number;
   description: string;
-  materials: string[];
+  materials: any[];
 }
 
 interface CoCoach {

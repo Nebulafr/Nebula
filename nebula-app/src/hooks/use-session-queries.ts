@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiGet, apiPost } from "@/lib/utils";
 import { handleAndToastError } from "@/lib/error-handler";
+import { format } from "date-fns";
 
 export function useCoachSessions(
   filter: "today" | "upcoming" | "past" | "all" = "upcoming"
@@ -49,7 +50,7 @@ export function useBookCoachSession() {
       duration = 60,
     }: BookSessionData) => {
       return apiPost(`/coaches/${coachId}/book`, {
-        date: date.toISOString(),
+        date: format(date, "yyyy-MM-dd"),
         startTime: time,
         duration,
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,

@@ -40,12 +40,12 @@ export default function ProposeStep5Page() {
             // Upload materials for each module
             const modulesWithMaterialUrls = await Promise.all(
                 formData.modules.map(async (mod) => {
-                    let materialUrls: string[] = [];
+                    let materialMetadata: any[] = [];
 
                     // Upload files if there are any
                     if (mod.materials && mod.materials.length > 0) {
                         try {
-                            materialUrls = await uploadMultipleFilesToCloudinary(
+                            materialMetadata = await uploadMultipleFilesToCloudinary(
                                 mod.materials,
                                 `nebula-materials/${formData.title.replace(/\s+/g, '-').toLowerCase()}`
                             );
@@ -60,7 +60,7 @@ export default function ProposeStep5Page() {
                         title: mod.title,
                         week: mod.week,
                         description: mod.description,
-                        materials: materialUrls,
+                        materials: materialMetadata,
                     };
                 })
             );

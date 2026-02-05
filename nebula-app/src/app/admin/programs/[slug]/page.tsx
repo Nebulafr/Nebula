@@ -610,26 +610,36 @@ export default function ProgramDetailsPage({
                       <h5 className="font-medium text-xs text-muted-foreground">
                         Uploaded Materials:
                       </h5>
-                      {mod.materials.map((materialUrl: string, idx: number) => {
-                        const fileName =
-                          materialUrl.split("/").pop() || `Material ${idx + 1}`;
-                        const decodedFileName = decodeURIComponent(
-                          fileName.split("?")[0],
-                        );
-                        const extension =
-                          decodedFileName.split(".").pop()?.toLowerCase() || "";
+                      {mod.materials.map((mat: any, idx: number) => {
+                        const isString = typeof mat === "string";
+                        const name = isString ? mat.split("/").pop() : (mat.fileName || mat.name);
+                        const link = isString ? mat : (mat.url || mat.link);
+                        let type = isString ? (mat.endsWith(".pdf") ? "pdf" : "doc") : (mat.fileType || mat.type || "");
+                        
+                        // Normalize type
+                        if (type.includes("pdf")) type = "pdf";
+                        else if (type.includes("video")) type = "video";
+                        else if (type.includes("word") || type.includes("officedocument") || type.includes("doc")) type = "doc";
+                        else type = "file";
+
+                        const sizeDisplay = !isString && mat.fileSize ? 
+                          (mat.fileSize > 1024 * 1024 ? `${(mat.fileSize / (1024 * 1024)).toFixed(2)} MB` : `${(mat.fileSize / 1024).toFixed(2)} KB`) 
+                          : null;
 
                         return (
                           <a
                             key={idx}
-                            href={materialUrl}
+                            href={link}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex items-center justify-between gap-2 p-2 rounded-md bg-muted/50 hover:bg-muted transition-colors"
                           >
                             <div className="flex items-center gap-2">
-                              {getFileIcon(extension)}
-                              <span className="text-xs">{decodedFileName}</span>
+                              {getFileIcon(type)}
+                              <div className="flex flex-col">
+                                <span className="text-xs font-medium">{name}</span>
+                                {sizeDisplay && <span className="text-[10px] text-muted-foreground">{sizeDisplay}</span>}
+                              </div>
                             </div>
                             <Download className="h-3 w-3 text-muted-foreground" />
                           </a>
