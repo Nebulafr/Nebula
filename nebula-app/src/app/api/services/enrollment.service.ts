@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { EnrollmentStatus } from "@/generated/prisma";
+import moment from "moment";
 import { NotFoundException, BadRequestException } from "../utils/http-exception";
 
 export const enrollmentService = {
@@ -224,7 +225,7 @@ export const enrollmentService = {
           cohortId: cohortId,
           time: time,
           enrollmentDate: new Date(
-            date || new Date().toISOString().split("T")[0]
+            date || moment().format("YYYY-MM-DD")
           ),
           status: "ACTIVE",
         },

@@ -6,6 +6,8 @@ import {
   updateCoachSession,
   cancelCoachSession,
   rescheduleCoachSession,
+  approveCoachSession,
+  rejectCoachSession,
   getCoachAvailability,
   saveCoachAvailability,
   DayAvailability,
@@ -154,6 +156,36 @@ export function useSaveCoachAvailability() {
     },
     onError: (error: any) => {
       handleAndToastError(error, "Failed to update availability.");
+    },
+  });
+}
+
+export function useApproveCoachSession() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (sessionId: string) => approveCoachSession(sessionId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [COACH_SESSIONS_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: [COACH_STATS_QUERY_KEY] });
+    },
+    onError: (error: any) => {
+      handleAndToastError(error, "Failed to approve session.");
+    },
+  });
+}
+
+export function useRejectCoachSession() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (sessionId: string) => rejectCoachSession(sessionId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [COACH_SESSIONS_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: [COACH_STATS_QUERY_KEY] });
+    },
+    onError: (error: any) => {
+      handleAndToastError(error, "Failed to reject session.");
     },
   });
 }

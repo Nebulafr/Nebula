@@ -9,7 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Video, Clock, Users } from "lucide-react";
+import { MoreHorizontal, Video, Clock, Users, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTranslations, useLocale } from "next-intl";
 
@@ -39,9 +39,16 @@ interface SessionItemProps {
   onStartSession?: (session: Session) => void;
   onReschedule?: (session: Session) => void;
   onCancel?: (session: Session) => void;
+  onApprove?: (session: Session) => void;
+  onReject?: (session: Session) => void;
+  isApproving?: boolean;
+  isRejecting?: boolean;
+  isCancelling?: boolean;
+  isRescheduling?: boolean;
 }
 
 const statusColors: Record<string, string> = {
+  REQUESTED: "bg-yellow-100 text-yellow-700 border-yellow-200",
   SCHEDULED: "bg-blue-100 text-blue-700 border-blue-200",
   IN_PROGRESS: "bg-green-100 text-green-700 border-green-200",
   COMPLETED: "bg-gray-100 text-gray-700 border-gray-200",
@@ -54,6 +61,12 @@ export function SessionItem({
   onStartSession,
   onReschedule,
   onCancel,
+  onApprove,
+  onReject,
+  isApproving,
+  isRejecting,
+  isCancelling,
+  isRescheduling,
 }: SessionItemProps) {
   const t = useTranslations("dashboard.coach.schedule.sessionItem");
   const commonT = useTranslations("common");
@@ -146,15 +159,40 @@ export function SessionItem({
               <DropdownMenuItem onClick={() => onViewDetails?.(session)}>
                 {t("actions.viewDetails")}
               </DropdownMenuItem>
+              {session.status === "REQUESTED" && (
+                <>
+                  <DropdownMenuItem 
+                    onClick={() => onApprove?.(session)}
+                    disabled={isApproving || isRejecting}
+                  >
+                    {isApproving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    {t("actions.approve") || "Approve"}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    className="text-destructive" 
+                    onClick={() => onReject?.(session)}
+                    disabled={isApproving || isRejecting}
+                  >
+                    {isRejecting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    {t("actions.reject") || "Reject"}
+                  </DropdownMenuItem>
+                </>
+              )}
               {isUpcoming && (
                 <>
-                  <DropdownMenuItem onClick={() => onReschedule?.(session)}>
+                  <DropdownMenuItem 
+                    onClick={() => onReschedule?.(session)}
+                    disabled={isRescheduling || isCancelling}
+                  >
+                    {isRescheduling && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     {t("actions.reschedule")}
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     className="text-destructive"
                     onClick={() => onCancel?.(session)}
+                    disabled={isRescheduling || isCancelling}
                   >
+                    {isCancelling && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     {t("actions.cancel")}
                   </DropdownMenuItem>
                 </>

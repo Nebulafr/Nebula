@@ -156,6 +156,44 @@ export class SessionController {
       userId: user.id,
       userRole: user.role,
       timezone: payload.timezone,
-    });
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 });
+  }
+
+  async approveSession(
+    request: NextRequest,
+    context: { params: Promise<{ sessionId: string }> }
+  ) {
+    const user = (request as any).user;
+
+    if (!user) {
+      throw new UnauthorizedException("Authentication required");
+    }
+
+    if (user.role !== "COACH") {
+      throw new UnauthorizedException("Coach access required");
+    }
+
+    const { sessionId } = await context.params;
+
+    return await SessionService.approveSession(sessionId);
+  }
+
+  async rejectSession(
+    request: NextRequest,
+    context: { params: Promise<{ sessionId: string }> }
+  ) {
+    const user = (request as any).user;
+
+    if (!user) {
+      throw new UnauthorizedException("Authentication required");
+    }
+
+    if (user.role !== "COACH") {
+      throw new UnauthorizedException("Coach access required");
+    }
+
+    const { sessionId } = await context.params;
+
+    return await SessionService.rejectSession(sessionId);
   }
 }

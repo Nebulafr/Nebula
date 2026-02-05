@@ -1,4 +1,5 @@
 import { apiGet, apiPost } from "@/lib/utils";
+import moment from "moment";
 
 export async function enrollInProgram({
   programSlug,
@@ -16,7 +17,7 @@ export async function enrollInProgram({
   const enrollmentData = {
     coachId,
     time,
-    date: date || new Date().toISOString().split("T")[0],
+    date: date || moment().format("YYYY-MM-DD"),
     amountPaid,
   };
 

@@ -74,6 +74,11 @@
       "connectCalendar": "Connecter l'agenda",
       "calendarConnected": "Agenda connecté",
       "failedToSaveCalendar": "Échec de l'enregistrement des jetons de l'agenda. Veuillez réessayer.",
+      "sessionApproved": "Session approuvée avec succès",
+      "sessionRejected": "Session refusée avec succès",
+      "sessionCancelled": "Session annulée avec succès",
+      "approve": "Approuver",
+      "reject": "Refuser",
       "payouts": {
         "title": "Paiements",
         "earningsOverview": "Aperçu des revenus",
@@ -170,6 +175,8 @@
           "cancel": "Annuler",
           "comingSoon": "Bientôt disponible !",
           "noMeetingLink": "Aucun lien de réunion disponible pour cette session.",
+          "approveSuccess": "Session approuvée avec succès",
+          "rejectSuccess": "Session refusée avec succès",
           "cancelSuccess": "Session annulée avec succès",
           "rescheduleSuccess": "Session reprogrammée avec succès"
         },
@@ -188,13 +195,16 @@
             "SCHEDULED": "Programmée",
             "IN_PROGRESS": "En cours",
             "COMPLETED": "Terminée",
-            "CANCELLED": "Annulée"
+            "CANCELLED": "Annulée",
+            "REQUESTED": "Demandée"
           },
           "actions": {
             "start": "Démarrer",
             "viewDetails": "Voir les détails",
             "reschedule": "Reprogrammer",
-            "cancel": "Annuler"
+            "cancel": "Annuler",
+            "approve": "Approuver",
+            "reject": "Refuser"
           }
         },
         "cancelDialog": {

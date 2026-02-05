@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { SessionStatus } from "@/generated/prisma";
 import { createCalendarEvent } from "@/lib/google-api";
 import { EmailService } from "./email.service";
 import { sendSuccess } from "../utils/send-response";
@@ -96,61 +97,229 @@ export class SessionService {
       duration
     );
 
-    let meetLink: string | null = null;
-    let googleEventId: string | null = null;
-
-    // Create Google Calendar event if coach has connected their calendar
-    if (coach.googleCalendarAccessToken) {
-      try {
-        const calendarResult = await this.createGoogleCalendarEvent(
-          coach,
-          student,
-          sessionDateTime,
-          sessionEndTime,
-          duration
-        );
-        meetLink = calendarResult.meetLink;
-        googleEventId = calendarResult.googleEventId;
-      } catch (error) {
-        console.error("Error creating Google Calendar event:", error);
-        // Continue with session creation even if calendar event fails
-      }
-    }
-
-    // Create session and related records
-    const sessionResult = await this.createSessionTransaction(
-      coach,
-      student,
+    // Check for student conflicts
+    await this.checkStudentConflicts(
+      student.id,
       sessionStartDate,
-      duration,
-      meetLink,
-      googleEventId
+      sessionEndDate,
+      duration
     );
 
-    // Send email notifications
+    // Create session and related records
+    const session = await prisma.session.create({
+      data: {
+        coachId,
+        scheduledTime: sessionDateTime.toDate(),
+        duration,
+        status: SessionStatus.REQUESTED,
+        attendance: {
+          create: {
+            studentId: student.id, // Use student.id here
+          },
+        },
+      },
+      include: {
+        attendance: {
+          include: {
+            student: {
+              include: {
+                user: true,
+              },
+            },
+          },
+        },
+        coach: {
+          include: {
+            user: true,
+          },
+        },
+      },
+    });
+
+    // Send email notifications (consider if this should be moved to approveSession)
+    // For now, let's keep it here for the initial request notification
     await this.sendSessionNotifications(
       coach,
       student,
       sessionDateTime,
       duration,
-      meetLink
+      null // No meet link yet for requested sessions
     );
 
     return sendSuccess(
-      {
-        sessionId: sessionResult.sessionId,
-        coachId: coach.id,
-        date,
-        startTime,
-        duration,
+      { session: this.transformSession(session) },
+      "Session booked successfully"
+    );
+  }
+
+  static async approveSession(sessionId: string) {
+    const session = await prisma.session.findUnique({
+      where: { id: sessionId },
+      include: {
+        coach: true,
+        attendance: {
+          include: {
+            student: {
+              include: {
+                user: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!session) {
+      throw new NotFoundException("Session not found");
+    }
+
+    if (session.status !== "REQUESTED") {
+      throw new BadRequestException("Only requested sessions can be approved");
+    }
+
+    // Check for conflicts before approving
+    const sessionStartDate = session.scheduledTime;
+    const sessionEndDate = moment(session.scheduledTime)
+      .add(session.duration, "minutes")
+      .toDate();
+
+    await this.checkForConflictingSessions(
+      session.coachId,
+      sessionStartDate,
+      sessionEndDate,
+      session.duration,
+      sessionId
+    );
+
+    const studentData = session.attendance[0]?.student;
+    if (studentData) {
+      await this.checkStudentConflicts(
+        studentData.id,
+        sessionStartDate,
+        sessionEndDate,
+        session.duration,
+        sessionId
+      );
+    }
+
+    let meetLink = null;
+    let googleEventId = null;
+
+    // Create Google Calendar event if coach has tokens
+    if (session.coach.googleCalendarAccessToken) {
+      try {
+        const sessionDateTime = moment(session.scheduledTime);
+        const sessionEndTime = moment(session.scheduledTime).add(
+          session.duration,
+          "minutes"
+        );
+        const studentUser = session.attendance[0]?.student?.user;
+        if (!studentUser) {
+          throw new BadRequestException("No student associated with this session");
+        }
+
+        const calendarResult = await SessionService.createGoogleCalendarEvent( // Use SessionService.
+          session.coach,
+          studentUser,
+          sessionDateTime,
+          sessionEndTime,
+          session.duration
+        );
+        meetLink = calendarResult.meetLink;
+        googleEventId = calendarResult.googleEventId; 
+      } catch (error) {
+        console.error("Error creating Google Calendar event:", error);
+      }
+    }
+
+    const updatedSession = await prisma.session.update({
+      where: { id: sessionId },
+      data: {
+        status: SessionStatus.SCHEDULED,
         meetLink,
         googleEventId,
       },
-      meetLink
-        ? "Session booked successfully with Google Meet link created"
-        : "Session booked successfully",
-      201
+      include: {
+        coach: {
+          include: {
+            user: true,
+          },
+        },
+        attendance: {
+          include: {
+            student: {
+              include: {
+                user: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // Send email notifications for approval
+    const coach = updatedSession.coach;
+    const studentForNotification = updatedSession.attendance[0]?.student;
+    const sessionDateTime = moment(updatedSession.scheduledTime);
+
+    if (studentForNotification) {
+      await SessionService.sendSessionNotifications(
+        coach,
+        studentForNotification,
+        sessionDateTime,
+        updatedSession.duration,
+        meetLink
+      );
+    }
+
+    return sendSuccess(
+      { session: this.transformSession(updatedSession) },
+      "Session approved successfully"
     );
+
+  }
+
+  static async rejectSession(sessionId: string) {
+    const session = await prisma.session.findUnique({
+      where: { id: sessionId },
+      include: {
+        coach: {
+          include: { user: true },
+        },
+        attendance: {
+          include: {
+            student: {
+              include: { user: true },
+            },
+          },
+        },
+      },
+    });
+
+    if (!session) {
+      throw new NotFoundException("Session not found");
+    }
+
+    if (session.status !== "REQUESTED") {
+      throw new BadRequestException("Only requested sessions can be rejected");
+    }
+
+    const updatedSession = await prisma.session.update({
+      where: { id: sessionId },
+      data: {
+        status: SessionStatus.CANCELLED,
+      },
+    });
+
+    // Send rejection email (optional, but good practice)
+    // For now we'll just use the existing cancellation logic or a new one
+    // TODO: Add specialized rejection email
+
+    return sendSuccess(
+      { session: this.transformSession(updatedSession) },
+      "Session rejected successfully"
+    );
+
   }
 
   private static async verifyCoachAvailability(
@@ -159,8 +328,6 @@ export class SessionService {
     duration: number
   ) {
     if (!coach.availability) {
-      // If no availability is set, we might want to allow booking or block it.
-      // For now, let's assume it's required for booking.
       return;
     }
 
@@ -209,12 +376,14 @@ export class SessionService {
     coachId: string,
     sessionStartDate: Date,
     sessionEndDate: Date,
-    duration: number
+    duration: number,
+    excludeSessionId?: string
   ) {
     const conflictingSessions = await prisma.session.findMany({
       where: {
         coachId: coachId,
-        status: "SCHEDULED",
+        status: { in: [SessionStatus.SCHEDULED, SessionStatus.REQUESTED] },
+        id: excludeSessionId ? { not: excludeSessionId } : undefined,
         OR: [
           {
             AND: [
@@ -241,6 +410,52 @@ export class SessionService {
     if (conflictingSessions.length > 0) {
       throw new BadRequestException(
         "This time slot conflicts with an existing session"
+      );
+    }
+  }
+
+  private static async checkStudentConflicts(
+    studentId: string,
+    sessionStartDate: Date,
+    sessionEndDate: Date,
+    duration: number,
+    excludeSessionId?: string
+  ) {
+    const conflictingSessions = await prisma.session.findMany({
+      where: {
+        attendance: {
+          some: {
+            studentId: studentId,
+          },
+        },
+        status: { in: [SessionStatus.SCHEDULED, SessionStatus.REQUESTED] },
+        id: excludeSessionId ? { not: excludeSessionId } : undefined,
+        OR: [
+          {
+            AND: [
+              { scheduledTime: { lte: sessionStartDate } },
+              {
+                scheduledTime: {
+                  gte: new Date(
+                    sessionStartDate.getTime() - 60000 * duration
+                  ),
+                },
+              },
+            ],
+          },
+          {
+            AND: [
+              { scheduledTime: { gte: sessionStartDate } },
+              { scheduledTime: { lt: sessionEndDate } },
+            ],
+          },
+        ],
+      },
+    });
+
+    if (conflictingSessions.length > 0) {
+      throw new BadRequestException(
+        "You already have a session scheduled or requested at this time"
       );
     }
   }
@@ -285,46 +500,6 @@ export class SessionService {
       meetLink: calendarEvent.meetLink,
       googleEventId: calendarEvent.eventId,
     };
-  }
-
-  private static async createSessionTransaction(
-    coach: any,
-    student: any,
-    sessionStartDate: Date,
-    duration: number,
-    meetLink: string | null,
-    googleEventId: string | null
-  ) {
-    return await prisma.$transaction(async (prisma) => {
-      const session = await prisma.session.create({
-        data: {
-          coachId: coach.id,
-          scheduledTime: sessionStartDate,
-          duration: duration,
-          status: "SCHEDULED",
-          title: `Session with ${coach.user?.fullName || "Coach"}`,
-          meetLink,
-          googleEventId,
-        },
-      });
-
-      await prisma.coach.update({
-        where: { id: coach.id },
-        data: {
-          totalSessions: { increment: 1 },
-        },
-      });
-
-      await prisma.sessionAttendance.create({
-        data: {
-          sessionId: session.id,
-          studentId: student.id,
-          attended: false,
-        },
-      });
-
-      return { sessionId: session.id, session };
-    });
   }
 
   private static async sendSessionNotifications(
@@ -383,19 +558,19 @@ export class SessionService {
           gte: startOfToday,
           lt: endOfToday,
         };
+        whereClause.status = { in: [SessionStatus.SCHEDULED, SessionStatus.REQUESTED] };
         break;
       case "upcoming":
         whereClause.scheduledTime = {
           gte: now,
         };
-        whereClause.status = {
-          not: "CANCELLED",
-        };
+        whereClause.status = { in: [SessionStatus.SCHEDULED, SessionStatus.REQUESTED] };
         break;
       case "past":
         whereClause.scheduledTime = {
           lt: now,
         };
+        whereClause.status = { in: [SessionStatus.COMPLETED, SessionStatus.CANCELLED] };
         break;
       case "all":
         // No additional filter
@@ -462,19 +637,19 @@ export class SessionService {
           gte: startOfToday,
           lt: endOfToday,
         };
+        whereClause.status = { in: [SessionStatus.SCHEDULED, SessionStatus.REQUESTED] };
         break;
       case "upcoming":
         whereClause.scheduledTime = {
           gte: now,
         };
-        whereClause.status = {
-          not: "CANCELLED",
-        };
+        whereClause.status = { in: [SessionStatus.SCHEDULED, SessionStatus.REQUESTED] };
         break;
       case "past":
         whereClause.scheduledTime = {
           lt: now,
         };
+        whereClause.status = { in: [SessionStatus.COMPLETED, SessionStatus.CANCELLED] };
         break;
       case "all":
         // No additional filter
@@ -769,7 +944,7 @@ export class SessionService {
       );
     }
 
-    if (session.status !== "SCHEDULED") {
+    if (session.status !== SessionStatus.SCHEDULED) {
       throw new BadRequestException(
         `Cannot reschedule a session that is ${session.status.toLowerCase()}`
       );
@@ -799,37 +974,21 @@ export class SessionService {
     );
 
     // Check for conflicts
-    const conflictingSessions = await prisma.session.findMany({
-      where: {
-        coachId: coach.id,
-        status: "SCHEDULED",
-        id: { not: sessionId }, // Exclude current session
-        OR: [
-          {
-            AND: [
-              { scheduledTime: { lte: sessionStartDate } },
-              {
-                scheduledTime: {
-                  gte: new Date(
-                    sessionStartDate.getTime() - 60000 * session.duration
-                  ),
-                },
-              },
-            ],
-          },
-          {
-            AND: [
-              { scheduledTime: { gte: sessionStartDate } },
-              { scheduledTime: { lt: sessionEndDate } },
-            ],
-          },
-        ],
-      },
-    });
+    await this.checkForConflictingSessions(
+      coach.id,
+      sessionStartDate,
+      sessionEndDate,
+      session.duration,
+      sessionId
+    );
 
-    if (conflictingSessions.length > 0) {
-      throw new BadRequestException(
-        "The new time slot conflicts with an existing session"
+    if (student) {
+      await this.checkStudentConflicts(
+        student.id,
+        sessionStartDate,
+        sessionEndDate,
+        session.duration,
+        sessionId
       );
     }
 

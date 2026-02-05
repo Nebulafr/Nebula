@@ -13,8 +13,14 @@ interface SessionsListProps {
   onStartSession?: (session: Session) => void;
   onReschedule?: (session: Session) => void;
   onCancel?: (session: Session) => void;
+  onApprove?: (session: Session) => void;
+  onReject?: (session: Session) => void;
   onCreateSession?: () => void;
   loading?: boolean;
+  isApproving?: (sessionId: string) => boolean;
+  isRejecting?: (sessionId: string) => boolean;
+  isCancelling?: (sessionId: string) => boolean;
+  isRescheduling?: (sessionId: string) => boolean;
 }
 
 export function SessionsList({
@@ -24,8 +30,14 @@ export function SessionsList({
   onStartSession,
   onReschedule,
   onCancel,
+  onApprove,
+  onReject,
   onCreateSession,
   loading = false,
+  isApproving,
+  isRejecting,
+  isCancelling,
+  isRescheduling,
 }: SessionsListProps) {
   const t = useTranslations("dashboard.coach.schedule.sessionsList");
   const locale = useLocale();
@@ -96,6 +108,12 @@ export function SessionsList({
                 onStartSession={onStartSession}
                 onReschedule={onReschedule}
                 onCancel={onCancel}
+                onApprove={onApprove}
+                onReject={onReject}
+                isApproving={isApproving?.(session.id)}
+                isRejecting={isRejecting?.(session.id)}
+                isCancelling={isCancelling?.(session.id)}
+                isRescheduling={isRescheduling?.(session.id)}
               />
             ))}
           </ul>

@@ -39,7 +39,7 @@ export async function createCalendarEvent(
   const auth = new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET,
-    `${process.env.NEXTAUTH_URL}/coach-dashboard`
+    `${process.env.NEXTAUTH_URL}/api/auth/google-calendar`
   );
 
   // Set the credentials
@@ -170,7 +170,7 @@ export async function updateCalendarEvent(
   const auth = new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET,
-    `${process.env.NEXTAUTH_URL}/coach-dashboard`
+    `${process.env.NEXTAUTH_URL}/api/auth/google-calendar`
   );
 
   auth.setCredentials({
@@ -227,7 +227,7 @@ export async function deleteCalendarEvent(
   const auth = new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET,
-    `${process.env.NEXTAUTH_URL}/coach-dashboard`
+    `${process.env.NEXTAUTH_URL}/api/auth/google-calendar`
   );
 
   auth.setCredentials({

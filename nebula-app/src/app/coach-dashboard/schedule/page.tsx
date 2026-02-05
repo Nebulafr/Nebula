@@ -16,8 +16,11 @@ import {
   useCoachSessions, 
   useCoachStats, 
   useCancelCoachSession, 
-  useRescheduleCoachSession 
+  useRescheduleCoachSession,
+  useApproveCoachSession,
+  useRejectCoachSession
 } from "@/hooks/use-schedule-queries";
+import moment from "moment";
 
 
 export default function SchedulePage() {
@@ -49,8 +52,10 @@ export default function SchedulePage() {
     });
   }, [sessions, selectedDate]);
 
-  const { mutateAsync: cancelSession, isPending: isCancelling } = useCancelCoachSession();
-  const { mutateAsync: rescheduleSession, isPending: isRescheduling } = useRescheduleCoachSession();
+  const { mutateAsync: cancelSession, isPending: isCancelling, variables: cancelVars } = useCancelCoachSession();
+  const { mutateAsync: rescheduleSession, isPending: isRescheduling, variables: rescheduleVars } = useRescheduleCoachSession();
+  const { mutate: approveSession, isPending: isApproving, variables: approveVars } = useApproveCoachSession();
+  const { mutate: rejectSession, isPending: isRejecting, variables: rejectVars } = useRejectCoachSession();
 
   const [sessionToCancel, setSessionToCancel] = useState<Session | null>(null);
   const [sessionToReschedule, setSessionToReschedule] = useState<Session | null>(null);
@@ -75,6 +80,22 @@ export default function SchedulePage() {
     setSessionToCancel(session);
   };
 
+  const handleApprove = (session: Session) => {
+    approveSession(session.id, {
+      onSuccess: () => {
+        toast.success(t("list.approveSuccess") || "Session approved successfully");
+      },
+    });
+  };
+
+  const handleReject = (session: Session) => {
+    rejectSession(session.id, {
+      onSuccess: () => {
+        toast.success(t("list.rejectSuccess") || "Session rejected successfully");
+      },
+    });
+  };
+
   const onConfirmCancel = async (reason: string) => {
     if (!sessionToCancel) return;
     try {
@@ -92,7 +113,7 @@ export default function SchedulePage() {
       await rescheduleSession({
         sessionId: sessionToReschedule.id,
         data: {
-          date: date.toISOString().split("T")[0],
+          date: moment(date).format("YYYY-MM-DD"),
           startTime,
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         },
@@ -150,8 +171,14 @@ export default function SchedulePage() {
                 onStartSession={handleStartSession}
                 onReschedule={handleReschedule}
                 onCancel={handleCancel}
+                onApprove={handleApprove}
+                onReject={handleReject}
                 onCreateSession={handleCreateSession}
                 loading={sessionsLoading}
+                isApproving={(id) => isApproving && approveVars === id}
+                isRejecting={(id) => isRejecting && rejectVars === id}
+                isCancelling={(id) => isCancelling && cancelVars?.sessionId === id}
+                isRescheduling={(id) => isRescheduling && rescheduleVars?.sessionId === id}
               />
             </div>
           </div>

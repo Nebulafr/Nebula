@@ -41,6 +41,8 @@ import {
   useCoachSessions,
   useCoachStats,
   useCancelSession,
+  useApproveSession,
+  useRejectSession,
 } from "@/hooks/use-session-queries";
 import { getDefaultAvatar } from "@/lib/event-utils";
 import { useTranslations } from "next-intl";
@@ -56,6 +58,30 @@ function CoachDashboardContent() {
   const { data: statsData } = useCoachStats();
   const { mutate: cancelSession, isPending: isCancelling } =
     useCancelSession();
+  const { mutate: approveSession, isPending: isApproving } =
+    useApproveSession();
+  const { mutate: rejectSession, isPending: isRejecting } =
+    useRejectSession();
+
+  const handleApprove = (sessionId: string) => {
+    approveSession(sessionId, {
+      onSuccess: (result) => {
+        if (result.success) {
+          toast.success(t("sessionApproved"));
+        }
+      },
+    });
+  };
+
+  const handleReject = (sessionId: string) => {
+    rejectSession(sessionId, {
+      onSuccess: (result) => {
+        if (result.success) {
+          toast.success(t("sessionRejected"));
+        }
+      },
+    });
+  };
 
   const handleCancel = (sessionId: string) => {
     cancelSession(
@@ -113,7 +139,7 @@ function CoachDashboardContent() {
       <div className="flex-1 space-y-4 p-4 md:p-8">
         <div className="flex items-center justify-between space-y-2">
           <h3 className="text-3xl font-bold tracking-tight">
-            {td("welcome", { name: profile?.fullName || t("student").replace(/Student/i, "Coach") })}
+            {td("welcome", { name: profile?.fullName || t("coach") })}
           </h3>
           <Button
             asChild
@@ -268,12 +294,42 @@ function CoachDashboardContent() {
                                 "bg-red-50 text-red-700 border-red-200"
                             )}
                           >
-                            {session.status?.charAt(0) +
-                              session.status?.slice(1).toLowerCase()}
+                            {td(`coach.schedule.sessionItem.status.${session.status}`)}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-2">
+                            {session.status === "REQUESTED" && (
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  variant="default"
+                                  size="sm"
+                                  className="bg-green-600 hover:bg-green-700"
+                                  onClick={() => handleApprove(session.id)}
+                                  disabled={isApproving}
+                                >
+                                  {isApproving ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    t("approve")
+                                  )}
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                                  onClick={() => handleReject(session.id)}
+                                  disabled={isRejecting}
+                                >
+                                  {isRejecting ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    t("reject")
+                                  )}
+                                </Button>
+                              </div>
+                            )}
+
                             {session.status === "SCHEDULED" && (
                               <>
                                 {session.meetLink ? (

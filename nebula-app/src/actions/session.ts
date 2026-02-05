@@ -74,6 +74,14 @@ export async function cancelCoachSession(sessionId: string, reason?: string) {
   return apiPost(`/sessions/${sessionId}/cancel`, { reason }, { throwOnError: true });
 }
 
+export async function approveCoachSession(sessionId: string) {
+  return apiPost(`/sessions/${sessionId}/approve`, {}, { throwOnError: true });
+}
+
+export async function rejectCoachSession(sessionId: string) {
+  return apiPost(`/sessions/${sessionId}/reject`, {}, { throwOnError: true });
+}
+
 // Coach availability actions
 export async function getCoachAvailability() {
   return apiGet("/coaches/availability");

@@ -35,6 +35,7 @@ import { EventType } from "@/types/event";
 import { UserSelect } from "@/components/ui/user-select";
 import { uploadImageToCloudinary } from "@/lib/cloudinary";
 import { useTranslations } from "next-intl";
+import moment from "moment";
 
 interface NewEvent {
   title: string;
@@ -90,7 +91,7 @@ export function CreateEventDialog({
     if (selectedDate) {
       setNewEvent((prev) => ({
         ...prev,
-        date: selectedDate.toISOString().split("T")[0],
+        date: moment(selectedDate).format("YYYY-MM-DD"),
       }));
     }
   };

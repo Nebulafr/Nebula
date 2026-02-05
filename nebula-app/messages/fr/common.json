@@ -18,6 +18,8 @@
     "getStarted": "Commencer",
     "fullName": "Nom complet",
     "optional": "Facultatif",
+    "cancel": "Annuler",
+    "processing": "Traitement...",
     "onboarding": {
       "student": {
         "step1": {

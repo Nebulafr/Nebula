@@ -74,6 +74,11 @@
       "connectCalendar": "Connect Calendar",
       "calendarConnected": "Calendar Connected",
       "failedToSaveCalendar": "Failed to save calendar tokens. Please try again.",
+      "sessionApproved": "Session approved successfully",
+      "sessionRejected": "Session rejected successfully",
+      "sessionCancelled": "Session cancelled successfully",
+      "approve": "Approve",
+      "reject": "Reject",
       "payouts": {
         "title": "Payouts",
         "earningsOverview": "Earnings Overview",
@@ -170,6 +175,8 @@
           "cancel": "Cancel",
           "comingSoon": "Coming soon!",
           "noMeetingLink": "No meeting link available for this session.",
+          "approveSuccess": "Session approved successfully",
+          "rejectSuccess": "Session rejected successfully",
           "cancelSuccess": "Session cancelled successfully",
           "rescheduleSuccess": "Session rescheduled successfully"
         },
@@ -188,13 +195,16 @@
             "SCHEDULED": "Scheduled",
             "IN_PROGRESS": "In Progress",
             "COMPLETED": "Completed",
-            "CANCELLED": "Cancelled"
+            "CANCELLED": "Cancelled",
+            "REQUESTED": "Requested"
           },
           "actions": {
             "start": "Start",
             "viewDetails": "View Details",
             "reschedule": "Reschedule",
-            "cancel": "Cancel"
+            "cancel": "Cancel",
+            "approve": "Approve",
+            "reject": "Reject"
           }
         },
         "cancelDialog": {

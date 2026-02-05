@@ -126,3 +126,40 @@ export function useRescheduleSession() {
     },
   });
 }
+export function useApproveSession() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (sessionId: string) => {
+      return apiPost(`/sessions/${sessionId}/approve`, {});
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["student-sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["coach-sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["coach-stats"] });
+      return data;
+    },
+    onError: (error) => {
+      handleAndToastError(error, "Failed to approve session");
+    },
+  });
+}
+
+export function useRejectSession() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (sessionId: string) => {
+      return apiPost(`/sessions/${sessionId}/reject`, {});
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["student-sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["coach-sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["coach-stats"] });
+      return data;
+    },
+    onError: (error) => {
+      handleAndToastError(error, "Failed to reject session");
+    },
+  });
+}

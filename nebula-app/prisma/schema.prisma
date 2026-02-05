@@ -71,6 +71,7 @@ enum PaymentStatus {
 }
 
 enum SessionStatus {
+  REQUESTED
   SCHEDULED
   IN_PROGRESS
   COMPLETED
