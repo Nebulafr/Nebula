@@ -51,11 +51,11 @@ export function ProgramCard({ program, variant }: ProgramCardProps) {
               <Badge variant="secondary" className="bg-muted text-muted-foreground">
                 {program.category.name}
               </Badge>
-              <span className="text-sm text-foreground">
+              <span className="text-sm font-bold text-foreground">
                 {program.price === 0 || !program.price ? t("free") : `$${program.price}`}
               </span>
             </div>
-            <h3 className="font-headline mt-4 text-2xl font-semibold leading-tight">
+            <h3 className="font-headline text-primary mt-4 text-2xl font-semibold leading-tight">
               {truncateText(program.title, 50)}
             </h3>
             <p className="mt-2 text-sm text-muted-foreground">

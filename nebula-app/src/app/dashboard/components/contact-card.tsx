@@ -1,28 +1,38 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Phone } from "lucide-react";
 import { useTranslations } from "next-intl";
+import Image from "next/image";
+import { logos } from "@/lib/images/logos";
+import { PopupModal } from "react-calendly";
+import { useState, useEffect } from "react";
 
 function NebulaLogo() {
   return (
-    <svg
-      width="32"
-      height="32"
-      viewBox="0 0 32 32"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <rect width="32" height="32" rx="8" fill="#059669" />
-      <path
-        d="M22.6641 22V12.625H18.8418V22H22.6641ZM15.8223 18.2578C16.0547 17.207 16.5938 16.3867 17.4414 15.7969C18.2891 15.1953 19.3477 14.8945 20.6172 14.8945V11.1641C19.3223 11.1641 18.0918 11.3867 16.9258 11.8311C15.7598 12.2754 14.9395 12.9395 14.4648 13.8223H14.2812V10H10.459V22H14.2812V18.2578H15.8223Z"
-        fill="white"
-      />
-    </svg>
+       <div className="h-10 w-10 relative">
+                  <Image
+                    src={logos.nebulaLogo}
+                    alt="Nebula Logo"
+                    fill
+                    className="object-cover"
+                  />
+                </div>
   );
 }
 
 export function ContactCard() {
   const t = useTranslations("dashboard.student");
+  const [isOpen, setIsOpen] = useState(false);
+  const [rootElement, setRootElement] = useState<HTMLElement | null>(null);
+
+  useEffect(() => {
+    // Ensure we are on the client and document is available
+    if (typeof window !== "undefined" && document.body) {
+        setRootElement(document.body);
+    }
+  }, []);
 
   return (
     <Card className="rounded-xl border">
@@ -43,13 +53,21 @@ export function ContactCard() {
           </div>
         </div>
         <div className="flex gap-4 flex-shrink-0">
-          <Button variant="outline" size="lg">
+          <Button variant="outline" size="lg" onClick={() => setIsOpen(true)}>
             <Phone className="mr-2 h-5 w-5" />
             {t("scheduleCall")}
           </Button>
           <Button size="lg">{t("getRecommendations")}</Button>
         </div>
       </CardContent>
+      {rootElement && (
+        <PopupModal
+          url={process.env.NEXT_PUBLIC_CALENDLY_URL || "https://calendly.com/masudndatsu/30min"}
+          onModalClose={() => setIsOpen(false)}
+          open={isOpen}
+          rootElement={rootElement}
+        />
+      )}
     </Card>
   );
 }

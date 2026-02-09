@@ -437,7 +437,7 @@
     }
   },
   "contact": {
-    "backToHelp": "Retour au Centre d'aide",
+    "backToHelp": "Retour",
     "title": "Contactez-nous",
     "description": "Nous sommes impatients de découvrir comment nous pouvons travailler ensemble. Veuillez remplir le formulaire ci-dessous.",
     "fields": {
@@ -452,6 +452,8 @@
     },
     "send": "Envoyer le message",
     "futureTitle": "Construisons l'avenir ensemble",
-    "futureDesc": "Associez-vous à nous pour créer des expériences d'apprentissage puissantes pour vos étudiants."
+    "futureDesc": "Associez-vous à nous pour créer des expériences d'apprentissage puissantes pour vos étudiants.",
+    "successMessage": "Message envoyé avec succès ! Nous vous répondrons bientôt.",
+    "errorMessage": "Échec de l'envoi du message. Veuillez réessayer."
   }
 }

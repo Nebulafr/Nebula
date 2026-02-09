@@ -39,7 +39,9 @@ export class EmailService {
     });
   }
 
-  static async sendEmail(options: SendEmailOptions): Promise<{
+  static async sendEmail(
+    options: SendEmailOptions & { replyTo?: string },
+  ): Promise<{
     success: boolean;
     error?: string;
   }> {
@@ -47,8 +49,9 @@ export class EmailService {
       const transporter = this.createTransporter();
 
       await transporter.sendMail({
-        from: process.env.SMTP_FROM || process.env.SMTP_USER,
+        from: `"From Nebula"`,
         to: Array.isArray(options.to) ? options.to.join(", ") : options.to,
+        replyTo: options.replyTo,
         subject: options.subject,
         html: options.html,
         text: options.text,
@@ -66,7 +69,7 @@ export class EmailService {
 
   static async sendWebinarRegistrationEmail(
     userEmail: string,
-    data: WebinarRegistrationEmailData
+    data: WebinarRegistrationEmailData,
   ): Promise<{ success: boolean; error?: string }> {
     const subject = `Webinar Registration Confirmed: ${data.eventTitle}`;
 
@@ -98,7 +101,7 @@ export class EmailService {
             <div class="meeting-info">
               <h3>${data.eventTitle}</h3>
               <p><strong>Date & Time:</strong> ${new Date(
-                data.eventDate
+                data.eventDate,
               ).toLocaleString()}</p>
               <p><strong>Host:</strong> ${data.organizerName}</p>
               <p><strong>Description:</strong></p>
@@ -174,19 +177,19 @@ export class EmailService {
   static async sendSessionBookingEmails(
     coachEmail: string,
     studentEmail: string,
-    data: SessionBookingEmailData
+    data: SessionBookingEmailData,
   ): Promise<{ success: boolean; error?: string }> {
     try {
       // Send email to coach
       const coachResult = await this.sendSessionBookingEmailToCoach(
         coachEmail,
-        data
+        data,
       );
 
       // Send email to student
       const studentResult = await this.sendSessionBookingEmailToStudent(
         studentEmail,
-        data
+        data,
       );
 
       if (!coachResult.success || !studentResult.success) {
@@ -209,7 +212,7 @@ export class EmailService {
 
   static async sendSessionBookingEmailToCoach(
     coachEmail: string,
-    data: SessionBookingEmailData
+    data: SessionBookingEmailData,
   ): Promise<{ success: boolean; error?: string }> {
     const subject = `New Session Booked with ${data.studentName}`;
 
@@ -244,7 +247,7 @@ export class EmailService {
               <h3>Session Details</h3>
               <p><strong>Student:</strong> ${data.studentName}</p>
               <p><strong>Date & Time:</strong> ${new Date(
-                data.sessionDate
+                data.sessionDate,
               ).toLocaleString()}</p>
               <p><strong>Duration:</strong> ${data.duration} minutes</p>
               ${
@@ -285,7 +288,7 @@ export class EmailService {
 
   static async sendSessionBookingEmailToStudent(
     studentEmail: string,
-    data: SessionBookingEmailData
+    data: SessionBookingEmailData,
   ): Promise<{ success: boolean; error?: string }> {
     const subject = `Session Confirmed with ${data.coachName}`;
 
@@ -318,7 +321,7 @@ export class EmailService {
               <h3>Session Details</h3>
               <p><strong>Coach:</strong> ${data.coachName}</p>
               <p><strong>Date & Time:</strong> ${new Date(
-                data.sessionDate
+                data.sessionDate,
               ).toLocaleString()}</p>
               <p><strong>Duration:</strong> ${data.duration} minutes</p>
               ${
@@ -363,7 +366,7 @@ export class EmailService {
   static async sendProgramProposalEmail(
     recipientEmail: string,
     templateType: EmailTemplateType,
-    firstName: string
+    firstName: string,
   ): Promise<{ success: boolean; error?: string }> {
     try {
       const template = emailTemplates[templateType]({ firstName });
@@ -385,7 +388,7 @@ export class EmailService {
   static async sendVerificationEmail(
     email: string,
     firstName: string,
-    verificationUrl: string
+    verificationUrl: string,
   ): Promise<{ success: boolean; error?: string }> {
     try {
       const template = emailTemplates.VERIFY_EMAIL({
@@ -410,7 +413,7 @@ export class EmailService {
   static async sendPasswordResetEmail(
     email: string,
     firstName: string,
-    resetUrl: string
+    resetUrl: string,
   ): Promise<{ success: boolean; error?: string }> {
     try {
       const template = emailTemplates.RESET_PASSWORD({
@@ -435,11 +438,11 @@ export class EmailService {
   static async sendSessionCancelledEmails(
     coachEmail: string,
     studentEmail: string,
-    data: SessionBookingEmailData & { reason?: string; cancelledBy: string }
+    data: SessionBookingEmailData & { reason?: string; cancelledBy: string },
   ): Promise<{ success: boolean; error?: string }> {
     try {
       const subject = `Session Cancelled: ${data.studentName} & ${data.coachName}`;
-      
+
       const html = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px;">
           <h2 style="color: #ef4444;">Session Cancelled</h2>
@@ -451,8 +454,16 @@ export class EmailService {
         </div>
       `;
 
-      const coachResult = await this.sendEmail({ to: coachEmail, subject, html });
-      const studentResult = await this.sendEmail({ to: studentEmail, subject, html });
+      const coachResult = await this.sendEmail({
+        to: coachEmail,
+        subject,
+        html,
+      });
+      const studentResult = await this.sendEmail({
+        to: studentEmail,
+        subject,
+        html,
+      });
 
       return { success: coachResult.success && studentResult.success };
     } catch (error: any) {
@@ -463,11 +474,11 @@ export class EmailService {
   static async sendSessionRescheduledEmails(
     coachEmail: string,
     studentEmail: string,
-    data: SessionBookingEmailData & { oldDate: string; rescheduledBy: string }
+    data: SessionBookingEmailData & { oldDate: string; rescheduledBy: string },
   ): Promise<{ success: boolean; error?: string }> {
     try {
       const subject = `Session Rescheduled: ${data.studentName} & ${data.coachName}`;
-      
+
       const html = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px;">
           <h2 style="color: #3b82f6;">Session Rescheduled</h2>
@@ -486,11 +497,64 @@ export class EmailService {
         </div>
       `;
 
-      const coachResult = await this.sendEmail({ to: coachEmail, subject, html });
-      const studentResult = await this.sendEmail({ to: studentEmail, subject, html });
+      const coachResult = await this.sendEmail({
+        to: coachEmail,
+        subject,
+        html,
+      });
+      const studentResult = await this.sendEmail({
+        to: studentEmail,
+        subject,
+        html,
+      });
 
       return { success: coachResult.success && studentResult.success };
     } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  static async sendContactFormEmail(data: {
+    fullName: string;
+    email: string;
+    university: string;
+    message: string;
+  }): Promise<{ success: boolean; error?: string }> {
+    try {
+      const subject = `New Contact Form Submission from ${data.fullName}`;
+      const recipientEmail =
+        process.env.CONTACT_EMAIL || process.env.SMTP_USER || "";
+
+      if (!recipientEmail) {
+        throw new Error(
+          "Recipient email not configured (CONTACT_EMAIL or SMTP_USER)",
+        );
+      }
+
+      const html = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px;">
+          <h2 style="color: #059669;">New Contact Form Message</h2>
+          <div style="background-color: #f3f4f6; padding: 15px; border-radius: 6px; margin: 20px 0;">
+            <p><strong>Name:</strong> ${data.fullName}</p>
+            <p><strong>Email:</strong> ${data.email}</p>
+            <p><strong>University:</strong> ${data.university}</p>
+          </div>
+          <p><strong>Message:</strong></p>
+          <p style="white-space: pre-wrap; background-color: #f9fafb; padding: 15px; border-radius: 6px; border: 1px solid #e5e7eb;">${data.message}</p>
+          <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
+          <p style="font-size: 12px; color: #6b7280;">Sent from Nebula Contact Form</p>
+        </div>
+      `;
+
+      return this.sendEmail({
+        to: recipientEmail,
+        subject,
+        html,
+        replyTo: data.email,
+        text: `New message from ${data.fullName} (${data.email}) - University: ${data.university}\n\n${data.message}`,
+      });
+    } catch (error: any) {
+      console.error("Failed to send contact form email:", error);
       return { success: false, error: error.message };
     }
   }
@@ -499,6 +563,7 @@ export class EmailService {
     const requiredEnvVars = [
       "SMTP_USER",
       "SMTP_PASSWORD",
+      // "CONTACT_EMAIL" // Optional, falls back to SMTP_USER
     ];
 
     return requiredEnvVars.every((varName) => !!process.env[varName]);

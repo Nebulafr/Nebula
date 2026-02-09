@@ -525,3 +525,12 @@ export type CoachOnboardingStep4Data = z.infer<typeof coachOnboardingStep4Schema
 export type StudentOnboardingStep1Data = z.infer<typeof studentOnboardingStep1Schema>;
 export type StudentOnboardingStep2Data = z.infer<typeof studentOnboardingStep2Schema>;
 export type StudentOnboardingStep3Data = z.infer<typeof studentOnboardingStep3Schema>;
+
+export const contactFormSchema = z.object({
+  fullName: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Invalid email address"),
+  university: z.string().min(2, "University must be at least 2 characters"),
+  message: z.string().min(10, "Message must be at least 10 characters"),
+});
+
+export type ContactFormData = z.infer<typeof contactFormSchema>;

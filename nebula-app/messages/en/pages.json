@@ -440,7 +440,7 @@
     }
   },
   "contact": {
-    "backToHelp": "Back to Help Center",
+    "backToHelp": "Back",
     "title": "Contact Us",
     "description": "We're excited to explore how we can work together. Please fill out the form below.",
     "fields": {
@@ -455,6 +455,8 @@
     },
     "send": "Send Message",
     "futureTitle": "Let's Build the Future Together",
-    "futureDesc": "Partner with us to create powerful learning experiences for your students."
+    "futureDesc": "Partner with us to create powerful learning experiences for your students.",
+    "successMessage": "Message sent successfully! We'll get back to you soon.",
+    "errorMessage": "Failed to send message. Please try again."
   }
 }

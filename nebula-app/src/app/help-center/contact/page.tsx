@@ -1,5 +1,11 @@
 "use client";
 
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { contactFormSchema, ContactFormData } from "@/lib/validations";
+import { submitContactForm } from "./actions";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -14,17 +20,49 @@ import { PlaceHolderImages } from "@/lib/images/placeholder-images";
 import { ArrowLeft, Send } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Textarea } from "@/components/ui/textarea";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 
 import { useTranslations } from "next-intl";
+import { toast } from "react-toastify";
 
 export default function ContactPage() {
   const t = useTranslations("contact");
+  const router = useRouter();
   const contactImage = PlaceHolderImages.find(
     (img) => img.id === "about-story",
   );
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<ContactFormData>({
+    resolver: zodResolver(contactFormSchema),
+  });
+
+  const onSubmit = async (data: ContactFormData) => {
+    setIsSubmitting(true);
+    try {
+      const result = await submitContactForm(data);
+
+      if (result.success) {
+        toast.success(t("successMessage") || "Message sent successfully!");
+        reset();
+      } else {
+        toast.error(result.error || t("errorMessage") || "Failed to send message.");
+      }
+    } catch (error) {
+      console.error("Submission error:", error);
+      toast.error("An unexpected error occurred. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -35,13 +73,13 @@ export default function ContactPage() {
             <div className="mx-auto grid w-[450px] gap-6">
               <Card className="border-none shadow-none">
                 <CardHeader className="p-0 text-left">
-                  <Link
-                    href="/help-center"
+                  <button
+                    onClick={() => router.back()}
                     className="flex items-center gap-2 mb-4 text-sm font-medium text-muted-foreground hover:text-foreground"
                   >
                     <ArrowLeft className="h-4 w-4" />
                     {t("backToHelp")}
-                  </Link>
+                  </button>
                   <CardTitle className="text-3xl font-bold text-primary">
                     {t("title")}
                   </CardTitle>
@@ -49,12 +87,20 @@ export default function ContactPage() {
                     {t("description")}
                   </CardDescription>
                 </CardHeader>
-                <form>
+                <form onSubmit={handleSubmit(onSubmit)}>
                   <CardContent className="grid gap-4 p-0 mt-6">
                     <div className="grid grid-cols-2 gap-4">
                       <div className="grid gap-2">
                         <Label htmlFor="full-name">{t("fields.fullName")}</Label>
-                        <Input id="full-name" placeholder={t("fields.fullNamePlaceholder")} required />
+                        <Input
+                          id="full-name"
+                          placeholder={t("fields.fullNamePlaceholder")}
+                          className={errors.fullName ? "border-destructive focus-visible:ring-destructive" : ""}
+                          {...register("fullName")}
+                        />
+                        {errors.fullName && (
+                          <p className="text-sm text-destructive">{errors.fullName.message}</p>
+                        )}
                       </div>
                       <div className="grid gap-2">
                         <Label htmlFor="email">{t("fields.email")}</Label>
@@ -62,8 +108,12 @@ export default function ContactPage() {
                           id="email"
                           type="email"
                           placeholder={t("fields.emailPlaceholder")}
-                          required
+                          className={errors.email ? "border-destructive focus-visible:ring-destructive" : ""}
+                          {...register("email")}
                         />
+                        {errors.email && (
+                          <p className="text-sm text-destructive">{errors.email.message}</p>
+                        )}
                       </div>
                     </div>
                     <div className="grid gap-2">
@@ -73,20 +123,34 @@ export default function ContactPage() {
                       <Input
                         id="university"
                         placeholder={t("fields.universityPlaceholder")}
-                        required
+                        className={errors.university ? "border-destructive focus-visible:ring-destructive" : ""}
+                        {...register("university")}
                       />
+                      {errors.university && (
+                        <p className="text-sm text-destructive">{errors.university.message}</p>
+                      )}
                     </div>
                     <div className="grid gap-2">
                       <Label htmlFor="message">{t("fields.message")}</Label>
                       <Textarea
                         id="message"
                         placeholder={t("fields.messagePlaceholder")}
-                        required
                         rows={5}
+                        className={errors.message ? "border-destructive focus-visible:ring-destructive" : ""}
+                        {...register("message")}
                       />
+                      {errors.message && (
+                        <p className="text-sm text-destructive">{errors.message.message}</p>
+                      )}
                     </div>
-                    <Button type="submit" className="w-full" size="lg">
-                      {t("send")} <Send className="ml-2 h-4 w-4" />
+                    <Button type="submit" className="w-full" size="lg" disabled={isSubmitting}>
+                      {isSubmitting ? (
+                        <span>Sending...</span>
+                      ) : (
+                        <>
+                          <span>{t("send")}</span> <Send className="ml-2 h-4 w-4" />
+                        </>
+                      )}
                     </Button>
                   </CardContent>
                 </form>
