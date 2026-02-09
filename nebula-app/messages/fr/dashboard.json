@@ -122,15 +122,12 @@
         "table": {
           "name": "Étudiant",
           "program": "Programme",
-          "status": "Statut",
           "lastSession": "Dernière session",
           "actions": "Actions",
           "message": "Message",
-          "schedule": "Programmer",
-          "viewProfile": "Voir le profil",
-          "remove": "Supprimer",
+          "reschedule": "Replanifier",
           "noStudents": "Aucun étudiant trouvé",
-          "emptyState": "Vous n'avez aucun étudiant correspondant à vos critères."
+          "noSessions": "Pas encore de sessions"
         },
         "addDialog": {
           "title": "Ajouter un nouvel étudiant",
@@ -146,6 +143,7 @@
       "schedule": {
         "title": "Emploi du temps",
         "subtitle": "Gérez vos sessions de coaching et votre disponibilité",
+        "noMeetingLink": "Aucun lien de réunion disponible pour cette session",
         "tabs": {
           "sessions": "Sessions",
           "availabilityTab": "Disponibilité"
@@ -183,7 +181,7 @@
         "sessionsList": {
           "title": "Sessions",
           "selectDateShort": "Sélectionner une date",
-          "newSession": "Nouvelle session",
+          "newSession": "Créer une session",
           "noSessions": "Aucune session prévue",
           "selectDifferent": "Essayez de sélectionner une autre date",
           "selectDate": "Sélectionnez une date pour voir les sessions",
@@ -423,6 +421,7 @@
         "title": "Paramètres",
         "subtitle": "Gérez les paramètres de votre compte et vos informations de paiement",
         "loading": "Chargement des paramètres...",
+        "errorUnexpected": "Une erreur inattendue s'est produite",
         "tabs": {
           "account": "Paramètres du compte",
           "payout": "Informations de paiement",
@@ -501,7 +500,12 @@
           "stripeConnected": "Compte Stripe connecté",
           "save": "Enregistrer les paramètres de paiement",
           "saving": "Enregistrement...",
+          "saveSuccess": "Paramètres de paiement enregistrés avec succès",
           "errorSave": "Échec de l'enregistrement des paramètres de paiement"
+        },
+        "security": {
+          "passwordSuccess": "Mot de passe modifié avec succès",
+          "errorPassword": "Échec de la modification du mot de passe"
         }
       },
       "messaging": {

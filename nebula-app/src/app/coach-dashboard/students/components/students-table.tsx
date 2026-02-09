@@ -1,7 +1,6 @@
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -11,13 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { MoreHorizontal, MessageSquare, Calendar } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { MessageSquare, Calendar } from "lucide-react";
 import { getDefaultAvatar } from "@/lib/event-utils";
 import { useTranslations } from "next-intl";
 
@@ -27,7 +20,6 @@ export interface Student {
   email: string;
   avatar?: string;
   program: string;
-  status: "active" | "paused" | "completed" | "cancelled";
   lastSession?: string;
 }
 
@@ -36,8 +28,6 @@ interface StudentsTableProps {
   loading?: boolean;
   onMessageStudent?: (studentId: string) => void;
   onScheduleSession?: (studentId: string) => void;
-  onViewProfile?: (studentId: string) => void;
-  onRemoveStudent?: (studentId: string) => void;
 }
 
 export function StudentsTable({
@@ -45,25 +35,8 @@ export function StudentsTable({
   loading = false,
   onMessageStudent,
   onScheduleSession,
-  onViewProfile,
-  onRemoveStudent,
 }: StudentsTableProps) {
   const t = useTranslations("dashboard.coach.students.table");
-  
-  const getStatusColor = (status: Student["status"]) => {
-    switch (status) {
-      case "active":
-        return "bg-green-100 text-green-800";
-      case "paused":
-        return "bg-yellow-100 text-yellow-800";
-      case "completed":
-        return "bg-blue-100 text-blue-800";
-      case "cancelled":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
 
   if (loading) {
     return (
@@ -100,7 +73,6 @@ export function StudentsTable({
         <TableRow>
           <TableHead>{t("name")}</TableHead>
           <TableHead>{t("program")}</TableHead>
-          <TableHead>{t("status")}</TableHead>
           <TableHead>{t("lastSession")}</TableHead>
           <TableHead className="text-right">{t("actions")}</TableHead>
         </TableRow>
@@ -131,12 +103,6 @@ export function StudentsTable({
             </TableCell>
             <TableCell>{student.program}</TableCell>
             <TableCell>
-              <Badge className={getStatusColor(student.status)}>
-                {t(student.status)}
-              </Badge>
-            </TableCell>
-
-            <TableCell>
               <div className="text-sm">
                 {student.lastSession || t("noSessions")}
               </div>
@@ -149,46 +115,18 @@ export function StudentsTable({
                   onClick={() => onMessageStudent?.(student.id)}
                   title={t("message")}
                 >
-                  <MessageSquare className="h-3 w-3" />
+                  <MessageSquare className="h-3 w-3 mr-1" />
+                  {t("message")}
                 </Button>
                 <Button
                   size="sm"
                   variant="outline"
                   onClick={() => onScheduleSession?.(student.id)}
-                  title={t("schedule")}
+                  title={t("reschedule")}
                 >
-                  <Calendar className="h-3 w-3" />
+                  <Calendar className="h-3 w-3 mr-1" />
+                  {t("reschedule")}
                 </Button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button size="sm" variant="ghost">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem
-                      onClick={() => onViewProfile?.(student.id)}
-                    >
-                      {t("viewProfile")}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => onMessageStudent?.(student.id)}
-                    >
-                      {t("message")}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => onScheduleSession?.(student.id)}
-                    >
-                      {t("schedule")}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => onRemoveStudent?.(student.id)}
-                      className="text-red-600"
-                    >
-                      {t("remove")}
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
               </div>
             </TableCell>
           </TableRow>

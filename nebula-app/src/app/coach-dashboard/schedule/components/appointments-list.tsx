@@ -91,7 +91,11 @@ export function SessionsList({
           )}
         </div>
         {onCreateSession && (
-          <Button size="sm" onClick={onCreateSession} className="gap-1 bg-green-500 hover:bg-green-600 text-white">
+          <Button
+            size="sm"
+            onClick={onCreateSession}
+            className="gap-1 bg-green-500 hover:bg-green-600 text-white"
+          >
             <Plus className="h-4 w-4" />
             {t("newSession")}
           </Button>
@@ -122,11 +126,9 @@ export function SessionsList({
             <CalendarDays className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
             <p className="text-muted-foreground">{t("noSessions")}</p>
             <p className="text-sm text-muted-foreground mt-1">
-              {selectedDate
-                ? t("selectDifferent")
-                : t("selectDate")}
+              {selectedDate ? t("selectDifferent") : t("selectDate")}
             </p>
-            {onCreateSession && (
+            {/* {onCreateSession && (
               <Button
                 variant="outline"
                 size="sm"
@@ -136,7 +138,7 @@ export function SessionsList({
                 <Plus className="h-4 w-4" />
                 {t("createSession")}
               </Button>
-            )}
+            )} */}
           </div>
         )}
       </CardContent>

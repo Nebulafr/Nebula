@@ -12,21 +12,20 @@ import { Calendar, Settings } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { CancelSessionDialog } from "./components/cancel-session-dialog";
 import { RescheduleSessionDialog } from "./components/reschedule-session-dialog";
-import { 
-  useCoachSessions, 
-  useCoachStats, 
-  useCancelCoachSession, 
+import {
+  useCoachSessions,
+  useCoachStats,
+  useCancelCoachSession,
   useRescheduleCoachSession,
   useApproveCoachSession,
-  useRejectCoachSession
+  useRejectCoachSession,
 } from "@/hooks/use-schedule-queries";
 import moment from "moment";
-
 
 export default function SchedulePage() {
   const t = useTranslations("dashboard.coach.schedule");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
-    new Date()
+    new Date(),
   );
 
   // Fetch sessions and stats
@@ -52,13 +51,30 @@ export default function SchedulePage() {
     });
   }, [sessions, selectedDate]);
 
-  const { mutateAsync: cancelSession, isPending: isCancelling, variables: cancelVars } = useCancelCoachSession();
-  const { mutateAsync: rescheduleSession, isPending: isRescheduling, variables: rescheduleVars } = useRescheduleCoachSession();
-  const { mutate: approveSession, isPending: isApproving, variables: approveVars } = useApproveCoachSession();
-  const { mutate: rejectSession, isPending: isRejecting, variables: rejectVars } = useRejectCoachSession();
+  const {
+    mutateAsync: cancelSession,
+    isPending: isCancelling,
+    variables: cancelVars,
+  } = useCancelCoachSession();
+  const {
+    mutateAsync: rescheduleSession,
+    isPending: isRescheduling,
+    variables: rescheduleVars,
+  } = useRescheduleCoachSession();
+  const {
+    mutate: approveSession,
+    isPending: isApproving,
+    variables: approveVars,
+  } = useApproveCoachSession();
+  const {
+    mutate: rejectSession,
+    isPending: isRejecting,
+    variables: rejectVars,
+  } = useRejectCoachSession();
 
   const [sessionToCancel, setSessionToCancel] = useState<Session | null>(null);
-  const [sessionToReschedule, setSessionToReschedule] = useState<Session | null>(null);
+  const [sessionToReschedule, setSessionToReschedule] =
+    useState<Session | null>(null);
 
   const handleViewDetails = (session: Session) => {
     console.log("View details for:", session);
@@ -83,7 +99,9 @@ export default function SchedulePage() {
   const handleApprove = (session: Session) => {
     approveSession(session.id, {
       onSuccess: () => {
-        toast.success(t("list.approveSuccess") || "Session approved successfully");
+        toast.success(
+          t("list.approveSuccess") || "Session approved successfully",
+        );
       },
     });
   };
@@ -91,7 +109,9 @@ export default function SchedulePage() {
   const handleReject = (session: Session) => {
     rejectSession(session.id, {
       onSuccess: () => {
-        toast.success(t("list.rejectSuccess") || "Session rejected successfully");
+        toast.success(
+          t("list.rejectSuccess") || "Session rejected successfully",
+        );
       },
     });
   };
@@ -100,7 +120,9 @@ export default function SchedulePage() {
     if (!sessionToCancel) return;
     try {
       await cancelSession({ sessionId: sessionToCancel.id, reason });
-      toast.success(t("list.cancelSuccess") || "Session cancelled successfully");
+      toast.success(
+        t("list.cancelSuccess") || "Session cancelled successfully",
+      );
       setSessionToCancel(null);
     } catch (error) {
       // Error handled by hook
@@ -118,13 +140,14 @@ export default function SchedulePage() {
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         },
       });
-      toast.success(t("list.rescheduleSuccess") || "Session rescheduled successfully");
+      toast.success(
+        t("list.rescheduleSuccess") || "Session rescheduled successfully",
+      );
       setSessionToReschedule(null);
     } catch (error) {
       // Error handled by hook
     }
   };
-
 
   const handleCreateSession = () => {
     //
@@ -134,9 +157,7 @@ export default function SchedulePage() {
     <div className="flex-1 space-y-6 p-4 md:p-8">
       <div>
         <h2 className="text-3xl font-bold tracking-tight">{t("title")}</h2>
-        <p className="text-muted-foreground">
-          {t("subtitle")}
-        </p>
+        <p className="text-muted-foreground">{t("subtitle")}</p>
       </div>
 
       <ScheduleStats stats={stats} loading={statsLoading} />
@@ -177,8 +198,12 @@ export default function SchedulePage() {
                 loading={sessionsLoading}
                 isApproving={(id) => isApproving && approveVars === id}
                 isRejecting={(id) => isRejecting && rejectVars === id}
-                isCancelling={(id) => isCancelling && cancelVars?.sessionId === id}
-                isRescheduling={(id) => isRescheduling && rescheduleVars?.sessionId === id}
+                isCancelling={(id) =>
+                  isCancelling && cancelVars?.sessionId === id
+                }
+                isRescheduling={(id) =>
+                  isRescheduling && rescheduleVars?.sessionId === id
+                }
               />
             </div>
           </div>
@@ -207,6 +232,5 @@ export default function SchedulePage() {
         isLoading={isRescheduling}
       />
     </div>
-
   );
 }

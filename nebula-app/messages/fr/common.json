@@ -143,7 +143,7 @@
     "mySessions": "Mes sessions",
     "messaging": "Messagerie",
     "schedule": "Emploi du temps",
-    "students": "Étudiants",
+    "students": "Mes Étudiants",
     "payouts": "Paiements",
     "users": "Utilisateurs",
     "settings": "Paramètres",
@@ -151,6 +151,7 @@
     "collapse": "Réduire",
     "goToHomepage": "Aller à l'accueil",
     "seeAll": "Voir tout",
+    "more": "de plus",
     "reviews": "Avis",
     "admin": "Admin",
     "days": {

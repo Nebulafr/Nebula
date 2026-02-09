@@ -1,38 +1,50 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 
 // Micro Components
 import { StudentsTable, type Student } from "./components/students-table";
 import { StudentsFilters } from "./components/students-filters";
 import { StudentsStatsCards } from "./components/students-stats";
-import {
-  AddStudentDialog,
-  type StudentFormData,
-} from "./components/add-student-dialog";
 import { useTranslations } from "next-intl";
+import { useCoachStudents } from "@/hooks/use-coach-queries";
+import { formatDistanceToNow } from "date-fns";
 
 export default function StudentsPage() {
   const t = useTranslations("dashboard.coach.students");
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
   const [programFilter, setProgramFilter] = useState("all");
-  const [showAddDialog, setShowAddDialog] = useState(false);
 
-  // Mock data - replace with real API data
-  const students: Student[] = [];
-  const programs = [
-    "Consulting, Associate Level",
-    "MBA Admissions Coaching",
-    "Leadership Development",
-  ];
+  const { data: studentsData, isLoading } = useCoachStudents();
+
+  // Transform API data to Student format
+  const students: Student[] = useMemo(() => {
+    if (!studentsData) return [];
+    return studentsData.map((s) => ({
+      id: s.id,
+      name: s.name,
+      email: s.email,
+      avatar: s.avatar || undefined,
+      program: s.program,
+      lastSession: s.lastSession
+        ? formatDistanceToNow(new Date(s.lastSession), { addSuffix: true })
+        : undefined,
+    }));
+  }, [studentsData]);
+
+  // Get unique programs for filter
+  const programs = useMemo(() => {
+    if (!studentsData) return [];
+    const uniquePrograms = new Set(studentsData.map((s) => s.program));
+    return Array.from(uniquePrograms).filter((p) => p !== "No Program");
+  }, [studentsData]);
 
   const stats = {
     total: students.length,
-    active: students.filter((s) => s.status === "active").length,
-    completed: students.filter((s) => s.status === "completed").length,
-    paused: students.filter((s) => s.status === "paused").length,
+    active: students.length,
+    completed: 0,
+    paused: 0,
   };
 
   // Filter students based on search and filters
@@ -40,12 +52,10 @@ export default function StudentsPage() {
     const matchesSearch =
       student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       student.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus =
-      statusFilter === "all" || student.status === statusFilter;
     const matchesProgram =
       programFilter === "all" || student.program === programFilter;
 
-    return matchesSearch && matchesStatus && matchesProgram;
+    return matchesSearch && matchesProgram;
   });
 
   const handleMessageStudent = (studentId: string) => {
@@ -56,27 +66,6 @@ export default function StudentsPage() {
   const handleScheduleSession = (studentId: string) => {
     console.log("Schedule session with:", studentId);
     // Navigate to scheduling
-  };
-
-  const handleViewProfile = (studentId: string) => {
-    console.log("View profile:", studentId);
-    // Navigate to student profile
-  };
-
-  const handleRemoveStudent = (studentId: string) => {
-    console.log("Remove student:", studentId);
-    // Show confirmation dialog and remove
-  };
-
-  const handleAddStudent = (studentData: StudentFormData) => {
-    console.log("Add student:", studentData);
-    // API call to add student
-    setShowAddDialog(false);
-  };
-
-  const handleExportStudents = () => {
-    console.log("Export students");
-    // Export functionality
   };
 
   return (
@@ -92,17 +81,13 @@ export default function StudentsPage() {
       {/* Stats */}
       <StudentsStatsCards stats={stats} />
 
-      {/* Filters and Actions */}
+      {/* Filters */}
       <StudentsFilters
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
-        statusFilter={statusFilter}
-        onStatusFilterChange={setStatusFilter}
         programFilter={programFilter}
         onProgramFilterChange={setProgramFilter}
         programs={programs}
-        onAddStudent={() => setShowAddDialog(true)}
-        onExportStudents={handleExportStudents}
       />
 
       {/* Students Table */}
@@ -110,21 +95,12 @@ export default function StudentsPage() {
         <CardContent className="p-0">
           <StudentsTable
             students={filteredStudents}
+            loading={isLoading}
             onMessageStudent={handleMessageStudent}
             onScheduleSession={handleScheduleSession}
-            onViewProfile={handleViewProfile}
-            onRemoveStudent={handleRemoveStudent}
           />
         </CardContent>
       </Card>
-
-      {/* Add Student Dialog */}
-      <AddStudentDialog
-        open={showAddDialog}
-        onOpenChange={setShowAddDialog}
-        programs={programs}
-        onAddStudent={handleAddStudent}
-      />
     </div>
   );
 }

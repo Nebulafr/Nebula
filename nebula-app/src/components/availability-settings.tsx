@@ -48,7 +48,9 @@ interface AvailabilitySettingsProps {
   /** Custom description for the component */
   description?: string;
   /** Callback when availability changes (useful for onboarding) */
-  onAvailabilityChange?: (availability: Record<string, DayAvailability>) => void;
+  onAvailabilityChange?: (
+    availability: Record<string, DayAvailability>,
+  ) => void;
   /** Initial availability data (useful for onboarding) */
   initialAvailability?: Record<string, DayAvailability>;
   /** Whether the component is in loading state */
@@ -71,15 +73,16 @@ export function AvailabilitySettings({
   const commonT = useTranslations("common");
 
   // Only use hooks if showSaveButton is true (dashboard mode)
-  const { data: availabilityData, isLoading: loadingData } = showSaveButton 
-    ? useCoachAvailability() 
+  const { data: availabilityData, isLoading: loadingData } = showSaveButton
+    ? useCoachAvailability()
     : { data: null, isLoading: false };
-  const { mutate: saveAvailability, isPending: saving } = showSaveButton 
-    ? useSaveCoachAvailability() 
+  const { mutate: saveAvailability, isPending: saving } = showSaveButton
+    ? useSaveCoachAvailability()
     : { mutate: () => {}, isPending: false };
 
-  const [availability, setAvailability] =
-    useState<Record<string, DayAvailability>>(initialAvailability || DEFAULT_AVAILABILITY);
+  const [availability, setAvailability] = useState<
+    Record<string, DayAvailability>
+  >(initialAvailability || DEFAULT_AVAILABILITY);
 
   // Initialize from fetched data (dashboard mode)
   useEffect(() => {
@@ -117,7 +120,7 @@ export function AvailabilitySettings({
   const handleTimeChange = (
     day: string,
     field: "startTime" | "endTime",
-    value: string
+    value: string,
   ) => {
     if (disabled) return;
     setAvailability((prev) => ({
@@ -170,12 +173,13 @@ export function AvailabilitySettings({
                   onCheckedChange={() => handleToggleDay(key)}
                   disabled={disabled || (showSaveButton && saving)}
                 />
-                <Label className="font-medium">{commonT(`days.${labelKey}`)}</Label>
+                <Label className="font-medium">
+                  {commonT(`days.${labelKey}`)}
+                </Label>
               </div>
 
               {availability[key].enabled && (
                 <div className="flex items-center gap-2 text-sm">
-                  <Clock className="h-4 w-4 text-muted-foreground" />
                   <input
                     type="time"
                     value={availability[key].startTime}

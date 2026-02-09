@@ -1,9 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2 } from "lucide-react";
+import { Loader2, Eye, EyeOff } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -33,6 +34,10 @@ export function SecuritySection({
 }: SecuritySectionProps) {
   const t = useTranslations("dashboard.settings.security");
   const commonT = useTranslations("signup");
+
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const form = useForm<ChangePasswordData>({
     resolver: zodResolver(changePasswordSchema),
@@ -97,16 +102,31 @@ export function SecuritySection({
                   <FormItem>
                     <FormLabel>{t("currentPassword")}</FormLabel>
                     <FormControl>
-                      <Input
-                        type="password"
-                        placeholder="••••••••"
-                        {...field}
-                        className={
-                          form.formState.errors.currentPassword
-                            ? "border-red-500"
-                            : ""
-                        }
-                      />
+                      <div className="relative">
+                        <Input
+                          type={showCurrentPassword ? "text" : "password"}
+                          placeholder="••••••••"
+                          {...field}
+                          className={
+                            form.formState.errors.currentPassword
+                              ? "border-red-500 pr-10"
+                              : "pr-10"
+                          }
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                          onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                        >
+                          {showCurrentPassword ? (
+                            <EyeOff className="h-4 w-4 text-muted-foreground" />
+                          ) : (
+                            <Eye className="h-4 w-4 text-muted-foreground" />
+                          )}
+                        </Button>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -120,16 +140,31 @@ export function SecuritySection({
                   <FormItem>
                     <FormLabel>{t("newPassword")}</FormLabel>
                     <FormControl>
-                      <Input
-                        type="password"
-                        placeholder="••••••••"
-                        {...field}
-                        className={
-                          form.formState.errors.newPassword
-                            ? "border-red-500"
-                            : ""
-                        }
-                      />
+                      <div className="relative">
+                        <Input
+                          type={showNewPassword ? "text" : "password"}
+                          placeholder="••••••••"
+                          {...field}
+                          className={
+                            form.formState.errors.newPassword
+                              ? "border-red-500 pr-10"
+                              : "pr-10"
+                          }
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                          onClick={() => setShowNewPassword(!showNewPassword)}
+                        >
+                          {showNewPassword ? (
+                            <EyeOff className="h-4 w-4 text-muted-foreground" />
+                          ) : (
+                            <Eye className="h-4 w-4 text-muted-foreground" />
+                          )}
+                        </Button>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -143,16 +178,31 @@ export function SecuritySection({
                   <FormItem>
                     <FormLabel>{t("confirmNewPassword")}</FormLabel>
                     <FormControl>
-                      <Input
-                        type="password"
-                        placeholder="••••••••"
-                        {...field}
-                        className={
-                          form.formState.errors.confirmPassword
-                            ? "border-red-500"
-                            : ""
-                        }
-                      />
+                      <div className="relative">
+                        <Input
+                          type={showConfirmPassword ? "text" : "password"}
+                          placeholder="••••••••"
+                          {...field}
+                          className={
+                            form.formState.errors.confirmPassword
+                              ? "border-red-500 pr-10"
+                              : "pr-10"
+                          }
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        >
+                          {showConfirmPassword ? (
+                            <EyeOff className="h-4 w-4 text-muted-foreground" />
+                          ) : (
+                            <Eye className="h-4 w-4 text-muted-foreground" />
+                          )}
+                        </Button>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>

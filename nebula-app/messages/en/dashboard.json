@@ -98,7 +98,7 @@
         "status": "Status",
         "actions": "Actions",
         "viewDetails": "View Details",
-        "download Receipt": "Download Receipt"
+        "downloadReceipt": "Download Receipt"
       },
       "students": {
         "title": "Students",
@@ -122,15 +122,12 @@
         "table": {
           "name": "Student",
           "program": "Program",
-          "status": "Status",
           "lastSession": "Last Session",
           "actions": "Actions",
           "message": "Message",
-          "schedule": "Schedule",
-          "viewProfile": "View Profile",
-          "remove": "Remove",
+          "reschedule": "Reschedule",
           "noStudents": "No students found",
-          "emptyState": "You don't have any students matching your criteria."
+          "noSessions": "No sessions yet"
         },
         "addDialog": {
           "title": "Add New Student",
@@ -146,6 +143,7 @@
       "schedule": {
         "title": "Schedule",
         "subtitle": "Manage your coaching sessions and availability",
+        "noMeetingLink": "No meeting link available for this session",
         "tabs": {
           "sessions": "Sessions",
           "availabilityTab": "Availability"
@@ -183,7 +181,7 @@
         "sessionsList": {
           "title": "Sessions",
           "selectDateShort": "Select a date",
-          "newSession": "New Session",
+          "newSession": "Create Session",
           "noSessions": "No sessions scheduled",
           "selectDifferent": "Try selecting a different date",
           "selectDate": "Select a date to view sessions",
@@ -423,6 +421,7 @@
         "title": "Settings",
         "subtitle": "Manage your account settings and payout information",
         "loading": "Loading settings...",
+        "errorUnexpected": "An unexpected error occurred",
         "tabs": {
           "account": "Account Settings",
           "payout": "Payout Information",
@@ -501,7 +500,12 @@
           "stripeConnected": "Stripe account connected",
           "save": "Save Payout Settings",
           "saving": "Saving...",
+          "saveSuccess": "Payout settings saved successfully",
           "errorSave": "Failed to save payout settings"
+        },
+        "security": {
+          "passwordSuccess": "Password changed successfully",
+          "errorPassword": "Failed to change password"
         }
       },
       "messaging": {

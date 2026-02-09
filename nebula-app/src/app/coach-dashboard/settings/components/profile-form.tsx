@@ -14,7 +14,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { TagInputField } from "./tag-input-field";
-import { AvailabilitySettings } from "@/components/availability-settings";
 import {
   Form,
   FormControl,
@@ -78,9 +77,7 @@ export function ProfileForm({
                   <FormControl>
                     <Input {...field} placeholder={t("fullName")} />
                   </FormControl>
-                  <FormDescription>
-                    {t("fullNameDescription")}
-                  </FormDescription>
+                  <FormDescription>{t("fullNameDescription")}</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -270,12 +267,6 @@ export function ProfileForm({
           </form>
         </Form>
       </CardContent>
-      <AvailabilitySettings
-        showHeader={true}
-        showSaveButton={true}
-        title={t("availabilityTitle")}
-        description={t("availabilityDesc")}
-      />
     </Card>
   );
 }

@@ -143,7 +143,7 @@
     "mySessions": "My Sessions",
     "messaging": "Messaging",
     "schedule": "Schedule",
-    "students": "Students",
+    "students": "My Students",
     "payouts": "Payouts",
     "users": "Users",
     "settings": "Settings",
@@ -151,6 +151,7 @@
     "collapse": "Collapse",
     "goToHomepage": "Go to Homepage",
     "seeAll": "See All",
+    "more": "more",
     "reviews": "Reviews",
     "admin": "Admin",
     "days": {

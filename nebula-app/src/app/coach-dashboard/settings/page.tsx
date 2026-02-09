@@ -204,9 +204,7 @@ export default function CoachSettingsPage() {
     <div className="flex-1 space-y-6 p-4 md:p-8">
       <div>
         <h2 className="text-3xl font-bold tracking-tight">{t("title")}</h2>
-        <p className="text-muted-foreground">
-          {t("subtitle")}
-        </p>
+        <p className="text-muted-foreground">{t("subtitle")}</p>
       </div>
 
       <Tabs defaultValue="account" className="space-y-6">

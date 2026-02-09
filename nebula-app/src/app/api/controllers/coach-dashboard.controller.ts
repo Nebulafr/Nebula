@@ -33,5 +33,10 @@ export class CoachDashboardController {
     const limit = parseInt(searchParams.get("limit") || "5");
     return await CoachDashboardService.getRecentPayouts(user.id, limit);
   }
+
+  async getStudents(req: NextRequest) {
+    const user = (req as any).user;
+    return await CoachDashboardService.getStudents(user.id);
+  }
 }
 

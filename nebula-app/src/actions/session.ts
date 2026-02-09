@@ -33,6 +33,10 @@ export async function getCoachStats() {
   return apiGet("/coaches/stats");
 }
 
+export async function getCoachStudents() {
+  return apiGet("/coaches/students");
+}
+
 export async function createCoachSession(data: {
   title: string;
   description?: string;
