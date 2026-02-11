@@ -47,7 +47,10 @@
     "programReviewsSummary": "See what other students have to say about this program.",
     "loadingReviews": "Loading reviews...",
     "noReviewsAvailable": "No reviews available for this program yet.",
-    "viewProgramProfile": "View Program"
+    "viewProgramProfile": "View Program",
+    "reviewsCount": "Reviews ({count})",
+    "verified": "Verified",
+    "anonymous": "Anonymous"
   },
   "coachDetails": {
     "coachNotFound": "Coach not found",

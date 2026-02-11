@@ -8,8 +8,8 @@ const reviewController = new ReviewController();
 export const POST = CatchError(
   isAuthenticated(
     async (request: NextRequest, context: { params: Promise<{ slug: string }> }) => {
-      const { slug: programId } = await context.params;
-      return await reviewController.createReview(request, "PROGRAM", programId);
+      const { slug } = await context.params;
+      return await reviewController.createReviewBySlug(request, "PROGRAM", slug);
     }
   )
 );

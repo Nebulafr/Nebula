@@ -498,16 +498,20 @@ export class EventService {
   static remove = async (request: NextRequest, id: string) => {
     const user = (request as any).user;
 
-    if (user.role !== "ADMIN") {
-      throw new UnauthorizedException("Admin access required");
-    }
-
     const existingEvent = await prisma.event.findUnique({
       where: { id },
     });
 
     if (!existingEvent) {
-      throw new NotFoundException("Event not found");
+      // If event is already gone, return success (idempotent behavior)
+      // and avoid throwing 404 which creates noise in logs
+      return sendSuccess(null, "Event already deleted or not found", 204);
+    }
+
+    // Role-based security: ADMINs can delete any event, 
+    // others must be the organizer of the event.
+    if (user.role !== "ADMIN" && existingEvent.organizerId !== user.id) {
+      throw new UnauthorizedException("You are not authorized to delete this event");
     }
 
     await prisma.event.delete({

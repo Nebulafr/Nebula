@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Star } from "lucide-react";
 import Link from "next/link";
-import { truncateText } from "@/lib/utils";
+import { truncateText, getUserAvatar, getInitials } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 
 export interface ProgramCardData {
@@ -48,14 +48,19 @@ export function ProgramCard({ program, variant }: ProgramCardProps) {
         <CardContent className="flex flex-1 flex-col justify-between p-6">
           <div className="flex-1">
             <div className="flex items-center justify-between">
-              <Badge variant="secondary" className="bg-muted text-muted-foreground">
+              <Badge
+                variant="secondary"
+                className="bg-muted text-muted-foreground"
+              >
                 {program.category.name}
               </Badge>
               <span className="text-sm font-bold text-foreground">
-                {program.price === 0 || !program.price ? t("free") : `$${program.price}`}
+                {program.price === 0 || !program.price
+                  ? t("free")
+                  : `$${program.price}`}
               </span>
             </div>
-            <h3 className="font-headline text-primary mt-4 text-2xl font-semibold leading-tight">
+            <h3 className="font-headline mt-4 text-2xl font-semibold leading-tight">
               {truncateText(program.title, 50)}
             </h3>
             <p className="mt-2 text-sm text-muted-foreground">
@@ -67,9 +72,9 @@ export function ProgramCard({ program, variant }: ProgramCardProps) {
               <div className="mb-6 rounded-lg border bg-background p-4">
                 <div className="flex items-center gap-4">
                   <Avatar className="h-12 w-12">
-                    <AvatarImage src={program.coach.user.avatarUrl} />
+                    <AvatarImage src={program.coach.user.avatarUrl || getUserAvatar(program.coach.user.fullName)} />
                     <AvatarFallback>
-                      {program.coach.user.fullName.charAt(0)}
+                      {getInitials(program.coach.user.fullName)}
                     </AvatarFallback>
                   </Avatar>
                   <div>
@@ -84,21 +89,28 @@ export function ProgramCard({ program, variant }: ProgramCardProps) {
               </div>
             )}
             <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <div className="flex -space-x-2">
-                  {program.attendees?.map((attendee, i) => (
-                    <Avatar key={i} className="h-8 w-8 border-2 border-background">
-                      <AvatarImage src={attendee} />
-                      <AvatarFallback>A</AvatarFallback>
-                    </Avatar>
-                  ))}
+              {program._count?.enrollments && program._count.enrollments > 0 ? (
+                <div className="flex items-center">
+                  <div className="flex -space-x-2">
+                    {program.attendees?.map((attendee, i) => (
+                      <Avatar
+                        key={i}
+                        className="h-8 w-8 border-2 border-background"
+                      >
+                        <AvatarImage src={attendee} />
+                        <AvatarFallback>A</AvatarFallback>
+                      </Avatar>
+                    ))}
+                  </div>
+                  {program._count.enrollments > 3 && (
+                    <span className="ml-3 text-sm font-medium text-muted-foreground">
+                      +{program._count.enrollments - 3}
+                    </span>
+                  )}
                 </div>
-                {program._count?.enrollments && program._count.enrollments > 3 && (
-                  <span className="ml-3 text-sm font-medium text-muted-foreground">
-                    +{program._count.enrollments - 3}
-                  </span>
-                )}
-              </div>
+              ) : (
+                <div />
+              )}
               <Badge
                 variant="outline"
                 className="flex items-center gap-1 border-yellow-400 bg-yellow-50/50 px-1 py-0.5 text-[10px]"

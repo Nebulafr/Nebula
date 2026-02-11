@@ -17,14 +17,28 @@ import { useSearchParams } from "next/navigation";
 import { EventType } from "@/types/event";
 import { useTranslations } from "next-intl";
 
+import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Loader2 } from "lucide-react";
+
 export default function AdminEventsContent() {
   const t = useTranslations("dashboard.admin");
   const searchParams = useSearchParams();
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
+  const [eventToDelete, setEventToDelete] = useState<any>(null);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   const [dialogEventType, setDialogEventType] = useState("");
+  const [activeActionId, setActiveActionId] = useState<string | null>(null);
 
   // URL-based form state management
   const urlEventType = searchParams.get("eventType");
@@ -36,6 +50,7 @@ export default function AdminEventsContent() {
   const {
     data: eventsResponse,
     isLoading: loading,
+    isRefetching,
     error,
     refetch: fetchAdminEvents,
   } = useEvents({
@@ -50,25 +65,46 @@ export default function AdminEventsContent() {
   const deleteEventMutation = useDeleteEvent();
 
   const handleCreateEventAction = async (data: any) => {
-    return await createEventMutation.mutateAsync(data);
+    setActiveActionId("create");
+    try {
+      return await createEventMutation.mutateAsync(data);
+    } finally {
+      setActiveActionId(null);
+    }
   };
 
   const handleUpdateEventAction = async (id: string, data: any) => {
-    return await updateEventMutation.mutateAsync({
-      id,
-      updateData: data,
-    });
+    setActiveActionId(id);
+    try {
+      return await updateEventMutation.mutateAsync({
+        id,
+        updateData: data,
+      });
+    } finally {
+      setActiveActionId(null);
+    }
   };
 
   const handleDeleteEventAction = async (id: string) => {
-    return await deleteEventMutation.mutateAsync(id);
+    setActiveActionId(`delete-${id}`);
+    try {
+      return await deleteEventMutation.mutateAsync(id);
+    } finally {
+      setActiveActionId(null);
+    }
   };
 
-  const actionLoading = {
+  const actionLoading: { create: boolean; [key: string]: boolean } = {
     create: createEventMutation.isPending,
-    [selectedEvent?.id]: updateEventMutation.isPending,
-    [`delete-${selectedEvent?.id}`]: deleteEventMutation.isPending,
   };
+
+  if (activeActionId) {
+    actionLoading[activeActionId] = true;
+  }
+
+  if (eventToDelete) {
+    actionLoading[`delete-${eventToDelete.id}`] = deleteEventMutation.isPending;
+  }
 
   // Handle URL parameters
   useEffect(() => {
@@ -191,8 +227,33 @@ export default function AdminEventsContent() {
     setIsCreateDialogOpen(true);
   };
 
-  const handleDeleteEvent = async (id: string) => {
-    await handleDeleteEventAction(id);
+  const handleDeleteEvent = (id: string) => {
+    const event = events.find((e: any) => e.id === id);
+    if (event) {
+      setEventToDelete(event);
+    }
+  };
+
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const handleConfirmDelete = async () => {
+    if (eventToDelete && !isProcessing) {
+      setIsProcessing(true);
+      try {
+        await handleDeleteEventAction(eventToDelete.id);
+        toast.success(t("eventDeletedSuccess") || "Event deleted successfully");
+        setEventToDelete(null); // Close dialog immediately on success
+      } catch (error: any) {
+        // Error already toasted by mutation hook
+        if (error?.statusCode === 404 || error?.message?.includes("not found")) {
+          // If already gone, just refetch
+          fetchAdminEvents();
+          setEventToDelete(null);
+        }
+      } finally {
+        setIsProcessing(false);
+      }
+    }
   };
 
   const filteredEvents = events;
@@ -209,6 +270,8 @@ export default function AdminEventsContent() {
     );
   }
 
+  const isPageLoading = loading || (isRefetching && !activeActionId);
+
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8">
       <Card>
@@ -218,11 +281,16 @@ export default function AdminEventsContent() {
             setSearchTerm={setSearchTerm}
             activeTab={activeTab}
             setActiveTab={setActiveTab}
-            loading={loading}
+            loading={isPageLoading}
             onCreateEvent={handleOpenCreateDialog}
           />
         </CardHeader>
-        <CardContent>
+        <CardContent className="relative">
+          {isPageLoading && events.length > 0 && (
+            <div className="absolute inset-0 bg-white/50 z-10 flex items-center justify-center">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          )}
           <EventsTable
             events={filteredEvents}
             actionLoading={actionLoading}
@@ -252,6 +320,34 @@ export default function AdminEventsContent() {
         actionLoading={actionLoading}
         onCreateEvent={handleCreateEvent}
       />
+
+      <AlertDialog
+        open={!!eventToDelete}
+        onOpenChange={(open) => !open && setEventToDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("areYouSure")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {eventToDelete && (t("deleteEventDesc", { title: eventToDelete.title }) || `Are you sure you want to delete the event "${eventToDelete.title}"? This action cannot be undone.`)}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isProcessing}>{t("cancel")}</AlertDialogCancel>
+            <Button
+              onClick={handleConfirmDelete}
+              variant="destructive"
+              disabled={isProcessing}
+            >
+              {isProcessing ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                t("delete")
+              )}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

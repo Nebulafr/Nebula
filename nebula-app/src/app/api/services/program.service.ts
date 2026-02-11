@@ -670,10 +670,8 @@ export class ProgramService {
   }
 
   async deleteProgram(request: NextRequest, slug: string) {
-    const user = (request as any).user;
-
-    if (user.role !== "COACH") {
-      throw new UnauthorizedException("Coach access required");
+    if (!slug) {
+      throw new BadRequestException("Program Slug is required");
     }
 
     const program = await prisma.program.findUnique({
@@ -687,14 +685,44 @@ export class ProgramService {
       },
     });
 
+    return await this.performDeletion(request, program);
+  }
+
+  async deleteById(request: NextRequest, id: string) {
+    if (!id) {
+      throw new BadRequestException("Program ID is required");
+    }
+
+    const program = await prisma.program.findUnique({
+      where: { id },
+      include: {
+        enrollments: {
+          where: {
+            status: { in: ["ACTIVE", "PAUSED"] },
+          },
+        },
+      },
+    });
+
+    return await this.performDeletion(request, program);
+  }
+
+  private async performDeletion(request: NextRequest, program: any) {
+    const user = (request as any).user;
+
     if (!program) {
       throw new NotFoundException("Program not found");
     }
 
-    if (program.coachId !== user.coach.id) {
-      throw new UnauthorizedException(
-        "You are not authorized to delete this program",
-      );
+    // Role-based security
+    if (user.role === "COACH") {
+      if (program.coachId !== user.coach.id) {
+        throw new UnauthorizedException(
+          "You are not authorized to delete this program",
+        );
+      }
+    } else if (user.role !== "ADMIN") {
+      throw new UnauthorizedException("Unauthorized access");
     }
 
     // Prevent deletion if there are active enrollments
@@ -705,7 +733,7 @@ export class ProgramService {
     }
 
     await prisma.program.delete({
-      where: { slug },
+      where: { id: program.id },
     });
 
     return sendSuccess(null, "Program deleted successfully");

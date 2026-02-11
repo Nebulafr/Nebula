@@ -27,6 +27,26 @@ export class ReviewController {
     });
   }
 
+  async createReviewBySlug(
+    request: NextRequest,
+    targetType: string,
+    slug: string
+  ) {
+    const body = await request.json();
+    const user = (request as any).user;
+
+    const payload = targetReviewSchema.parse({
+      ...body,
+      targetType,
+    });
+
+    return await ReviewService.createReviewBySlug({
+      reviewerId: user.id,
+      slug,
+      ...payload,
+    } as any);
+  }
+
   async getReviews(request: NextRequest, targetType: string, targetId: string) {
     const { searchParams } = new URL(request.url);
 

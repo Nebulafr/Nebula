@@ -3,7 +3,6 @@ import { ProgramController } from "../../../controllers/program.controller";
 import CatchError from "../../../utils/catch-error";
 import { isAuthenticated, requireCoach } from "../../../middleware/auth";
 
-const controller = new ProgramController();
 
 export const GET = CatchError(
   isAuthenticated(
@@ -12,6 +11,7 @@ export const GET = CatchError(
       { params }: { params: Promise<{ id: string }> }
     ) => {
       const { id } = await params;
+      const controller = new ProgramController();
       return await controller.getById(request, id);
     }
   )
@@ -24,7 +24,24 @@ export const PUT = CatchError(
       { params }: { params: Promise<{ id: string }> }
     ) => {
       const { id } = await params;
+      const controller = new ProgramController();
       return await controller.updateById(request, id);
+    }
+  )
+);
+
+export const DELETE = CatchError(
+  isAuthenticated(
+    async (
+      request: NextRequest,
+      { params }: { params: Promise<{ id: string }> }
+    ) => {
+      const { id } = await params;
+      const controller = new ProgramController();
+      if (typeof controller.deleteById !== 'function') {
+        console.error('ProgramController.deleteById is missing!', Object.keys(Object.getPrototypeOf(controller)));
+      }
+      return await controller.deleteById(request, id);
     }
   )
 );

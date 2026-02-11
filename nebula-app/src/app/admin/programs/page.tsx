@@ -44,7 +44,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
-import { useAdminPrograms, useCategories, useUpdateProgramStatus, useCreateCategory } from "@/hooks";
+import { useAdminPrograms, useCategories, useUpdateProgramStatus, useCreateCategory, useDeleteProgram, useDeleteCategory } from "@/hooks";
 import { toast } from "react-toastify";
 import { useTranslations } from "next-intl";
 
@@ -56,12 +56,13 @@ export default function AdminProgramsPage() {
   const [activeCategory, setActiveCategory] = useState("All");
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [newCategory, setNewCategory] = useState("");
-  const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
+  const [categoryToDelete, setCategoryToDelete] = useState<any>(null);
+  const [programToDelete, setProgramToDelete] = useState<any>(null);
   const [actionInProgress, setActionInProgress] = useState<string | null>(null);
 
   const { data: categoriesResponse } = useCategories();
-  const categories =
-    categoriesResponse?.data?.categories?.map((c: any) => c.name) || [];
+  const categories = categoriesResponse?.data?.categories || [];
+  const categoryNames = categories.map((c: any) => c.name);
 
   const { data: programsResponse, isLoading } = useAdminPrograms({
     search: searchTerm || undefined,
@@ -71,9 +72,11 @@ export default function AdminProgramsPage() {
   const programs = programsResponse?.data?.programs || [];
   const updateProgramStatusMutation = useUpdateProgramStatus();
   const createCategoryMutation = useCreateCategory();
+  const deleteProgramMutation = useDeleteProgram();
+  const deleteCategoryMutation = useDeleteCategory();
 
   const handleAddCategory = async () => {
-    if (newCategory.trim() && !categories.includes(newCategory.trim())) {
+    if (newCategory.trim() && !categoryNames.includes(newCategory.trim())) {
       try {
         await createCategoryMutation.mutateAsync({ name: newCategory.trim() });
       } catch (error) {
@@ -89,9 +92,16 @@ export default function AdminProgramsPage() {
     setIsAddingCategory(false);
   };
 
-  const handleDeleteCategory = (category: string) => {
-    toast.error("Category deletion not implemented");
-    setCategoryToDelete(null);
+  const handleDeleteCategory = async (category: any) => {
+    if (!category?.id) return;
+    try {
+      await deleteCategoryMutation.mutateAsync(category.id);
+      toast.success(t("categoryDeletedSuccess") || "Category deleted successfully");
+    } catch (error) {
+      // Error handled by hook
+    } finally {
+      setCategoryToDelete(null);
+    }
   };
 
   const filteredPrograms = programs.filter((program: any) => {
@@ -132,6 +142,20 @@ export default function AdminProgramsPage() {
     if (status === "PENDING_APPROVAL") return "secondary";
     if (status === "REJECTED") return "destructive";
     return "outline";
+  };
+
+  const handleDeleteProgram = async () => {
+    if (!programToDelete) return;
+    setActionInProgress(`${programToDelete.id}-delete`);
+    try {
+      await deleteProgramMutation.mutateAsync(programToDelete.id);
+      toast.success(t("programDeletedSuccess") || "Program deleted successfully");
+    } catch (error) {
+      // Error handled by hook
+    } finally {
+      setActionInProgress(null);
+      setProgramToDelete(null);
+    }
   };
 
   const getStatusLabel = (status: string) => {
@@ -202,16 +226,16 @@ export default function AdminProgramsPage() {
                     </div>
                   ) : (
                     <>
-                      {categories.map((cat: string) => (
+                      {categories.map((cat: any) => (
                         <DropdownMenuItem
-                          key={cat}
+                          key={cat.id}
                           onSelect={(e) => e.preventDefault()}
                         >
                           <span
-                            onClick={() => handleCategorySelect(cat)}
+                            onClick={() => handleCategorySelect(cat.name)}
                             className="flex-grow p-2 -m-2"
                           >
-                            {cat}
+                            {cat.name}
                           </span>
                           <Button
                             variant="ghost"
@@ -367,8 +391,17 @@ export default function AdminProgramsPage() {
                             </DropdownMenuItem>
                           )}
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-destructive">
-                            <Trash2 className="mr-2 h-4 w-4" /> {t("delete")}
+                          <DropdownMenuItem
+                            className="text-destructive"
+                            onClick={() => setProgramToDelete(program)}
+                            disabled={isActionPending(program.id, "delete")}
+                          >
+                            {isActionPending(program.id, "delete") ? (
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            ) : (
+                              <Trash2 className="mr-2 h-4 w-4" />
+                            )}
+                            {t("delete")}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -388,16 +421,48 @@ export default function AdminProgramsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>{t("areYouSure")}</AlertDialogTitle>
             <AlertDialogDescription>
-              {categoryToDelete && t("deleteCategoryDesc", { name: categoryToDelete })}
+              {categoryToDelete && (t("deleteCategoryDesc", { name: categoryToDelete.name }) || `This will permanently delete the "${categoryToDelete.name}" category. This action cannot be undone.`)}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => handleDeleteCategory(categoryToDelete!)}
+            <AlertDialogCancel disabled={deleteCategoryMutation.isPending}>{t("cancel")}</AlertDialogCancel>
+            <Button
+              onClick={() => handleDeleteCategory(categoryToDelete)}
+              variant="destructive"
+              disabled={deleteCategoryMutation.isPending}
             >
-              {t("delete")}
-            </AlertDialogAction>
+              {deleteCategoryMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : t("delete")}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={!!programToDelete}
+        onOpenChange={(open) => !open && !isActionPending(programToDelete?.id, "delete") && setProgramToDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("areYouSure")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {programToDelete &&
+                (t("deleteProgramDesc", { title: programToDelete.title }) ||
+                  `Are you sure you want to delete the program "${programToDelete.title}"? This action cannot be undone.`)}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isActionPending(programToDelete?.id, "delete")}>{t("cancel")}</AlertDialogCancel>
+            <Button
+              onClick={handleDeleteProgram}
+              variant="destructive"
+              disabled={isActionPending(programToDelete?.id, "delete")}
+            >
+              {isActionPending(programToDelete?.id, "delete") ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                t("delete")
+              )}
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

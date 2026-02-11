@@ -88,7 +88,15 @@ export async function makeRequest<T = any>(
   }
 
   try {
-    const response = await fetch(`/api${endpoint}`, config);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+
+    const response = await fetch(`/api${endpoint}`, {
+      ...config,
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
 
     // Auto-clear invalid tokens
     if (response.status === 401) {
@@ -127,11 +135,26 @@ export async function makeRequest<T = any>(
   } catch (error: any) {
     if (throwOnError) throw error;
 
-    console.error(`API Error [${method} ${endpoint}]:`, error);
+    // Provide more specific error messages
+    let errorMessage = "Failed to connect to server";
+    let errorType = "Network error";
+
+    if (error.name === "AbortError") {
+      errorMessage = "Request timed out. Please try again.";
+      errorType = "Timeout";
+    } else if (error.message === "Failed to fetch") {
+      errorMessage = "Unable to reach the server. Please check your connection.";
+      errorType = "Connection error";
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+
+    console.error(`API Error [${method} ${endpoint}]:`, errorType, error);
+
     return {
       success: false,
-      error: "Network error",
-      message: error.message || "Failed to connect to server",
+      error: errorType,
+      message: errorMessage,
     };
   }
 }
@@ -210,5 +233,59 @@ export function truncateText(
 ): string {
   if (!text) return "";
   if (text.length <= maxLength) return text;
-  return text.slice(0, maxLength).trim() + "...";
+  return text.substring(0, maxLength).trim() + "...";
+}
+
+/**
+ * Avatar colors for consistent user avatars
+ */
+const avatarColors = [
+  "0EA5E9", // sky-500
+  "8B5CF6", // violet-500
+  "EC4899", // pink-500
+  "F97316", // orange-500
+  "22C55E", // green-500
+  "06B6D4", // cyan-500
+  "EAB308", // yellow-500
+  "EF4444", // red-500
+  "6366F1", // indigo-500
+  "14B8A6", // teal-500
+];
+
+/**
+ * Get a consistent color based on a string (name/email)
+ */
+function getAvatarColor(str: string): string {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const index = Math.abs(hash) % avatarColors.length;
+  return avatarColors[index];
+}
+
+/**
+ * Get initials from a name
+ */
+export function getInitials(name?: string | null): string {
+  if (!name) return "U";
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) {
+    return parts[0].charAt(0).toUpperCase();
+  }
+  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+}
+
+/**
+ * Get a consistent default avatar URL using UI Avatars
+ * @param name - The user's name
+ * @param size - Avatar size in pixels (default: 128)
+ * @returns UI Avatars URL with consistent styling
+ */
+export function getUserAvatar(name?: string | null, size: number = 128): string {
+  const displayName = name || "User";
+  const initials = getInitials(displayName);
+  const color = getAvatarColor(displayName.toLowerCase());
+
+  return `https://ui-avatars.com/api/?name=${encodeURIComponent(initials)}&size=${size}&background=${color}&color=ffffff&bold=true&format=svg`;
 }

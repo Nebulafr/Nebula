@@ -40,7 +40,7 @@ export async function reviewProgram({
     content: content.trim(),
   };
 
-  return apiPost(`/programs/${programId}/review`, reviewData, { throwOnError: true });
+  return apiPost(`/programs/id/${programId}/review`, reviewData, { throwOnError: true });
 }
 
 export async function getCoachReviews({
@@ -82,7 +82,7 @@ export async function getProgramReviews({
     sortBy,
   });
 
-  return apiGet(`/programs/${programSlug}/reviews?${params}`, {
+  return apiGet(`/programs/slug/${programSlug}/reviews?${params}`, {
     requireAuth: false,
   });
 }

@@ -3,12 +3,10 @@
  * Provides consistent styling and image generation across all event displays
  */
 
+import { getUserAvatar } from "./utils";
+
 // Array of background colors for webinar cards
-export const backgroundColors = [
-  "bg-yellow-50",
-  "bg-blue-50",
-  "bg-purple-50",
-];
+export const backgroundColors = ["bg-yellow-50", "bg-blue-50", "bg-purple-50"];
 
 // Array of gradient backgrounds for social event cards
 export const gradientBackgrounds = [
@@ -32,7 +30,7 @@ export const gradientBackgrounds = [
  */
 export function getEventBackgroundColor(
   index: number,
-  previousIndex?: number
+  previousIndex?: number,
 ): string {
   let colorIndex = index % backgroundColors.length;
 
@@ -55,7 +53,7 @@ export function getEventBackgroundColor(
  */
 export function getEventGradientBackground(
   index: number,
-  previousIndex?: number
+  previousIndex?: number,
 ): string {
   let gradientIndex = index % gradientBackgrounds.length;
 
@@ -119,18 +117,17 @@ export function getEventGradientBackgrounds(count: number): string[] {
 }
 
 /**
- * Get a default avatar URL using pravatar.cc with consistent seeding
+ * Get a default avatar URL using UI Avatars with consistent styling
  * @param name - The person's name
- * @returns Pravatar.cc URL with consistent seed
+ * @returns UI Avatars URL with consistent seed
  */
 export function getDefaultAvatar(name?: string): string {
-  const seed = name ? name.replace(/\s/g, "").toLowerCase() : "default";
-  return `https://i.pravatar.cc/400?u=${seed}`;
+  return getUserAvatar(name, 400);
 }
 
 /**
- * Get a default avatar URL using pravatar.cc with consistent seeding
- * @param name - The person's name
+ * Get a default category image URL using picsum.photos
+ * @param name - The category name
  * @returns Pravatar.cc URL with consistent seed
  */
 export function getDefaultCategoryImage(name?: string): string {

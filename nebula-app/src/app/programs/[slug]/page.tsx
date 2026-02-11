@@ -570,7 +570,8 @@ export default function ProgramDetailPage({
                             className="rounded-full"
                             disabled={
                               program.hasUserReviewed ||
-                              profile?.role !== "STUDENT"
+                              profile?.role !== "STUDENT" ||
+                              !isEnrolled
                             }
                           >
                             <PlusCircle className="h-5 w-5" />
@@ -680,9 +681,123 @@ export default function ProgramDetailPage({
                   </CardContent>
                 </Card>
               ) : (
-                <p className="text-muted-foreground text-sm">
-                  {t("noReviewsYet")}
-                </p>
+                <div className="flex items-center justify-between">
+                  <p className="text-muted-foreground text-sm">
+                    {t("noReviewsYet")}
+                  </p>
+                  <Dialog
+                    open={isReviewDialogOpen}
+                    onOpenChange={setIsReviewDialogOpen}
+                  >
+                    <DialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="rounded-full"
+                        disabled={
+                          program.hasUserReviewed ||
+                          profile?.role !== "STUDENT" ||
+                          !isEnrolled
+                        }
+                      >
+                        <PlusCircle className="h-5 w-5" />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent
+                      className="sm:max-w-[625px]"
+                      onInteractOutside={(e) => {
+                        if (reviewSubmitted) {
+                          e.preventDefault();
+                        }
+                      }}
+                    >
+                      {!reviewSubmitted ? (
+                        <>
+                          <DialogHeader>
+                            <DialogTitle>{t("shareReview")}</DialogTitle>
+                            <DialogDescription>
+                              {t("shareReviewDesc")}
+                            </DialogDescription>
+                          </DialogHeader>
+                          <form
+                            onSubmit={handleReviewSubmit}
+                            className="grid gap-6 py-4"
+                          >
+                            <div className="grid gap-2">
+                              <Label>{t("yourRating")}</Label>
+                              <div className="flex items-center gap-1">
+                                {[...Array(5)].map((_, i) => {
+                                  const starValue = i + 1;
+                                  return (
+                                    <Star
+                                      key={i}
+                                      className={cn(
+                                        "h-6 w-6 cursor-pointer",
+                                        starValue <= (hoverRating || rating)
+                                          ? "text-yellow-400 fill-yellow-400"
+                                          : "text-gray-300",
+                                      )}
+                                      onClick={() => setRating(starValue)}
+                                      onMouseEnter={() =>
+                                        setHoverRating(starValue)
+                                      }
+                                      onMouseLeave={() => setHoverRating(0)}
+                                    />
+                                  );
+                                })}
+                              </div>
+                            </div>
+                            <div className="grid gap-2">
+                              <Label htmlFor="review-text">
+                                {t("shareThoughts")}
+                              </Label>
+                              <Textarea
+                                id="review-text"
+                                placeholder={t("textareaPlaceholder")}
+                                rows={4}
+                                value={reviewText}
+                                onChange={(e) =>
+                                  setReviewText(e.target.value)
+                                }
+                                required
+                              />
+                            </div>
+                            <DialogFooter>
+                              <Button
+                                type="submit"
+                                disabled={
+                                  rating === 0 ||
+                                  !reviewText.trim() ||
+                                  isSubmittingReview
+                                }
+                              >
+                                {isSubmittingReview
+                                  ? t("submitting")
+                                  : t("submitReview")}
+                              </Button>
+                            </DialogFooter>
+                          </form>
+                        </>
+                      ) : (
+                        <div className="text-center py-8">
+                          <CheckCircle className="h-16 w-16 mx-auto mb-4 text-green-500" />
+                          <h3 className="text-xl font-semibold">
+                            {t("thankYou")}
+                          </h3>
+                          <p className="text-muted-foreground mt-2">
+                            {t("reviewSubmitted")}
+                          </p>
+                          <Button
+                            onClick={resetReviewForm}
+                            className="mt-6"
+                          >
+                            {t("close")}
+                          </Button>
+                        </div>
+                      )}
+                    </DialogContent>
+                  </Dialog>
+                </div>
               )}
             </div>
           </div>

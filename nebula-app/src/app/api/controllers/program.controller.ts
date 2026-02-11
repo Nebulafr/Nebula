@@ -62,4 +62,11 @@ export class ProgramController {
     }
     return await programService.updateById(request, id);
   }
+
+  async deleteById(request: NextRequest, id: string) {
+    if (!id) {
+      throw new BadRequestException("Program ID is required");
+    }
+    return await programService.deleteById(request, id);
+  }
 }
