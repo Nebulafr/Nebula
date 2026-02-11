@@ -36,7 +36,17 @@ export class CoachDashboardController {
 
   async getStudents(req: NextRequest) {
     const user = (req as any).user;
-    return await CoachDashboardService.getStudents(user.id);
+    const { searchParams } = new URL(req.url);
+
+    const search = searchParams.get("search") || undefined;
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "10");
+
+    return await CoachDashboardService.getStudents(user.id, {
+      search,
+      page,
+      limit,
+    });
   }
 }
 

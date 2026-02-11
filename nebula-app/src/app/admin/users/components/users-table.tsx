@@ -28,6 +28,7 @@ import {
 import { formatUserName, getUserInitials } from "@/lib/chat-utils";
 import { getDefaultAvatar } from "@/lib/event-utils";
 import { useTranslations } from "next-intl";
+import { AdminPagination } from "../../components/admin-pagination";
 
 interface User {
   name: string;
@@ -42,6 +43,15 @@ interface UsersTableProps {
   users: User[];
   loading?: boolean;
   onUserAction?: (user: User, action: string) => void;
+  pagination?: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+  onPageChange?: (page: number) => void;
+  page: number;
+  limit: number;
 }
 
 function getUserStatusVariant(status: string) {
@@ -63,6 +73,10 @@ export function UsersTable({
   users,
   loading = false,
   onUserAction,
+  pagination,
+  onPageChange,
+  page,
+  limit,
 }: UsersTableProps) {
   const t = useTranslations("dashboard.admin");
   const tc = useTranslations("common");
@@ -215,6 +229,17 @@ export function UsersTable({
               })}
             </TableBody>
           </Table>
+        )}
+
+        {pagination && onPageChange && (
+          <AdminPagination
+            total={pagination.total}
+            page={page}
+            limit={limit}
+            totalPages={pagination.totalPages}
+            onPageChange={onPageChange}
+            isLoading={loading}
+          />
         )}
       </CardContent>
     </Card>

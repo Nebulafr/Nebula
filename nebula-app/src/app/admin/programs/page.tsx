@@ -47,6 +47,7 @@ import { useRouter } from "next/navigation";
 import { useAdminPrograms, useCategories, useUpdateProgramStatus, useCreateCategory, useDeleteProgram, useDeleteCategory } from "@/hooks";
 import { toast } from "react-toastify";
 import { useTranslations } from "next-intl";
+import { AdminPagination } from "../components/admin-pagination";
 
 export default function AdminProgramsPage() {
   const t = useTranslations("dashboard.admin");
@@ -59,6 +60,8 @@ export default function AdminProgramsPage() {
   const [categoryToDelete, setCategoryToDelete] = useState<any>(null);
   const [programToDelete, setProgramToDelete] = useState<any>(null);
   const [actionInProgress, setActionInProgress] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const limit = 10;
 
   const { data: categoriesResponse } = useCategories();
   const categories = categoriesResponse?.data?.categories || [];
@@ -67,9 +70,12 @@ export default function AdminProgramsPage() {
   const { data: programsResponse, isLoading } = useAdminPrograms({
     search: searchTerm || undefined,
     category: activeCategory !== "All" ? activeCategory : undefined,
+    page,
+    limit,
   });
 
-  const programs = programsResponse?.data?.programs || [];
+  const programs = programsResponse?.programs || [];
+  const pagination = programsResponse?.pagination;
   const updateProgramStatusMutation = useUpdateProgramStatus();
   const createCategoryMutation = useCreateCategory();
   const deleteProgramMutation = useDeleteProgram();
@@ -90,6 +96,7 @@ export default function AdminProgramsPage() {
   const handleCategorySelect = (category: string) => {
     setActiveCategory(category);
     setIsAddingCategory(false);
+    setPage(1); // Reset page on category change
   };
 
   const handleDeleteCategory = async (category: any) => {
@@ -104,16 +111,14 @@ export default function AdminProgramsPage() {
     }
   };
 
-  const filteredPrograms = programs.filter((program: any) => {
-    const categoryMatch =
-      activeCategory === "All" || program.category?.name === activeCategory;
-    const searchMatch =
-      program.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      program.coach?.user?.fullName
-        ?.toLowerCase()
-        .includes(searchTerm.toLowerCase());
-    return categoryMatch && searchMatch;
-  });
+  // Debounce search term and reset page
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setPage(1);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   const handleProgramAction = async (
     programId: string,
@@ -283,14 +288,14 @@ export default function AdminProgramsPage() {
                     {t("loadingPrograms")}
                   </TableCell>
                 </TableRow>
-              ) : filteredPrograms.length === 0 ? (
+              ) : programs.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-8">
                     {t("noProgramsFound")}
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredPrograms.map((program: any) => (
+                programs.map((program: any) => (
                   <TableRow key={program.id}>
                     <TableCell className="font-medium">
                       {program.title}
@@ -411,6 +416,17 @@ export default function AdminProgramsPage() {
               )}
             </TableBody>
           </Table>
+
+          {pagination && (
+            <AdminPagination
+              total={pagination.total}
+              page={page}
+              limit={limit}
+              totalPages={pagination.totalPages}
+              onPageChange={setPage}
+              isLoading={isLoading}
+            />
+          )}
         </CardContent>
       </Card>
       <AlertDialog

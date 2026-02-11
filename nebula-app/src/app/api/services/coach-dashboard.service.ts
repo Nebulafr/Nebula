@@ -403,7 +403,13 @@ export class CoachDashboardService {
     );
   }
 
-  static async getStudents(userId: string) {
+  static async getStudents(
+    userId: string,
+    params: { search?: string; page?: number; limit?: number } = {}
+  ) {
+    const { search, page = 1, limit = 10 } = params;
+    const skip = (page - 1) * limit;
+
     // Get coach profile
     const coach = await prisma.coach.findUnique({
       where: { userId },
@@ -414,127 +420,137 @@ export class CoachDashboardService {
       throw new NotFoundException("Coach profile not found");
     }
 
-    // Get all unique students from session attendance
-    const sessionAttendances = await prisma.sessionAttendance.findMany({
-      where: {
-        session: {
+    const whereClause: any = {
+      enrollments: {
+        some: {
           coachId: coach.id,
         },
       },
-      include: {
-        student: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                fullName: true,
-                email: true,
-                avatarUrl: true,
-              },
+    };
+
+    if (search) {
+      whereClause.user = {
+        OR: [
+          {
+            fullName: {
+              contains: search,
+              mode: "insensitive",
             },
-            enrollments: {
-              where: {
-                coachId: coach.id,
-              },
-              include: {
-                program: {
-                  select: {
-                    title: true,
-                  },
+          },
+          {
+            email: {
+              contains: search,
+              mode: "insensitive",
+            },
+          },
+        ],
+      };
+    }
+
+    const [students, totalCount] = await Promise.all([
+      prisma.student.findMany({
+        where: whereClause,
+        skip,
+        take: limit,
+        include: {
+          user: {
+            select: {
+              id: true,
+              fullName: true,
+              email: true,
+              avatarUrl: true,
+            },
+          },
+          enrollments: {
+            where: { coachId: coach.id },
+            include: {
+              program: {
+                select: {
+                  title: true,
                 },
               },
-              orderBy: {
-                enrollmentDate: "desc",
+            },
+            orderBy: {
+              enrollmentDate: "desc",
+            },
+            take: 1,
+          },
+          sessions: {
+            where: {
+              session: {
+                coachId: coach.id,
               },
-              take: 1,
+            },
+            include: {
+              session: {
+                select: {
+                  scheduledTime: true,
+                },
+              },
             },
           },
         },
-        session: {
-          select: {
-            id: true,
-            scheduledTime: true,
-            status: true,
+        orderBy: [
+          {
+            createdAt: "desc",
           },
+        ],
+      }),
+      prisma.student.count({ where: whereClause }),
+    ]);
+
+    const formattedStudents = students.map((student) => {
+      const enrollment = student.enrollments[0];
+      const sessionAttendances = student.sessions;
+
+      const totalSessions = sessionAttendances.length;
+      const attendedSessions = sessionAttendances.filter(
+        (a) => a.attended
+      ).length;
+
+      // Find last session date
+      let lastSessionDate = null;
+      if (totalSessions > 0) {
+        const sortedSessions = [...sessionAttendances].sort((a, b) => {
+          const timeA = a.session.scheduledTime.getTime();
+          const timeB = b.session.scheduledTime.getTime();
+          return timeB - timeA;
+        });
+        lastSessionDate = sortedSessions[0].session.scheduledTime;
+      }
+
+      return {
+        id: student.id,
+        name: student.user.fullName || "Unknown",
+        email: student.user.email || "",
+        avatar: student.user.avatarUrl,
+        program: enrollment?.program?.title || "No Program",
+        status: enrollment?.status?.toLowerCase() || "active",
+        totalSessions,
+        attendedSessions,
+        attendanceRate:
+          totalSessions > 0
+            ? Math.round((attendedSessions / totalSessions) * 100)
+            : 0,
+        lastSession: lastSessionDate?.toISOString() || null,
+        joinedDate:
+          enrollment?.enrollmentDate.toISOString() ||
+          student.createdAt.toISOString(),
+      };
+    });
+
+    return sendSuccess(
+      {
+        students: formattedStudents,
+        pagination: {
+          total: totalCount,
+          page,
+          limit,
+          totalPages: Math.ceil(totalCount / limit),
         },
       },
-    });
-
-    // Group by student and calculate stats
-    const studentMap = new Map<
-      string,
-      {
-        id: string;
-        name: string;
-        email: string;
-        avatar: string | null;
-        program: string;
-        status: string;
-        totalSessions: number;
-        attendedSessions: number;
-        lastSessionDate: Date | null;
-        joinedDate: Date;
-      }
-    >();
-
-    sessionAttendances.forEach((attendance) => {
-      const studentId = attendance.student.id;
-      const existing = studentMap.get(studentId);
-
-      if (existing) {
-        existing.totalSessions += 1;
-        if (attendance.attended) {
-          existing.attendedSessions += 1;
-        }
-        if (
-          attendance.session.scheduledTime &&
-          (!existing.lastSessionDate ||
-            attendance.session.scheduledTime > existing.lastSessionDate)
-        ) {
-          existing.lastSessionDate = attendance.session.scheduledTime;
-        }
-      } else {
-        const enrollment = attendance.student.enrollments[0];
-        studentMap.set(studentId, {
-          id: studentId,
-          name: attendance.student.user.fullName || "Unknown",
-          email: attendance.student.user.email || "",
-          avatar: attendance.student.user.avatarUrl,
-          program: enrollment?.program?.title || "No Program",
-          status: enrollment?.status?.toLowerCase() || "active",
-          totalSessions: 1,
-          attendedSessions: attendance.attended ? 1 : 0,
-          lastSessionDate: attendance.session.scheduledTime,
-          joinedDate: enrollment?.enrollmentDate || attendance.session.scheduledTime,
-        });
-      }
-    });
-
-    const students = Array.from(studentMap.values()).map((student) => ({
-      id: student.id,
-      name: student.name,
-      email: student.email,
-      avatar: student.avatar,
-      program: student.program,
-      status: student.status,
-      totalSessions: student.totalSessions,
-      attendedSessions: student.attendedSessions,
-      attendanceRate:
-        student.totalSessions > 0
-          ? Math.round((student.attendedSessions / student.totalSessions) * 100)
-          : 0,
-      lastSession: student.lastSessionDate?.toISOString() || null,
-      joinedDate: student.joinedDate.toISOString(),
-    }));
-
-    // Sort by most recent session
-    students.sort((a, b) => {
-      if (!a.lastSession) return 1;
-      if (!b.lastSession) return -1;
-      return new Date(b.lastSession).getTime() - new Date(a.lastSession).getTime();
-    });
-
-    return sendSuccess({ students }, "Students fetched successfully");
+      "Students fetched successfully"
+    );
   }
 
   static async getRecentPayouts(userId: string, limit: number = 5) {

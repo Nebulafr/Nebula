@@ -163,6 +163,69 @@ export class ReviewService {
     );
   }
 
+  static async deleteReview(id: string) {
+    const review = await prisma.review.findUnique({
+      where: { id },
+    });
+
+    if (!review) {
+      throw new NotFoundException("Review not found");
+    }
+
+    const { targetType, coachId, programId } = review;
+    const targetId = targetType === "COACH" ? coachId : programId;
+
+    if (!targetId) {
+      throw new BadRequestException("Invalid review data: target ID missing");
+    }
+
+    await prisma.$transaction(async (tx) => {
+      // Delete the review
+      await tx.review.delete({
+        where: { id },
+      });
+
+      // Recalculate average rating and total count
+      const result = await tx.review.aggregate({
+        where: {
+          [targetType === "COACH" ? "coachId" : "programId"]: targetId,
+          targetType,
+          isPublic: true,
+        },
+        _avg: {
+          rating: true,
+        },
+        _count: {
+          id: true,
+        },
+      });
+
+      const newAvgRating = result._avg.rating || 0;
+      const newTotalReviews = result._count.id || 0;
+
+      // Update target entity
+      if (targetType === "COACH") {
+        await tx.coach.update({
+          where: { id: targetId },
+          data: {
+            rating: Number(newAvgRating.toFixed(1)),
+            totalReviews: newTotalReviews,
+          },
+        });
+      } else if (targetType === "PROGRAM") {
+        await tx.program.update({
+          where: { id: targetId },
+          data: {
+            rating: Number(newAvgRating.toFixed(1)),
+            totalReviews: newTotalReviews,
+          },
+        });
+      }
+    });
+
+    return sendSuccess(null, "Review deleted successfully");
+  }
+
   static async getReviewsBySlug(
     targetType: ReviewTargetType,
     slug: string,

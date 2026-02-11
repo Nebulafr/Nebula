@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useAdminReviews } from "@/hooks";
 import { useTranslations } from "next-intl";
+import { AdminPagination } from "../components/admin-pagination";
 
 import {
   Table,
@@ -23,14 +24,26 @@ import {
   Eye,
   EyeOff,
   Trash2,
+  Loader2,
 } from "lucide-react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useDeleteReview } from "@/hooks/use-admin-queries";
+import { toast } from "react-toastify";
 
 const StarRating = ({ rating }: { rating: number }) => (
   <div className="flex items-center">
@@ -49,19 +62,46 @@ export default function AdminReviewsPage() {
   const t = useTranslations("dashboard.admin");
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [reviewToDelete, setReviewToDelete] = useState<any>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [page, setPage] = useState(1);
+  const limit = 10;
 
-  const { data: reviews = [], isLoading: loading } = useAdminReviews({
+  const { data: reviewsResponse, isLoading: loading } = useAdminReviews({
     search: debouncedSearch || undefined,
+    page,
+    limit,
   });
 
-  // Debounce search term
+  const reviews = reviewsResponse?.reviews || [];
+  const pagination = reviewsResponse?.pagination;
+
+  const deleteReviewMutation = useDeleteReview();
+
+  // Debounce search term and reset page
   React.useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchTerm);
+      setPage(1); // Reset to first page on new search
     }, 300);
 
     return () => clearTimeout(timer);
   }, [searchTerm]);
+
+  const handleConfirmDelete = async () => {
+    if (reviewToDelete && !isProcessing) {
+      setIsProcessing(true);
+      try {
+        await deleteReviewMutation.mutateAsync(reviewToDelete.id);
+        toast.success(t("reviewDeletedSuccess") || "Review deleted successfully");
+        setReviewToDelete(null);
+      } catch (error) {
+        // Error already handled and toasted by hook
+      } finally {
+        setIsProcessing(false);
+      }
+    }
+  };
 
   // Transform reviews to match the table interface
   const transformedReviews = reviews.map((review: any) => ({
@@ -221,7 +261,10 @@ export default function AdminReviewsPage() {
                               <EyeOff className="mr-2 h-4 w-4" /> {t("hideReview")}
                             </DropdownMenuItem>
                           )}
-                          <DropdownMenuItem className="text-destructive">
+                          <DropdownMenuItem 
+                            className="text-destructive"
+                            onClick={() => setReviewToDelete(review)}
+                          >
                             <Trash2 className="mr-2 h-4 w-4" /> {t("delete")}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -232,8 +275,48 @@ export default function AdminReviewsPage() {
               )}
             </TableBody>
           </Table>
+
+          {pagination && (
+            <AdminPagination
+              total={pagination.total}
+              page={page}
+              limit={limit}
+              totalPages={pagination.totalPages}
+              onPageChange={setPage}
+              isLoading={loading}
+            />
+          )}
         </CardContent>
       </Card>
+
+      <AlertDialog
+        open={!!reviewToDelete}
+        onOpenChange={(open) => !open && !isProcessing && setReviewToDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("areYouSure")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("deleteReviewDesc") || "Are you sure you want to delete this review? This action cannot be undone."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isProcessing}>{t("cancel")}</AlertDialogCancel>
+            <Button
+              onClick={handleConfirmDelete}
+              variant="destructive"
+              disabled={isProcessing}
+            >
+              {isProcessing ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                t("delete")
+              )}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <style jsx>{`
         .truncate-multiline {
           display: -webkit-box;

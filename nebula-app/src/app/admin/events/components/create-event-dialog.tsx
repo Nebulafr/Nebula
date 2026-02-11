@@ -368,7 +368,7 @@ export function CreateEventDialog({
                 <UserSelect
                   value={newEvent.organizerId}
                   onChange={(user: any) => {
-                    handleSelectOrganizer(user.id);
+                    handleSelectOrganizer(user?.id || null);
                   }}
                   placeholder={t("selectOrganizer")}
                 />

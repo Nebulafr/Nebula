@@ -26,8 +26,10 @@ export function UserSelect({
   onChange,
   placeholder = "Select a user...",
 }: UserSelectProps) {
-  const { data: users = [], isLoading: loading } = useAdminUsers();
+  const { data: usersResponse, isLoading: loading } = useAdminUsers({ limit: 100 });
   const { profile } = useAuth();
+  const users = usersResponse?.users || [];
+
   const options = React.useMemo(() => {
     return users
       .filter(
@@ -42,7 +44,7 @@ export function UserSelect({
         label: `${user.fullName || user.email} (${user.role.toLowerCase()})`,
         avatar: user.avatarUrl,
       }));
-  }, [users]);
+  }, [users, profile?.id]);
 
   const selectedOption = value
     ? options.find(

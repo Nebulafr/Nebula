@@ -8,10 +8,7 @@ import { Button } from "@/components/ui/button";
 import { ExternalLink } from "lucide-react";
 import { useTranslations, useLocale, useFormatter } from "next-intl";
 import { Event } from "@/types/event";
-import {
-  getEventBackgroundColor,
-  getDefaultAvatar,
-} from "@/lib/event-utils";
+import { getEventBackgroundColor, getDefaultAvatar } from "@/lib/event-utils";
 
 interface WebinarCardProps {
   event: Event;
@@ -19,11 +16,7 @@ interface WebinarCardProps {
   previousIndex?: number;
 }
 
-export function WebinarCard({
-  event,
-  index,
-  previousIndex,
-}: WebinarCardProps) {
+export function WebinarCard({ event, index, previousIndex }: WebinarCardProps) {
   const t = useTranslations("events.upcoming");
   const locale = useLocale();
   const format = useFormatter();
@@ -62,7 +55,10 @@ export function WebinarCard({
             <div className="flex-shrink-0">
               <div className="w-[120px] h-[120px]">
                 <Image
-                  src={event.organizer?.avatarUrl || getDefaultAvatar(event.organizer?.fullName)}
+                  src={
+                    event.organizer?.avatarUrl ||
+                    getDefaultAvatar(event.organizer?.fullName)
+                  }
                   alt={event.organizer?.fullName || "Organizer"}
                   width={120}
                   height={120}
@@ -93,11 +89,15 @@ export function WebinarCard({
                   </AvatarFallback>
                 </Avatar>
               )) ||
-                Array.from({ length: Math.min(3, event.attendees) }).map((_, i) => (
-                  <Avatar key={i} className="h-8 w-8 border-2 border-white">
-                    <AvatarFallback>{String.fromCharCode(65 + i)}</AvatarFallback>
-                  </Avatar>
-                ))}
+                Array.from({ length: Math.min(3, event.attendees) }).map(
+                  (_, i) => (
+                    <Avatar key={i} className="h-8 w-8 border-2 border-white">
+                      <AvatarFallback>
+                        {String.fromCharCode(65 + i)}
+                      </AvatarFallback>
+                    </Avatar>
+                  ),
+                )}
             </div>
             {event.attendees > 0 && (
               <span className="ml-3 text-xs font-medium text-muted-foreground">

@@ -14,6 +14,8 @@ export class AdminController {
       status: searchParams.get("status") || undefined,
       category: searchParams.get("category") || undefined,
       search: searchParams.get("search") || undefined,
+      page: searchParams.get("page") || undefined,
+      limit: searchParams.get("limit") || undefined,
     };
 
     const payload = adminProgramQuerySchema.parse(queryParams);
@@ -38,10 +40,13 @@ export class AdminController {
       search: searchParams.get("search") || undefined,
       role: searchParams.get("role") || undefined,
       status: searchParams.get("status") || undefined,
+      page: searchParams.get("page") || undefined,
       limit: searchParams.get("limit") || undefined,
     };
 
-    return await AdminService.getUsers(queryParams);
+    const { adminUserQuerySchema } = await import("@/lib/validations");
+    const payload = adminUserQuerySchema.parse(queryParams);
+    return await AdminService.getUsers(payload);
   }
 
   async getReviews(request: NextRequest) {
@@ -52,9 +57,13 @@ export class AdminController {
       targetType: searchParams.get("targetType") || undefined,
       status: searchParams.get("status") || undefined,
       rating: searchParams.get("rating") || undefined,
+      page: searchParams.get("page") || undefined,
+      limit: searchParams.get("limit") || undefined,
     };
 
-    return await AdminService.getReviews(queryParams);
+    const { adminReviewQuerySchema } = await import("@/lib/validations");
+    const payload = adminReviewQuerySchema.parse(queryParams);
+    return await AdminService.getReviews(payload);
   }
 
   async getDashboardStats() {
@@ -82,9 +91,13 @@ export class AdminController {
       search: searchParams.get("search") || undefined,
       eventType: searchParams.get("eventType") || undefined,
       status: searchParams.get("status") || undefined,
+      page: searchParams.get("page") || undefined,
+      limit: searchParams.get("limit") || undefined,
     };
 
-    return await AdminService.getEvents(queryParams);
+    const { adminEventQuerySchema } = await import("@/lib/validations");
+    const payload = adminEventQuerySchema.parse(queryParams);
+    return await AdminService.getEvents(payload);
   }
 
   async updateCohort(request: NextRequest, cohortId: string) {
@@ -116,5 +129,14 @@ export class AdminController {
     }
 
     return await AdminService.createCohort(programId, { name, startDate, maxStudents });
+  }
+
+  async deleteReview(request: NextRequest, id: string) {
+    if (!id) {
+      throw new BadRequestException("Review ID is required");
+    }
+
+    const { ReviewService } = await import("../services/review.service");
+    return await ReviewService.deleteReview(id);
   }
 }

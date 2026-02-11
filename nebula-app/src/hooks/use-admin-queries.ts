@@ -58,6 +58,8 @@ export function useAdminReviews(params?: {
   targetType?: string;
   status?: string;
   rating?: string;
+  page?: number;
+  limit?: number;
 }) {
   return useQuery({
     queryKey: [ADMIN_REVIEWS_QUERY_KEY, params],
@@ -68,6 +70,8 @@ export function useAdminReviews(params?: {
         queryParams.append("targetType", params.targetType);
       if (params?.status) queryParams.append("status", params.status);
       if (params?.rating) queryParams.append("rating", params.rating);
+      if (params?.page) queryParams.append("page", params.page.toString());
+      if (params?.limit) queryParams.append("limit", params.limit.toString());
 
       const url = `/admin/reviews${
         queryParams.toString() ? `?${queryParams.toString()}` : ""
@@ -78,7 +82,7 @@ export function useAdminReviews(params?: {
         throw new Error(response.message || "Failed to fetch reviews");
       }
 
-      return response.data.reviews || [];
+      return response.data;
     },
     staleTime: 2 * 60 * 1000, // 2 minutes
   });
@@ -88,7 +92,8 @@ export function useAdminUsers(params?: {
   search?: string;
   role?: string;
   status?: string;
-  limit?: string;
+  limit?: number;
+  page?: number;
 }) {
   return useQuery({
     queryKey: [ADMIN_USERS_QUERY_KEY, params],
@@ -97,9 +102,10 @@ export function useAdminUsers(params?: {
       if (params?.search) queryParams.append("search", params.search);
       if (params?.role) queryParams.append("role", params.role);
       if (params?.status) queryParams.append("status", params.status);
-      if (params?.limit) queryParams.append("limit", params.limit);
+      if (params?.limit) queryParams.append("limit", params.limit.toString());
+      if (params?.page) queryParams.append("page", params.page.toString());
 
-      const url = `/admin/users${ 
+      const url = `/admin/users${
         queryParams.toString() ? `?${queryParams.toString()}` : ""
       }`;
       const response = await makeRequest(url, "GET");
@@ -108,7 +114,7 @@ export function useAdminUsers(params?: {
         throw new Error(response.message || "Failed to fetch users");
       }
 
-      return response.data.users || [];
+      return response.data;
     },
     staleTime: 2 * 60 * 1000, // 2 minutes
   });
@@ -263,6 +269,8 @@ export function useAdminEvents(params?: {
   search?: string;
   eventType?: string;
   status?: string;
+  page?: number;
+  limit?: number;
 }) {
   return useQuery({
     queryKey: [ADMIN_EVENTS_QUERY_KEY, params],
@@ -271,6 +279,8 @@ export function useAdminEvents(params?: {
       if (params?.search) queryParams.append("search", params.search);
       if (params?.eventType) queryParams.append("eventType", params.eventType);
       if (params?.status) queryParams.append("status", params.status);
+      if (params?.page) queryParams.append("page", params.page.toString());
+      if (params?.limit) queryParams.append("limit", params.limit.toString());
 
       const url = `/admin/events${
         queryParams.toString() ? `?${queryParams.toString()}` : ""
@@ -281,8 +291,30 @@ export function useAdminEvents(params?: {
         throw new Error(response.message || "Failed to fetch events");
       }
 
-      return response.data.events as AdminEvent[];
+      return response.data;
     },
     staleTime: 2 * 60 * 1000, // 2 minutes
+  });
+}
+
+export function useDeleteReview() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (reviewId: string) => {
+      const response = await makeRequest(`/admin/reviews/${reviewId}`, "DELETE");
+
+      if (!response.success) {
+        throw new Error(response.message || "Failed to delete review");
+      }
+
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [ADMIN_REVIEWS_QUERY_KEY] });
+    },
+    onError: (error: any) => {
+      handleAndToastError(error, "Failed to delete review.");
+    },
   });
 }

@@ -61,10 +61,18 @@ export function useAdminPrograms(filters?: {
   status?: string;
   category?: string;
   search?: string;
+  page?: number;
+  limit?: number;
 }) {
   return useQuery({
     queryKey: [ADMIN_PROGRAMS_QUERY_KEY, filters],
-    queryFn: () => getAdminPrograms(filters),
+    queryFn: async () => {
+      const response = await getAdminPrograms(filters);
+      if (response.success) {
+        return response.data;
+      }
+      throw new Error(response.message || "Failed to fetch admin programs");
+    },
     staleTime: 1 * 60 * 1000, // 1 minute for admin data
   });
 }

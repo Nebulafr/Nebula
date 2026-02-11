@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { AdminProgramQueryData, ProgramActionData } from "@/lib/validations";
+import { AdminEventQueryData,  AdminProgramQueryData, AdminReviewQueryData, AdminUserQueryData, ProgramActionData } from "@/lib/validations";
 import { ProgramStatus } from "@/generated/prisma";
 import { sendSuccess } from "../utils/send-response";
 import { EmailService } from "./email.service";
@@ -10,7 +10,8 @@ import {
 
 export class AdminService {
   static async getPrograms(params: AdminProgramQueryData) {
-    const { status, category, search } = params;
+    const { status, category, search, page = 1, limit = 10 } = params;
+    const skip = (page - 1) * limit;
 
     const whereClause: any = {};
 
@@ -63,26 +64,33 @@ export class AdminService {
       ];
     }
 
-    const programs = await prisma.program.findMany({
-      where: whereClause,
-      include: {
-        category: true,
-        coach: {
-          include: {
-            user: true,
+    const [programs, totalCount] = await Promise.all([
+      prisma.program.findMany({
+        where: whereClause,
+        skip,
+        take: limit,
+        include: {
+          category: true,
+          coach: {
+            include: {
+              user: true,
+            },
+          },
+          _count: {
+            select: {
+              enrollments: true,
+              reviews: true,
+            },
           },
         },
-        _count: {
-          select: {
-            enrollments: true,
-            reviews: true,
+        orderBy: [
+          {
+            createdAt: "desc",
           },
-        },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
+        ],
+      }),
+      prisma.program.count({ where: whereClause }),
+    ]);
 
     const formattedPrograms = programs.map((program) => ({
       id: program.id,
@@ -111,7 +119,15 @@ export class AdminService {
     }));
 
     return sendSuccess(
-      { programs: formattedPrograms },
+      {
+        programs: formattedPrograms,
+        pagination: {
+          total: totalCount,
+          page,
+          limit,
+          totalPages: Math.ceil(totalCount / limit),
+        },
+      },
       "Programs fetched successfully"
     );
   }
@@ -226,13 +242,9 @@ export class AdminService {
     );
   }
 
-  static async getUsers(params?: {
-    search?: string;
-    role?: string;
-    status?: string;
-    limit?: string; 
-  }) {
-    const { search, role, status, limit } = params || {};
+  static async getUsers(params?: AdminUserQueryData) {
+    const { search, role, status, page = 1, limit = 10 } = params || {};
+    const skip = (page - 1) * limit;
 
     // Build where clause for Prisma query
     const whereClause: any = {
@@ -269,32 +281,44 @@ export class AdminService {
       ];
     }
 
-    const users = await prisma.user.findMany({
-      where: whereClause,
-      take: limit ? parseInt(limit) : undefined,
-      select: {
-        id: true,
-        email: true,
-        fullName: true,
-        role: true,
-        status: true,
-        avatarUrl: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-      orderBy: [{ role: "asc" }, { fullName: "asc" }],
-    });
+    const [users, totalCount] = await Promise.all([
+      prisma.user.findMany({
+        where: whereClause,
+        skip,
+        take: limit,
+        select: {
+          id: true,
+          email: true,
+          fullName: true,
+          role: true,
+          status: true,
+          avatarUrl: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+        orderBy: [{ role: "asc" }, { fullName: "asc" }],
+      }),
+      prisma.user.count({ where: whereClause }),
+    ]);
 
-    return sendSuccess({ users }, "Users fetched successfully");
+    return sendSuccess(
+      {
+        users,
+        pagination: {
+          total: totalCount,
+          page,
+          limit,
+          totalPages: Math.ceil(totalCount / limit),
+        },
+      },
+      "Users fetched successfully"
+    );
   }
 
-  static async getReviews(params?: {
-    search?: string;
-    targetType?: string;
-    status?: string;
-    rating?: string;
-  }) {
-    const { search, targetType, status, rating } = params || {};
+  static async getReviews(params?: AdminReviewQueryData) {
+    const { search, targetType, status, rating, page = 1, limit = 10 } =
+      params || {};
+    const skip = (page - 1) * limit;
 
     // Build where clause for Prisma query
     const whereClause: any = {};
@@ -360,37 +384,55 @@ export class AdminService {
       ];
     }
 
-    const reviews = await prisma.review.findMany({
-      where: whereClause,
-      include: {
-        reviewer: {
-          select: {
-            id: true,
-            fullName: true,
-            email: true,
-            avatarUrl: true,
+    const [reviews, totalCount] = await Promise.all([
+      prisma.review.findMany({
+        where: whereClause,
+        skip,
+        take: limit,
+        include: {
+          reviewer: {
+            select: {
+              id: true,
+              fullName: true,
+              email: true,
+              avatarUrl: true,
+            },
+          },
+          reviewee: {
+            select: {
+              id: true,
+              fullName: true,
+              email: true,
+            },
+          },
+          program: {
+            select: {
+              id: true,
+              title: true,
+            },
           },
         },
-        reviewee: {
-          select: {
-            id: true,
-            fullName: true,
-            email: true,
+        orderBy: [
+          {
+            createdAt: "desc",
           },
-        },
-        program: {
-          select: {
-            id: true,
-            title: true,
-          },
-        },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
+        ],
+      }),
+      prisma.review.count({ where: whereClause }),
+    ]);
 
-    return sendSuccess({ reviews }, "Reviews fetched successfully");
+    return sendSuccess(
+      {
+        reviews,
+        pagination: {
+          total: totalCount,
+          page,
+          limit,
+          totalPages: Math.ceil(totalCount / limit),
+        },
+      },
+      "Reviews fetched successfully"
+    );
   }
 
   static async getDashboardStats() {
@@ -666,12 +708,9 @@ export class AdminService {
     );
   }
 
-  static async getEvents(params?: {
-    search?: string;
-    eventType?: string;
-    status?: string;
-  }) {
-    const { search, eventType, status } = params || {};
+  static async getEvents(params?: AdminEventQueryData) {
+    const { search, eventType, status, page = 1, limit = 10 } = params || {};
+    const skip = (page - 1) * limit;
 
     const whereClause: any = {};
 
@@ -700,30 +739,50 @@ export class AdminService {
       ];
     }
 
-    const events = await prisma.event.findMany({
-      where: whereClause,
-      include: {
-        organizer: {
-          select: {
-            id: true,
-            fullName: true,
-            email: true,
-            avatarUrl: true,
+    const [events, totalCount] = await Promise.all([
+      prisma.event.findMany({
+        where: whereClause,
+        skip,
+        take: limit,
+        include: {
+          organizer: {
+            select: {
+              id: true,
+              fullName: true,
+              email: true,
+              avatarUrl: true,
+            },
+          },
+          _count: {
+            select: {
+              attendees: true,
+            },
           },
         },
-        _count: {
-          select: {
-            attendees: true,
+        orderBy: [
+          {
+            date: "desc",
           },
-        },
-      },
-      orderBy: {
-        date: "desc",
-        createdAt: "desc",
-      },
-    });
+          {
+            createdAt: "desc",
+          },
+        ],
+      }),
+      prisma.event.count({ where: whereClause }),
+    ]);
 
-    return sendSuccess({ events }, "Events fetched successfully");
+    return sendSuccess(
+      {
+        events,
+        pagination: {
+          total: totalCount,
+          page,
+          limit,
+          totalPages: Math.ceil(totalCount / limit),
+        },
+      },
+      "Events fetched successfully"
+    );
   }
 
   static async updateCohort(

@@ -143,7 +143,8 @@ export async function makeRequest<T = any>(
       errorMessage = "Request timed out. Please try again.";
       errorType = "Timeout";
     } else if (error.message === "Failed to fetch") {
-      errorMessage = "Unable to reach the server. Please check your connection.";
+      errorMessage =
+        "Unable to reach the server. Please check your connection.";
       errorType = "Connection error";
     } else if (error.message) {
       errorMessage = error.message;
@@ -282,10 +283,13 @@ export function getInitials(name?: string | null): string {
  * @param size - Avatar size in pixels (default: 128)
  * @returns UI Avatars URL with consistent styling
  */
-export function getUserAvatar(name?: string | null, size: number = 128): string {
+export function getUserAvatar(
+  name?: string | null,
+  size: number = 128,
+): string {
   const displayName = name || "User";
   const initials = getInitials(displayName);
   const color = getAvatarColor(displayName.toLowerCase());
 
-  return `https://ui-avatars.com/api/?name=${encodeURIComponent(initials)}&size=${size}&background=${color}&color=ffffff&bold=true&format=svg`;
+  return `https://ui-avatars.com/api/?name=${encodeURIComponent(initials)}&size=${size}&background=${color}&color=ffffff&bold=true&format=png`;
 }

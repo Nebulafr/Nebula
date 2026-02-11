@@ -60,17 +60,25 @@ export async function getAdminPrograms(filters?: {
   status?: string;
   category?: string;
   search?: string;
+  page?: number;
+  limit?: number;
 }) {
   const params = new URLSearchParams();
 
   if (filters?.status && filters.status !== "all") {
-    params.append("status", filters.status);
+    params.set("status", filters.status);
   }
   if (filters?.category && filters.category !== "all") {
-    params.append("category", filters.category);
+    params.set("category", filters.category);
   }
   if (filters?.search) {
-    params.append("search", filters.search);
+    params.set("search", filters.search);
+  }
+  if (filters?.page) {
+    params.set("page", filters.page.toString());
+  }
+  if (filters?.limit) {
+    params.set("limit", filters.limit.toString());
   }
 
   const url = `/admin/programs${

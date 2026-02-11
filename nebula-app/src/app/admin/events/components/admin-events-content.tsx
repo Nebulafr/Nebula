@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect } from "react";
 import {
-  useEvents,
   useCreateEvent,
   useUpdateEvent,
   useDeleteEvent,
+  useAdminEvents,
 } from "@/hooks";
 import { toast } from "react-toastify";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
@@ -28,6 +28,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Loader2 } from "lucide-react";
+import { AdminPagination } from "../../components/admin-pagination";
 
 export default function AdminEventsContent() {
   const t = useTranslations("dashboard.admin");
@@ -39,6 +40,8 @@ export default function AdminEventsContent() {
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   const [dialogEventType, setDialogEventType] = useState("");
   const [activeActionId, setActiveActionId] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const limit = 10;
 
   // URL-based form state management
   const urlEventType = searchParams.get("eventType");
@@ -53,13 +56,15 @@ export default function AdminEventsContent() {
     isRefetching,
     error,
     refetch: fetchAdminEvents,
-  } = useEvents({
+  } = useAdminEvents({
     search: searchTerm || undefined,
     eventType: activeTab === "all" ? undefined : activeTab.toUpperCase(),
-    limit: 10,
+    page,
+    limit,
   });
 
-  const events = eventsResponse?.data?.events || [];
+  const events = eventsResponse?.events || [];
+  const pagination = eventsResponse?.pagination;
   const createEventMutation = useCreateEvent();
   const updateEventMutation = useUpdateEvent();
   const deleteEventMutation = useDeleteEvent();
@@ -129,10 +134,15 @@ export default function AdminEventsContent() {
     }
   }, [searchParams]);
 
-  // Fetch admin events with current filters
+  // Fetch admin events with current filters and reset page
   useEffect(() => {
+    setPage(1);
     fetchAdminEvents();
   }, [searchTerm, activeTab, fetchAdminEvents]);
+
+  useEffect(() => {
+    fetchAdminEvents();
+  }, [page, fetchAdminEvents]);
 
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(
     !!urlEventType || !!urlStep
@@ -298,6 +308,17 @@ export default function AdminEventsContent() {
             onEventAction={handleEventAction}
             onDeleteEvent={handleDeleteEvent}
           />
+
+          {pagination && (
+            <AdminPagination
+              total={pagination.total}
+              page={page}
+              limit={limit}
+              totalPages={pagination.totalPages}
+              onPageChange={setPage}
+              isLoading={loading}
+            />
+          )}
         </CardContent>
       </Card>
       <EventDetailsDialog

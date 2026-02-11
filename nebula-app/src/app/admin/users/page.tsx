@@ -14,26 +14,39 @@ export default function UserManagementPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [activeTab, setActiveTab] = useState("all");
+  const [page, setPage] = useState(1);
+  const limit = 10;
 
   const {
-    data: users = [],
+    data: usersResponse,
     isLoading: loading,
     refetch: fetchUsers,
   } = useAdminUsers({
     search: debouncedSearch || undefined,
     role: activeTab === "all" ? undefined : activeTab,
+    page,
+    limit,
   });
+
+  const users = usersResponse?.users || [];
+  const pagination = usersResponse?.pagination;
 
   const createUserMutation = useCreateUser();
 
-  // Debounce search term
+  // Debounce search term and reset page
   React.useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchTerm);
+      setPage(1);
     }, 300);
 
     return () => clearTimeout(timer);
   }, [searchTerm]);
+
+  // Reset page when tab changes
+  React.useEffect(() => {
+    setPage(1);
+  }, [activeTab]);
 
   // Transform users to match the table interface
   const transformedUsers = users.map((user: any) => ({
@@ -83,6 +96,10 @@ export default function UserManagementPage() {
             users={transformedUsers}
             loading={loading}
             onUserAction={handleUserAction}
+            pagination={pagination}
+            onPageChange={setPage}
+            page={page}
+            limit={limit}
           />
         </TabsContent>
       </Tabs>
