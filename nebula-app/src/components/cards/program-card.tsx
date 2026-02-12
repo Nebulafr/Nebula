@@ -3,7 +3,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Star } from "lucide-react";
+import { Euro, Star } from "lucide-react";
 import Link from "next/link";
 import { truncateText, getUserAvatar, getInitials } from "@/lib/utils";
 import { useTranslations } from "next-intl";
@@ -54,10 +54,15 @@ export function ProgramCard({ program, variant }: ProgramCardProps) {
               >
                 {program.category.name}
               </Badge>
-              <span className="text-sm font-bold text-foreground">
-                {program.price === 0 || !program.price
-                  ? t("free")
-                  : `$${program.price}`}
+              <span className="flex items-center font-semibold text-foreground">
+                {program.price === 0 || !program.price ? (
+                  t("free")
+                ) : (
+                  <span className="flex items-center">
+                    <Euro className="h-4 w-4" />
+                    {program.price}
+                  </span>
+                )}
               </span>
             </div>
             <h3 className="font-headline mt-4 text-2xl font-semibold leading-tight">
@@ -72,7 +77,12 @@ export function ProgramCard({ program, variant }: ProgramCardProps) {
               <div className="mb-6 rounded-lg border bg-background p-4">
                 <div className="flex items-center gap-4">
                   <Avatar className="h-12 w-12">
-                    <AvatarImage src={program.coach.user.avatarUrl || getUserAvatar(program.coach.user.fullName)} />
+                    <AvatarImage
+                      src={
+                        program.coach.user.avatarUrl ||
+                        getUserAvatar(program.coach.user.fullName)
+                      }
+                    />
                     <AvatarFallback>
                       {getInitials(program.coach.user.fullName)}
                     </AvatarFallback>
