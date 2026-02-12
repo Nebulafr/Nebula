@@ -64,7 +64,7 @@ export class AuthService {
     });
 
     // Send verification email
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
     const verificationUrl = `${baseUrl}/verify-email?token=${verificationToken}`;
 
     await EmailService.sendVerificationEmail(
@@ -357,8 +357,7 @@ export class AuthService {
         data: { resetToken, resetTokenExpires },
       });
 
-      const baseUrl =
-        process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+      const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
       const resetUrl = `${baseUrl}/reset-password?token=${resetToken}`;
 
       await EmailService.sendPasswordResetEmail(
