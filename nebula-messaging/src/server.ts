@@ -5,11 +5,7 @@ import { prisma } from "./lib/prisma";
 import { createAuthMiddleware } from "./middleware/auth.middleware";
 import * as ConversationHandler from "./handlers/conversation.handler";
 import * as MessageHandler from "./handlers/message.handler";
-import type {
-  AuthenticatedSocket,
-  ServerConfig,
-  GlobalSocketServer,
-} from "./types";
+import type { AuthenticatedSocket, ServerConfig } from "./types";
 
 dotenv.config();
 
@@ -42,12 +38,12 @@ const createSocketServer = (httpServer: any, corsConfig: any) => {
 const logConnection = (
   socketId: string,
   userId: string | undefined,
-  isAuthenticated: boolean
+  isAuthenticated: boolean,
 ) => {
   console.log(
     `Client connected: ${socketId} User: ${
       userId || "undefined"
-    } Authenticated: ${isAuthenticated}`
+    } Authenticated: ${isAuthenticated}`,
   );
 };
 
@@ -57,37 +53,37 @@ const logDisconnection = (socketId: string) => {
 
 const registerEventHandlers = (socket: AuthenticatedSocket, io: Server) => {
   socket.on("load_conversations", () =>
-    ConversationHandler.loadConversations(socket)
+    ConversationHandler.loadConversations(socket),
   );
   socket.on("join_conversation", (conversationId: string) =>
-    ConversationHandler.joinConversation(socket, conversationId)
+    ConversationHandler.joinConversation(socket, conversationId),
   );
   socket.on("leave_conversation", (conversationId: string) =>
-    ConversationHandler.leaveConversation(socket, conversationId)
+    ConversationHandler.leaveConversation(socket, conversationId),
   );
 
   socket.on("load_messages", (data: any) =>
-    MessageHandler.loadMessages(socket, data)
+    MessageHandler.loadMessages(socket, data),
   );
   socket.on("send_message", (data: any) =>
-    MessageHandler.sendMessage(io)(socket, data)
+    MessageHandler.sendMessage(io)(socket, data),
   );
   socket.on("mark_read", (conversationId: string) =>
-    MessageHandler.markRead(socket, conversationId)
+    MessageHandler.markRead(socket, conversationId),
   );
   socket.on("delete_message", (messageId: string) =>
-    MessageHandler.deleteMessage(socket, messageId)
+    MessageHandler.deleteMessage(socket, messageId),
   );
   socket.on("edit_message", (data: any) =>
-    MessageHandler.editMessage(socket, data)
+    MessageHandler.editMessage(socket, data),
   );
 
   // Typing indicators
   socket.on("typing_start", (conversationId: string) =>
-    MessageHandler.typingStart(io)(socket, conversationId)
+    MessageHandler.typingStart(io)(socket, conversationId),
   );
   socket.on("typing_stop", (conversationId: string) =>
-    MessageHandler.typingStop(io)(socket, conversationId)
+    MessageHandler.typingStop(io)(socket, conversationId),
   );
 
   socket.on("disconnect", () => logDisconnection(socket.id));
@@ -105,7 +101,7 @@ const logServerStart = (hostname: string, port: number) => {
   console.log(
     `📡 Accepting connections from: ${
       process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
-    }`
+    }`,
   );
 };
 

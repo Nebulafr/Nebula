@@ -16,6 +16,7 @@ import Link from "next/link";
 import { UserProfile } from "@/hooks/use-user";
 import { CoachWithRelations } from "@/types/coach";
 import { useTranslations } from "next-intl";
+import { CoachCard } from "@/components/cards/coach-card";
 
 interface SuggestedCoachesProps {
   coaches: CoachWithRelations[];
@@ -119,60 +120,7 @@ export function SuggestedCoaches({
                 className="p-2 md:basis-1/2 lg:basis-1/3 h-full"
               >
                 <Link href={`/coaches/${coach.id}`} className="flex h-full">
-                  <Card className="flex flex-col w-full rounded-xl border transition-all hover:shadow-lg h-full">
-                    <CardContent className="flex flex-1 flex-col p-4">
-                      <div className="flex flex-col items-center text-center">
-                        <Avatar className="h-24 w-24">
-                          <AvatarImage
-                            src={
-                              coach.avatarUrl ||
-                              `https://i.pravatar.cc/96?u=${coach.fullName}`
-                            }
-                            alt={coach.fullName}
-                          />
-                          <AvatarFallback>
-                            {coach.fullName
-                              ?.split(" ")
-                              .map((n) => n[0])
-                              .join("")}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="mt-4">
-                          <h3 className="font-headline text-lg font-semibold">
-                            {coach.fullName}
-                          </h3>
-                          <p className="text-sm text-muted-foreground">
-                            {coach.title}
-                          </p>
-                          <div className="mt-2 flex items-center justify-center gap-1">
-                            <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
-                            <span className="text-xs font-semibold">
-                              {coach.rating}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="mt-4 text-center">
-                        <div className="flex flex-wrap justify-center gap-2">
-                          {coach.specialties?.slice(0, 2).map((specialty) => (
-                            <Badge key={specialty} variant="secondary">
-                              {specialty}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                      <div className="flex-grow" />
-                      <div className="mt-4 flex items-center justify-center gap-1">
-                        <Users className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm text-muted-foreground">
-                          {coach.studentsCoached}+ {tc("students").toLowerCase()}
-                        </span>
-                      </div>
-                      <Button variant="outline" className="mt-4 w-full">
-                        {t("viewProfile")}
-                      </Button>
-                    </CardContent>
-                  </Card>
+                  <CoachCard coach={coach} />
                 </Link>
               </CarouselItem>
             ))}
