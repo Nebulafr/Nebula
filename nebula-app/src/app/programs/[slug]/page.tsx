@@ -242,7 +242,6 @@ export default function ProgramDetailPage({
 
   const handleEnrollClick = async () => {
     if (!profile) {
-      toast.error(t("loginToEnroll"));
       router.replace("/login");
       return;
     }
@@ -369,7 +368,7 @@ export default function ProgramDetailPage({
               {program.description}
             </p>
             <div className="mt-8 flex items-center gap-4">
-              {isStudent && !isEnrolled && (
+              {!isEnrolled && (
                 <Button
                   size="lg"
                   onClick={() => setEnrollmentStep(1)}

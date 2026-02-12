@@ -16,7 +16,7 @@ import {
   GraduationCap,
 } from "lucide-react";
 import Link from "next/link";
-import { useTranslations, useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { WeeklyTimeSlotPicker } from "@/components/ui/weekly-time-slot-picker";
 import { cn } from "@/lib/utils";
 import { useParams, useRouter } from "next/navigation";
@@ -44,11 +44,10 @@ import { createConversation } from "@/actions/messaging";
 
 export default function CoachDetailPage() {
   const t = useTranslations("coachDetails");
-  const locale = useLocale();
   const [bookingStep, setBookingStep] = useState(0);
   const params = useParams<{ coachId: string }>();
   const router = useRouter();
-  const { profile, isStudent } = useAuth();
+  const { profile, isAuthenticated } = useAuth();
   const [date, setDate] = useState<Date | undefined>();
   const [selectedTime, setSelectedTime] = useState("");
   const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
@@ -58,22 +57,18 @@ export default function CoachDetailPage() {
   const [hoverRating, setHoverRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
 
-  // Fetch coach data
   const {
     data: coach,
     isLoading: loading,
     error: coachError,
   } = useCoachById(params.coachId);
 
-  // Query client for cache invalidation
   const queryClient = useQueryClient();
 
-  // Book session mutation
   const bookSessionMutation = useBookCoachSession();
 
   const handleBookClick = () => {
-    if (!profile) {
-      toast.error(t("loginToBook"));
+    if (!isAuthenticated) {
       router.replace("/login");
       return;
     }
@@ -87,7 +82,7 @@ export default function CoachDetailPage() {
   };
 
   const handleTimeSelect = async () => {
-    if (!date || !profile) {
+    if (!date || !isAuthenticated) {
       toast.error(t("selectDateLogin"));
       return;
     }
@@ -97,7 +92,6 @@ export default function CoachDetailPage() {
         coachId: params.coachId,
         date,
         time: selectedTime,
-        duration: 60,
       },
       {
         onSuccess: (result) => {
@@ -119,8 +113,7 @@ export default function CoachDetailPage() {
   };
 
   const handleMessageClick = async () => {
-    if (!profile) {
-      toast.error(t("loginToMessage"));
+    if (!isAuthenticated) {
       router.replace("/login");
       return;
     }
@@ -132,7 +125,7 @@ export default function CoachDetailPage() {
 
     try {
       const conversationResult = await createConversation({
-        participants: [profile.id, coach.userId],
+        participants: [profile && profile.id, coach.userId],
         type: "DIRECT",
       });
 
@@ -362,7 +355,6 @@ export default function CoachDetailPage() {
                   onEnroll={handleBookClick}
                   onCancel={handleCancelBooking}
                   onTimeSelect={handleTimeSelect}
-                  showMessageButton={isStudent}
                   onMessageClick={handleMessageClick}
                   coachAvailability={coach?.availability}
                   t={t}
@@ -543,7 +535,6 @@ function EnrollmentForm({
   setSelectedDate,
   setSelectedTime,
   onTimeSelect,
-  showMessageButton = false,
   onMessageClick,
   coachAvailability,
   t,
@@ -558,7 +549,6 @@ function EnrollmentForm({
   setSelectedDate: (date: Date | undefined) => void;
   setSelectedTime: (time: string) => void;
   onTimeSelect: () => void;
-  showMessageButton?: boolean;
   onMessageClick?: () => void;
   coachAvailability?: Record<string, any>;
   t: any;
@@ -598,12 +588,12 @@ function EnrollmentForm({
         <CardContent className="p-6 text-center">
           <h3 className="font-headline text-2xl font-bold">{t("bookSession")}</h3>
           <p className="text-muted-foreground mt-2 mb-6">{t("findTime")}</p>
-          {isStudent && (
+          { (
             <Button size="lg" className="w-full" onClick={onEnroll}>
               <PlusCircle className="mr-2 h-5 w-5" /> {t("bookNow")}
             </Button>
-          )}
-          {showMessageButton && onMessageClick && (
+          ) }
+          {
             <Button
               size="lg"
               variant="outline"
@@ -612,7 +602,7 @@ function EnrollmentForm({
             >
               <MessageCircle className="mr-2 h-5 w-5" /> {t("message")}
             </Button>
-          )}
+          }
         </CardContent>
       </Card>
     );
