@@ -232,29 +232,59 @@ export class SessionService {
       }
     }
 
-    const updatedSession = await prisma.session.update({
-      where: { id: sessionId },
-      data: {
-        status: SessionStatus.SCHEDULED,
-        meetLink,
-        googleEventId,
-      },
-      include: {
-        coach: {
-          include: {
-            user: true,
-          },
+    const updatedSession = await prisma.$transaction(async (tx) => {
+      const updated = await tx.session.update({
+        where: { id: sessionId },
+        data: {
+          status: SessionStatus.SCHEDULED,
+          meetLink,
+          googleEventId,
         },
-        attendance: {
-          include: {
-            student: {
-              include: {
-                user: true,
+        include: {
+          coach: {
+            include: {
+              user: true,
+            },
+          },
+          attendance: {
+            include: {
+              student: {
+                include: {
+                  user: true,
+                },
               },
             },
           },
         },
-      },
+      });
+
+      // Increment coach stats
+      const studentId = updated.attendance[0]?.studentId;
+      if (studentId) {
+        // Check if it's the student's first scheduled/completed session with this coach
+        const previousSessionsCount = await tx.session.count({
+          where: {
+            coachId: updated.coachId,
+            status: {
+              in: [SessionStatus.SCHEDULED, SessionStatus.COMPLETED],
+            },
+            attendance: {
+              some: { studentId },
+            },
+            id: { not: sessionId },
+          },
+        });
+
+        await tx.coach.update({
+          where: { id: updated.coachId },
+          data: {
+            totalSessions: { increment: 1 },
+            studentsCoached: previousSessionsCount === 0 ? { increment: 1 } : undefined,
+          },
+        });
+      }
+
+      return updated;
     });
 
     // Send email notifications for approval

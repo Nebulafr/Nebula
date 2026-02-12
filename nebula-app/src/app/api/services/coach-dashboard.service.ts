@@ -286,40 +286,71 @@ export class CoachDashboardService {
     } = data;
 
     // Create session with attendance records
-    const session = await prisma.session.create({
-      data: {
-        coachId: coach.id,
-        title,
-        description,
-        scheduledTime: new Date(scheduledTime),
-        duration: duration || 60,
-        status: "SCHEDULED",
-        meetLink,
-        attendance: {
-          create:
-            studentIds?.map((studentId: string) => ({
-              studentId,
-              attended: false,
-            })) || [],
+    const session = await prisma.$transaction(async (tx) => {
+      const newSession = await tx.session.create({
+        data: {
+          coachId: coach.id,
+          title,
+          description,
+          scheduledTime: new Date(scheduledTime),
+          duration: duration || 60,
+          status: "SCHEDULED",
+          meetLink,
+          attendance: {
+            create:
+              studentIds?.map((studentId: string) => ({
+                studentId,
+                attended: false,
+              })) || [],
+          },
         },
-      },
-      include: {
-        attendance: {
-          include: {
-            student: {
-              include: {
-                user: {
-                  select: {
-                    fullName: true,
-                    email: true,
-                    avatarUrl: true,
+        include: {
+          attendance: {
+            include: {
+              student: {
+                include: {
+                  user: {
+                    select: {
+                      fullName: true,
+                      email: true,
+                      avatarUrl: true,
+                    },
                   },
                 },
               },
             },
           },
         },
-      },
+      });
+
+      // Update totalSessions
+      await tx.coach.update({
+        where: { id: coach.id },
+        data: { totalSessions: { increment: 1 } },
+      });
+
+      // Check for new students
+      if (studentIds && studentIds.length > 0) {
+        for (const studentId of studentIds) {
+          const previousSessionsCount = await tx.session.count({
+            where: {
+              coachId: coach.id,
+              status: { in: ["SCHEDULED", "COMPLETED"] },
+              attendance: { some: { studentId } },
+              id: { not: newSession.id },
+            },
+          });
+
+          if (previousSessionsCount === 0) {
+            await tx.coach.update({
+              where: { id: coach.id },
+              data: { studentsCoached: { increment: 1 } },
+            });
+          }
+        }
+      }
+
+      return newSession;
     });
 
     return sendSuccess({ session }, "Session created successfully", 201);
