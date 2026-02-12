@@ -46,14 +46,10 @@ export function CoachCard({ coach }: CoachCardProps) {
             <h3 className="font-headline text-lg font-semibold">
               {coach.fullName}
             </h3>
-            <p className="text-sm text-muted-foreground">
-              {coach.title}
-            </p>
+            <p className="text-sm text-muted-foreground">{coach.title}</p>
             <div className="mt-2 flex items-center justify-center gap-1">
               <Star className="h-2 w-2 text-yellow-500 fill-yellow-500" />
-              <span className="text-[10px] font-semibold">
-                {coach.rating}
-              </span>
+              <span className="text-[10px] font-semibold">{coach.rating}</span>
             </div>
           </div>
         </div>
@@ -65,14 +61,12 @@ export function CoachCard({ coach }: CoachCardProps) {
               </Badge>
             ))}
             {coach.specialties.length > 3 && (
-              <Badge variant="secondary">
-                +{coach.specialties.length - 3}
-              </Badge>
+              <Badge variant="secondary">+{coach.specialties.length - 3}</Badge>
             )}
           </div>
         </div>
         <div className="flex-grow" />
-        <div className="mt-4 flex items-center justify-center gap-1">
+        <div className="mt-4 flex items-center justify-center gap-4">
           <div className="flex items-center gap-1 text-muted-foreground">
             <Users className="h-4 w-4 text-muted-foreground" />
             <span className="text-sm text-muted-foreground">
@@ -81,8 +75,7 @@ export function CoachCard({ coach }: CoachCardProps) {
           </div>
 
           <div className="h-4 w-px bg-border" />
-
-          <div className="flex items-center gap-1 font-semibold text-foreground">
+          <div className="flex items-center font-semibold text-foreground">
             <Euro className="h-4 w-4" />
             <span>{coach.hourlyRate}/hr</span>
           </div>

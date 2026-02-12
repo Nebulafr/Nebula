@@ -11,14 +11,14 @@ import { useState, useEffect } from "react";
 
 function NebulaLogo() {
   return (
-       <div className="h-10 w-10 relative">
-                  <Image
-                    src={logos.nebulaLogo}
-                    alt="Nebula Logo"
-                    fill
-                    className="object-cover"
-                  />
-                </div>
+    <div className="h-10 w-10 relative">
+      <Image
+        src={logos.nebulaLogo}
+        alt="Nebula Logo"
+        fill
+        className="object-cover"
+      />
+    </div>
   );
 }
 
@@ -30,7 +30,7 @@ export function ContactCard() {
   useEffect(() => {
     // Ensure we are on the client and document is available
     if (typeof window !== "undefined" && document.body) {
-        setRootElement(document.body);
+      setRootElement(document.body);
     }
   }, []);
 
@@ -62,7 +62,10 @@ export function ContactCard() {
       </CardContent>
       {rootElement && (
         <PopupModal
-          url={process.env.NEXT_PUBLIC_CALENDLY_URL || "https://calendly.com/masudndatsu/30min"}
+          url={
+            process.env.NEXT_PUBLIC_CALENDLY_URL ||
+            "https://calendly.com/masudndatsu/30min"
+          }
           onModalClose={() => setIsOpen(false)}
           open={isOpen}
           rootElement={rootElement}

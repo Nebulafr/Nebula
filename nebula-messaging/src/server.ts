@@ -1,6 +1,7 @@
 import { createServer } from "node:http";
 import { Server } from "socket.io";
 import dotenv from "dotenv";
+import express from "express";
 import { prisma } from "./lib/prisma";
 import { createAuthMiddleware } from "./middleware/auth.middleware";
 import * as ConversationHandler from "./handlers/conversation.handler";
@@ -26,7 +27,7 @@ const createCorsConfig = (origins: (string | RegExp)[]) => ({
   credentials: true,
 });
 
-const createHttpServer = () => createServer();
+const createHttpServer = (app: express.Express) => createServer(app);
 
 const createSocketServer = (httpServer: any, corsConfig: any) => {
   return new Server(httpServer, {
@@ -129,7 +130,18 @@ const setGlobalSocketServer = (io: Server) => {
 
 const initializeServer = () => {
   const config = createServerConfig();
-  const httpServer = createHttpServer();
+  const app = express();
+
+  // Root health endpoint
+  app.get("/", (req, res) => {
+    res.json({
+      status: "ok",
+      service: "Nebula Messaging",
+      timestamp: new Date().toISOString(),
+    });
+  });
+
+  const httpServer = createHttpServer(app);
   const corsConfig = createCorsConfig(config.corsOrigins);
   const io = createSocketServer(httpServer, corsConfig);
 
