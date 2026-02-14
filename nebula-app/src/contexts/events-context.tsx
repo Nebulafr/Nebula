@@ -21,6 +21,7 @@ interface EventsParams {
   search?: string;
   eventType?: string;
   status?: string;
+  accessType?: string;
   isPublic?: boolean;
   limit?: number;
   offset?: number;

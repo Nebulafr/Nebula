@@ -136,7 +136,10 @@ export class AdminController {
       throw new BadRequestException("Review ID is required");
     }
 
+    const { searchParams } = new URL(request.url);
+    const targetType = searchParams.get("targetType");
+
     const { ReviewService } = await import("../services/review.service");
-    return await ReviewService.deleteReview(id);
+    return await ReviewService.deleteReview(id, targetType as any);
   }
 }

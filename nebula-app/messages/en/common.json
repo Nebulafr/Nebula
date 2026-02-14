@@ -121,11 +121,11 @@
           "heading": "Logistics",
           "subheading": "What is your availability and desired hourly rate?",
           "availability": "Weekly Availability",
-          "hourlyRate": "Desired Hourly Rate (EUR)",
-          "ratePlaceholder": "e.g., 75",
+          "rate": "Desired Hourly Rate (EUR)",
+          "placeholder": "e.g., 75",
           "submit": "Submit Application",
           "submitting": "Submitting...",
-          "authError": "You must be logged in to submit an application.",
+          "loginRequired": "You must be logged in to submit an application.",
           "submitError": "Could not submit your application. Please try again."
         }
       },

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { UserRole, SkillLevel, DifficultyLevel } from "@/generated/prisma";
+import { UserRole, ExperienceLevel } from "@/generated/prisma";
 import { EventType, EventStatus } from "@/types/event";
 
 export const moduleSchema = z.object({
@@ -31,18 +31,15 @@ export const createProgramSchema = z.object({
   duration: z.string().optional(),
   difficultyLevel: z
     .enum([
-      DifficultyLevel.BEGINNER,
-      DifficultyLevel.INTERMEDIATE,
-      DifficultyLevel.ADVANCED,
+      ExperienceLevel.BEGINNER,
+      ExperienceLevel.INTERMEDIATE,
+      ExperienceLevel.ADVANCED,
     ])
     .optional(),
   maxStudents: z.number().min(1, "Max students must be at least 1").optional(),
   tags: z.array(z.string()).optional(),
   prerequisites: z.array(z.string()).optional(),
-  targetAudience: z
-    .string()
-    .max(500, "Target audience description too long")
-    .optional(),
+  targetAudience: z.array(z.nativeEnum(ExperienceLevel)).optional(),
   coCoachIds: z.array(z.string()).optional(),
 });
 
@@ -187,8 +184,8 @@ export const googleSigninSchema = z.object({
 });
 
 export const updateStudentSchema = z.object({
-  interestedProgram: z.string().min(1, "Interested program is required"),
-  skillLevel: z.nativeEnum(SkillLevel),
+  interestedCategoryId: z.string().min(1, "Interested category is required"),
+  skillLevel: z.nativeEnum(ExperienceLevel),
   commitment: z.string().min(1, "Commitment level is required"),
   timeZone: z.string().optional(),
   learningGoals: z.array(z.string()).optional(),
@@ -446,11 +443,11 @@ export const coachOnboardingStep4Schema = z.object({
 
 // Student Onboarding validation schemas
 export const studentOnboardingStep1Schema = z.object({
-  program: z.string().min(1, "Please select a program"),
+  interestedCategoryId: z.string().min(1, "Please select an area of interest"),
 });
 
 export const studentOnboardingStep2Schema = z.object({
-  skillLevel: z.enum([SkillLevel.BEGINNER, SkillLevel.INTERMEDIATE, SkillLevel.ADVANCED], {
+  skillLevel: z.enum([ExperienceLevel.BEGINNER, ExperienceLevel.INTERMEDIATE, ExperienceLevel.ADVANCED], {
     errorMap: () => ({ message: "Please select a skill level" }),
   }),
 });

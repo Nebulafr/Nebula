@@ -36,6 +36,7 @@ import { UserSelect } from "@/components/ui/user-select";
 import { uploadImageToCloudinary } from "@/lib/cloudinary";
 import { useTranslations } from "next-intl";
 import moment from "moment";
+import { UserRole } from "@/enums";
 
 interface NewEvent {
   title: string;
@@ -370,6 +371,7 @@ export function CreateEventDialog({
                   onChange={(user: any) => {
                     handleSelectOrganizer(user?.id || null);
                   }}
+                  role={UserRole.COACH}
                   placeholder={t("selectOrganizer")}
                 />
               </div>

@@ -1,6 +1,8 @@
 import { NextRequest } from "next/server";
 import { CoachDashboardService } from "../services/coach-dashboard.service";
 
+import { SessionFilter } from "../services/types/coach-dashboard.types";
+
 export class CoachDashboardController {
   async getStats(req: NextRequest) {
     const user = (req as any).user;
@@ -10,7 +12,7 @@ export class CoachDashboardController {
   async getSessions(req: NextRequest) {
     const user = (req as any).user;
     const { searchParams } = new URL(req.url);
-    const filter = searchParams.get("filter") || "upcoming";
+    const filter = (searchParams.get("filter") || "upcoming") as SessionFilter;
     return await CoachDashboardService.getSessions(user.id, filter);
   }
 

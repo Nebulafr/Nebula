@@ -1,6 +1,4 @@
 "use client";
-
-import React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -53,37 +51,39 @@ function ModuleUploader({
   onDrop,
   onRemove,
 }: ModuleUploaderProps) {
-  const t = useTranslations("dashboard.coach.programs.proposeFlow.step3.uploader");
+  const t = useTranslations(
+    "dashboard.coach.programs.proposeFlow.step3.uploader",
+  );
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop: (acceptedFiles) => {
-      // Check if adding these files would exceed the limit
       const remainingSlots = MAX_FILES_PER_MODULE - files.length;
 
       if (remainingSlots <= 0) {
-        toast.error(
-          t("maxDocs", { count: MAX_FILES_PER_MODULE })
-        );
+        toast.error(t("maxDocs", { count: MAX_FILES_PER_MODULE }));
         return;
       }
 
-      // Validate file sizes
       const invalidFiles = acceptedFiles.filter(
-        (file) => file.size > MAX_FILE_SIZE
+        (file) => file.size > MAX_FILE_SIZE,
       );
 
       if (invalidFiles.length > 0) {
         toast.error(
-          t("fileSizeLimit", { files: invalidFiles.map((f) => f.name).join(", ") })
+          t("fileSizeLimit", {
+            files: invalidFiles.map((f) => f.name).join(", "),
+          }),
         );
         return;
       }
 
-      // Only take files up to the remaining slots
       const filesToAdd = acceptedFiles.slice(0, remainingSlots);
 
       if (filesToAdd.length < acceptedFiles.length) {
         toast.warning(
-          t("onlySomeAdded", { count: remainingSlots, max: MAX_FILES_PER_MODULE })
+          t("onlySomeAdded", {
+            count: remainingSlots,
+            max: MAX_FILES_PER_MODULE,
+          }),
         );
       }
 
@@ -112,7 +112,7 @@ function ModuleUploader({
             : "cursor-pointer",
           isDragActive && !isMaxReached
             ? "border-primary bg-primary/10"
-            : "bg-muted hover:bg-muted/50"
+            : "bg-muted hover:bg-muted/50",
         )}
       >
         <input {...getInputProps()} disabled={isMaxReached} />
@@ -123,7 +123,8 @@ function ModuleUploader({
               <span>{t("maxReached")}</span>
             ) : (
               <>
-                <span className="font-semibold">{t("clickToUpload")}</span> {t("dragAndDrop")}
+                <span className="font-semibold">{t("clickToUpload")}</span>{" "}
+                {t("dragAndDrop")}
               </>
             )}
           </p>
@@ -184,17 +185,13 @@ export default function ProposeStep3Page() {
         <Stepper currentStep={3} />
         <div className="mt-12">
           <h1 className="text-3xl font-bold">{t("title")}</h1>
-          <p className="mt-2 text-muted-foreground">
-            {t("description")}
-          </p>
+          <p className="mt-2 text-muted-foreground">{t("description")}</p>
         </div>
 
         <div className="mt-8">
           {formData.modules.length === 0 ? (
             <Card className="p-6 text-center text-muted-foreground">
-              <p>
-                {t("noModules")}
-              </p>
+              <p>{t("noModules")}</p>
             </Card>
           ) : (
             <Accordion

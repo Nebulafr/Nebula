@@ -62,6 +62,7 @@ function CoachesPageContent() {
     search: searchTerm,
     category: activeCategory === "all" ? undefined : activeCategory,
     limit: 20,
+    grouped: true,
   });
 
   const categories = categoriesResponse?.data?.categories || [];

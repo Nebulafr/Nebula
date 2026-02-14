@@ -33,7 +33,7 @@ export class ProgramService {
       tags,
       prerequisites,
       targetAudience,
-      coCoachIds,
+      coCoachIds: coCoachUserIds,
     } = createProgramSchema.parse(body);
 
     const coachId = user.coach.id;
@@ -48,14 +48,24 @@ export class ProgramService {
       throw new BadRequestException(`Category "${category}" not found`);
     }
     let validCoCoachIds: string[] = [];
-    if (coCoachIds && coCoachIds.length > 0) {
+    if (coCoachUserIds && coCoachUserIds.length > 0) {
       const validCoaches = await prisma.coach.findMany({
-        where: { userId: { in: coCoachIds } },
+        where: {
+          OR: [
+            { id: { in: coCoachUserIds } },
+            { userId: { in: coCoachUserIds } },
+          ],
+        },
         select: { id: true, userId: true },
       });
-      const validCoachIds = validCoaches.map((c) => c.userId);
-      validCoCoachIds = validCoaches.map((coach) => coach.id);
-      const invalidIds = coCoachIds.filter((id) => !validCoachIds.includes(id));
+
+      const validCoachIds = validCoaches.map((c) => c.id);
+      const validUserIds = validCoaches.map((c) => c.userId);
+      validCoCoachIds = validCoachIds;
+
+      const invalidIds = coCoachUserIds.filter(
+        (id) => !validCoachIds.includes(id) && !validUserIds.includes(id),
+      );
       if (invalidIds.length > 0) {
         throw new BadRequestException(
           `Invalid co-coach IDs: ${invalidIds.join(", ")}`,
@@ -82,14 +92,21 @@ export class ProgramService {
         status: "PENDING_APPROVAL",
         tags: tags || [],
         prerequisites: prerequisites || [],
-        targetAudience: targetAudience || null,
+        targetAudience: targetAudience || [],
         modules: {
           create:
             modules?.map((module: any, index: number) => ({
               title: module.title,
               week: module.week || index + 1,
               description: module.description,
-              materials: module.materials || [],
+              materials: {
+                create:
+                  module.materials?.map((mat: any) => ({
+                    fileName: mat.name || "document",
+                    url: mat.url,
+                    mimeType: mat.type || "application/pdf",
+                  })) || [],
+              },
             })) || [],
         },
         coCoaches:
@@ -108,7 +125,11 @@ export class ProgramService {
             user: true,
           },
         },
-        modules: true,
+        modules: {
+          include: {
+            materials: true,
+          },
+        },
         coCoaches: {
           include: {
             coach: {
@@ -148,24 +169,51 @@ export class ProgramService {
     );
   }
 
-  async getPrograms(request: NextRequest) {
-    const { searchParams } = new URL(request.url);
+  static transformProgramData(program: any) {
+    return {
+      id: program.id,
+      title: program.title,
+      categoryId: program.categoryId,
+      description: program.description,
+      objectives: program.objectives,
+      coachId: program.coachId,
+      slug: program.slug,
+      rating: program.rating,
+      totalReviews: program.totalReviews,
+      price: program.price,
+      duration: program.duration,
+      difficultyLevel: program.difficultyLevel,
+      maxStudents: program.maxStudents,
+      currentEnrollments: program.currentEnrollments,
+      isActive: program.isActive,
+      status: program.status,
+      tags: program.tags,
+      prerequisites: program.prerequisites,
+      attendees:
+        program.enrollments?.map(
+          (e: any) =>
+            e.student?.user?.avatarUrl || e.student?.avatarUrl || null,
+        ) || [],
+      createdAt: program.createdAt.toISOString(),
+      updatedAt: program.updatedAt.toISOString(),
+      category: program.category,
+      coach: program.coach,
+      enrollments: program.enrollments,
+      modules: program.modules,
+      _count: program._count,
+    };
+  }
 
+  private getProgramsWhereClause(searchParams: URLSearchParams) {
     const coachId = searchParams.get("coachId") || undefined;
     const category = searchParams.get("category") || undefined;
     const search = searchParams.get("search") || undefined;
-    const limitParam = searchParams.get("limit");
-    const offsetParam = searchParams.get("offset");
-    const limit = limitParam ? parseInt(limitParam) : 10;
-    const offset = offsetParam ? parseInt(offsetParam) : 0;
 
     const whereClause: any = {};
 
     if (coachId) {
-      // When fetching by coachId, return all programs for that coach (any status)
       whereClause.coachId = coachId;
     } else {
-      // For public listing, only show active programs
       whereClause.isActive = true;
       whereClause.status = "ACTIVE";
     }
@@ -176,7 +224,6 @@ export class ProgramService {
       };
     }
 
-    // Add search filtering - search in title, description, category name, and coach name
     if (search) {
       whereClause.OR = [
         { title: { contains: search, mode: "insensitive" } },
@@ -190,6 +237,19 @@ export class ProgramService {
         { tags: { has: search } },
       ];
     }
+
+    return whereClause;
+  }
+
+  private async fetchProgramsData(request: NextRequest) {
+    const { searchParams } = new URL(request.url);
+
+    const limitParam = searchParams.get("limit");
+    const offsetParam = searchParams.get("offset");
+    const limit = limitParam ? parseInt(limitParam) : 10;
+    const offset = offsetParam ? parseInt(offsetParam) : 0;
+
+    const whereClause = this.getProgramsWhereClause(searchParams);
 
     const [programs, totalCount] = await Promise.all([
       prisma.program.findMany({
@@ -221,7 +281,11 @@ export class ProgramService {
               },
             },
           },
-          modules: true,
+          modules: {
+            include: {
+              materials: true,
+            },
+          },
           _count: {
             select: {
               enrollments: true,
@@ -238,62 +302,111 @@ export class ProgramService {
       prisma.program.count({ where: whereClause }),
     ]);
 
-    const transformedPrograms = programs.map((program) => ({
-      id: program.id,
-      title: program.title,
-      categoryId: program.categoryId,
-      description: program.description,
-      objectives: program.objectives,
-      coachId: program.coachId,
-      slug: program.slug,
-      rating: program.rating,
-      totalReviews: program.totalReviews,
-      price: program.price,
-      duration: program.duration,
-      difficultyLevel: program.difficultyLevel,
-      maxStudents: program.maxStudents,
-      currentEnrollments: program.currentEnrollments,
-      isActive: program.isActive,
-      status: program.status,
-      tags: program.tags,
-      prerequisites: program.prerequisites,
-      attendees: program.enrollments.map((e) => e.student.user.avatarUrl),
-      createdAt: program.createdAt.toISOString(),
-      updatedAt: program.updatedAt.toISOString(),
-      category: program.category,
-      coach: program.coach,
-      enrollments: program.enrollments,
-      modules: program.modules,
-      _count: program._count,
-    }));
-
-    const groupedPrograms = transformedPrograms.reduce(
-      (acc: Record<string, any[]>, program: any) => {
-        const categoryName = program.category?.name || "General";
-        if (!acc[categoryName]) {
-          acc[categoryName] = [];
-        }
-        acc[categoryName].push(program);
-        return acc;
-      },
-      {},
+    const transformedPrograms = programs.map((program) =>
+      ProgramService.transformProgramData(program),
     );
 
-    const formattedGroups = Object.entries(groupedPrograms).map(
-      ([group, items]) => ({
-        group,
-        items,
-      }),
-    );
+    return {
+      transformedPrograms,
+      totalCount,
+      limit,
+      offset,
+    };
+  }
+
+  async getPrograms(request: NextRequest) {
+    const { transformedPrograms, totalCount, limit, offset } =
+      await this.fetchProgramsData(request);
+
     return sendSuccess({
       programs: transformedPrograms,
-      groupedPrograms: formattedGroups,
       pagination: {
         total: totalCount,
         limit,
         offset,
-        hasMore: offset + programs.length < totalCount,
+        hasMore: offset + transformedPrograms.length < totalCount,
       },
+    });
+  }
+
+  async getGroupedPrograms(request: NextRequest) {
+    const { searchParams } = new URL(request.url);
+    const whereClause = this.getProgramsWhereClause(searchParams);
+
+    const limitParam = searchParams.get("limit");
+    const pageParam = searchParams.get("page");
+    const limit = limitParam ? parseInt(limitParam) : undefined;
+    const page = pageParam ? parseInt(pageParam) : 1;
+    const skip = limit ? (page - 1) * limit : undefined;
+
+    const categories = await prisma.category.findMany({
+      where: {
+        isActive: true,
+        programs: {
+          some: whereClause,
+        },
+      },
+      include: {
+        programs: {
+          where: whereClause,
+          include: {
+            category: true,
+            coach: {
+              select: {
+                id: true,
+                title: true,
+                user: {
+                  select: {
+                    fullName: true,
+                    avatarUrl: true,
+                  },
+                },
+              },
+            },
+            enrollments: {
+              select: {
+                student: {
+                  select: {
+                    user: {
+                      select: {
+                        avatarUrl: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            modules: {
+              include: {
+                materials: true,
+              },
+            },
+            _count: {
+              select: {
+                enrollments: true,
+                reviews: true,
+              },
+            },
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+          take: limit,
+          skip: skip,
+        },
+      },
+    });
+
+    const formattedGroups = categories.map((category) => ({
+      categoryId: category.id,
+      group: category.name,
+      items: category.programs.map((program) =>
+        ProgramService.transformProgramData(program),
+      ),
+    }));
+
+    return sendSuccess({
+      groupedPrograms: formattedGroups,
     });
   }
 
@@ -315,10 +428,14 @@ export class ProgramService {
             student: true,
           },
         },
-        modules: true,
+        modules: {
+          include: {
+            materials: true,
+          },
+        },
         reviews: {
           include: {
-            reviewer: true,
+            user: true,
           },
         },
         cohorts: {
@@ -344,6 +461,11 @@ export class ProgramService {
 
     const transformedProgram = {
       ...program,
+      reviews: program.reviews.map((review) => ({
+        ...review,
+        content: review.comment,
+        reviewer: (review as any).user,
+      })),
       hasUserReviewed,
     };
 
@@ -361,6 +483,9 @@ export class ProgramService {
           },
         },
         modules: {
+          include: {
+            materials: true,
+          },
           orderBy: { week: "asc" },
         },
         coCoaches: {
@@ -427,7 +552,14 @@ export class ProgramService {
       coCoachIds,
     } = body;
 
-    let categoryRecord;
+    let categoryRecord: {
+      name: string;
+      id: string;
+      createdAt: Date;
+      updatedAt: Date;
+      slug: string;
+      isActive: boolean;
+    } | null;
     if (category) {
       categoryRecord = await prisma.category.findUnique({
         where: { id: category },
@@ -437,97 +569,119 @@ export class ProgramService {
       }
     }
 
-    // Handle co-coaches
-    if (coCoachIds !== undefined) {
-      await prisma.programCoach.deleteMany({
-        where: { programId: program.id },
-      });
+    const result = await prisma.$transaction(async (tx) => {
+      // Handle co-coaches
+      if (coCoachIds !== undefined) {
+        await tx.programCoach.deleteMany({
+          where: { programId: program.id },
+        });
 
-      if (coCoachIds.length > 0) {
-        const validCoaches = await prisma.coach.findMany({
-          where: { userId: { in: coCoachIds } },
-          select: { id: true },
-        });
-        await prisma.programCoach.createMany({
-          data: validCoaches.map((coach) => ({
-            programId: program.id,
-            coachId: coach.id,
-          })),
-        });
+        if (coCoachIds.length > 0) {
+          const validCoaches = await tx.coach.findMany({
+            where: { id: { in: coCoachIds } },
+            select: { id: true },
+          });
+
+          const validCoachIds = validCoaches.map((c) => c.id);
+          const invalidIds = coCoachIds.filter(
+            (id: string) => !validCoachIds.includes(id),
+          );
+
+          if (invalidIds.length > 0) {
+            throw new BadRequestException(
+              `Invalid co-coach IDs: ${invalidIds.join(", ")}`,
+            );
+          }
+
+          await tx.programCoach.createMany({
+            data: validCoachIds.map((coachId) => ({
+              programId: program.id,
+              coachId,
+            })),
+          });
+        }
       }
-    }
 
-    // Handle modules update
-    if (modules && modules.length > 0) {
-      // Delete existing modules
-      await prisma.module.deleteMany({
-        where: { programId: program.id },
-      });
+      // Handle modules update
+      if (modules && modules.length > 0) {
+        // Delete existing modules (materials will be deleted due to Cascade)
+        await tx.module.deleteMany({
+          where: { programId: program.id },
+        });
 
-      // Create new modules
-      await prisma.module.createMany({
-        data: modules.map((mod: any, index: number) => ({
-          programId: program.id,
-          title: mod.title,
-          week: mod.week || index + 1,
-          description: mod.description,
-          materials: mod.materials || [],
-        })),
-      });
-    }
+        // Create new modules with materials
+        for (const [index, mod] of modules.entries()) {
+          await tx.module.create({
+            data: {
+              programId: program.id,
+              title: mod.title,
+              week: mod.week || index + 1,
+              description: mod.description,
+              materials: {
+                create:
+                  mod.materials?.map((mat: any) => ({
+                    fileName: mat.name || "document",
+                    url: mat.url,
+                    mimeType: mat.type || "application/pdf",
+                  })) || [],
+              },
+            },
+          });
+        }
+      }
 
-    // Generate new slug if title changed
-    let newSlug;
-    if (title && title !== program.title) {
-      newSlug = generateSlug(title);
-    }
+      // Generate new slug if title changed
+      let newSlug;
+      if (title && title !== program.title) {
+        newSlug = generateSlug(title);
+      }
 
-    const updatedProgram = await prisma.program.update({
-      where: { id },
-      data: {
-        title,
-        categoryId: categoryRecord?.id,
-        description,
-        objectives,
-        price,
-        duration: duration ? `${duration} weeks` : undefined,
-        difficultyLevel,
-        maxStudents,
-        tags,
-        prerequisites,
-        targetAudience,
-        slug: newSlug,
-      },
-      include: {
-        category: true,
-        coach: {
-          include: { user: true },
+      return await tx.program.update({
+        where: { id },
+        data: {
+          title,
+          categoryId: categoryRecord?.id,
+          description,
+          objectives,
+          price,
+          duration: duration ? `${duration} weeks` : undefined,
+          difficultyLevel,
+          maxStudents,
+          tags,
+          prerequisites,
+          targetAudience,
+          slug: newSlug,
         },
-        modules: {
-          orderBy: { week: "asc" },
-        },
-        coCoaches: {
-          include: {
-            coach: {
-              include: {
-                user: {
-                  select: {
-                    id: true,
-                    fullName: true,
-                    avatarUrl: true,
+        include: {
+          category: true,
+          coach: {
+            include: { user: true },
+          },
+          modules: {
+            include: {
+              materials: true,
+            },
+            orderBy: { week: "asc" },
+          },
+          coCoaches: {
+            include: {
+              coach: {
+                include: {
+                  user: {
+                    select: {
+                      fullName: true,
+                      avatarUrl: true,
+                    },
                   },
                 },
               },
             },
           },
         },
-      },
+      });
     });
 
-    return sendSuccess(
-      { program: updatedProgram },
-      "Program updated successfully",
-    );
+    return sendSuccess({ program: result }, "Program updated successfully");
   }
 
   async checkUserReview(
@@ -536,15 +690,20 @@ export class ProgramService {
     targetType: "COACH" | "PROGRAM",
   ) {
     try {
-      const existingReview = await prisma.review.findFirst({
-        where: {
-          reviewerId: userId,
-          targetType,
-          ...(targetType === "COACH"
-            ? { coachId: targetId }
-            : { programId: targetId }),
-        },
-      });
+      const existingReview =
+        targetType === "COACH"
+          ? await prisma.coachReview.findFirst({
+              where: {
+                userId,
+                coachId: targetId,
+              },
+            })
+          : await prisma.programReview.findFirst({
+              where: {
+                userId,
+                programId: targetId,
+              },
+            });
 
       return !!existingReview;
     } catch (error) {
@@ -600,13 +759,19 @@ export class ProgramService {
       }
     }
 
+    let validCoCoachIds: string[] = [];
     if (coCoachIds && coCoachIds.length > 0) {
       const validCoaches = await prisma.coach.findMany({
-        where: { id: { in: coCoachIds } },
-        select: { id: true },
+        where: {
+          OR: [{ id: { in: coCoachIds } }, { userId: { in: coCoachIds } }],
+        },
+        select: { id: true, userId: true },
       });
-      const validCoachIds = validCoaches.map((c) => c.id);
-      const invalidIds = coCoachIds.filter((id) => !validCoachIds.includes(id));
+      validCoCoachIds = validCoaches.map((c) => c.id);
+      const validUserIds = validCoaches.map((c) => c.userId);
+      const invalidIds = coCoachIds.filter(
+        (id) => !validCoCoachIds.includes(id) && !validUserIds.includes(id),
+      );
       if (invalidIds.length > 0) {
         throw new BadRequestException(
           `Invalid co-coach IDs: ${invalidIds.join(", ")}`,
@@ -746,7 +911,7 @@ export class ProgramService {
       throw new BadRequestException("User is not a student");
     }
 
-    const interestedProgram = user.student.interestedProgram;
+    const interestedCategoryId = user.student.interestedCategoryId;
 
     const includeOptions = {
       category: {
@@ -781,7 +946,11 @@ export class ProgramService {
           },
         },
       },
-      modules: true,
+      modules: {
+        include: {
+          materials: true,
+        },
+      },
       _count: {
         select: {
           enrollments: true,
@@ -792,22 +961,18 @@ export class ProgramService {
 
     let programs: any[] = [];
 
-    if (interestedProgram) {
+    if (interestedCategoryId) {
       programs = await prisma.program.findMany({
         where: {
           isActive: true,
           status: "ACTIVE",
-          category: {
-            name: interestedProgram,
-          },
+          categoryId: interestedCategoryId,
         },
         include: includeOptions,
-        orderBy: [
-          { rating: "desc" },
-          { currentEnrollments: "desc" },
-          { createdAt: "desc" },
-        ],
-        take: 3,
+        orderBy: {
+          rating: "desc",
+        },
+        take: 6,
       });
     }
 
@@ -829,37 +994,9 @@ export class ProgramService {
       programs = [...programs, ...additionalPrograms];
     }
 
-    const transformedPrograms = programs.map((program) => ({
-      id: program.id,
-      title: program.title,
-      categoryId: program.categoryId,
-      description: program.description,
-      objectives: program.objectives,
-      coachId: program.coachId,
-      slug: program.slug,
-      rating: program.rating,
-      totalReviews: program.totalReviews,
-      price: program.price,
-      duration: program.duration,
-      difficultyLevel: program.difficultyLevel,
-      maxStudents: program.maxStudents,
-      currentEnrollments: program.currentEnrollments,
-      isActive: program.isActive,
-      status: program.status,
-      tags: program.tags,
-      prerequisites: program.prerequisites,
-      attendees: program.enrollments.map(
-        (e: { student: { user: { avatarUrl: any } } }) =>
-          e.student.user.avatarUrl,
-      ),
-      createdAt: program.createdAt.toISOString(),
-      updatedAt: program.updatedAt.toISOString(),
-      category: program!.category!,
-      coach: program.coach,
-      enrollments: program.enrollments,
-      modules: program.modules,
-      _count: program._count,
-    }));
+    const transformedPrograms = programs.map((program) =>
+      ProgramService.transformProgramData(program),
+    );
 
     return sendSuccess({ programs: transformedPrograms });
   }
@@ -908,7 +1045,11 @@ export class ProgramService {
               },
             },
           },
-          modules: true,
+          modules: {
+            include: {
+              materials: true,
+            },
+          },
           _count: {
             select: {
               enrollments: true,
@@ -941,33 +1082,9 @@ export class ProgramService {
       }),
     ]);
 
-    const transformedPrograms = programs.map((program) => ({
-      id: program.id,
-      title: program.title,
-      categoryId: program.categoryId,
-      description: program.description,
-      objectives: program.objectives,
-      coachId: program.coachId,
-      slug: program.slug,
-      rating: program.rating,
-      totalReviews: program.totalReviews,
-      price: program.price,
-      duration: program.duration,
-      difficultyLevel: program.difficultyLevel,
-      maxStudents: program.maxStudents,
-      currentEnrollments: program.currentEnrollments,
-      isActive: program.isActive,
-      status: program.status,
-      tags: program.tags,
-      prerequisites: program.prerequisites,
-      createdAt: program.createdAt.toISOString(),
-      updatedAt: program.updatedAt.toISOString(),
-      category: program!.category!,
-      coach: program.coach,
-      enrollments: program.enrollments,
-      modules: program.modules,
-      _count: program._count,
-    }));
+    const transformedPrograms = programs.map((program) =>
+      ProgramService.transformProgramData(program),
+    );
 
     return sendSuccess(
       {

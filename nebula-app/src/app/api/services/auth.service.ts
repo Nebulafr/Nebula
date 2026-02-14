@@ -134,7 +134,7 @@ export class AuthService {
       );
     }
 
-    await prisma.user.update({
+    const updatedUser = await prisma.user.update({
       where: { id: user.id },
       data: {
         status: "ACTIVE",
@@ -145,7 +145,7 @@ export class AuthService {
     });
 
     return sendSuccess(
-      null,
+      { user: updatedUser },
       "Email verified successfully. You can now sign in.",
     );
   }
@@ -208,6 +208,13 @@ export class AuthService {
       throw new NotFoundException("User profile not found in database");
     }
 
+    // Transform specialties to string array if coach exists
+    if (user.coach && (user.coach as any).specialties) {
+      (user.coach as any).specialties = (user.coach as any).specialties.map(
+        (s: any) => s.category.name
+      );
+    }
+
     return sendSuccess({ user }, "Profile fetched successfully");
   }
 
@@ -235,7 +242,15 @@ export class AuthService {
     return prisma.user.findUnique({
       where: { id: userId },
       include: {
-        coach: true,
+        coach: {
+          include: {
+            specialties: {
+              include: {
+                category: true,
+              },
+            },
+          },
+        },
         student: true,
       },
     });

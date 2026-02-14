@@ -12,6 +12,7 @@ import {
   PanelLeft,
   ExternalLink,
   Calendar,
+  Sparkles,
 } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
@@ -85,7 +86,10 @@ function CollapseButton() {
   const { toggleSidebar } = useSidebar();
   return (
     <SidebarMenuItem>
-      <SidebarMenuButton tooltip={t("collapse")} onClick={() => toggleSidebar()}>
+      <SidebarMenuButton
+        tooltip={t("collapse")}
+        onClick={() => toggleSidebar()}
+      >
         <PanelLeft />
         <span>{t("collapse")}</span>
       </SidebarMenuButton>
@@ -114,11 +118,7 @@ export default function DashboardLayout({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Avatar className="h-8 w-8">
-                <AvatarImage
-                  src={
-                    profile?.avatarUrl || "https://i.pravatar.cc/150?u=student"
-                  }
-                />
+                <AvatarImage src={profile?.avatarUrl || undefined} />
                 <AvatarFallback>
                   {profile?.fullName?.charAt(0) || "S"}
                 </AvatarFallback>
@@ -141,6 +141,20 @@ export default function DashboardLayout({
                   <div>
                     <Home />
                     <span>{t("dashboard")}</span>
+                  </div>
+                </SidebarMenuButton>
+              </Link>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <Link href="/dashboard/lucy">
+                <SidebarMenuButton
+                  tooltip="Lucy"
+                  isActive={pathname.startsWith("/dashboard/lucy")}
+                  asChild
+                >
+                  <div>
+                    <Sparkles />
+                    <span>Lucy</span>
                   </div>
                 </SidebarMenuButton>
               </Link>
@@ -221,22 +235,32 @@ export default function DashboardLayout({
               </Link>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton
-                tooltip={t("logout")}
-                onClick={handleLogout}
-              >
+              <SidebarMenuButton tooltip={t("logout")} onClick={handleLogout}>
                 <LogOut />
                 <span>{t("logout")}</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarFooter>
-
       </Sidebar>
       <SidebarInset>
         <TopBar />
-        <main className={cn("flex-1", pathname.includes("/messaging") ? "overflow-hidden" : "overflow-auto")}>
-          <div className={cn("h-full", !pathname.includes("/messaging") && "dashboard-container py-6")}>{children}</div>
+        <main
+          className={cn(
+            "flex-1",
+            pathname.includes("/messaging")
+              ? "overflow-hidden"
+              : "overflow-auto",
+          )}
+        >
+          <div
+            className={cn(
+              "h-full",
+              !pathname.includes("/messaging") && "dashboard-container py-6",
+            )}
+          >
+            {children}
+          </div>
         </main>
       </SidebarInset>
     </SidebarProvider>

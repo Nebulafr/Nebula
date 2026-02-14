@@ -121,11 +121,11 @@
           "heading": "Logistique",
           "subheading": "Quelle est votre disponibilité et votre tarif horaire souhaité ?",
           "availability": "Disponibilité hebdomadaire",
-          "hourlyRate": "Tarif horaire souhaité (EUR)",
-          "ratePlaceholder": "ex : 75",
+          "rate": "Tarif horaire souhaité (EUR)",
+          "placeholder": "ex : 75",
           "submit": "Soumettre la candidature",
           "submitting": "Envoi en cours...",
-          "authError": "Vous devez être connecté pour soumettre une candidature.",
+          "loginRequired": "Vous devez être connecté pour soumettre une candidature.",
           "submitError": "Impossible de soumettre votre candidature. Veuillez réessayer."
         }
       },

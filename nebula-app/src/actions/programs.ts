@@ -22,6 +22,23 @@ export async function getPrograms(params?: {
   return apiGet(`/programs${query}`, { requireAuth: false });
 }
 
+export async function getGroupedPrograms(params?: {
+  category?: string;
+  search?: string;
+  limit?: number;
+  page?: number;
+}) {
+  const searchParams = new URLSearchParams();
+
+  if (params?.category) searchParams.set("category", params.category);
+  if (params?.search) searchParams.set("search", params.search);
+  if (params?.limit) searchParams.set("limit", params.limit.toString());
+  if (params?.page) searchParams.set("page", params.page.toString());
+
+  const query = searchParams.toString() ? `?${searchParams}` : "";
+  return apiGet(`/programs/grouped${query}`, { requireAuth: false });
+}
+
 export async function getRecommendedPrograms() {
   return apiGet("/programs/recommended", { requireAuth: true });
 }
@@ -98,4 +115,8 @@ export async function updateProgramStatus(
     { action, reason, startDate },
     { throwOnError: true },
   );
+}
+
+export async function submitProgram(programId: string) {
+  return apiPost(`/programs/id/${programId}/submit`, {}, { throwOnError: true });
 }

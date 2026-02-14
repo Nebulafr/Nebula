@@ -13,6 +13,7 @@ import {
 export class CoachController {
   async getAll(request: NextRequest) {
     const { searchParams } = new URL(request.url);
+    const grouped = searchParams.get("grouped") === "true";
 
     const queryParams = {
       category: searchParams.get("category") || undefined,
@@ -21,6 +22,10 @@ export class CoachController {
     };
 
     const payload = coachQuerySchema.parse(queryParams);
+
+    if (grouped) {
+      return await CoachService.getGroupedCoaches(payload);
+    }
 
     return await CoachService.getCoaches(payload);
   }

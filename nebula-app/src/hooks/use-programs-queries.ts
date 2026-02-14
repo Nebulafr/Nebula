@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   createProgram,
   getPrograms,
+  getGroupedPrograms,
   getRecommendedPrograms,
   getPopularPrograms,
   getProgramBySlug,
@@ -9,11 +10,13 @@ import {
   deleteProgram,
   getAdminPrograms,
   updateProgramStatus,
+  submitProgram,
 } from "@/actions/programs";
 import { CreateProgramData } from "@/lib/validations";
 import { handleAndToastError } from "@/lib/error-handler";
 
 export const PROGRAMS_QUERY_KEY = "programs";
+export const GROUPED_PROGRAMS_QUERY_KEY = "grouped-programs";
 export const RECOMMENDED_PROGRAMS_QUERY_KEY = "recommended-programs";
 export const POPULAR_PROGRAMS_QUERY_KEY = "popular-programs";
 export const PROGRAM_BY_SLUG_QUERY_KEY = "program-by-slug";
@@ -28,6 +31,19 @@ export function usePrograms(params?: {
   return useQuery({
     queryKey: [PROGRAMS_QUERY_KEY, params],
     queryFn: () => getPrograms(params),
+    staleTime: 3 * 60 * 1000, // 3 minutes
+  });
+}
+
+export function useGroupedPrograms(params?: {
+  category?: string;
+  search?: string;
+  limit?: number;
+  page?: number;
+}) {
+  return useQuery({
+    queryKey: [GROUPED_PROGRAMS_QUERY_KEY, params],
+    queryFn: () => getGroupedPrograms(params),
     staleTime: 3 * 60 * 1000, // 3 minutes
   });
 }
@@ -157,9 +173,26 @@ export function useUpdateProgramStatus() {
     onSuccess: (response, variables) => {
       queryClient.invalidateQueries({ queryKey: [ADMIN_PROGRAMS_QUERY_KEY] });
       queryClient.invalidateQueries({ queryKey: [PROGRAMS_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: [PROGRAM_BY_SLUG_QUERY_KEY] });
     },
     onError: (error: any) => {
       handleAndToastError(error, "Failed to update program status.");
+    },
+  });
+}
+
+export function useSubmitProgram() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (programId: string) => submitProgram(programId),
+    onSuccess: (response) => {
+      queryClient.invalidateQueries({ queryKey: [PROGRAMS_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: [PROGRAM_BY_SLUG_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: [ADMIN_PROGRAMS_QUERY_KEY] });
+    },
+    onError: (error: any) => {
+      handleAndToastError(error, "Failed to submit program.");
     },
   });
 }

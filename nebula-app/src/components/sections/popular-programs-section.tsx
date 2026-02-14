@@ -69,7 +69,7 @@ export function PopularProgramsSection() {
             ))
           ) : programs.length > 0 ? (
             programs.map((program: any) => (
-              <ProgramCard key={program.id} program={program} variant="public" />
+              <ProgramCard key={program.id} program={program} />
             ))
           ) : (
             <div className="col-span-full text-center">

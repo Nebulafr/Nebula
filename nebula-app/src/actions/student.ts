@@ -10,7 +10,7 @@ export async function getStudentProfile() {
 
 export async function createStudent(studentData: any) {
   const profileData = {
-    interestedProgram: studentData.interestedProgram,
+    interestedCategoryId: studentData.interestedCategoryId,
     skillLevel: studentData.skillLevel,
     commitment: studentData.commitment,
     timeZone:

@@ -39,9 +39,9 @@ export const uploadFileFromClient = async (
   folder: string = "nebula-materials",
 ): Promise<{
   url: string;
-  fileName: string;
-  fileType: string;
-  fileSize: number;
+  name: string;
+  type: string;
+  size: number;
 }> => {
   const formData = new FormData();
   formData.append("file", file);
@@ -65,10 +65,10 @@ export const uploadFileFromClient = async (
 
   const data = await response.json();
   return {
-    url: data.secure_url,
-    fileName: file.name,
-    fileType: file.type,
-    fileSize: file.size,
+    url: data.secure_url, 
+    name: file.name,
+    type: file.type,
+    size: file.size,
   };
 };
 

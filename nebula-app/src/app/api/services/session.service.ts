@@ -22,121 +22,136 @@ export class SessionService {
   static async bookSession(data: BookSessionData) {
     const { coachId, date, startTime, duration = 60, studentUserId, timezone: providedTimezone } = data;
 
-    // Get coach with Google Calendar tokens and user details
-    const coach = await prisma.coach.findUnique({
-      where: {
-        id: coachId,
-        isActive: true,
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            fullName: true,
-            email: true,
-          },
+    const result = await prisma.$transaction(async (tx) => {
+      // Get coach with Google Calendar tokens and user details
+      const coach = await tx.coach.findUnique({
+        where: {
+          id: coachId,
+          isActive: true,
         },
-      },
-    });
-
-    if (!coach) {
-      throw new NotFoundException("Coach not found");
-    }
-
-    // Get student details
-    const student = await prisma.student.findUnique({
-      where: { userId: studentUserId },
-      include: {
-        user: {
-          select: {
-            fullName: true,
-            email: true,
-          },
-        },
-      },
-    });
-
-    if (!student) {
-      throw new BadRequestException(
-        "Please complete your student profile to book sessions"
-      );
-    }
-
-    // Calculate session times
-    const timezone = providedTimezone || student.timeZone || "UTC";
-    
-    // Extract only the date part if it's an ISO string to avoid timezone shifts during initial parse
-    const datePart = date.includes("T") ? date.split("T")[0] : date;
-    
-    const sessionDateTime = moment.tz(
-      `${datePart} ${startTime}`,
-      "YYYY-MM-DD HH:mm",
-      timezone
-    );
-
-    if (!sessionDateTime.isValid()) {
-      throw new BadRequestException("Invalid session date or time format");
-    }
-
-    const sessionEndTime = sessionDateTime.clone().add(duration, "minutes");
-    const sessionStartDate = sessionDateTime.toDate();
-    const sessionEndDate = sessionEndTime.toDate();
-
-    // Check for availability
-    await this.verifyCoachAvailability(
-      coach,
-      sessionDateTime,
-      duration
-    );
-
-    // Check for conflicts
-    await this.checkForConflictingSessions(
-      coach.id,
-      sessionStartDate,
-      sessionEndDate,
-      duration
-    );
-
-    // Check for student conflicts
-    await this.checkStudentConflicts(
-      student.id,
-      sessionStartDate,
-      sessionEndDate,
-      duration
-    );
-
-    // Create session and related records
-    const session = await prisma.session.create({
-      data: {
-        coachId,
-        scheduledTime: sessionDateTime.toDate(),
-        duration,
-        status: SessionStatus.REQUESTED,
-        attendance: {
-          create: {
-            studentId: student.id, // Use student.id here
-          },
-        },
-      },
-      include: {
-        attendance: {
-          include: {
-            student: {
-              include: {
-                user: true,
-              },
+        include: {
+          user: {
+            select: {
+              id: true,
+              fullName: true,
+              email: true,
             },
           },
         },
-        coach: {
-          include: {
-            user: true,
+      });
+
+      if (!coach) {
+        throw new NotFoundException("Coach not found");
+      }
+
+      // Get student details
+      const student = await tx.student.findUnique({
+        where: { userId: studentUserId },
+        include: {
+          user: {
+            select: {
+              fullName: true,
+              email: true,
+            },
           },
         },
-      },
-    });
+      });
 
-    // Send email notifications (consider if this should be moved to approveSession)
+      if (!student) {
+        throw new BadRequestException(
+          "Please complete your student profile to book sessions"
+        );
+      }
+
+      // Calculate session times
+      const timezone = providedTimezone || student.timeZone || "UTC";
+      
+      // Extract only the date part if it's an ISO string to avoid timezone shifts during initial parse
+      const datePart = date.includes("T") ? date.split("T")[0] : date;
+      
+      const sessionDateTime = moment.tz(
+        `${datePart} ${startTime}`,
+        "YYYY-MM-DD HH:mm",
+        timezone
+      );
+
+      if (!sessionDateTime.isValid()) {
+        throw new BadRequestException("Invalid session date or time format");
+      }
+
+      const sessionEndTime = sessionDateTime.clone().add(duration, "minutes");
+      const sessionStartDate = sessionDateTime.toDate();
+      const sessionEndDate = sessionEndTime.toDate();
+
+      // Check for availability
+      await this.verifyCoachAvailability(
+        coach,
+        sessionDateTime,
+        duration
+      );
+
+      // Check for conflicts
+      await this.checkForConflictingSessions(
+        coach.id,
+        sessionStartDate,
+        sessionEndDate,
+        duration,
+        undefined,
+        tx
+      );
+
+      // Check for student conflicts
+      await this.checkStudentConflicts(
+        student.id,
+        sessionStartDate,
+        sessionEndDate,
+        duration,
+        undefined,
+        tx
+      );
+
+      // Create session and related records
+      const session = await tx.session.create({
+        data: {
+          coachId,
+          scheduledTime: sessionDateTime.toDate(),
+          duration,
+          status: SessionStatus.REQUESTED,
+          attendance: {
+            create: {
+              studentId: student.id,
+            },
+          },
+        },
+        include: {
+          attendance: {
+            include: {
+              student: {
+                include: {
+                  user: true,
+                },
+              },
+            },
+          },
+          coach: {
+            include: {
+              user: true,
+            },
+          },
+        },
+      });
+
+      return {
+        coach,
+        student,
+        session,
+        sessionDateTime,
+      };
+    }, { timeout: 15000 });
+
+    const { coach, student, session, sessionDateTime } = result;
+
+    // Send email notifications outside transaction
     // For now, let's keep it here for the initial request notification
     await this.sendSessionNotifications(
       coach,
@@ -183,25 +198,6 @@ export class SessionService {
       .add(session.duration, "minutes")
       .toDate();
 
-    await this.checkForConflictingSessions(
-      session.coachId,
-      sessionStartDate,
-      sessionEndDate,
-      session.duration,
-      sessionId
-    );
-
-    const studentData = session.attendance[0]?.student;
-    if (studentData) {
-      await this.checkStudentConflicts(
-        studentData.id,
-        sessionStartDate,
-        sessionEndDate,
-        session.duration,
-        sessionId
-      );
-    }
-
     let meetLink = null;
     let googleEventId = null;
 
@@ -233,6 +229,28 @@ export class SessionService {
     }
 
     const updatedSession = await prisma.$transaction(async (tx) => {
+      // Re-check for conflicts inside the transaction to ensure atomicity
+      await this.checkForConflictingSessions(
+        session.coachId,
+        sessionStartDate,
+        sessionEndDate,
+        session.duration,
+        sessionId,
+        tx
+      );
+
+      const studentData = session.attendance[0]?.student;
+      if (studentData) {
+        await this.checkStudentConflicts(
+          studentData.id,
+          sessionStartDate,
+          sessionEndDate,
+          session.duration,
+          sessionId,
+          tx
+        );
+      }
+
       const updated = await tx.session.update({
         where: { id: sessionId },
         data: {
@@ -285,7 +303,7 @@ export class SessionService {
       }
 
       return updated;
-    });
+    }, { timeout: 15000 });
 
     // Send email notifications for approval
     const coach = updatedSession.coach;
@@ -407,9 +425,11 @@ export class SessionService {
     sessionStartDate: Date,
     sessionEndDate: Date,
     duration: number,
-    excludeSessionId?: string
+    excludeSessionId?: string,
+    tx?: any
   ) {
-    const conflictingSessions = await prisma.session.findMany({
+    const prismaClient = tx || prisma;
+    const conflictingSessions = await prismaClient.session.findMany({
       where: {
         coachId: coachId,
         status: { in: [SessionStatus.SCHEDULED, SessionStatus.REQUESTED] },
@@ -449,9 +469,11 @@ export class SessionService {
     sessionStartDate: Date,
     sessionEndDate: Date,
     duration: number,
-    excludeSessionId?: string
+    excludeSessionId?: string,
+    tx?: any
   ) {
-    const conflictingSessions = await prisma.session.findMany({
+    const prismaClient = tx || prisma;
+    const conflictingSessions = await prismaClient.session.findMany({
       where: {
         attendance: {
           some: {
@@ -849,7 +871,6 @@ export class SessionService {
       where: { id: sessionId },
       data: {
         status: "CANCELLED",
-        notes: reason ? `Cancellation reason: ${reason}` : "Session cancelled",
         updatedAt: new Date(),
       },
       include: {

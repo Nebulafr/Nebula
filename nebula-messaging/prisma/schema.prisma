@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider        = "prisma-client-js"
   output          = "../generated/prisma"
@@ -14,7 +8,10 @@ datasource db {
   provider = "postgresql"
 }
 
-// Enums
+//
+// ENUMS
+//
+
 enum UserRole {
   STUDENT
   COACH
@@ -28,12 +25,6 @@ enum UserStatus {
   PENDING
 }
 
-enum SkillLevel {
-  BEGINNER
-  INTERMEDIATE
-  ADVANCED
-}
-
 enum ProgramStatus {
   PENDING_APPROVAL
   APPROVED
@@ -43,7 +34,7 @@ enum ProgramStatus {
   REJECTED
 }
 
-enum DifficultyLevel {
+enum ExperienceLevel {
   BEGINNER
   INTERMEDIATE
   ADVANCED
@@ -71,6 +62,7 @@ enum PaymentStatus {
 }
 
 enum SessionStatus {
+  REQUESTED
   SCHEDULED
   IN_PROGRESS
   COMPLETED
@@ -104,285 +96,106 @@ enum EventAttendeeStatus {
   NO_SHOW
 }
 
-// Base model for timestamps
+//
+// CORE USER MODELS
+//
+
 model User {
   id             String     @id @default(cuid())
-  googleId       String?    @unique @map("google_id") // Google Auth ID (optional)
+  googleId       String?    @unique @map("google_id")
   email          String     @unique
-  hashedPassword String?    @map("hashed_password") // For email auth (optional)
+  hashedPassword String?    @map("hashed_password")
   role           UserRole   @default(STUDENT)
   status         UserStatus @default(PENDING)
   fullName       String?    @map("full_name")
   avatarUrl      String?    @map("avatar_url")
   emailVerified  DateTime?  @map("email_verified")
-  verificationToken String? @unique @map("verification_token")
-  verificationTokenExpires DateTime? @map("verification_token_expires")
-  resetToken      String?    @unique @map("reset_token")
-  resetTokenExpires DateTime? @map("reset_token_expires")
-  createdAt      DateTime   @default(now()) @map("created_at")
-  updatedAt      DateTime   @updatedAt @map("updated_at")
 
-  // Relationships
+  verificationToken        String?   @unique @map("verification_token")
+  verificationTokenExpires DateTime? @map("verification_token_expires")
+  resetToken               String?   @unique @map("reset_token")
+  resetTokenExpires        DateTime? @map("reset_token_expires")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
   coach   Coach?
   student Student?
 
-  // Reviews given and received
-  reviewsGiven    Review[] @relation("ReviewerUser")
-  reviewsReceived Review[] @relation("RevieweeUser")
+  messagesSent    Message[]
+  conversations   ConversationParticipant[]
+  organizedEvents Event[]                   @relation("EventOrganizer")
+  programReviews  ProgramReview[]
+  coachReviews    CoachReview[]
 
-  // Messages sent
-  messagesSent Message[]
-
-  // Conversation participants
-  conversations ConversationParticipant[]
-
-  // Events organized
-  organizedEvents Event[] @relation("EventOrganizer")
-
-  // Indexes for performance
-  @@index([email])
   @@index([role, status])
   @@index([createdAt])
   @@map("users")
 }
 
 model Category {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  slug      String   @unique
-  isActive  Boolean  @default(true) @map("is_active")
+  id       String  @id @default(cuid())
+  name     String  @unique
+  slug     String  @unique
+  isActive Boolean @default(true) @map("is_active")
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  // Relationships
-  programs Program[]
+  programs           Program[]
+  coachCategories    CoachCategory[]
+  interestedStudents Student[]
 
-  // Indexes for performance
-  @@index([slug])
   @@index([isActive])
   @@map("categories")
 }
 
-model Coach {
-  id                         String    @id @default(cuid())
-  userId                     String    @unique @map("user_id")
-  // Removed: email, fullName, avatarUrl (use user.email, user.fullName, user.avatarUrl instead)
-  title                      String
-  bio                        String    @db.Text
-  style                      String
-  specialties                String[]
-  pastCompanies              String[]  @map("past_companies")
-  linkedinUrl                String?   @map("linkedin_url")
-  availability               String
-  hourlyRate                 Int       @map("hourly_rate")
-  rating                     Float?    @default(0)
-  totalReviews               Int?      @default(0) @map("total_reviews")
-  totalSessions              Int?      @default(0) @map("total_sessions")
-  studentsCoached            Int?      @default(0) @map("students_coached")
-  isActive                   Boolean   @default(true) @map("is_active")
-  isVerified                 Boolean   @default(false) @map("is_verified")
-  slug                       String?   @unique
-  category                   String?
-  qualifications             String[]
-  experience                 String?
-  timezone                   String?
-  languages                  String[]
-  googleCalendarAccessToken  String?   @map("google_calendar_access_token")
-  googleCalendarRefreshToken String?   @map("google_calendar_refresh_token")
-  googleCalendarConnectedAt  DateTime? @map("google_calendar_connected_at")
-  createdAt                  DateTime  @default(now()) @map("created_at")
-  updatedAt                  DateTime  @updatedAt @map("updated_at")
+//
+// COACH + SPECIALTIES (NORMALIZED)
+//
 
-  // Relationships
-  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+model Coach {
+  id     String @id @default(cuid())
+  userId String @unique @map("user_id")
+
+  title         String
+  bio           String   @db.Text
+  style         String
+  pastCompanies String[] @map("past_companies")
+  linkedinUrl   String?  @map("linkedin_url")
+  availability  String
+  hourlyRate    Int      @map("hourly_rate")
+
+  isActive   Boolean @default(true) @map("is_active")
+  isVerified Boolean @default(false) @map("is_verified")
+  slug       String? @unique
+
+  qualifications String[]
+  experience     String?
+  timezone       String?
+  languages      String[]
+  googleCalendarAccessToken String?  @map("google_calendar_access_token")
+  googleCalendarRefreshToken String? @map("google_calendar_refresh_token")
+  totalSessions Int      @default(0) @map("total_sessions")
+  rating        Float    @default(0)
+  totalReviews  Int      @default(0) @map("total_reviews")
+  studentsCoached Int      @default(0) @map("students_coached")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   programs      Program[]
   sessions      Session[]
   enrollments   Enrollment[]
-  reviews       Review[]       @relation("ReviewCoach")
+  reviews       CoachReview[]
   coachPrograms ProgramCoach[]
+  specialties   CoachCategory[]
 
-  // Indexes for performance
-  @@index([slug])
   @@index([isActive, isVerified])
-  @@index([rating])
-  @@index([category])
   @@index([createdAt])
+  @@index([rating])
   @@map("coaches")
-}
-
-model Student {
-  id                String      @id @default(cuid())
-  userId            String      @unique @map("user_id")
-  // Removed: email, fullName, avatarUrl (use user.email, user.fullName, user.avatarUrl instead)
-  interestedProgram String?     @map("interested_program")
-  skillLevel        SkillLevel? @map("skill_level")
-  commitment        String?
-  learningGoals     String[]    @map("learning_goals")
-  currentLevel      String?     @map("current_level")
-  timeZone          String?     @map("time_zone")
-  // Removed: enrolledPrograms, completedSessions, upcomingSessions (use relations instead for data integrity)
-  createdAt         DateTime    @default(now()) @map("created_at")
-  updatedAt         DateTime    @updatedAt @map("updated_at")
-
-  // Relationships
-  user        User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  enrollments Enrollment[]
-  sessions    SessionAttendance[]
-  preferences StudentPreferences?
-
-  // Event attendance
-  eventAttendances EventAttendee[]
-
-  // Indexes for performance
-  @@index([skillLevel])
-  @@index([createdAt])
-  @@map("students")
-}
-
-model StudentPreferences {
-  id                   String  @id @default(cuid())
-  studentId            String  @unique @map("student_id")
-  timezone             String
-  notifications        Boolean @default(true)
-  emailUpdates         Boolean @default(true) @map("email_updates")
-  preferredContactTime String? @map("preferred_contact_time")
-  communicationStyle   String? @map("communication_style")
-
-  // Relationships
-  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
-
-  @@map("student_preferences")
-}
-
-model Program {
-  id                 String          @id @default(cuid())
-  title              String
-  categoryId         String          @map("category_id")
-  description        String          @db.Text
-  objectives         String[]
-  coachId            String          @map("coach_id")
-  slug               String          @unique
-  rating             Float           @default(0)
-  totalReviews       Int             @default(0) @map("total_reviews")
-  price              Int             @default(0)
-  duration           String?
-  difficultyLevel    DifficultyLevel @default(BEGINNER) @map("difficulty_level")
-  maxStudents        Int             @default(100) @map("max_students")
-  currentEnrollments Int             @default(0) @map("current_enrollments")
-  isActive           Boolean         @default(false) @map("is_active")
-  status             ProgramStatus   @default(INACTIVE)
-  tags               String[]
-  prerequisites      String[]
-  targetAudience     String?         @map("target_audience")
-  createdAt          DateTime        @default(now()) @map("created_at")
-  updatedAt          DateTime        @updatedAt @map("updated_at")
-
-  // Relationships
-  category    Category          @relation(fields: [categoryId], references: [id])
-  coach       Coach             @relation(fields: [coachId], references: [id])
-  modules     Module[]
-  enrollments Enrollment[]
-  cohorts     Cohort[]
-  reviews     Review[]          @relation("ReviewProgram")
-  coCoaches   ProgramCoach[]
-
-  // Indexes for performance
-  @@index([slug])
-  @@index([categoryId])
-  @@index([coachId])
-  @@index([isActive, status])
-  @@index([rating])
-  @@index([difficultyLevel])
-  @@index([createdAt])
-  @@map("programs")
-}
-
-// Join table for co-coaches on programs
-model ProgramCoach {
-  id        String   @id @default(cuid())
-  programId String   @map("program_id")
-  coachId   String   @map("coach_id")
-  createdAt DateTime @default(now()) @map("created_at")
-
-  // Relationships
-  program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
-  coach   Coach   @relation(fields: [coachId], references: [id], onDelete: Cascade)
-
-  // Unique constraint to prevent duplicate coach assignments
-  @@unique([programId, coachId])
-  @@index([programId])
-  @@index([coachId])
-  @@map("program_coaches")
-}
-
-model Cohort {
-  id          String       @id @default(cuid())
-  programId   String       @map("program_id")
-  name        String?      // e.g., "Spring 2024"
-  startDate   DateTime     @map("start_date")
-  endDate     DateTime?    @map("end_date")
-  maxStudents Int          @default(100) @map("max_students")
-  status      CohortStatus @default(UPCOMING)
-  createdAt   DateTime     @default(now()) @map("created_at")
-  updatedAt   DateTime     @updatedAt @map("updated_at")
-
-  program     Program      @relation(fields: [programId], references: [id], onDelete: Cascade)
-  enrollments Enrollment[]
-
-  @@index([programId])
-  @@index([status])
-  @@map("cohorts")
-}
-
-model Module {
-  id          String   @id @default(cuid())
-  programId   String   @map("program_id")
-  title       String
-  week        Int
-  description String?  @db.Text
-  materials   String[] @default([])
-
-  // Relationships
-  program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
-
-  // Indexes for performance
-  @@index([programId])
-  @@index([programId, week])
-  @@map("modules")
-}
-
-model Enrollment {
-  id             String           @id @default(cuid())
-  studentId      String           @map("student_id")
-  programId      String           @map("program_id")
-  cohortId       String?          @map("cohort_id")
-  coachId        String           @map("coach_id")
-  status         EnrollmentStatus @default(ACTIVE)
-  enrollmentDate DateTime         @default(now()) @map("enrollment_date")
-  completionDate DateTime?        @map("completion_date")
-  progress       Float            @default(0)
-  paymentStatus  PaymentStatus    @default(PENDING) @map("payment_status")
-  time           String
-  createdAt      DateTime         @default(now()) @map("created_at")
-  updatedAt      DateTime         @updatedAt @map("updated_at")
-
-  // Relationships
-  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
-  cohort  Cohort? @relation(fields: [cohortId], references: [id])
-  coach   Coach   @relation(fields: [coachId], references: [id])
-
-  // Indexes for performance
-  @@index([studentId])
-  @@index([programId])
-  @@index([cohortId])
-  @@index([coachId])
-  @@index([status])
-  @@index([paymentStatus])
-  @@index([studentId, status])
-  @@index([coachId, status])
-  @@index([enrollmentDate])
-  @@map("enrollments")
 }
 
 model Session {
@@ -395,14 +208,12 @@ model Session {
   status        SessionStatus @default(SCHEDULED)
   meetLink      String?       @map("meet_link")
   googleEventId String?       @map("google_event_id")
-  notes         String?       @db.Text
   createdAt     DateTime      @default(now()) @map("created_at")
   updatedAt     DateTime      @updatedAt @map("updated_at")
 
   // Relationships
   coach      Coach               @relation(fields: [coachId], references: [id])
   attendance SessionAttendance[]
-  recordings SessionRecording[]
 
   // Indexes for performance
   @@index([coachId])
@@ -417,10 +228,7 @@ model SessionAttendance {
   id                 String    @id @default(cuid())
   sessionId          String    @map("session_id")
   studentId          String    @map("student_id")
-  joinTime           DateTime? @map("join_time")
-  leaveTime          DateTime? @map("leave_time")
   attended           Boolean   @default(false)
-  participationScore Int?      @map("participation_score")
 
   // Relationships
   session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
@@ -429,61 +237,251 @@ model SessionAttendance {
   @@unique([sessionId, studentId])
   @@index([sessionId])
   @@index([studentId])
-  @@index([studentId, attended])
   @@map("session_attendance")
 }
 
-model SessionRecording {
-  id         String   @id @default(cuid())
-  sessionId  String   @map("session_id")
-  title      String
-  url        String
-  duration   Int
-  uploadedAt DateTime @default(now()) @map("uploaded_at")
-  isPublic   Boolean  @default(false) @map("is_public")
+model CoachCategory {
+  id         String @id @default(cuid())
+  coachId    String @map("coach_id")
+  categoryId String @map("category_id")
 
-  // Relationships
-  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  coach    Coach    @relation(fields: [coachId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
-  // Indexes for performance
-  @@index([sessionId])
-  @@index([uploadedAt])
-  @@map("session_recordings")
+  @@unique([coachId, categoryId])
+  @@index([categoryId])
+  @@map("coach_categories")
 }
 
-model Review {
-  id           String           @id @default(cuid())
-  reviewerId   String           @map("reviewer_id")
-  revieweeId   String?          @map("reviewee_id")
-  programId    String?          @map("program_id")
-  coachId      String?          @map("coach_id")
-  targetType   ReviewTargetType @map("target_type")
-  rating       Int
-  title        String?
-  content      String           @db.Text
-  isVerified   Boolean          @default(false) @map("is_verified")
-  isPublic     Boolean          @default(true) @map("is_public")
-  helpfulCount Int              @default(0) @map("helpful_count")
-  tags         String[]
-  createdAt    DateTime         @default(now()) @map("created_at")
-  updatedAt    DateTime         @updatedAt @map("updated_at")
+//
+// STUDENT
+//
 
-  // Relationships
-  reviewer User     @relation("ReviewerUser", fields: [reviewerId], references: [id])
-  reviewee User?    @relation("RevieweeUser", fields: [revieweeId], references: [id])
-  program  Program? @relation("ReviewProgram", fields: [programId], references: [id])
-  coach    Coach?   @relation("ReviewCoach", fields: [coachId], references: [id])
+model Student {
+  id     String @id @default(cuid())
+  userId String @unique @map("user_id")
 
-  // Indexes for performance
-  @@index([reviewerId])
-  @@index([revieweeId])
-  @@index([programId])
+  interestedCategoryId String?          @map("interested_category_id")
+  skillLevel           ExperienceLevel?
+  commitment           String?
+  learningGoals        String[]         @map("learning_goals")
+  currentLevel         String?          @map("current_level")
+  timeZone             String?          @map("time_zone")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user             User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  enrollments      Enrollment[]
+  sessions         SessionAttendance[]
+  preferences      StudentPreferences?
+  eventAttendances EventAttendee[]
+
+  interestedCategory Category? @relation(fields: [interestedCategoryId], references: [id])
+
+  @@index([interestedCategoryId])
+  @@index([skillLevel])
+  @@map("students")
+}
+
+model StudentPreferences {
+  id        String @id @default(cuid())
+  studentId String @unique @map("student_id")
+
+  timezone             String
+  notifications        Boolean @default(true)
+  emailUpdates         Boolean @default(true) @map("email_updates")
+  preferredContactTime String? @map("preferred_contact_time")
+  communicationStyle   String? @map("communication_style")
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@map("student_preferences")
+}
+
+// REVIEWS
+
+model ProgramReview {
+  id      String  @id @default(cuid())
+  rating  Int
+  comment String?
+
+  program   Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+  programId String
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([programId, userId])
+  @@map("program_reviews")
+}
+
+model CoachReview {
+  id      String  @id @default(cuid())
+  rating  Int
+  comment String?
+
+  coach   Coach  @relation(fields: [coachId], references: [id], onDelete: Cascade)
+  coachId String
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([coachId, userId])
+  @@map("coach_reviews")
+}
+
+//
+// PROGRAM
+//
+
+model Program {
+  id          String   @id @default(cuid())
+  title       String
+  categoryId  String   @map("category_id")
+  description String   @db.Text
+  objectives  String[]
+
+  coachId String @map("coach_id")
+  slug    String @unique
+
+  price              Int             @default(0)
+  duration           String?
+  difficultyLevel    ExperienceLevel @default(BEGINNER)
+  maxStudents        Int             @default(100)
+  currentEnrollments Int             @default(0) @map("current_enrollments")
+  isActive           Boolean         @default(false)
+  status             ProgramStatus   @default(INACTIVE)
+  rating             Float           @default(0)
+  totalReviews       Int             @default(0) @map("total_reviews")
+  tags               String[]
+  prerequisites      String[]
+  targetAudience     ExperienceLevel[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  category    Category        @relation(fields: [categoryId], references: [id])
+  coach       Coach           @relation(fields: [coachId], references: [id])
+  modules     Module[]
+  enrollments Enrollment[]
+  cohorts     Cohort[]
+  reviews     ProgramReview[]
+  coCoaches   ProgramCoach[]
+
+  @@index([categoryId])
   @@index([coachId])
-  @@index([targetType])
-  @@index([rating])
-  @@index([isPublic, isVerified])
-  @@index([createdAt])
-  @@map("reviews")
+  @@index([isActive, status])
+  @@index([difficultyLevel])
+  @@map("programs")
+}
+
+
+model Cohort {
+  id          String       @id @default(cuid())
+  programId   String       @map("program_id")
+  name        String? // e.g., "Spring 2024"
+  startDate   DateTime     @map("start_date")
+  endDate     DateTime?    @map("end_date")
+  maxStudents Int          @default(100) @map("max_students")
+  status      CohortStatus @default(UPCOMING)
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  program     Program      @relation(fields: [programId], references: [id], onDelete: Cascade)
+  enrollments Enrollment[]
+
+  @@index([programId])
+  @@index([status])
+  @@map("program_cohorts")
+}
+
+model ProgramCoach {
+  id        String   @id @default(cuid())
+  programId String
+  coachId   String
+  createdAt DateTime @default(now())
+
+  program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+  coach   Coach   @relation(fields: [coachId], references: [id], onDelete: Cascade)
+
+  @@unique([programId, coachId])
+  @@map("program_coaches")
+}
+
+model Module {
+  id          String   @id @default(cuid())
+  programId   String
+  title       String
+  week        Int
+  description String?
+
+  program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  materials Material[]
+
+  @@unique([programId, week])
+  @@index([programId])
+  @@map("modules")
+}
+
+
+model Material {
+  id        String   @id @default(cuid())
+  moduleId  String   @map("module_id")
+
+  fileName  String   @map("file_name")
+  url       String
+  mimeType  String   @map("mime_type")
+
+  position  Int      @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  module Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  @@index([moduleId])
+  @@index([moduleId, position])
+  @@map("materials")
+}
+
+//
+// ENROLLMENT
+//
+
+model Enrollment {
+  id        String  @id @default(cuid())
+  studentId String
+  programId String
+  cohortId  String?
+  coachId   String
+
+  status         EnrollmentStatus @default(ACTIVE)
+  enrollmentDate DateTime         @default(now())
+  completionDate DateTime?
+  progress       Float            @default(0)
+  paymentStatus  PaymentStatus    @default(PENDING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+  cohort  Cohort? @relation(fields: [cohortId], references: [id])
+  coach   Coach   @relation(fields: [coachId], references: [id])
+
+  @@unique([studentId, programId])
+  @@index([studentId])
+  @@index([programId])
+  @@index([coachId, status])
+  @@map("enrollments")
 }
 
 model Conversation {
@@ -588,7 +586,7 @@ model Event {
   eventType      String   @map("event_type")
   date           DateTime
   location       String?
-  images         String[] // Array of image URLs
+  images         String[]
   slug           String   @unique
   organizerId    String   @map("organizer_id")
   isPublic       Boolean  @default(true) @map("is_public")

@@ -19,26 +19,24 @@ import {
   ArrowRight,
   PlusCircle,
   Trash2,
-  UserPlus,
   X,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Switch } from "@/components/ui/switch";
 import { Stepper } from "../components/stepper";
 import {
-  CoCoach,
   useProposeProgramContext,
 } from "../context/propose-program-context";
-import { DifficultyLevel } from "@/generated/prisma";
+import { ExperienceLevel, UserRole } from "@/generated/prisma";
 import { Badge } from "@/components/ui/badge";
 import { useCategories } from "@/hooks";
 import { UserSelect } from "@/components/ui/user-select";
 import { useTranslations } from "next-intl";
 
 const DIFFICULTY_OPTIONS = (t: any) => [
-  { value: DifficultyLevel.BEGINNER, label: t("difficultyBeginner") },
-  { value: DifficultyLevel.INTERMEDIATE, label: t("difficultyIntermediate") },
-  { value: DifficultyLevel.ADVANCED, label: t("difficultyAdvanced") },
+  { value: ExperienceLevel.BEGINNER, label: t("difficultyBeginner") },
+  { value: ExperienceLevel.INTERMEDIATE, label: t("difficultyIntermediate") },
+  { value: ExperienceLevel.ADVANCED, label: t("difficultyAdvanced") },
 ];
 
 export default function ProposeStep2Page() {
@@ -88,9 +86,13 @@ export default function ProposeStep2Page() {
     }
   };
 
-  const handleSelectCoCoach = (coach: CoCoach) => {
-    if (coach) {
-      addCoCoach(coach);
+  const handleSelectCoCoach = (user: any) => {
+    if (user) {
+      addCoCoach({
+        id: user.coachId || user.id,
+        name: user.name,
+        avatar: user.avatar,
+      });
     }
   };
 
@@ -146,16 +148,36 @@ export default function ProposeStep2Page() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="target-audience">{t("targetAudience")}</Label>
-              <Input
-                id="target-audience"
-                placeholder={t("targetAudiencePlaceholder")}
-                value={formData.targetAudience}
-                onChange={(e) =>
-                  updateFormData({ targetAudience: e.target.value })
-                }
-              />
+            <div className="space-y-4">
+              <Label>{t("targetAudience")}</Label>
+              <div className="flex flex-wrap gap-4">
+                {DIFFICULTY_OPTIONS(t).map((level) => (
+                  <label
+                    key={level.value}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg border-2 border-muted-foreground/10 hover:border-primary/50 cursor-pointer transition-all has-[:checked]:border-primary has-[:checked]:bg-primary/5"
+                  >
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                      checked={formData.targetAudience.includes(level.value as ExperienceLevel)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          updateFormData({
+                            targetAudience: [...formData.targetAudience, level.value as ExperienceLevel],
+                          });
+                        } else {
+                          updateFormData({
+                            targetAudience: formData.targetAudience.filter(
+                              (l) => l !== level.value
+                            ),
+                          });
+                        }
+                      }}
+                    />
+                    <span className="text-sm font-medium">{level.label}</span>
+                  </label>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -191,7 +213,7 @@ export default function ProposeStep2Page() {
               <Select
                 value={formData.difficultyLevel}
                 onValueChange={(value) =>
-                  updateFormData({ difficultyLevel: value as DifficultyLevel })
+                  updateFormData({ difficultyLevel: value as ExperienceLevel })
                 }
               >
                 <SelectTrigger id="difficulty">
@@ -430,6 +452,7 @@ export default function ProposeStep2Page() {
                         }
                       }
                     }}
+                    role={UserRole.COACH}
                     placeholder={t("selectCoach")}
                   />
                 </div>

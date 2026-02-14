@@ -1,18 +1,18 @@
 import { prisma } from "@/lib/prisma";
-import { SkillLevel } from "@/generated/prisma";
+import { ExperienceLevel } from "@/generated/prisma";
 import { UpdateStudentData } from "@/lib/validations";
 import { NotFoundException } from "../utils/http-exception";
 import { sendSuccess } from "../utils/send-response";
 
-function mapSkillLevelToEnum(skillLevel: string): SkillLevel {
+function mapSkillLevelToEnum(skillLevel: string): ExperienceLevel {
   const normalizedLevel = skillLevel.toUpperCase();
   switch (normalizedLevel) {
     case "BEGINNER":
-      return "BEGINNER";
+      return ExperienceLevel.BEGINNER;
     case "INTERMEDIATE":
-      return "INTERMEDIATE";
+      return ExperienceLevel.INTERMEDIATE;
     case "ADVANCED":
-      return "ADVANCED";
+      return ExperienceLevel.ADVANCED;
     default:
       throw new Error(`Invalid skill level: ${skillLevel}`);
   }
@@ -42,7 +42,7 @@ export class StudentService {
 
       student = await this.create({
         userId,
-        interestedProgram: data.interestedProgram,
+        interestedCategoryId: data.interestedCategoryId,
         skillLevel: mappedSkillLevel,
         commitment: data.commitment,
         timeZone: data.timeZone || "UTC",
@@ -50,7 +50,7 @@ export class StudentService {
       });
     } else {
       student = await this.update(student.id, {
-        interestedProgram: data.interestedProgram,
+        interestedCategoryId: data.interestedCategoryId,
         skillLevel: mappedSkillLevel,
         commitment: data.commitment,
         timeZone: data.timeZone || student.timeZone || "UTC",
@@ -72,8 +72,8 @@ export class StudentService {
 
   static async create(data: {
     userId: string;
-    interestedProgram: string;
-    skillLevel: SkillLevel;
+    interestedCategoryId: string;
+    skillLevel: ExperienceLevel;
     commitment: string;
     timeZone?: string;
     learningGoals?: string[];
@@ -81,7 +81,7 @@ export class StudentService {
     return prisma.student.create({
       data: {
         userId: data.userId,
-        interestedProgram: data.interestedProgram,
+        interestedCategoryId: data.interestedCategoryId,
         skillLevel: data.skillLevel,
         commitment: data.commitment,
         timeZone: data.timeZone || "UTC",
@@ -94,8 +94,8 @@ export class StudentService {
   static async update(
     id: string,
     data: {
-      interestedProgram?: string;
-      skillLevel?: SkillLevel;
+      interestedCategoryId?: string;
+      skillLevel?: ExperienceLevel;
       commitment?: string;
       timeZone?: string;
       learningGoals?: string[];

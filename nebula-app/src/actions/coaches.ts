@@ -5,6 +5,7 @@ export async function getCoaches(filters?: {
   category?: string;
   search?: string;
   limit?: number;
+  grouped?: boolean;
 }) {
   const params = new URLSearchParams();
 
@@ -16,6 +17,9 @@ export async function getCoaches(filters?: {
   }
   if (filters?.limit) {
     params.append("limit", filters.limit.toString());
+  }
+  if (filters?.grouped) {
+    params.append("grouped", "true");
   }
 
   const url = `/coaches${params.toString() ? `?${params.toString()}` : ""}`;

@@ -9,6 +9,7 @@ export async function getEvents(params?: {
   eventType?: string;
   status?: string;
   accessType?: string;
+  isPublic?: boolean;
   limit?: number;
   offset?: number;
 }) {
@@ -18,6 +19,7 @@ export async function getEvents(params?: {
   if (params?.eventType) searchParams.set("eventType", params.eventType);
   if (params?.status) searchParams.set("status", params.status);
   if (params?.accessType) searchParams.set("accessType", params.accessType);
+  if (params?.isPublic !== undefined) searchParams.set("isPublic", String(params.isPublic));
   if (params?.limit) searchParams.set("limit", params.limit.toString());
   if (params?.offset) searchParams.set("offset", params.offset.toString());
 

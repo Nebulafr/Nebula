@@ -19,7 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ArrowLeft, PlusCircle, Trash2, X, Loader2, Save } from "lucide-react";
-import { DifficultyLevel } from "@/generated/prisma";
+import { ExperienceLevel, UserRole } from "@/generated/prisma";
 import { useCategories } from "@/hooks";
 import { UserSelect } from "@/components/ui/user-select";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -68,12 +68,12 @@ export default function EditProgramPage({
     title: string;
     description: string;
     category: string;
-    targetAudience: string;
+    targetAudience: ExperienceLevel[];
     objectives: string[];
     modules: ProgramModule[];
     price: number;
     duration: number;
-    difficultyLevel: DifficultyLevel;
+    difficultyLevel: ExperienceLevel;
     maxStudents: number;
     tags: string[];
     prerequisites: string[];
@@ -83,12 +83,12 @@ export default function EditProgramPage({
     title: "",
     description: "",
     category: "",
-    targetAudience: "",
+    targetAudience: [],
     objectives: [],
     modules: [],
     price: 0,
     duration: 3,
-    difficultyLevel: DifficultyLevel.BEGINNER,
+    difficultyLevel: ExperienceLevel.BEGINNER,
     maxStudents: 30,
     tags: [],
     prerequisites: [],
@@ -110,7 +110,7 @@ export default function EditProgramPage({
         title: program.title || "",
         description: program.description || "",
         category: program.categoryId || "",
-        targetAudience: program.targetAudience || "",
+        targetAudience: (program.targetAudience as ExperienceLevel[]) || [],
         objectives: program.objectives || [],
         modules:
           program.modules?.map((m: any) => ({
@@ -122,7 +122,7 @@ export default function EditProgramPage({
           })) || [],
         price: program.price || 0,
         duration: durationWeeks,
-        difficultyLevel: program.difficultyLevel || DifficultyLevel.BEGINNER,
+        difficultyLevel: program.difficultyLevel || ExperienceLevel.BEGINNER,
         maxStudents: program.maxStudents || 30,
         tags: program.tags || [],
         prerequisites: program.prerequisites || [],
@@ -376,17 +376,41 @@ export default function EditProgramPage({
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="targetAudience">{t("targetAudience")}</Label>
-                <Input
-                  id="targetAudience"
-                  value={formData.targetAudience}
-                  onChange={(e) =>
-                    updateFormData({ targetAudience: e.target.value })
-                  }
-                  placeholder={t("targetAudiencePlaceholder")}
-                />
+            <div className="space-y-4">
+              <Label>{t("targetAudience")}</Label>
+              <div className="flex flex-wrap gap-4">
+                {[
+                  { value: ExperienceLevel.BEGINNER, label: t("difficultyBeginner") },
+                  { value: ExperienceLevel.INTERMEDIATE, label: t("difficultyIntermediate") },
+                  { value: ExperienceLevel.ADVANCED, label: t("difficultyAdvanced") },
+                ].map((level) => (
+                  <label
+                    key={level.value}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg border-2 border-muted-foreground/10 hover:border-primary/50 cursor-pointer transition-all has-[:checked]:border-primary has-[:checked]:bg-primary/5"
+                  >
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                      checked={formData.targetAudience.includes(level.value)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          updateFormData({
+                            targetAudience: [...formData.targetAudience, level.value],
+                          });
+                        } else {
+                          updateFormData({
+                            targetAudience: formData.targetAudience.filter(
+                              (l) => l !== level.value
+                            ),
+                          });
+                        }
+                      }}
+                    />
+                    <span className="text-sm font-medium">{level.label}</span>
+                  </label>
+                ))}
               </div>
+            </div>
             </div>
           </CardContent>
         </Card>
@@ -428,7 +452,7 @@ export default function EditProgramPage({
                   value={formData.difficultyLevel}
                   onValueChange={(value) =>
                     updateFormData({
-                      difficultyLevel: value as DifficultyLevel,
+                      difficultyLevel: value as ExperienceLevel,
                     })
                   }
                 >
@@ -438,15 +462,15 @@ export default function EditProgramPage({
                   <SelectContent>
                     {[
                       {
-                        value: DifficultyLevel.BEGINNER,
+                        value: ExperienceLevel.BEGINNER,
                         label: t("difficultyBeginner"),
                       },
                       {
-                        value: DifficultyLevel.INTERMEDIATE,
+                        value: ExperienceLevel.INTERMEDIATE,
                         label: t("difficultyIntermediate"),
                       },
                       {
-                        value: DifficultyLevel.ADVANCED,
+                        value: ExperienceLevel.ADVANCED,
                         label: t("difficultyAdvanced"),
                       },
                     ].map((opt) => (
@@ -688,6 +712,7 @@ export default function EditProgramPage({
                       });
                     }
                   }}
+                  role={UserRole.COACH}
                   placeholder={t("selectCoach")}
                 />
               </div>

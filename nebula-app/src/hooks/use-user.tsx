@@ -10,7 +10,7 @@ export type AuthState =
   | "AUTHENTICATED_WITH_PROFILE";
 
 export interface UserProfile extends User {
-  coach: Coach | null;
+  coach: (Coach & { specialties: string[] }) | null;
   student: Student | null;
 }
 export interface UseUserReturn {

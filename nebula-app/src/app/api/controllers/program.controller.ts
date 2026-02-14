@@ -13,6 +13,10 @@ export class ProgramController {
     return await programService.getPrograms(request);
   }
 
+  async getGroupedPrograms(request: NextRequest) {
+    return await programService.getGroupedPrograms(request);
+  }
+
   async getRecommendedPrograms(request: NextRequest) {
     return await programService.getRecommendedPrograms(request);
   }

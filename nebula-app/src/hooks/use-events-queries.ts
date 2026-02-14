@@ -10,8 +10,8 @@ import {
   registerForEvent,
   unregisterFromEvent,
 } from "@/actions/events";
-import { toast } from "react-toastify";
 import { handleAndToastError } from "@/lib/error-handler";
+import { ADMIN_EVENTS_QUERY_KEY } from "./use-admin-queries";
 
 export const EVENTS_QUERY_KEY = "events";
 export const PUBLIC_EVENTS_QUERY_KEY = "public-events";
@@ -22,6 +22,7 @@ export function useEvents(params?: {
   search?: string;
   eventType?: string;
   status?: string;
+  accessType?: string;
   isPublic?: boolean;
   limit?: number;
   offset?: number;
@@ -73,6 +74,7 @@ export function useCreateEvent() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [EVENTS_QUERY_KEY] });
       queryClient.invalidateQueries({ queryKey: [PUBLIC_EVENTS_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: [ADMIN_EVENTS_QUERY_KEY] });
     },
     onError: (error: any) => {
       handleAndToastError(error, "Failed to create event.");
@@ -93,6 +95,7 @@ export function useUpdateEvent() {
         queryKey: [EVENT_BY_ID_QUERY_KEY, variables.id],
       });
       queryClient.invalidateQueries({ queryKey: [EVENT_BY_SLUG_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: [ADMIN_EVENTS_QUERY_KEY] });
     },
     onError: (error: any) => {
       handleAndToastError(error, "Failed to update event.");
@@ -110,6 +113,7 @@ export function useDeleteEvent() {
       queryClient.invalidateQueries({ queryKey: [PUBLIC_EVENTS_QUERY_KEY] });
       queryClient.invalidateQueries({ queryKey: [EVENT_BY_ID_QUERY_KEY] });
       queryClient.invalidateQueries({ queryKey: [EVENT_BY_SLUG_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: [ADMIN_EVENTS_QUERY_KEY] });
     },
     onError: (error: any) => {
       handleAndToastError(error, "Failed to delete event.");

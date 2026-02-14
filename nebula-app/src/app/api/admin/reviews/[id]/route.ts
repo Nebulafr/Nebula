@@ -1,15 +1,23 @@
-import CatchError from "../../../utils/catch-error";
-import { AdminController } from "../../../controllers/admin.controller";
+import { NextRequest, NextResponse } from "next/server";
+import { ReviewService } from "../../../services/review.service";
 import { isAuthenticated } from "../../../middleware/auth";
-import { NextRequest } from "next/server";
 
-const adminController = new AdminController();
-
-export const DELETE = CatchError(
-  isAuthenticated(
-    async (req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const handler = isAuthenticated(async (req: NextRequest) => {
+    try {
       const { id } = await params;
-      return await adminController.deleteReview(req, id);
+      return await ReviewService.deleteReview(id);
+    } catch (error: any) {
+      console.error("Admin Delete Review API Error:", error);
+      return NextResponse.json(
+        { success: false, message: error.message || "Internal server error" },
+        { status: 500 }
+      );
     }
-  )
-);
+  });
+
+  return handler(req);
+}

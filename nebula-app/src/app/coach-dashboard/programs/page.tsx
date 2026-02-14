@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, Briefcase } from "lucide-react";
-import { usePrograms } from "@/hooks";
+import { usePrograms, useSubmitProgram } from "@/hooks";
 import { useAuth } from "@/hooks/use-auth";
 import { CoachProgramCard } from "@/components/cards/coach-program-card";
 
@@ -16,8 +16,15 @@ export default function CoachProgramsPage() {
   const { data: programsResponse, isLoading: loading } = usePrograms({
     coachId: profile?.coach?.id,
   });
+  const submitProgramMutation = useSubmitProgram();
 
   const programs = programsResponse?.data?.programs || [];
+
+  const handleAction = (action: string, program: any) => {
+    if (action === "submit") {
+      submitProgramMutation.mutate(program.id);
+    }
+  };
 
   if (loading) {
     return (
@@ -70,9 +77,7 @@ export default function CoachProgramsPage() {
               </div>
               <div>
                 <h3 className="text-lg font-semibold">{t("noPrograms")}</h3>
-                <p className="text-muted-foreground">
-                  {t("noProgramsDesc")}
-                </p>
+                <p className="text-muted-foreground">{t("noProgramsDesc")}</p>
               </div>
               <Button asChild>
                 <Link href="/coach-dashboard/programs/propose/step-1">
@@ -86,7 +91,12 @@ export default function CoachProgramsPage() {
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {programs.map((program: any) => (
-            <CoachProgramCard key={program.id} program={program} />
+            <CoachProgramCard
+              key={program.id}
+              program={program}
+              onAction={handleAction}
+              isActionPending={submitProgramMutation.isPending}
+            />
           ))}
         </div>
       )}

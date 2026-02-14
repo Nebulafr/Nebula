@@ -2,25 +2,25 @@
 CREATE TYPE "UserRole" AS ENUM ('STUDENT', 'COACH', 'ADMIN');
 
 -- CreateEnum
-CREATE TYPE "UserStatus" AS ENUM ('ACTIVE', 'INACTIVE', 'SUSPENDED');
+CREATE TYPE "UserStatus" AS ENUM ('ACTIVE', 'INACTIVE', 'SUSPENDED', 'PENDING');
 
 -- CreateEnum
-CREATE TYPE "SkillLevel" AS ENUM ('BEGINNER', 'INTERMEDIATE', 'ADVANCED');
+CREATE TYPE "ProgramStatus" AS ENUM ('PENDING_APPROVAL', 'APPROVED', 'SUBMITTED', 'ACTIVE', 'INACTIVE', 'REJECTED');
 
 -- CreateEnum
-CREATE TYPE "ProgramStatus" AS ENUM ('ACTIVE', 'INACTIVE');
-
--- CreateEnum
-CREATE TYPE "DifficultyLevel" AS ENUM ('BEGINNER', 'INTERMEDIATE', 'ADVANCED');
+CREATE TYPE "ExperienceLevel" AS ENUM ('BEGINNER', 'INTERMEDIATE', 'ADVANCED');
 
 -- CreateEnum
 CREATE TYPE "EnrollmentStatus" AS ENUM ('ACTIVE', 'COMPLETED', 'CANCELLED', 'PAUSED');
 
 -- CreateEnum
+CREATE TYPE "CohortStatus" AS ENUM ('UPCOMING', 'ACTIVE', 'COMPLETED', 'CANCELLED');
+
+-- CreateEnum
 CREATE TYPE "PaymentStatus" AS ENUM ('PENDING', 'PAID', 'FAILED', 'REFUNDED');
 
 -- CreateEnum
-CREATE TYPE "SessionStatus" AS ENUM ('SCHEDULED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED');
+CREATE TYPE "SessionStatus" AS ENUM ('REQUESTED', 'SCHEDULED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED');
 
 -- CreateEnum
 CREATE TYPE "MessageType" AS ENUM ('TEXT', 'IMAGE', 'FILE', 'LINK');
@@ -41,9 +41,14 @@ CREATE TABLE "users" (
     "email" TEXT NOT NULL,
     "hashed_password" TEXT,
     "role" "UserRole" NOT NULL DEFAULT 'STUDENT',
-    "status" "UserStatus" NOT NULL DEFAULT 'ACTIVE',
+    "status" "UserStatus" NOT NULL DEFAULT 'PENDING',
     "full_name" TEXT,
     "avatar_url" TEXT,
+    "email_verified" TIMESTAMP(3),
+    "verification_token" TEXT,
+    "verification_token_expires" TIMESTAMP(3),
+    "reset_token" TEXT,
+    "reset_token_expires" TIMESTAMP(3),
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
@@ -69,23 +74,23 @@ CREATE TABLE "coaches" (
     "title" TEXT NOT NULL,
     "bio" TEXT NOT NULL,
     "style" TEXT NOT NULL,
-    "specialties" TEXT[],
     "past_companies" TEXT[],
     "linkedin_url" TEXT,
     "availability" TEXT NOT NULL,
     "hourly_rate" INTEGER NOT NULL,
-    "rating" DOUBLE PRECISION DEFAULT 0,
-    "total_reviews" INTEGER DEFAULT 0,
-    "total_sessions" INTEGER DEFAULT 0,
-    "students_coached" INTEGER DEFAULT 0,
     "is_active" BOOLEAN NOT NULL DEFAULT true,
     "is_verified" BOOLEAN NOT NULL DEFAULT false,
     "slug" TEXT,
-    "category" TEXT,
     "qualifications" TEXT[],
     "experience" TEXT,
     "timezone" TEXT,
     "languages" TEXT[],
+    "google_calendar_access_token" TEXT,
+    "google_calendar_refresh_token" TEXT,
+    "total_sessions" INTEGER NOT NULL DEFAULT 0,
+    "rating" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "total_reviews" INTEGER NOT NULL DEFAULT 0,
+    "students_coached" INTEGER NOT NULL DEFAULT 0,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
@@ -93,11 +98,47 @@ CREATE TABLE "coaches" (
 );
 
 -- CreateTable
+CREATE TABLE "sessions" (
+    "id" TEXT NOT NULL,
+    "coach_id" TEXT NOT NULL,
+    "title" TEXT,
+    "description" TEXT,
+    "scheduled_time" TIMESTAMP(3) NOT NULL,
+    "duration" INTEGER NOT NULL,
+    "status" "SessionStatus" NOT NULL DEFAULT 'SCHEDULED',
+    "meet_link" TEXT,
+    "google_event_id" TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "sessions_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "session_attendance" (
+    "id" TEXT NOT NULL,
+    "session_id" TEXT NOT NULL,
+    "student_id" TEXT NOT NULL,
+    "attended" BOOLEAN NOT NULL DEFAULT false,
+
+    CONSTRAINT "session_attendance_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "coach_categories" (
+    "id" TEXT NOT NULL,
+    "coach_id" TEXT NOT NULL,
+    "category_id" TEXT NOT NULL,
+
+    CONSTRAINT "coach_categories_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "students" (
     "id" TEXT NOT NULL,
     "user_id" TEXT NOT NULL,
-    "interested_program" TEXT,
-    "skill_level" "SkillLevel",
+    "interested_category_id" TEXT,
+    "skillLevel" "ExperienceLevel",
     "commitment" TEXT,
     "learning_goals" TEXT[],
     "current_level" TEXT,
@@ -122,6 +163,32 @@ CREATE TABLE "student_preferences" (
 );
 
 -- CreateTable
+CREATE TABLE "program_reviews" (
+    "id" TEXT NOT NULL,
+    "rating" INTEGER NOT NULL,
+    "comment" TEXT,
+    "programId" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "program_reviews_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "coach_reviews" (
+    "id" TEXT NOT NULL,
+    "rating" INTEGER NOT NULL,
+    "comment" TEXT,
+    "coachId" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "coach_reviews_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "programs" (
     "id" TEXT NOT NULL,
     "title" TEXT NOT NULL,
@@ -130,27 +197,53 @@ CREATE TABLE "programs" (
     "objectives" TEXT[],
     "coach_id" TEXT NOT NULL,
     "slug" TEXT NOT NULL,
-    "rating" DOUBLE PRECISION NOT NULL DEFAULT 0,
-    "total_reviews" INTEGER NOT NULL DEFAULT 0,
     "price" INTEGER NOT NULL DEFAULT 0,
     "duration" TEXT,
-    "difficulty_level" "DifficultyLevel" NOT NULL DEFAULT 'BEGINNER',
-    "max_students" INTEGER NOT NULL DEFAULT 100,
+    "difficultyLevel" "ExperienceLevel" NOT NULL DEFAULT 'BEGINNER',
+    "maxStudents" INTEGER NOT NULL DEFAULT 100,
     "current_enrollments" INTEGER NOT NULL DEFAULT 0,
-    "is_active" BOOLEAN NOT NULL DEFAULT false,
+    "isActive" BOOLEAN NOT NULL DEFAULT false,
     "status" "ProgramStatus" NOT NULL DEFAULT 'INACTIVE',
+    "rating" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "total_reviews" INTEGER NOT NULL DEFAULT 0,
     "tags" TEXT[],
     "prerequisites" TEXT[],
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
+    "targetAudience" "ExperienceLevel"[],
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "programs_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "modules" (
+CREATE TABLE "program_cohorts" (
     "id" TEXT NOT NULL,
     "program_id" TEXT NOT NULL,
+    "name" TEXT,
+    "start_date" TIMESTAMP(3) NOT NULL,
+    "end_date" TIMESTAMP(3),
+    "max_students" INTEGER NOT NULL DEFAULT 100,
+    "status" "CohortStatus" NOT NULL DEFAULT 'UPCOMING',
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "program_cohorts_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "program_coaches" (
+    "id" TEXT NOT NULL,
+    "programId" TEXT NOT NULL,
+    "coachId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "program_coaches_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "modules" (
+    "id" TEXT NOT NULL,
+    "programId" TEXT NOT NULL,
     "title" TEXT NOT NULL,
     "week" INTEGER NOT NULL,
     "description" TEXT,
@@ -159,86 +252,35 @@ CREATE TABLE "modules" (
 );
 
 -- CreateTable
+CREATE TABLE "materials" (
+    "id" TEXT NOT NULL,
+    "module_id" TEXT NOT NULL,
+    "file_name" TEXT NOT NULL,
+    "url" TEXT NOT NULL,
+    "mime_type" TEXT NOT NULL,
+    "position" INTEGER NOT NULL DEFAULT 0,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "materials_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "enrollments" (
     "id" TEXT NOT NULL,
-    "student_id" TEXT NOT NULL,
-    "program_id" TEXT NOT NULL,
-    "coach_id" TEXT NOT NULL,
+    "studentId" TEXT NOT NULL,
+    "programId" TEXT NOT NULL,
+    "cohortId" TEXT,
+    "coachId" TEXT NOT NULL,
     "status" "EnrollmentStatus" NOT NULL DEFAULT 'ACTIVE',
-    "enrollment_date" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "completion_date" TIMESTAMP(3),
+    "enrollmentDate" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "completionDate" TIMESTAMP(3),
     "progress" DOUBLE PRECISION NOT NULL DEFAULT 0,
-    "payment_status" "PaymentStatus" NOT NULL DEFAULT 'PENDING',
-    "time" TEXT NOT NULL,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
+    "paymentStatus" "PaymentStatus" NOT NULL DEFAULT 'PENDING',
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "enrollments_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "sessions" (
-    "id" TEXT NOT NULL,
-    "coach_id" TEXT NOT NULL,
-    "title" TEXT,
-    "description" TEXT,
-    "scheduled_time" TIMESTAMP(3) NOT NULL,
-    "duration" INTEGER NOT NULL,
-    "status" "SessionStatus" NOT NULL DEFAULT 'SCHEDULED',
-    "meet_link" TEXT,
-    "google_event_id" TEXT,
-    "notes" TEXT,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "sessions_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "session_attendance" (
-    "id" TEXT NOT NULL,
-    "session_id" TEXT NOT NULL,
-    "student_id" TEXT NOT NULL,
-    "join_time" TIMESTAMP(3),
-    "leave_time" TIMESTAMP(3),
-    "attended" BOOLEAN NOT NULL DEFAULT false,
-    "participation_score" INTEGER,
-
-    CONSTRAINT "session_attendance_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "session_recordings" (
-    "id" TEXT NOT NULL,
-    "session_id" TEXT NOT NULL,
-    "title" TEXT NOT NULL,
-    "url" TEXT NOT NULL,
-    "duration" INTEGER NOT NULL,
-    "uploaded_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "is_public" BOOLEAN NOT NULL DEFAULT false,
-
-    CONSTRAINT "session_recordings_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "reviews" (
-    "id" TEXT NOT NULL,
-    "reviewer_id" TEXT NOT NULL,
-    "reviewee_id" TEXT,
-    "program_id" TEXT,
-    "coach_id" TEXT,
-    "target_type" "ReviewTargetType" NOT NULL,
-    "rating" INTEGER NOT NULL,
-    "title" TEXT,
-    "content" TEXT NOT NULL,
-    "is_verified" BOOLEAN NOT NULL DEFAULT false,
-    "is_public" BOOLEAN NOT NULL DEFAULT true,
-    "helpful_count" INTEGER NOT NULL DEFAULT 0,
-    "tags" TEXT[],
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "reviews_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -328,6 +370,7 @@ CREATE TABLE "events" (
     "what_to_bring" TEXT,
     "additional_info" TEXT,
     "luma_event_link" TEXT NOT NULL,
+    "access_type" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
@@ -357,7 +400,10 @@ CREATE UNIQUE INDEX "users_google_id_key" ON "users"("google_id");
 CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
 
 -- CreateIndex
-CREATE INDEX "users_email_idx" ON "users"("email");
+CREATE UNIQUE INDEX "users_verification_token_key" ON "users"("verification_token");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "users_reset_token_key" ON "users"("reset_token");
 
 -- CreateIndex
 CREATE INDEX "users_role_status_idx" ON "users"("role", "status");
@@ -372,9 +418,6 @@ CREATE UNIQUE INDEX "categories_name_key" ON "categories"("name");
 CREATE UNIQUE INDEX "categories_slug_key" ON "categories"("slug");
 
 -- CreateIndex
-CREATE INDEX "categories_slug_idx" ON "categories"("slug");
-
--- CreateIndex
 CREATE INDEX "categories_is_active_idx" ON "categories"("is_active");
 
 -- CreateIndex
@@ -384,85 +427,13 @@ CREATE UNIQUE INDEX "coaches_user_id_key" ON "coaches"("user_id");
 CREATE UNIQUE INDEX "coaches_slug_key" ON "coaches"("slug");
 
 -- CreateIndex
-CREATE INDEX "coaches_slug_idx" ON "coaches"("slug");
-
--- CreateIndex
 CREATE INDEX "coaches_is_active_is_verified_idx" ON "coaches"("is_active", "is_verified");
-
--- CreateIndex
-CREATE INDEX "coaches_rating_idx" ON "coaches"("rating");
-
--- CreateIndex
-CREATE INDEX "coaches_category_idx" ON "coaches"("category");
 
 -- CreateIndex
 CREATE INDEX "coaches_created_at_idx" ON "coaches"("created_at");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "students_user_id_key" ON "students"("user_id");
-
--- CreateIndex
-CREATE INDEX "students_skill_level_idx" ON "students"("skill_level");
-
--- CreateIndex
-CREATE INDEX "students_created_at_idx" ON "students"("created_at");
-
--- CreateIndex
-CREATE UNIQUE INDEX "student_preferences_student_id_key" ON "student_preferences"("student_id");
-
--- CreateIndex
-CREATE UNIQUE INDEX "programs_slug_key" ON "programs"("slug");
-
--- CreateIndex
-CREATE INDEX "programs_slug_idx" ON "programs"("slug");
-
--- CreateIndex
-CREATE INDEX "programs_category_id_idx" ON "programs"("category_id");
-
--- CreateIndex
-CREATE INDEX "programs_coach_id_idx" ON "programs"("coach_id");
-
--- CreateIndex
-CREATE INDEX "programs_is_active_status_idx" ON "programs"("is_active", "status");
-
--- CreateIndex
-CREATE INDEX "programs_rating_idx" ON "programs"("rating");
-
--- CreateIndex
-CREATE INDEX "programs_difficulty_level_idx" ON "programs"("difficulty_level");
-
--- CreateIndex
-CREATE INDEX "programs_created_at_idx" ON "programs"("created_at");
-
--- CreateIndex
-CREATE INDEX "modules_program_id_idx" ON "modules"("program_id");
-
--- CreateIndex
-CREATE INDEX "modules_program_id_week_idx" ON "modules"("program_id", "week");
-
--- CreateIndex
-CREATE INDEX "enrollments_student_id_idx" ON "enrollments"("student_id");
-
--- CreateIndex
-CREATE INDEX "enrollments_program_id_idx" ON "enrollments"("program_id");
-
--- CreateIndex
-CREATE INDEX "enrollments_coach_id_idx" ON "enrollments"("coach_id");
-
--- CreateIndex
-CREATE INDEX "enrollments_status_idx" ON "enrollments"("status");
-
--- CreateIndex
-CREATE INDEX "enrollments_payment_status_idx" ON "enrollments"("payment_status");
-
--- CreateIndex
-CREATE INDEX "enrollments_student_id_status_idx" ON "enrollments"("student_id", "status");
-
--- CreateIndex
-CREATE INDEX "enrollments_coach_id_status_idx" ON "enrollments"("coach_id", "status");
-
--- CreateIndex
-CREATE INDEX "enrollments_enrollment_date_idx" ON "enrollments"("enrollment_date");
+CREATE INDEX "coaches_rating_idx" ON "coaches"("rating");
 
 -- CreateIndex
 CREATE INDEX "sessions_coach_id_idx" ON "sessions"("coach_id");
@@ -486,40 +457,79 @@ CREATE INDEX "session_attendance_session_id_idx" ON "session_attendance"("sessio
 CREATE INDEX "session_attendance_student_id_idx" ON "session_attendance"("student_id");
 
 -- CreateIndex
-CREATE INDEX "session_attendance_student_id_attended_idx" ON "session_attendance"("student_id", "attended");
-
--- CreateIndex
 CREATE UNIQUE INDEX "session_attendance_session_id_student_id_key" ON "session_attendance"("session_id", "student_id");
 
 -- CreateIndex
-CREATE INDEX "session_recordings_session_id_idx" ON "session_recordings"("session_id");
+CREATE INDEX "coach_categories_category_id_idx" ON "coach_categories"("category_id");
 
 -- CreateIndex
-CREATE INDEX "session_recordings_uploaded_at_idx" ON "session_recordings"("uploaded_at");
+CREATE UNIQUE INDEX "coach_categories_coach_id_category_id_key" ON "coach_categories"("coach_id", "category_id");
 
 -- CreateIndex
-CREATE INDEX "reviews_reviewer_id_idx" ON "reviews"("reviewer_id");
+CREATE UNIQUE INDEX "students_user_id_key" ON "students"("user_id");
 
 -- CreateIndex
-CREATE INDEX "reviews_reviewee_id_idx" ON "reviews"("reviewee_id");
+CREATE INDEX "students_interested_category_id_idx" ON "students"("interested_category_id");
 
 -- CreateIndex
-CREATE INDEX "reviews_program_id_idx" ON "reviews"("program_id");
+CREATE INDEX "students_skillLevel_idx" ON "students"("skillLevel");
 
 -- CreateIndex
-CREATE INDEX "reviews_coach_id_idx" ON "reviews"("coach_id");
+CREATE UNIQUE INDEX "student_preferences_student_id_key" ON "student_preferences"("student_id");
 
 -- CreateIndex
-CREATE INDEX "reviews_target_type_idx" ON "reviews"("target_type");
+CREATE UNIQUE INDEX "program_reviews_programId_userId_key" ON "program_reviews"("programId", "userId");
 
 -- CreateIndex
-CREATE INDEX "reviews_rating_idx" ON "reviews"("rating");
+CREATE UNIQUE INDEX "coach_reviews_coachId_userId_key" ON "coach_reviews"("coachId", "userId");
 
 -- CreateIndex
-CREATE INDEX "reviews_is_public_is_verified_idx" ON "reviews"("is_public", "is_verified");
+CREATE UNIQUE INDEX "programs_slug_key" ON "programs"("slug");
 
 -- CreateIndex
-CREATE INDEX "reviews_created_at_idx" ON "reviews"("created_at");
+CREATE INDEX "programs_category_id_idx" ON "programs"("category_id");
+
+-- CreateIndex
+CREATE INDEX "programs_coach_id_idx" ON "programs"("coach_id");
+
+-- CreateIndex
+CREATE INDEX "programs_isActive_status_idx" ON "programs"("isActive", "status");
+
+-- CreateIndex
+CREATE INDEX "programs_difficultyLevel_idx" ON "programs"("difficultyLevel");
+
+-- CreateIndex
+CREATE INDEX "program_cohorts_program_id_idx" ON "program_cohorts"("program_id");
+
+-- CreateIndex
+CREATE INDEX "program_cohorts_status_idx" ON "program_cohorts"("status");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "program_coaches_programId_coachId_key" ON "program_coaches"("programId", "coachId");
+
+-- CreateIndex
+CREATE INDEX "modules_programId_idx" ON "modules"("programId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "modules_programId_week_key" ON "modules"("programId", "week");
+
+-- CreateIndex
+CREATE INDEX "materials_module_id_idx" ON "materials"("module_id");
+
+-- CreateIndex
+CREATE INDEX "materials_module_id_position_idx" ON "materials"("module_id", "position");
+
+-- CreateIndex
+CREATE INDEX "enrollments_studentId_idx" ON "enrollments"("studentId");
+
+-- CreateIndex
+CREATE INDEX "enrollments_programId_idx" ON "enrollments"("programId");
+
+-- CreateIndex
+CREATE INDEX "enrollments_coachId_status_idx" ON "enrollments"("coachId", "status");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "enrollments_studentId_programId_key" ON "enrollments"("studentId", "programId");
 
 -- CreateIndex
 CREATE INDEX "conversations_created_at_idx" ON "conversations"("created_at");
@@ -597,30 +607,6 @@ CREATE UNIQUE INDEX "event_attendees_event_id_student_id_key" ON "event_attendee
 ALTER TABLE "coaches" ADD CONSTRAINT "coaches_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "students" ADD CONSTRAINT "students_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "student_preferences" ADD CONSTRAINT "student_preferences_student_id_fkey" FOREIGN KEY ("student_id") REFERENCES "students"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "programs" ADD CONSTRAINT "programs_category_id_fkey" FOREIGN KEY ("category_id") REFERENCES "categories"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "programs" ADD CONSTRAINT "programs_coach_id_fkey" FOREIGN KEY ("coach_id") REFERENCES "coaches"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "modules" ADD CONSTRAINT "modules_program_id_fkey" FOREIGN KEY ("program_id") REFERENCES "programs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "enrollments" ADD CONSTRAINT "enrollments_student_id_fkey" FOREIGN KEY ("student_id") REFERENCES "students"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "enrollments" ADD CONSTRAINT "enrollments_program_id_fkey" FOREIGN KEY ("program_id") REFERENCES "programs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "enrollments" ADD CONSTRAINT "enrollments_coach_id_fkey" FOREIGN KEY ("coach_id") REFERENCES "coaches"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "sessions" ADD CONSTRAINT "sessions_coach_id_fkey" FOREIGN KEY ("coach_id") REFERENCES "coaches"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -630,19 +616,64 @@ ALTER TABLE "session_attendance" ADD CONSTRAINT "session_attendance_session_id_f
 ALTER TABLE "session_attendance" ADD CONSTRAINT "session_attendance_student_id_fkey" FOREIGN KEY ("student_id") REFERENCES "students"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "session_recordings" ADD CONSTRAINT "session_recordings_session_id_fkey" FOREIGN KEY ("session_id") REFERENCES "sessions"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "coach_categories" ADD CONSTRAINT "coach_categories_coach_id_fkey" FOREIGN KEY ("coach_id") REFERENCES "coaches"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "reviews" ADD CONSTRAINT "reviews_reviewer_id_fkey" FOREIGN KEY ("reviewer_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "coach_categories" ADD CONSTRAINT "coach_categories_category_id_fkey" FOREIGN KEY ("category_id") REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "reviews" ADD CONSTRAINT "reviews_reviewee_id_fkey" FOREIGN KEY ("reviewee_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "students" ADD CONSTRAINT "students_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "reviews" ADD CONSTRAINT "reviews_program_id_fkey" FOREIGN KEY ("program_id") REFERENCES "programs"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "students" ADD CONSTRAINT "students_interested_category_id_fkey" FOREIGN KEY ("interested_category_id") REFERENCES "categories"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "reviews" ADD CONSTRAINT "reviews_coach_id_fkey" FOREIGN KEY ("coach_id") REFERENCES "coaches"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "student_preferences" ADD CONSTRAINT "student_preferences_student_id_fkey" FOREIGN KEY ("student_id") REFERENCES "students"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "program_reviews" ADD CONSTRAINT "program_reviews_programId_fkey" FOREIGN KEY ("programId") REFERENCES "programs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "program_reviews" ADD CONSTRAINT "program_reviews_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "coach_reviews" ADD CONSTRAINT "coach_reviews_coachId_fkey" FOREIGN KEY ("coachId") REFERENCES "coaches"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "coach_reviews" ADD CONSTRAINT "coach_reviews_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "programs" ADD CONSTRAINT "programs_category_id_fkey" FOREIGN KEY ("category_id") REFERENCES "categories"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "programs" ADD CONSTRAINT "programs_coach_id_fkey" FOREIGN KEY ("coach_id") REFERENCES "coaches"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "program_cohorts" ADD CONSTRAINT "program_cohorts_program_id_fkey" FOREIGN KEY ("program_id") REFERENCES "programs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "program_coaches" ADD CONSTRAINT "program_coaches_programId_fkey" FOREIGN KEY ("programId") REFERENCES "programs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "program_coaches" ADD CONSTRAINT "program_coaches_coachId_fkey" FOREIGN KEY ("coachId") REFERENCES "coaches"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "modules" ADD CONSTRAINT "modules_programId_fkey" FOREIGN KEY ("programId") REFERENCES "programs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "materials" ADD CONSTRAINT "materials_module_id_fkey" FOREIGN KEY ("module_id") REFERENCES "modules"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "enrollments" ADD CONSTRAINT "enrollments_studentId_fkey" FOREIGN KEY ("studentId") REFERENCES "students"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "enrollments" ADD CONSTRAINT "enrollments_programId_fkey" FOREIGN KEY ("programId") REFERENCES "programs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "enrollments" ADD CONSTRAINT "enrollments_cohortId_fkey" FOREIGN KEY ("cohortId") REFERENCES "program_cohorts"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "enrollments" ADD CONSTRAINT "enrollments_coachId_fkey" FOREIGN KEY ("coachId") REFERENCES "coaches"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "conversation_participants" ADD CONSTRAINT "conversation_participants_conversation_id_fkey" FOREIGN KEY ("conversation_id") REFERENCES "conversations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
