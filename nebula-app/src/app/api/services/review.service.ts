@@ -34,7 +34,7 @@ export interface ReviewSortOptions {
 }
 
 export class ReviewService {
-  static async createReviewBySlug(data: CreateReviewBySlugData) {
+  async createReviewBySlug(data: CreateReviewBySlugData) {
     const { slug, targetType, ...reviewData } = data;
 
     // Resolve the target ID from slug
@@ -62,7 +62,7 @@ export class ReviewService {
     });
   }
 
-  static async createReview(data: CreateReviewData) {
+  async createReview(data: CreateReviewData) {
     const {
       reviewerId,
       targetType,
@@ -179,7 +179,7 @@ export class ReviewService {
     );
   }
 
-  static async deleteReview(id: string, targetType?: ReviewTargetType) {
+  async deleteReview(id: string, targetType?: ReviewTargetType) {
     let resolvedTargetType = targetType;
 
     // If targetType is not provided, try to find the review in both tables
@@ -258,7 +258,7 @@ export class ReviewService {
     return sendSuccess(null, "Review deleted successfully");
   }
 
-  static async getReviewsBySlug(
+  async getReviewsBySlug(
     targetType: ReviewTargetType,
     slug: string,
     sortOptions: ReviewSortOptions
@@ -283,7 +283,7 @@ export class ReviewService {
     return this.getReviews(targetType, targetId, sortOptions);
   }
 
-  static async getReviews(
+  async getReviews(
     targetType: ReviewTargetType,
     targetId: string,
     sortOptions: ReviewSortOptions
@@ -388,7 +388,7 @@ export class ReviewService {
     );
   }
 
-  private static async validateCoachReview(
+  private async validateCoachReview(
     coachId: string,
     reviewerId: string,
     sessionId?: string
@@ -429,7 +429,7 @@ export class ReviewService {
     return coach;
   }
 
-  private static async validateProgramReview(
+  private async validateProgramReview(
     programId: string,
     reviewerId: string
   ) {
@@ -461,7 +461,7 @@ export class ReviewService {
     return program;
   }
 
-  private static async updateTargetRating(
+  private async updateTargetRating(
     tx: any,
     targetType: ReviewTargetType,
     targetId: string,
@@ -500,7 +500,7 @@ export class ReviewService {
     }
   }
 
-  private static async getRatingDistribution(
+  private async getRatingDistribution(
     targetType: ReviewTargetType,
     targetId: string
   ) {
@@ -525,7 +525,7 @@ export class ReviewService {
     return distribution;
   }
 
-  private static async getTargetEntityInfo(
+  private async getTargetEntityInfo(
     targetType: ReviewTargetType,
     targetId: string
   ) {
@@ -560,3 +560,5 @@ export class ReviewService {
     }
   }
 }
+
+export const reviewService = new ReviewService();

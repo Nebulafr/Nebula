@@ -14,7 +14,7 @@ import { sendSuccess } from "../utils/send-response";
 import { generateSlug } from "@/lib/utils";
 
 export class EventService {
-  static create = async (request: NextRequest, data: CreateEventData) => {
+  create = async (request: NextRequest, data: CreateEventData) => {
     const user = (request as any).user;
 
     if (user.role !== "ADMIN") {
@@ -99,7 +99,7 @@ export class EventService {
     );
   };
 
-  static find = async (request: NextRequest) => {
+  find = async (request: NextRequest) => {
     const { searchParams } = new URL(request.url);
 
     const search = searchParams.get("search") || undefined;
@@ -239,7 +239,7 @@ export class EventService {
     });
   };
 
-  static findById = async (id: string) => {
+  findById = async (id: string) => {
     const event = await prisma.event.findUnique({
       where: {
         id,
@@ -329,7 +329,7 @@ export class EventService {
     return sendSuccess({ event: transformedEvent });
   };
 
-  static findBySlug = async (slug: string) => {
+  findBySlug = async (slug: string) => {
     const event = await prisma.event.findUnique({
       where: {
         slug,
@@ -427,7 +427,7 @@ export class EventService {
     return sendSuccess({ event: transformedEvent });
   };
 
-  static update = async (
+  update = async (
     request: NextRequest,
     id: string,
     data: UpdateEventData,
@@ -512,7 +512,7 @@ export class EventService {
     );
   };
 
-  static remove = async (request: NextRequest, id: string) => {
+  remove = async (request: NextRequest, id: string) => {
     const user = (request as any).user;
 
     const existingEvent = await prisma.event.findUnique({
@@ -542,7 +542,7 @@ export class EventService {
     return sendSuccess(null, "Event deleted successfully", 204);
   };
 
-  static registerForEvent = async (userId: string, eventId: string) => {
+  registerForEvent = async (userId: string, eventId: string) => {
     return await prisma.$transaction(async (tx) => {
       const user = await tx.user.findUnique({
         where: { id: userId },
@@ -618,7 +618,7 @@ export class EventService {
     });
   };
 
-  static unregisterFromEvent = async (userId: string, eventId: string) => {
+  unregisterFromEvent = async (userId: string, eventId: string) => {
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
@@ -660,3 +660,5 @@ export class EventService {
     );
   };
 }
+
+export const eventService = new EventService();

@@ -104,3 +104,5 @@ export class EnrollmentController {
     );
   }
 }
+
+export const enrollmentController = new EnrollmentController();

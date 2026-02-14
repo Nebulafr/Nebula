@@ -1,26 +1,13 @@
-import { NextRequest, NextResponse } from "next/server";
-import { ReviewService } from "../../../services/review.service";
+import { NextRequest } from "next/server";
+import CatchError from "../../../utils/catch-error";
+import { reviewController } from "../../../controllers/review.controller";
 
-export async function GET(
-  request: NextRequest,
-  context: { params: Promise<{ coachId: string }> }
-) {
-  try {
+export const GET = CatchError(
+  async (
+    request: NextRequest,
+    context: { params: Promise<{ coachId: string }> },
+  ) => {
     const { coachId } = await context.params;
-    const { searchParams } = new URL(request.url);
-
-    const sortOptions = {
-      sortBy: (searchParams.get("sortBy") || "recent") as any,
-      page: parseInt(searchParams.get("page") || "1"),
-      limit: parseInt(searchParams.get("limit") || "10"),
-    };
-
-    return await ReviewService.getReviews("COACH", coachId, sortOptions);
-  } catch (error: any) {
-    console.error("Coach Reviews API Error:", error);
-    return NextResponse.json(
-      { success: false, message: error.message || "Internal server error" },
-      { status: error.statusCode || 500 }
-    );
-  }
-}
+    return await reviewController.getReviews(request, "COACH", coachId);
+  },
+);

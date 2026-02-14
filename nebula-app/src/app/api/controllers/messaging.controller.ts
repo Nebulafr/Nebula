@@ -1,9 +1,9 @@
 import { NextRequest } from "next/server";
-import { MessagingService } from "../services/messaging.service";
+import { messagingService } from "../services/messaging.service";
 import {
   conversationCreateSchema,
   messageSendSchema,
-  markMessageReadSchema
+  markMessageReadSchema,
 } from "@/lib/validations";
 import { BadRequestException } from "../utils/http-exception";
 
@@ -17,17 +17,17 @@ export class MessagingController {
       throw new BadRequestException("User ID is required");
     }
 
-    return await MessagingService.getUserConversations(userId, limit);
+    return await messagingService.getUserConversations(userId, limit);
   }
 
   async createConversation(request: NextRequest) {
     const body = await request.json();
     const payload = conversationCreateSchema.parse(body);
 
-    return await MessagingService.createConversation(
+    return await messagingService.createConversation(
       payload.participants,
       payload.type,
-      payload.title
+      payload.title,
     );
   }
 
@@ -45,11 +45,11 @@ export class MessagingController {
       throw new BadRequestException("User ID is required");
     }
 
-    return await MessagingService.getConversationMessages(
+    return await messagingService.getConversationMessages(
       conversationId,
       userId,
       page,
-      limit
+      limit,
     );
   }
 
@@ -61,11 +61,11 @@ export class MessagingController {
     const body = await request.json();
     const payload = messageSendSchema.parse(body);
 
-    return await MessagingService.sendMessage(
+    return await messagingService.sendMessage(
       conversationId,
       payload.senderId,
       payload.content,
-      payload.type
+      payload.type,
     );
   }
 
@@ -74,12 +74,21 @@ export class MessagingController {
       throw new BadRequestException("Conversation ID is required");
     }
 
-    const body = await request.json();
-    const payload = markMessageReadSchema.parse(body);
+    const user = (request as any).user;
+    let userId = user?.id;
 
-    return await MessagingService.markMessagesAsRead(
-      conversationId,
-      payload.userId
-    );
+    if (!userId) {
+      try {
+        const body = await request.json();
+        const payload = markMessageReadSchema.parse(body);
+        userId = payload.userId;
+      } catch (e) {
+        throw new BadRequestException("User identification required");
+      }
+    }
+
+    return await messagingService.markMessagesAsRead(conversationId, userId);
   }
 }
+
+export const messagingController = new MessagingController();

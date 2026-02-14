@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { EventService } from "../services/event.service";
+import { eventService } from "../services/event.service";
 import { createEventSchema, updateEventSchema } from "@/lib/validations";
 import { BadRequestException } from "../utils/http-exception";
 
@@ -9,25 +9,25 @@ class EventController {
     console.log({ payload });
     const body = createEventSchema.parse(payload);
 
-    return await EventService.create(request, body);
+    return await eventService.create(request, body);
   }
 
   async getEvents(request: NextRequest) {
-    return await EventService.find(request);
+    return await eventService.find(request);
   }
 
   async getEvent(id: string) {
     if (!id) {
       throw new BadRequestException("Event ID is required");
     }
-    return await EventService.findById(id);
+    return await eventService.findById(id);
   }
 
   async getEventBySlug(slug: string) {
     if (!slug) {
       throw new BadRequestException("Event Slug is required");
     }
-    return await EventService.findBySlug(slug);
+    return await eventService.findBySlug(slug);
   }
 
   async updateEvent(request: NextRequest, id: string) {
@@ -39,14 +39,30 @@ class EventController {
 
     const body = updateEventSchema.parse(payload);
 
-    return await EventService.update(request, id, body);
+    return await eventService.update(request, id, body);
   }
 
   async deleteEvent(request: NextRequest, id: string) {
     if (!id) {
       throw new BadRequestException("Event ID is required");
     }
-    return await EventService.remove(request, id);
+    return await eventService.remove(request, id);
+  }
+
+  async registerForEvent(request: NextRequest, eventId: string) {
+    const user = (request as any).user;
+    if (!user) {
+      throw new BadRequestException("Authentication required");
+    }
+    return await eventService.registerForEvent(user.id, eventId);
+  }
+
+  async unregisterFromEvent(request: NextRequest, eventId: string) {
+    const user = (request as any).user;
+    if (!user) {
+      throw new BadRequestException("Authentication required");
+    }
+    return await eventService.unregisterFromEvent(user.id, eventId);
   }
 }
 

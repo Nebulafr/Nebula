@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
-
-export class AgentsController {
+class AgentsController {
   async processAgentRequest(request: NextRequest) {}
 }
+
+export const agentsController = new AgentsController();

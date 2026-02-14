@@ -1,8 +1,11 @@
 import { NextRequest } from "next/server";
-import { MessagingController } from "../controllers/messaging.controller";
+import { messagingController } from "../controllers/messaging.controller";
 import CatchError from "../utils/catch-error";
 
-const messagingController = new MessagingController();
-
-export const GET = CatchError(messagingController.getConversations);
-export const POST = CatchError(messagingController.createConversation);
+export const GET = CatchError(
+  async (req: NextRequest) => await messagingController.getConversations(req),
+);
+export const POST = CatchError(
+  async (req: NextRequest) =>
+    await messagingController.createConversation(req),
+);

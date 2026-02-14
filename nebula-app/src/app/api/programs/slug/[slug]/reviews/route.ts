@@ -1,26 +1,13 @@
-import { NextRequest, NextResponse } from "next/server";
-import { ReviewService } from "../../../../services/review.service";
+import { NextRequest } from "next/server";
+import { reviewController } from "../../../../controllers/review.controller";
+import CatchError from "../../../../utils/catch-error";
 
-export async function GET(
-  request: NextRequest,
-  context: { params: Promise<{ slug: string }> }
-) {
-  try {
+export const GET = CatchError(
+  async (
+    request: NextRequest,
+    context: { params: Promise<{ slug: string }> },
+  ) => {
     const { slug } = await context.params;
-    const { searchParams } = new URL(request.url);
-
-    const sortOptions = {
-      sortBy: (searchParams.get("sortBy") || "recent") as any,
-      page: parseInt(searchParams.get("page") || "1"),
-      limit: parseInt(searchParams.get("limit") || "10"),
-    };
-
-    return await ReviewService.getReviewsBySlug("PROGRAM", slug, sortOptions);
-  } catch (error: any) {
-    console.error("Reviews API Error:", error);
-    return NextResponse.json(
-      { success: false, message: error.message || "Internal server error" },
-      { status: error.statusCode || 500 }
-    );
-  }
-}
+    return await reviewController.getReviewsBySlug(request, "PROGRAM", slug);
+  },
+);

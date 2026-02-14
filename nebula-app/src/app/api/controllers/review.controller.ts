@@ -1,16 +1,12 @@
 import { NextRequest } from "next/server";
-import { ReviewService } from "../services/review.service";
-import {
-  targetReviewSchema,
-  reviewQuerySchema
-} from "@/lib/validations";
-
+import { reviewService } from "../services/review.service";
+import { targetReviewSchema, reviewQuerySchema } from "@/lib/validations";
 
 export class ReviewController {
   async createReview(
     request: NextRequest,
     targetType: string,
-    targetId: string
+    targetId: string,
   ) {
     const body = await request.json();
     const user = (request as any).user;
@@ -21,7 +17,7 @@ export class ReviewController {
       targetId,
     });
 
-    return await ReviewService.createReview({
+    return await reviewService.createReview({
       reviewerId: user.id,
       ...payload,
     });
@@ -30,7 +26,7 @@ export class ReviewController {
   async createReviewBySlug(
     request: NextRequest,
     targetType: string,
-    slug: string
+    slug: string,
   ) {
     const body = await request.json();
     const user = (request as any).user;
@@ -40,7 +36,7 @@ export class ReviewController {
       targetType,
     });
 
-    return await ReviewService.createReviewBySlug({
+    return await reviewService.createReviewBySlug({
       reviewerId: user.id,
       slug,
       ...payload,
@@ -64,14 +60,18 @@ export class ReviewController {
       limit: validatedParams.limit,
     };
 
-    return await ReviewService.getReviews(
+    return await reviewService.getReviews(
       targetType as any,
       targetId,
-      sortOptions
+      sortOptions,
     );
   }
 
-  async getReviewsBySlug(request: NextRequest, targetType: string, slug: string) {
+  async getReviewsBySlug(
+    request: NextRequest,
+    targetType: string,
+    slug: string,
+  ) {
     const { searchParams } = new URL(request.url);
 
     const queryParams = {
@@ -88,10 +88,12 @@ export class ReviewController {
       limit: validatedParams.limit,
     };
 
-    return await ReviewService.getReviewsBySlug(
+    return await reviewService.getReviewsBySlug(
       targetType as any,
       slug,
-      sortOptions
+      sortOptions,
     );
   }
 }
+
+export const reviewController = new ReviewController();

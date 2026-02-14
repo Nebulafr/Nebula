@@ -1,8 +1,6 @@
 import { NextRequest } from "next/server";
-import { ProgramService } from "../services/program.service";
+import { programService } from "../services/program.service";
 import { BadRequestException } from "../utils/http-exception";
-
-const programService = new ProgramService();
 
 export class ProgramController {
   async createProgram(request: NextRequest) {
@@ -74,3 +72,5 @@ export class ProgramController {
     return await programService.deleteById(request, id);
   }
 }
+
+export const programController = new ProgramController();

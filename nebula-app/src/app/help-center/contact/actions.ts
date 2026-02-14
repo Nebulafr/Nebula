@@ -1,13 +1,13 @@
 "use server";
 
-import { EmailService } from "@/app/api/services/email.service";
+import { emailService } from "@/app/api/services/email.service";
 import { contactFormSchema, ContactFormData } from "@/lib/validations";
 
 export async function submitContactForm(data: ContactFormData) {
   try {
     const validatedData = contactFormSchema.parse(data);
 
-    const result = await EmailService.sendContactFormEmail(validatedData);
+    const result = await emailService.sendContactFormEmail(validatedData);
 
     if (!result.success) {
       return {

@@ -1,9 +1,7 @@
 import { NextRequest } from "next/server";
 import { requireCoach } from "../../../../middleware/auth";
 import CatchError from "../../../../utils/catch-error";
-import { ProgramController } from "../../../../controllers/program.controller";
-
-const controller = new ProgramController();
+import { programController } from "../../../../controllers/program.controller";
 
 export const POST = CatchError(
   requireCoach(
@@ -12,7 +10,7 @@ export const POST = CatchError(
       { params }: { params: Promise<{ id: string }> },
     ) => {
       const { id } = await params;
-      return await controller.submitProgram(req, id);
+      return await programController.submitProgram(req, id);
     },
   ),
 );

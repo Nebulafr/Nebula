@@ -4,29 +4,29 @@ import { UpdateStudentData } from "@/lib/validations";
 import { NotFoundException } from "../utils/http-exception";
 import { sendSuccess } from "../utils/send-response";
 
-function mapSkillLevelToEnum(skillLevel: string): ExperienceLevel {
-  const normalizedLevel = skillLevel.toUpperCase();
-  switch (normalizedLevel) {
-    case "BEGINNER":
-      return ExperienceLevel.BEGINNER;
-    case "INTERMEDIATE":
-      return ExperienceLevel.INTERMEDIATE;
-    case "ADVANCED":
-      return ExperienceLevel.ADVANCED;
-    default:
-      throw new Error(`Invalid skill level: ${skillLevel}`);
-  }
-}
-
 export class StudentService {
-  static async findByUserId(userId: string) {
+  private mapSkillLevelToEnum(skillLevel: string): ExperienceLevel {
+    const normalizedLevel = skillLevel.toUpperCase();
+    switch (normalizedLevel) {
+      case "BEGINNER":
+        return ExperienceLevel.BEGINNER;
+      case "INTERMEDIATE":
+        return ExperienceLevel.INTERMEDIATE;
+      case "ADVANCED":
+        return ExperienceLevel.ADVANCED;
+      default:
+        throw new Error(`Invalid skill level: ${skillLevel}`);
+    }
+  }
+
+  async findByUserId(userId: string) {
     return prisma.student.findUnique({
       where: { userId },
     });
   }
 
-  static async updateProfile(userId: string, data: UpdateStudentData) {
-    const mappedSkillLevel = mapSkillLevelToEnum(data.skillLevel);
+  async updateProfile(userId: string, data: UpdateStudentData) {
+    const mappedSkillLevel = this.mapSkillLevelToEnum(data.skillLevel);
 
     let student = await this.findByUserId(userId);
 
@@ -61,7 +61,7 @@ export class StudentService {
     return sendSuccess(student, "Student profile updated successfully");
   }
 
-  static async getProfile(userId: string) {
+  async getProfile(userId: string) {
     const student = await this.findByUserId(userId);
     if (!student) {
       throw new NotFoundException("Student profile not found");
@@ -70,7 +70,7 @@ export class StudentService {
     return sendSuccess(student, "Student profile fetched successfully");
   }
 
-  static async create(data: {
+  async create(data: {
     userId: string;
     interestedCategoryId: string;
     skillLevel: ExperienceLevel;
@@ -91,7 +91,7 @@ export class StudentService {
     });
   }
 
-  static async update(
+  async update(
     id: string,
     data: {
       interestedCategoryId?: string;
@@ -107,3 +107,5 @@ export class StudentService {
     });
   }
 }
+
+export const studentService = new StudentService();

@@ -14,7 +14,7 @@ const model = new ChatOpenAI({
   timeout: 30,
 });
 
-const filterToolsMiddleware = createMiddleware({
+export const filterToolsMiddleware = createMiddleware({
   name: "FilterToolsMiddleware",
   contextSchema,
   wrapToolCall: (request, handler) => {

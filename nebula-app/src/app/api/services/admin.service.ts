@@ -22,7 +22,7 @@ import {
 } from "../utils/http-exception";
 
 export class AdminService {
-  static async getPrograms(params: AdminProgramQueryData) {
+  async getPrograms(params: AdminProgramQueryData) {
     const { status, category, search, page = 1, limit = 10 } = params;
     const skip = (page - 1) * limit;
 
@@ -105,8 +105,9 @@ export class AdminService {
       prisma.program.count({ where: whereClause }),
     ]);
 
+    const { programService } = await import("./program.service");
     const formattedPrograms = programs.map((program) =>
-      ProgramService.transformProgramData(program),
+      programService.transformProgramData(program),
     );
 
     return sendSuccess(
@@ -123,7 +124,7 @@ export class AdminService {
     );
   }
 
-  static async updateProgramStatus(programId: string, data: ProgramActionData) {
+  async updateProgramStatus(programId: string, data: ProgramActionData) {
     const { action, startDate } = data;
 
     const result = await prisma.$transaction(
@@ -242,7 +243,8 @@ export class AdminService {
 
     if (result.emailData) {
       try {
-        await EmailService.sendProgramProposalEmail(
+        const { emailService } = await import("./email.service");
+        await emailService.sendProgramProposalEmail(
           result.emailData.email,
           result.emailData.template,
           result.emailData.fullName,
@@ -258,7 +260,7 @@ export class AdminService {
     );
   }
 
-  static async getUsers(params?: AdminUserQueryData) {
+  async getUsers(params?: AdminUserQueryData) {
     const { search, role, status, page = 1, limit = 10 } = params || {};
     const skip = (page - 1) * limit;
 
@@ -344,7 +346,7 @@ export class AdminService {
     );
   }
 
-  static async getReviews(params?: AdminReviewQueryData) {
+  async getReviews(params?: AdminReviewQueryData) {
     const {
       search,
       targetType,
@@ -470,7 +472,7 @@ export class AdminService {
     );
   }
 
-  static async getDashboardStats() {
+  async getDashboardStats() {
     // Get total revenue (sum of all paid enrollments)
     const enrollments = await prisma.enrollment.findMany({
       where: {
@@ -616,7 +618,7 @@ export class AdminService {
     );
   }
 
-  static async getRecentSignups(limit: number = 5) {
+  async getRecentSignups(limit: number = 5) {
     const recentUsers = await prisma.user.findMany({
       take: limit,
       orderBy: {
@@ -648,7 +650,7 @@ export class AdminService {
     return sendSuccess({ signups }, "Recent signups fetched successfully");
   }
 
-  static async getPlatformActivity(limit: number = 10) {
+  async getPlatformActivity(limit: number = 10) {
     // Get recent coaches
     const recentCoaches = await prisma.coach.findMany({
       take: 3,
@@ -743,7 +745,7 @@ export class AdminService {
     );
   }
 
-  static async getEvents(params?: AdminEventQueryData) {
+  async getEvents(params?: AdminEventQueryData) {
     const { search, eventType, status, page = 1, limit = 10 } = params || {};
     const skip = (page - 1) * limit;
 
@@ -820,14 +822,9 @@ export class AdminService {
     );
   }
 
-  static async updateCohort(
+  async updateCohort(
     cohortId: string,
-    data: {
-      name?: string;
-      startDate?: string;
-      endDate?: string;
-      maxStudents?: number;
-    },
+    data: any,
   ) {
     const cohort = await prisma.cohort.findUnique({
       where: { id: cohortId },
@@ -863,7 +860,7 @@ export class AdminService {
     );
   }
 
-  static async getCohortsByProgram(programId: string) {
+  async getCohortsByProgram(programId: string) {
     const cohorts = await prisma.cohort.findMany({
       where: { programId },
       include: {
@@ -877,7 +874,7 @@ export class AdminService {
     return sendSuccess({ cohorts }, "Cohorts fetched successfully");
   }
 
-  static async createCohort(
+  async createCohort(
     programId: string,
     data: { name?: string; startDate: string; maxStudents?: number },
   ) {
@@ -928,3 +925,5 @@ function getRelativeTime(date: Date): string {
     return date.toLocaleDateString();
   }
 }
+
+export const adminService = new AdminService();

@@ -10,7 +10,7 @@ import { sendSuccess } from "../utils/send-response";
 import { extractUserFromRequest } from "../utils/extract-user";
 
 export class CoachService {
-  static async findByUserId(userId: string) {
+  async findByUserId(userId: string) {
     return prisma.coach.findUnique({
       where: { userId },
       include: {
@@ -22,7 +22,7 @@ export class CoachService {
       },
     });
   }
-  static async getCoaches(params: CoachQueryData) {
+  async getCoaches(params: CoachQueryData) {
     const transformedCoaches = await this.fetchTransformedCoaches(params);
 
     return sendSuccess(
@@ -33,7 +33,7 @@ export class CoachService {
     );
   }
 
-  static async getGroupedCoaches(params: CoachQueryData) {
+  async getGroupedCoaches(params: CoachQueryData) {
     const { category, search, limit = 50 } = params;
 
     const coachWhere: any = {
@@ -123,7 +123,7 @@ export class CoachService {
     );
   }
 
-  private static transformCoach(coach: any) {
+  private transformCoach(coach: any) {
     const coachSpecialties = coach.specialties.map((s: any) => s.category.name);
     return {
       id: coach.id,
@@ -155,7 +155,7 @@ export class CoachService {
     };
   }
 
-  private static async fetchTransformedCoaches(params: CoachQueryData) {
+  private async fetchTransformedCoaches(params: CoachQueryData) {
     const { category, search, limit = 50 } = params;
 
     const whereClause: any = {
@@ -218,7 +218,7 @@ export class CoachService {
     return coaches.map((coach) => this.transformCoach(coach));
   }
 
-  static async createCoach(userId: string, data: CreateCoachData) {
+  async createCoach(userId: string, data: CreateCoachData) {
     const slug = `${data.title
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")}-${userId.substring(0, 8)}`;
@@ -268,7 +268,7 @@ export class CoachService {
     return sendSuccess(newProfile, "Coach profile created successfully", 201);
   }
 
-  static async updateCoach(userId: string, data: CoachUpdateData) {
+  async updateCoach(userId: string, data: CoachUpdateData) {
     const updatedProfile = await prisma.$transaction(async (tx) => {
       // Update user's full name
       await tx.user.update({
@@ -342,7 +342,7 @@ export class CoachService {
     return sendSuccess(updatedProfile, "Coach profile updated successfully");
   }
 
-  static async getProfile(userId: string) {
+  async getProfile(userId: string) {
     const coach = await this.findByUserId(userId);
     if (!coach) {
       throw new NotFoundException("Coach profile not found");
@@ -359,7 +359,7 @@ export class CoachService {
     );
   }
 
-  static async findCoachIdBySlug(slug: string) {
+  async findCoachIdBySlug(slug: string) {
     const coach = await prisma.coach.findFirst({
       where: {
         slug: slug,
@@ -377,7 +377,7 @@ export class CoachService {
     return coach.id;
   }
 
-  static async getCoachById(coachId: string, request?: NextRequest) {
+  async getCoachById(coachId: string, request?: NextRequest) {
     const coach = await prisma.coach.findFirst({
       where: {
         id: coachId,
@@ -425,7 +425,7 @@ export class CoachService {
     );
   }
 
-  static async fetchCoachPrograms(coachId: string) {
+  async fetchCoachPrograms(coachId: string) {
     try {
       const programs = await prisma.program.findMany({
         where: {
@@ -468,7 +468,7 @@ export class CoachService {
     }
   }
 
-  static async fetchCoachReviews(coachId: string) {
+  async fetchCoachReviews(coachId: string) {
     try {
       const reviews = await prisma.coachReview.findMany({
         where: {
@@ -506,7 +506,7 @@ export class CoachService {
     }
   }
 
-  static async checkUserReview(
+  async checkUserReview(
     targetId: string,
     userId: string,
     targetType: "COACH" | "PROGRAM",
@@ -534,7 +534,7 @@ export class CoachService {
     }
   }
 
-  static transformCoachData(
+  transformCoachData(
     coach: any,
     programs: any[],
     reviews: any[],
@@ -582,7 +582,7 @@ export class CoachService {
     };
   }
 
-  static async getSuggestedCoaches(userId: string, limit: number = 4) {
+  async getSuggestedCoaches(userId: string, limit: number = 4) {
     // Get the student's profile to understand their interests
     const student = await prisma.student.findUnique({
       where: { userId },
@@ -677,7 +677,7 @@ export class CoachService {
     );
   }
 
-  static async connectGoogleCalendar(
+  async connectGoogleCalendar(
     userId: string,
     accessToken: string,
     refreshToken?: string,
@@ -698,4 +698,50 @@ export class CoachService {
 
     return sendSuccess(null, "Google Calendar connected successfully");
   }
+
+  async getAvailability(userId: string) {
+    const coach = await prisma.coach.findUnique({
+      where: { userId },
+      select: { availability: true },
+    });
+
+    if (!coach) {
+      throw new NotFoundException("Coach profile not found");
+    }
+
+    let availability;
+    try {
+      availability = JSON.parse(coach.availability || "{}");
+    } catch {
+      availability = {};
+    }
+
+    return sendSuccess({ availability }, "Availability fetched successfully");
+  }
+
+  async updateAvailability(userId: string, availability: any) {
+    const coach = await prisma.coach.findUnique({
+      where: { userId },
+      select: { id: true },
+    });
+
+    if (!coach) {
+      throw new NotFoundException("Coach profile not found");
+    }
+
+    if (!availability || typeof availability !== "object") {
+      throw new Error("Invalid availability data");
+    }
+
+    await prisma.coach.update({
+      where: { id: coach.id },
+      data: {
+        availability: JSON.stringify(availability),
+      },
+    });
+
+    return sendSuccess({ availability }, "Availability updated successfully");
+  }
 }
+
+export const coachService = new CoachService();

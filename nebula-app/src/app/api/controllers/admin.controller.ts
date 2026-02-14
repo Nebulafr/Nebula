@@ -1,10 +1,11 @@
 import { NextRequest } from "next/server";
-import { AdminService } from "../services/admin.service";
+import { adminService } from "../services/admin.service";
 import {
   adminProgramQuerySchema,
   programActionSchema,
 } from "@/lib/validations";
 import { BadRequestException } from "../utils/http-exception";
+import { reviewService } from "../services/review.service";
 
 export class AdminController {
   async getPrograms(request: NextRequest) {
@@ -19,7 +20,7 @@ export class AdminController {
     };
 
     const payload = adminProgramQuerySchema.parse(queryParams);
-    return await AdminService.getPrograms(payload);
+    return await adminService.getPrograms(payload);
   }
 
   async updateProgramStatus(request: NextRequest, programId: string) {
@@ -30,7 +31,7 @@ export class AdminController {
     const body = await request.json();
     const payload = programActionSchema.parse(body);
 
-    return await AdminService.updateProgramStatus(programId, payload);
+    return await adminService.updateProgramStatus(programId, payload);
   }
 
   async getUsers(request: NextRequest) {
@@ -46,7 +47,7 @@ export class AdminController {
 
     const { adminUserQuerySchema } = await import("@/lib/validations");
     const payload = adminUserQuerySchema.parse(queryParams);
-    return await AdminService.getUsers(payload);
+    return await adminService.getUsers(payload);
   }
 
   async getReviews(request: NextRequest) {
@@ -63,25 +64,25 @@ export class AdminController {
 
     const { adminReviewQuerySchema } = await import("@/lib/validations");
     const payload = adminReviewQuerySchema.parse(queryParams);
-    return await AdminService.getReviews(payload);
+    return await adminService.getReviews(payload);
   }
 
   async getDashboardStats() {
-    return await AdminService.getDashboardStats();
+    return await adminService.getDashboardStats();
   }
 
   async getRecentSignups(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get("limit") || "5");
 
-    return await AdminService.getRecentSignups(limit);
+    return await adminService.getRecentSignups(limit);
   }
 
   async getPlatformActivity(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get("limit") || "10");
 
-    return await AdminService.getPlatformActivity(limit);
+    return await adminService.getPlatformActivity(limit);
   }
 
   async getEvents(request: NextRequest) {
@@ -97,7 +98,7 @@ export class AdminController {
 
     const { adminEventQuerySchema } = await import("@/lib/validations");
     const payload = adminEventQuerySchema.parse(queryParams);
-    return await AdminService.getEvents(payload);
+    return await adminService.getEvents(payload);
   }
 
   async updateCohort(request: NextRequest, cohortId: string) {
@@ -106,7 +107,7 @@ export class AdminController {
     }
 
     const body = await request.json();
-    return await AdminService.updateCohort(cohortId, body);
+    return await adminService.updateCohort(cohortId, body);
   }
 
   async getCohortsByProgram(request: NextRequest) {
@@ -117,7 +118,7 @@ export class AdminController {
       throw new BadRequestException("Program ID is required");
     }
 
-    return await AdminService.getCohortsByProgram(programId);
+    return await adminService.getCohortsByProgram(programId);
   }
 
   async createCohort(request: NextRequest) {
@@ -128,7 +129,11 @@ export class AdminController {
       throw new BadRequestException("Program ID is required");
     }
 
-    return await AdminService.createCohort(programId, { name, startDate, maxStudents });
+    return await adminService.createCohort(programId, {
+      name,
+      startDate,
+      maxStudents,
+    });
   }
 
   async deleteReview(request: NextRequest, id: string) {
@@ -139,7 +144,8 @@ export class AdminController {
     const { searchParams } = new URL(request.url);
     const targetType = searchParams.get("targetType");
 
-    const { ReviewService } = await import("../services/review.service");
-    return await ReviewService.deleteReview(id, targetType as any);
+    return await reviewService.deleteReview(id, targetType as any);
   }
 }
+
+export const adminController = new AdminController();

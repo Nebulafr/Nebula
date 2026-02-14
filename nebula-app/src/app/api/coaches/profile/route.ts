@@ -1,30 +1,28 @@
 import { NextRequest } from "next/server";
 import CatchError from "../../utils/catch-error";
 import { isAuthenticated } from "../../middleware/auth";
-import { CoachController } from "../../controllers/coach.controller";
-
-const coachController = new CoachController();
+import { coachController } from "../../controllers/coach.controller";
 
 export const POST = CatchError(
   isAuthenticated(
-    async (req: NextRequest) => await coachController.createCoach(req)
-  )
+    async (req: NextRequest) => await coachController.createCoach(req),
+  ),
 );
 
 export const PUT = CatchError(
   isAuthenticated(
-    async (req: NextRequest) => await coachController.updateCoach(req)
-  )
+    async (req: NextRequest) => await coachController.updateCoach(req),
+  ),
 );
 
 export const PATCH = CatchError(
   isAuthenticated(
-    async (req: NextRequest) => await coachController.updateCoach(req)
-  )
+    async (req: NextRequest) => await coachController.updateCoach(req),
+  ),
 );
 
 export const GET = CatchError(
   isAuthenticated(
-    async (req: NextRequest) => await coachController.getProfile(req)
-  )
+    async (req: NextRequest) => await coachController.getProfile(req),
+  ),
 );

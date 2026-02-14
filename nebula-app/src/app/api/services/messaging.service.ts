@@ -7,7 +7,7 @@ import {
 } from "../utils/http-exception";
 
 export class MessagingService {
-  static async getUserConversations(userId: string, limit: number = 10) {
+  async getUserConversations(userId: string, limit: number = 10) {
     const conversations = await prisma.conversation.findMany({
       where: {
         participants: {
@@ -88,7 +88,7 @@ export class MessagingService {
     );
   }
 
-  static async createConversation(
+  async createConversation(
     participants: string[],
     type: ConversationType = "DIRECT",
     title?: string
@@ -152,7 +152,7 @@ export class MessagingService {
     );
   }
 
-  static async getConversationMessages(
+  async getConversationMessages(
     conversationId: string,
     userId: string,
     page = 1,
@@ -213,7 +213,7 @@ export class MessagingService {
     );
   }
 
-  static async sendMessage(
+  async sendMessage(
     conversationId: string,
     senderId: string,
     content: string,
@@ -277,7 +277,7 @@ export class MessagingService {
     });
   }
 
-  static async markMessagesAsRead(conversationId: string, userId: string) {
+  async markMessagesAsRead(conversationId: string, userId: string) {
     return await prisma.$transaction(async (tx) => {
       await tx.conversationParticipant.updateMany({
         where: {
@@ -305,7 +305,7 @@ export class MessagingService {
     });
   }
 
-  private static async verifyParticipant(
+  private async verifyParticipant(
     conversationId: string,
     userId: string,
     tx?: any
@@ -319,3 +319,5 @@ export class MessagingService {
     });
   }
 }
+
+export const messagingService = new MessagingService();

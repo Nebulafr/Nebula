@@ -9,7 +9,7 @@ import { prisma } from "@/lib/prisma";
 import { sendSuccess } from "../utils/send-response";
 import { generateSlug } from "@/lib/utils";
 import { extractUserFromRequest } from "../utils/extract-user";
-import { EmailService } from "./email.service";
+import { emailService } from "./email.service";
 
 export class ProgramService {
   async createProgram(request: NextRequest) {
@@ -149,7 +149,7 @@ export class ProgramService {
 
     // Send APPLICATION_RECEIVED email to the coach
     try {
-      await EmailService.sendProgramProposalEmail(
+      await emailService.sendProgramProposalEmail(
         program.coach.user.email,
         "APPLICATION_RECEIVED",
         program.coach.user.fullName || "Coach",
@@ -169,7 +169,7 @@ export class ProgramService {
     );
   }
 
-  static transformProgramData(program: any) {
+  transformProgramData(program: any) {
     return {
       id: program.id,
       title: program.title,
@@ -303,7 +303,7 @@ export class ProgramService {
     ]);
 
     const transformedPrograms = programs.map((program) =>
-      ProgramService.transformProgramData(program),
+      this.transformProgramData(program),
     );
 
     return {
@@ -401,7 +401,7 @@ export class ProgramService {
       categoryId: category.id,
       group: category.name,
       items: category.programs.map((program) =>
-        ProgramService.transformProgramData(program),
+        this.transformProgramData(program),
       ),
     }));
 
@@ -995,7 +995,7 @@ export class ProgramService {
     }
 
     const transformedPrograms = programs.map((program) =>
-      ProgramService.transformProgramData(program),
+      this.transformProgramData(program),
     );
 
     return sendSuccess({ programs: transformedPrograms });
@@ -1083,7 +1083,7 @@ export class ProgramService {
     ]);
 
     const transformedPrograms = programs.map((program) =>
-      ProgramService.transformProgramData(program),
+      this.transformProgramData(program)
     );
 
     return sendSuccess(
@@ -1266,3 +1266,5 @@ export class ProgramService {
     );
   }
 }
+
+export const programService = new ProgramService();

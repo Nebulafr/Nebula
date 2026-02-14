@@ -1,6 +1,9 @@
 import { NextRequest } from "next/server";
-import { bookSessionSchema, rescheduleSessionSchema } from "@/lib/validations";
-import { SessionService } from "../services/session.service";
+import {
+  bookSessionSchema,
+  rescheduleSessionSchema,
+} from "@/lib/validations";
+import { sessionService } from "../services/session.service";
 import {
   BadRequestException,
   UnauthorizedException,
@@ -9,7 +12,7 @@ import {
 export class SessionController {
   async bookSession(
     request: NextRequest,
-    context: { params: Promise<{ coachId: string }> }
+    context: { params: Promise<{ coachId: string }> },
   ) {
     const user = (request as any).user;
 
@@ -35,7 +38,7 @@ export class SessionController {
       coachId,
     });
 
-    return await SessionService.bookSession({
+    return await sessionService.bookSession({
       coachId,
       date: payload.date,
       startTime: payload.startTime,
@@ -59,7 +62,7 @@ export class SessionController {
     const { searchParams } = new URL(request.url);
     const filter = searchParams.get("filter") || "upcoming";
 
-    return await SessionService.getCoachSessions(user.id, filter as any);
+    return await sessionService.getCoachSessions(user.id, filter as any);
   }
 
   async getStudentSessions(request: NextRequest) {
@@ -76,12 +79,12 @@ export class SessionController {
     const { searchParams } = new URL(request.url);
     const filter = searchParams.get("filter") || "upcoming";
 
-    return await SessionService.getStudentSessions(user.id, filter as any);
+    return await sessionService.getStudentSessions(user.id, filter as any);
   }
 
   async updateSession(
     request: NextRequest,
-    context: { params: Promise<{ sessionId: string }> }
+    context: { params: Promise<{ sessionId: string }> },
   ) {
     const user = (request as any).user;
 
@@ -98,12 +101,17 @@ export class SessionController {
 
     const { sessionId } = await context.params;
 
-    return await SessionService.updateSession(sessionId, body, user.id, user.role);
+    return await sessionService.updateSession(
+      sessionId,
+      body,
+      user.id,
+      user.role,
+    );
   }
 
   async cancelSession(
     request: NextRequest,
-    context: { params: Promise<{ sessionId: string }> }
+    context: { params: Promise<{ sessionId: string }> },
   ) {
     const user = (request as any).user;
 
@@ -120,19 +128,19 @@ export class SessionController {
 
     const { sessionId } = await context.params;
 
-    return await SessionService.cancelSession(
+    return await sessionService.cancelSession(
       sessionId,
       user.id,
       user.role,
-      body.reason
+      body.reason,
     );
   }
 
   async rescheduleSession(
     request: NextRequest,
-    context: { params: Promise<{ sessionId: string }> }
+    context: { params: Promise<{ sessionId: string }> },
   ) {
-    const user = (request as any).user;                     
+    const user = (request as any).user;
 
     if (!user) {
       throw new UnauthorizedException("Authentication required");
@@ -149,19 +157,19 @@ export class SessionController {
 
     const { sessionId } = await context.params;
 
-    return await SessionService.rescheduleSession({
+    return await sessionService.rescheduleSession({
       sessionId,
       date: payload.date,
       startTime: payload.startTime,
       userId: user.id,
       userRole: user.role,
       timezone: payload.timezone,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 });
+    });
   }
 
   async approveSession(
     request: NextRequest,
-    context: { params: Promise<{ sessionId: string }> }
+    context: { params: Promise<{ sessionId: string }> },
   ) {
     const user = (request as any).user;
 
@@ -175,12 +183,12 @@ export class SessionController {
 
     const { sessionId } = await context.params;
 
-    return await SessionService.approveSession(sessionId);
+    return await sessionService.approveSession(sessionId);
   }
 
   async rejectSession(
     request: NextRequest,
-    context: { params: Promise<{ sessionId: string }> }
+    context: { params: Promise<{ sessionId: string }> },
   ) {
     const user = (request as any).user;
 
@@ -194,6 +202,8 @@ export class SessionController {
 
     const { sessionId } = await context.params;
 
-    return await SessionService.rejectSession(sessionId);
+    return await sessionService.rejectSession(sessionId);
   }
 }
+
+export const sessionController = new SessionController();

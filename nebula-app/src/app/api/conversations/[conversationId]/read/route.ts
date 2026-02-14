@@ -1,15 +1,16 @@
 import { NextRequest } from "next/server";
-import { MessagingController } from "../../../controllers/messaging.controller";
-import CatchError from "../../../utils/catch-error";
+import { isAuthenticated } from "@/app/api/middleware/auth";
+import CatchError from "@/app/api/utils/catch-error";
+import { messagingController } from "@/app/api/controllers/messaging.controller";
 
-const messagingController = new MessagingController();
-
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ conversationId: string }> }
-) {
-  return CatchError(async (req: NextRequest) => {
-    const { conversationId } = await params;
-    return await messagingController.markRead(req, conversationId);
-  })(request);
-}
+export const POST = CatchError(
+  isAuthenticated(
+    async (
+      request: NextRequest,
+      context: { params: Promise<{ conversationId: string }> },
+    ) => {
+      const { conversationId } = await context.params;
+      return await messagingController.markRead(request, conversationId);
+    },
+  ),
+);

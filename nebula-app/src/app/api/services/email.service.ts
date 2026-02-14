@@ -26,7 +26,7 @@ interface SessionBookingEmailData {
 }
 
 export class EmailService {
-  private static createTransporter() {
+  private createTransporter() {
     return nodemailer.createTransport({
       // host: process.env.SMTP_HOST,
       // port: parseInt(process.env.SMTP_PORT || "587"),
@@ -39,7 +39,7 @@ export class EmailService {
     });
   }
 
-  static async sendEmail(
+  async sendEmail(
     options: SendEmailOptions & { replyTo?: string },
   ): Promise<{
     success: boolean;
@@ -67,7 +67,7 @@ export class EmailService {
     }
   }
 
-  static async sendWebinarRegistrationEmail(
+  async sendWebinarRegistrationEmail(
     userEmail: string,
     data: WebinarRegistrationEmailData,
   ): Promise<{ success: boolean; error?: string }> {
@@ -174,7 +174,7 @@ export class EmailService {
     });
   }
 
-  static async sendSessionBookingEmails(
+  async sendSessionBookingEmails(
     coachEmail: string,
     studentEmail: string,
     data: SessionBookingEmailData,
@@ -210,7 +210,7 @@ export class EmailService {
     }
   }
 
-  static async sendSessionBookingEmailToCoach(
+  async sendSessionBookingEmailToCoach(
     coachEmail: string,
     data: SessionBookingEmailData,
   ): Promise<{ success: boolean; error?: string }> {
@@ -286,7 +286,7 @@ export class EmailService {
     return this.sendEmail({ to: coachEmail, subject, html });
   }
 
-  static async sendSessionBookingEmailToStudent(
+  async sendSessionBookingEmailToStudent(
     studentEmail: string,
     data: SessionBookingEmailData,
   ): Promise<{ success: boolean; error?: string }> {
@@ -363,7 +363,7 @@ export class EmailService {
     return this.sendEmail({ to: studentEmail, subject, html });
   }
 
-  static async sendProgramProposalEmail(
+  async sendProgramProposalEmail(
     recipientEmail: string,
     templateType: EmailTemplateType,
     firstName: string,
@@ -385,7 +385,7 @@ export class EmailService {
     }
   }
 
-  static async sendVerificationEmail(
+  async sendVerificationEmail(
     email: string,
     firstName: string,
     verificationUrl: string,
@@ -410,7 +410,7 @@ export class EmailService {
     }
   }
 
-  static async sendPasswordResetEmail(
+  async sendPasswordResetEmail(
     email: string,
     firstName: string,
     resetUrl: string,
@@ -435,7 +435,7 @@ export class EmailService {
     }
   }
 
-  static async sendSessionCancelledEmails(
+  async sendSessionCancelledEmails(
     coachEmail: string,
     studentEmail: string,
     data: SessionBookingEmailData & { reason?: string; cancelledBy: string },
@@ -471,7 +471,7 @@ export class EmailService {
     }
   }
 
-  static async sendSessionRescheduledEmails(
+  async sendSessionRescheduledEmails(
     coachEmail: string,
     studentEmail: string,
     data: SessionBookingEmailData & { oldDate: string; rescheduledBy: string },
@@ -514,7 +514,7 @@ export class EmailService {
     }
   }
 
-  static async sendContactFormEmail(data: {
+  async sendContactFormEmail(data: {
     fullName: string;
     email: string;
     university: string;
@@ -559,7 +559,7 @@ export class EmailService {
     }
   }
 
-  static validateConfiguration(): boolean {
+  validateConfiguration(): boolean {
     const requiredEnvVars = [
       "SMTP_USER",
       "SMTP_PASSWORD",
@@ -569,3 +569,5 @@ export class EmailService {
     return requiredEnvVars.every((varName) => !!process.env[varName]);
   }
 }
+
+export const emailService = new EmailService();

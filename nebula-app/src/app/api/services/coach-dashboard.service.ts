@@ -12,7 +12,7 @@ import {
 } from "./types/coach-dashboard.types";
 
 export class CoachDashboardService {
-  static async getStats(userId: string) {
+  async getStats(userId: string) {
     // Get coach profile
     const coach = await prisma.coach.findUnique({
       where: { userId },
@@ -162,7 +162,7 @@ export class CoachDashboardService {
     return sendSuccess(stats, "Coach stats fetched successfully");
   }
 
-  static async getSessions(
+  async getSessions(
     userId: string,
     filter: SessionFilter = "upcoming"
   ) {
@@ -265,7 +265,7 @@ export class CoachDashboardService {
     );
   }
 
-  static async createSession(
+  async createSession(
     userId: string,
     data: {
       title: string;
@@ -366,7 +366,7 @@ export class CoachDashboardService {
     return sendSuccess({ session }, "Session created successfully", 201);
   }
 
-  static async getPrograms(userId: string, status: string = "all") {
+  async getPrograms(userId: string, status: string = "all") {
     // Get coach profile
     const coach = await prisma.coach.findUnique({
       where: { userId },
@@ -446,7 +446,7 @@ export class CoachDashboardService {
     );
   }
 
-  static async getStudents(
+  async getStudents(
     userId: string,
     params: { search?: string; page?: number; limit?: number } = {}
   ) {
@@ -601,7 +601,7 @@ export class CoachDashboardService {
     );
   }
 
-  static async getRecentPayouts(userId: string, limit: number = 5) {
+  async getRecentPayouts(userId: string, limit: number = 5) {
     const coach = await prisma.coach.findUnique({
       where: { userId },
       select: { id: true },
@@ -671,3 +671,5 @@ export class CoachDashboardService {
     );
   }
 }
+
+export const coachDashboardService = new CoachDashboardService();
