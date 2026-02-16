@@ -26,6 +26,11 @@ export class MessagingService {
                 fullName: true,
                 avatarUrl: true,
                 role: true,
+                coach: {
+                  select: {
+                    id: true,
+                  },
+                },
               },
             },
           },
@@ -72,6 +77,8 @@ export class MessagingService {
           ? new Date(conversation.lastMessageTime).toLocaleString()
           : "",
         unread: currentUserParticipant?.unreadCount || 0,
+        otherUserId: otherParticipant?.user.id,
+        coachId: otherParticipant?.user.coach?.id,
         role: otherParticipant?.user.role || "STUDENT",
         participants: conversation.participants.map((p) => ({
           id: p.user.id,
