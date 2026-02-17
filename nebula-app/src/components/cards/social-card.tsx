@@ -64,7 +64,7 @@ export function SocialCard({
             />
           </div>
           <Badge className="absolute top-2 left-2 bg-white text-gray-800 hover:bg-gray-200 z-10">
-            {t(event.accessType?.toLowerCase() === "free" ? "free" : "premium")}
+            {t(event.accessType === "Free" ? "free" : "premium")}
           </Badge>
         </div>
         <CardContent className="flex flex-1 flex-col p-4">

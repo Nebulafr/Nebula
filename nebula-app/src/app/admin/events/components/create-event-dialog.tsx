@@ -31,30 +31,14 @@ import { Calendar } from "@/components/ui/calendar";
 import { Video, PartyPopper, ArrowLeft, Upload } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { EventType } from "@/types/event";
+import { EventType, INewEvent } from "@/types/event";
 import { UserSelect } from "@/components/ui/user-select";
 import { uploadImageToCloudinary } from "@/lib/cloudinary";
 import { useTranslations } from "next-intl";
 import moment from "moment";
 import { UserRole } from "@/enums";
 
-interface NewEvent {
-  title: string;
-  description: string;
-  eventType: EventType;
-  date: string;
-  organizerId: string;
-  location: string;
-  images: string[];
-  whatToBring: string;
-  additionalInfo: string;
-  isPublic: boolean;
-  maxAttendees: string;
-  tags: string[];
-  lumaEventLink: string;
-  accessType: string;
-  price: number;
-}
+
 
 interface ActionLoading {
   create: boolean;
@@ -66,8 +50,8 @@ interface CreateEventDialogProps {
   onOpenChange: (open: boolean) => void;
   createStep: number;
   setCreateStep: (step: number) => void;
-  newEvent: NewEvent;
-  setNewEvent: (event: NewEvent | ((prev: NewEvent) => NewEvent)) => void;
+  newEvent: INewEvent;
+  setNewEvent: (event: INewEvent | ((prev: INewEvent) => INewEvent)) => void;
   actionLoading: ActionLoading;
   onCreateEvent: () => Promise<void>;
 }
@@ -108,7 +92,7 @@ export function CreateEventDialog({
         ? {
           location: "online",
           isPublic: true,
-          accessType: "free",
+          accessType: "Free",
         }
         : {}),
     }));
@@ -349,18 +333,18 @@ export function CreateEventDialog({
                 <div className="space-y-2">
                   <Label htmlFor="access-type">{t("accessType")}</Label>
                   <Select
-                    onValueChange={(value) =>
+                    onValueChange={(value: "Free" | "Premium") =>
                       setNewEvent((prev) => ({ ...prev, accessType: value }))
                     }
-                    defaultValue={eventType === "Webinar" ? "free" : undefined}
+                    defaultValue={eventType === "Webinar" ? "Free" : undefined}
                     required
                   >
                     <SelectTrigger>
                       <SelectValue placeholder={t("accessType")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="free">{t("free")}</SelectItem>
-                      <SelectItem value="premium">{t("premium")}</SelectItem>
+                      <SelectItem value="Free">{t("free")}</SelectItem>
+                      <SelectItem value="Premium">{t("premium")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -392,7 +376,7 @@ export function CreateEventDialog({
                   required
                 />
               </div>
-               <div className="space-y-2">
+              {newEvent.accessType === "Premium" &&  <div className="space-y-2">
                     <Label htmlFor="price">{t("pricePerGuest")}</Label>
                     <Input
                       id="price"
@@ -407,7 +391,7 @@ export function CreateEventDialog({
                         }))
                       }
                     />
-                  </div>
+                  </div>}
               {eventType === "Social" && (
                 <>
                   <div className="space-y-2">

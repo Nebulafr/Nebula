@@ -14,7 +14,7 @@ import { EventsTable } from "./events-table";
 import { EventDetailsDialog } from "./event-details-dialog";
 import { CreateEventDialog } from "./create-event-dialog";
 import { useSearchParams } from "next/navigation";
-import { EventType } from "@/types/event";
+import { EventType, INewEvent } from "@/types/event";
 import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
@@ -111,12 +111,10 @@ export default function AdminEventsContent() {
     actionLoading[`delete-${eventToDelete.id}`] = deleteEventMutation.isPending;
   }
 
-  // Handle URL parameters
   useEffect(() => {
     const eventType = searchParams.get("eventType");
     const step = searchParams.get("step");
 
-    // Update form state based on URL parameters
     if (eventType) {
       setNewEvent((prev) => ({
         ...prev,
@@ -128,13 +126,11 @@ export default function AdminEventsContent() {
       setCreateStep(parseInt(step));
     }
 
-    // Open dialog if eventType or step is present
     if (eventType || step) {
       setIsCreateDialogOpen(true);
     }
   }, [searchParams]);
 
-  // Fetch admin events with current filters and reset page
   useEffect(() => {
     setPage(1);
     fetchAdminEvents();
@@ -147,7 +143,7 @@ export default function AdminEventsContent() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(
     !!urlEventType || !!urlStep
   );
-  const [newEvent, setNewEvent] = useState({
+  const [newEvent, setNewEvent] = useState<INewEvent>({
     title: "",
     description: "",
     eventType: (urlEventType as EventType) || EventType.WEBINAR,

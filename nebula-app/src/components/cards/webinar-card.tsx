@@ -49,7 +49,7 @@ export function WebinarCard({ event, index, previousIndex }: WebinarCardProps) {
           className={`${backgroundColor} p-4 relative rounded-xl transition-transform group-hover:-translate-y-1 flex flex-col flex-grow`}
         >
           <Badge className="absolute top-4 left-4 bg-white text-gray-800 hover:bg-gray-200 z-10">
-            {t(event.accessType?.toLowerCase() === "free" ? "free" : "premium")}
+            {t(event.accessType === "Free" ? "free" : "premium")}
           </Badge>
           <div className="flex items-start gap-4 pt-6 pb-4 flex-grow">
             <div className="flex-shrink-0">

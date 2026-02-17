@@ -21,12 +21,11 @@ export default function EventsPage() {
   const {
     data: eventsResponse,
     isLoading: loading,
-    error,
   } = usePublicEvents({
     search: searchTerm || undefined,
     eventType: activeTypeFilter?.toUpperCase() || undefined,
     accessType:
-      activePriceFilter === "all" ? undefined : activePriceFilter.toLowerCase(),
+      activePriceFilter === "All" ? undefined : activePriceFilter,
   });
   const events = eventsResponse?.data?.events || [];
 

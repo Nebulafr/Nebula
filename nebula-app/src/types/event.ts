@@ -49,6 +49,24 @@ export interface Event {
   updatedAt: string;
 }
 
+export interface INewEvent {
+  title: string;
+  description: string;
+  eventType: EventType;
+  date: string;
+  organizerId: string;
+  location: string;
+  images: string[];
+  whatToBring: string;
+  additionalInfo: string;
+  isPublic: boolean;
+  maxAttendees: string;
+  tags: string[];
+  lumaEventLink: string;
+  accessType: "Free" | "Premium";
+  price: number;
+}
+
 
 export interface CreateEventData {
   title: string;
