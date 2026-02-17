@@ -39,7 +39,7 @@ export function Header() {
         : "/dashboard";
 
   return (
-    <header 
+    <header
       className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
       suppressHydrationWarning
     >
@@ -93,7 +93,7 @@ export function Header() {
               href="/nebula-ai"
               className="font-menu text-sm font-medium text-foreground/60 transition-colors hover:text-foreground/80 whitespace-nowrap"
             >
-              {t("nebulaAi")}
+              {t("simulationWork")}
             </Link>
           </nav>
         </div>

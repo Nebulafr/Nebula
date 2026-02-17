@@ -19,6 +19,7 @@ import {
 } from "@/lib/event-utils";
 
 import { CheckoutStatusModal } from "@/components/checkout/checkout-status-modal";
+import { UserRole } from "@/enums";
 
 export default function WebinarPage() {
   const t = useTranslations("events.details");
@@ -27,7 +28,7 @@ export default function WebinarPage() {
   const params = useParams<{ slug: string }>();
   const slug = params.slug;
   const router = useRouter();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, profile } = useAuth();
 
   const { mutateAsync: initiateCheckout, isPending: isCheckingOut } = useEventCheckout();
 
@@ -42,6 +43,11 @@ export default function WebinarPage() {
 
   const handleEventCheckout = async () => {
     if (!event) return;
+
+    if (profile?.role && profile.role !== UserRole.STUDENT) {
+      toast.info(t("notStudent"));
+      return;
+    }
 
     if (!isAuthenticated) {
       toast.info("Please log in to register for this event");
@@ -244,6 +250,15 @@ export default function WebinarPage() {
                   </div>
                 </div>
               </Card>
+
+              {event.price > 0 && (
+                <div className="mb-4 text-2xl font-bold">
+                  {new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-US", {
+                    style: "currency",
+                    currency: "USD",
+                  }).format(event.price)}
+                </div>
+              )}
 
               <Button
                 size="lg"

@@ -141,6 +141,7 @@
       "backToEvents": "Back to Events",
       "loading": "Loading event...",
       "eventNotFound": "Event Not Found",
+      "notStudent": "This feature is only available for students.",
       "registered": "You're Registered!",
       "registeredDesc": "Your spot for {title} is confirmed. We've sent a confirmation to your email.",
       "close": "Close",

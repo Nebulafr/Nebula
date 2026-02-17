@@ -43,6 +43,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { reviewProgram } from "@/actions/reviews";
 import { useQueryClient } from "@tanstack/react-query";
 import { PROGRAM_BY_SLUG_QUERY_KEY } from "@/hooks/use-programs-queries";
+import { UserRole } from "../../../../generated/prisma/edge";
 
 type Cohort = {
   id: string;
@@ -243,6 +244,11 @@ export default function ProgramDetailPage({
   const handleEnrollClick = async () => {
     if (!profile) {
       router.replace("/login");
+      return;
+    }
+
+    if (profile?.role !== UserRole.STUDENT) {
+      toast.info(t("notStudent"));
       return;
     }
 

@@ -35,6 +35,7 @@ import {
 import { toast } from "react-toastify";
 import { CheckoutStatusModal } from "@/components/checkout/checkout-status-modal";
 import { useParams, useRouter } from "next/navigation";
+import { UserRole } from "../../../../../generated/prisma/edge";
 
 export default function SocialEventPage() {
   const t = useTranslations("events.details");
@@ -42,11 +43,8 @@ export default function SocialEventPage() {
   const params = useParams<{ slug: string }>();
   const slug = params.slug;
   const router = useRouter();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, profile } = useAuth();
   const { mutateAsync: initiateCheckout, isPending: isCheckingOut } = useEventCheckout();
-
-  const [showRegistration, setShowRegistration] = useState(false);
-
   const {
     data: eventResponse,
     isLoading: loading,
@@ -58,6 +56,11 @@ export default function SocialEventPage() {
 
   const handleEventCheckout = async () => {
     if (!event) return;
+
+    if (profile?.role && profile.role !== UserRole.STUDENT) {
+      toast.info(t("notStudent"));
+      return;
+    }
 
     if (!isAuthenticated) {
       toast.info("Please log in to register for this event");

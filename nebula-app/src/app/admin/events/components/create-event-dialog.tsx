@@ -53,6 +53,7 @@ interface NewEvent {
   tags: string[];
   lumaEventLink: string;
   accessType: string;
+  price: number;
 }
 
 interface ActionLoading {
@@ -105,10 +106,10 @@ export function CreateEventDialog({
       // Auto-set defaults for webinars
       ...(type === "Webinar"
         ? {
-            location: "online",
-            isPublic: true,
-            accessType: "free",
-          }
+          location: "online",
+          isPublic: true,
+          accessType: "free",
+        }
         : {}),
     }));
   };
@@ -184,7 +185,7 @@ export function CreateEventDialog({
                   className={cn(
                     "p-6 flex flex-col items-center justify-center cursor-pointer",
                     eventType === "Webinar" &&
-                      "border-primary ring-2 ring-primary"
+                    "border-primary ring-2 ring-primary"
                   )}
                   onClick={() => handleEventTypeSelect("Webinar")}
                 >
@@ -198,7 +199,7 @@ export function CreateEventDialog({
                   className={cn(
                     "p-6 flex flex-col items-center justify-center cursor-pointer",
                     eventType === "Social" &&
-                      "border-primary ring-2 ring-primary"
+                    "border-primary ring-2 ring-primary"
                   )}
                   onClick={() => handleEventTypeSelect("Social")}
                 >
@@ -391,17 +392,24 @@ export function CreateEventDialog({
                   required
                 />
               </div>
-              {eventType === "Social" && (
-                <>
-                  <div className="space-y-2">
+               <div className="space-y-2">
                     <Label htmlFor="price">{t("pricePerGuest")}</Label>
                     <Input
                       id="price"
                       type="number"
                       placeholder="e.g., 25"
                       required
+                      value={newEvent.price || ""}
+                      onChange={(e) =>
+                        setNewEvent((prev) => ({
+                          ...prev,
+                          price: parseInt(e.target.value) || 0,
+                        }))
+                      }
                     />
                   </div>
+              {eventType === "Social" && (
+                <>
                   <div className="space-y-2">
                     <Label htmlFor="whatToBring">{t("whatToBring")}</Label>
                     <Textarea

@@ -99,7 +99,7 @@ export default function AdminEventsContent() {
     }
   };
 
-  const actionLoading: { create: boolean; [key: string]: boolean } = {
+  const actionLoading: { create: boolean;[key: string]: boolean } = {
     create: createEventMutation.isPending,
   };
 
@@ -162,6 +162,7 @@ export default function AdminEventsContent() {
     tags: [] as string[],
     lumaEventLink: "",
     accessType: "Free",
+    price: 0,
   });
 
   const handleEventAction = async (id: string, newStatus: string) => {
@@ -207,6 +208,7 @@ export default function AdminEventsContent() {
         organizerId: newEvent.organizerId || undefined,
         lumaEventLink: newEvent.lumaEventLink,
         accessType: newEvent.accessType,
+        price: newEvent.price,
       };
 
       const success = await handleCreateEventAction(eventData);
@@ -227,6 +229,7 @@ export default function AdminEventsContent() {
           tags: [],
           lumaEventLink: "",
           accessType: "Free",
+          price: 0,
         });
         setIsCreateDialogOpen(false);
       }
