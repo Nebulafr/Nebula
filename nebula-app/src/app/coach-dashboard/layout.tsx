@@ -120,11 +120,7 @@ export default function CoachDashboardLayout({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage
-                    src={
-                      profile?.avatarUrl || "https://i.pravatar.cc/150?u=coach"
-                    }
-                  />
+                  <AvatarImage src={profile?.avatarUrl || undefined} />
                   <AvatarFallback>
                     {profile?.fullName?.charAt(0) || "C"}
                   </AvatarFallback>

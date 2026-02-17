@@ -26,13 +26,13 @@ export default function EventsPage() {
     search: searchTerm || undefined,
     eventType: activeTypeFilter?.toUpperCase() || undefined,
     accessType:
-      activePriceFilter === "all" ? undefined : activePriceFilter,
+      activePriceFilter === "all" ? undefined : activePriceFilter.toLowerCase(),
   });
   const events = eventsResponse?.data?.events || [];
 
   const handleTypeFilterClick = (filterName: string) => {
     setActiveTypeFilter((prevFilter) =>
-      prevFilter === filterName ? null : filterName
+      prevFilter === filterName ? null : filterName,
     );
   };
 
@@ -41,10 +41,10 @@ export default function EventsPage() {
   };
 
   const webinarEvents = events.filter(
-    (event: any) => event.eventType === "WEBINAR"
+    (event: any) => event.eventType === "WEBINAR",
   );
   const socialEvents = events.filter(
-    (event: any) => event.eventType === "SOCIAL"
+    (event: any) => event.eventType === "SOCIAL",
   );
 
   const showWebinars = !activeTypeFilter || activeTypeFilter === "Webinar";

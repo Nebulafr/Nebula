@@ -1,6 +1,19 @@
 import { prisma } from "@/lib/prisma";
-import { AdminEventQueryData,  AdminProgramQueryData, AdminReviewQueryData, AdminUserQueryData, ProgramActionData } from "@/lib/validations";
-import { ProgramStatus } from "@/generated/prisma";
+import { ProgramService } from "./program.service";
+import {
+  AdminEventQueryData,
+  AdminProgramQueryData,
+  AdminReviewQueryData,
+  AdminUserQueryData,
+  ProgramActionData,
+} from "@/lib/validations";
+import {
+  Prisma,
+  ProgramStatus,
+  User,
+  UserRole,
+  UserStatus,
+} from "@/generated/prisma";
 import { sendSuccess } from "../utils/send-response";
 import { EmailService } from "./email.service";
 import {
@@ -9,7 +22,7 @@ import {
 } from "../utils/http-exception";
 
 export class AdminService {
-  static async getPrograms(params: AdminProgramQueryData) {
+  async getPrograms(params: AdminProgramQueryData) {
     const { status, category, search, page = 1, limit = 10 } = params;
     const skip = (page - 1) * limit;
 
@@ -92,31 +105,10 @@ export class AdminService {
       prisma.program.count({ where: whereClause }),
     ]);
 
-    const formattedPrograms = programs.map((program) => ({
-      id: program.id,
-      title: program.title,
-      categoryId: program.categoryId,
-      description: program.description,
-      objectives: program.objectives,
-      coachId: program.coachId,
-      slug: program.slug,
-      rating: program.rating,
-      totalReviews: program.totalReviews,
-      price: program.price,
-      duration: program.duration,
-      difficultyLevel: program.difficultyLevel,
-      maxStudents: program.maxStudents,
-      currentEnrollments: program.currentEnrollments,
-      isActive: program.isActive,
-      status: program.status,
-      tags: program.tags,
-      prerequisites: program.prerequisites,
-      createdAt: program.createdAt.toISOString(),
-      updatedAt: program.updatedAt.toISOString(),
-      category: program.category,
-      coach: program.coach,
-      _count: program._count,
-    }));
+    const { programService } = await import("./program.service");
+    const formattedPrograms = programs.map((program) =>
+      programService.transformProgramData(program),
+    );
 
     return sendSuccess(
       {
@@ -128,108 +120,134 @@ export class AdminService {
           totalPages: Math.ceil(totalCount / limit),
         },
       },
-      "Programs fetched successfully"
+      "Programs fetched successfully",
     );
   }
 
-  static async updateProgramStatus(programId: string, data: ProgramActionData) {
+  async updateProgramStatus(programId: string, data: ProgramActionData) {
     const { action, startDate } = data;
 
-    const program = await prisma.program.findUnique({
-      where: { id: programId },
-      include: {
-        category: true,
-        coach: {
+    const result = await prisma.$transaction(
+      async (tx) => {
+        const program = await tx.program.findUnique({
+          where: { id: programId },
           include: {
-            user: true,
+            category: true,
+            coach: {
+              include: {
+                user: true,
+              },
+            },
           },
-        },
-      },
-    });
+        });
 
-    if (!program) {
-      throw new NotFoundException("Program not found");
-    }
+        if (!program) {
+          throw new NotFoundException("Program not found");
+        }
 
-    let status: ProgramStatus;
-    let isActive: boolean;
-    let emailTemplate:
-      | "APPLICATION_APPROVED"
-      | "APPLICATION_DECLINED"
-      | "PROGRAM_LIVE"
-      | null = null;
+        let status: ProgramStatus;
+        let isActive: boolean;
+        let emailTemplate:
+          | "APPLICATION_APPROVED"
+          | "APPLICATION_DECLINED"
+          | "PROGRAM_LIVE"
+          | null = null;
 
-    switch (action) {
-      case "approve":
-        if (program.status !== "PENDING_APPROVAL") {
-          throw new BadRequestException("Only pending programs can be approved");
+        switch (action) {
+          case "approve":
+            if (program.status !== "PENDING_APPROVAL") {
+              throw new BadRequestException(
+                "Only pending programs can be approved",
+              );
+            }
+            status = "APPROVED";
+            isActive = false;
+            emailTemplate = "APPLICATION_APPROVED";
+            break;
+          case "reject":
+            if (program.status !== "PENDING_APPROVAL") {
+              throw new BadRequestException(
+                "Only pending programs can be rejected",
+              );
+            }
+            status = "REJECTED";
+            isActive = false;
+            emailTemplate = "APPLICATION_DECLINED";
+            break;
+          case "activate":
+            if (program.status !== "SUBMITTED") {
+              throw new BadRequestException(
+                "Only submitted programs can be activated",
+              );
+            }
+            status = "ACTIVE";
+            isActive = true;
+            emailTemplate = "PROGRAM_LIVE";
+            break;
+          case "deactivate":
+            if (program.status !== "ACTIVE") {
+              throw new BadRequestException(
+                "Only active programs can be deactivated",
+              );
+            }
+            status = "INACTIVE";
+            isActive = false;
+            break;
+          default:
+            throw new BadRequestException("Invalid action");
         }
-        status = "APPROVED";
-        isActive = false;
-        emailTemplate = "APPLICATION_APPROVED";
-        break;
-      case "reject":
-        if (program.status !== "PENDING_APPROVAL") {
-          throw new BadRequestException("Only pending programs can be rejected");
-        }
-        status = "REJECTED";
-        isActive = false;
-        emailTemplate = "APPLICATION_DECLINED";
-        break;
-      case "activate":
-        if (program.status !== "SUBMITTED") {
-          throw new BadRequestException("Only submitted programs can be activated");
-        }
-        status = "ACTIVE";
-        isActive = true;
-        emailTemplate = "PROGRAM_LIVE";
-        break;
-      case "deactivate":
-        if (program.status !== "ACTIVE") {
-          throw new BadRequestException("Only active programs can be deactivated");
-        }
-        status = "INACTIVE";
-        isActive = false;
-        break;
-      default:
-        throw new BadRequestException("Invalid action");
-    }
 
-    const updatedProgram = await prisma.program.update({
-      where: { id: programId },
-      data: {
-        status: status,
-        isActive: isActive,
-        updatedAt: new Date(),
-      },
-      include: {
-        category: true,
-        coach: {
+        const updatedProgram = await tx.program.update({
+          where: { id: programId },
+          data: {
+            status: status,
+            isActive: isActive,
+            updatedAt: new Date(),
+          },
           include: {
-            user: true,
+            category: true,
+            coach: {
+              include: {
+                user: true,
+              },
+            },
           },
-        },
+        });
+
+        if (action === "approve" && startDate) {
+          await tx.cohort.create({
+            data: {
+              programId: programId,
+              startDate: new Date(startDate),
+              name: "Inaugural Cohort",
+              status: "UPCOMING",
+              maxStudents: program.maxStudents || 30,
+            },
+          });
+        }
+
+        return {
+          updatedProgram,
+          emailData: emailTemplate
+            ? {
+                email: program.coach.user.email,
+                template: emailTemplate,
+                fullName: program.coach.user.fullName || "Coach",
+              }
+            : null,
+          action,
+        };
       },
-    });
+      { timeout: 15000 },
+    );
 
-    if (action === "approve" && startDate) {
-      await prisma.cohort.create({
-        data: {
-          programId: programId,
-          startDate: new Date(startDate),
-          name: "Inaugural Cohort",
-          status: "UPCOMING",
-          maxStudents: program.maxStudents || 30,
-        },
-      });
-    }
-
-    if (emailTemplate) {
+    if (result.emailData) {
       try {
-        await EmailService.sendProgramProposalEmail(
-          program.coach.user.email,
-          emailTemplate,
-          program.coach.user.fullName || "Coach"
+        const { emailService } = await import("./email.service");
+        await emailService.sendProgramProposalEmail(
+          result.emailData.email,
+          result.emailData.template,
+          result.emailData.fullName,
         );
       } catch (error) {
         console.error("Failed to send program status email:", error);
@@ -237,30 +255,38 @@ export class AdminService {
     }
 
     return sendSuccess(
-      { program: updatedProgram },
-      `Program ${action}ed successfully`
+      { program: result.updatedProgram },
+      `Program ${result.action}ed successfully`,
     );
   }
 
-  static async getUsers(params?: AdminUserQueryData) {
+  async getUsers(params?: AdminUserQueryData) {
     const { search, role, status, page = 1, limit = 10 } = params || {};
     const skip = (page - 1) * limit;
 
     // Build where clause for Prisma query
-    const whereClause: any = {
+    const whereClause: Prisma.UserWhereInput = {
       role: {
-        in: ["COACH", "STUDENT", "ADMIN"],
+        in: ["COACH", "STUDENT"],
       },
     };
 
     // Apply role filter at database level
     if (role && role !== "all") {
-      whereClause.role = role.toUpperCase();
+      whereClause.role = role.toUpperCase() as UserRole;
+
+      if (role === "COACH") {
+        whereClause.coach = { isNot: null };
+      }
+
+      if (role === "STUDENT") {
+        whereClause.student = { isNot: null };
+      }
     }
 
     // Apply status filter at database level
     if (status && status !== "all") {
-      whereClause.status = status.toUpperCase();
+      whereClause.status = status.toUpperCase() as UserStatus;
     }
 
     // Apply search filter at database level
@@ -283,7 +309,7 @@ export class AdminService {
 
     const [users, totalCount] = await Promise.all([
       prisma.user.findMany({
-        where: whereClause,
+        where: whereClause, // Ensure we only get users who are coaches
         skip,
         take: limit,
         select: {
@@ -295,6 +321,11 @@ export class AdminService {
           avatarUrl: true,
           createdAt: true,
           updatedAt: true,
+          coach: {
+            select: {
+              id: true,
+            },
+          },
         },
         orderBy: [{ role: "asc" }, { fullName: "asc" }],
       }),
@@ -311,119 +342,125 @@ export class AdminService {
           totalPages: Math.ceil(totalCount / limit),
         },
       },
-      "Users fetched successfully"
+      "Users fetched successfully",
     );
   }
 
-  static async getReviews(params?: AdminReviewQueryData) {
-    const { search, targetType, status, rating, page = 1, limit = 10 } =
-      params || {};
+  async getReviews(params?: AdminReviewQueryData) {
+    const {
+      search,
+      targetType,
+      status,
+      rating,
+      page = 1,
+      limit = 10,
+    } = params || {};
     const skip = (page - 1) * limit;
 
-    // Build where clause for Prisma query
-    const whereClause: any = {};
+    // Build common where clauses
+    const ratingFilter =
+      rating && rating !== "all" ? parseInt(rating) : undefined;
 
-    // Apply target type filter at database level
-    if (targetType && targetType !== "all") {
-      whereClause.targetType = targetType.toUpperCase();
+    const programWhere: any = {};
+    const coachWhere: any = {};
+
+    if (ratingFilter) {
+      programWhere.rating = ratingFilter;
+      coachWhere.rating = ratingFilter;
     }
 
-    // Apply visibility status filter at database level
-    if (status && status !== "all") {
-      if (status === "visible") {
-        whereClause.isPublic = true;
-      } else if (status === "hidden") {
-        whereClause.isPublic = false;
-      }
-    }
-
-    // Apply rating filter at database level
-    if (rating && rating !== "all") {
-      whereClause.rating = parseInt(rating);
-    }
-
-    // Apply search filter at database level
     if (search) {
-      whereClause.OR = [
-        {
-          content: {
-            contains: search,
-            mode: "insensitive",
-          },
-        },
-        {
-          title: {
-            contains: search,
-            mode: "insensitive",
-          },
-        },
-        {
-          reviewer: {
-            fullName: {
-              contains: search,
-              mode: "insensitive",
-            },
-          },
-        },
-        {
-          reviewer: {
-            email: {
-              contains: search,
-              mode: "insensitive",
-            },
-          },
-        },
-        {
-          program: {
-            title: {
-              contains: search,
-              mode: "insensitive",
-            },
-          },
-        },
-      ];
+      const searchFilter = {
+        OR: [
+          { comment: { contains: search, mode: "insensitive" } },
+          { user: { fullName: { contains: search, mode: "insensitive" } } },
+          { user: { email: { contains: search, mode: "insensitive" } } },
+        ],
+      };
+      Object.assign(programWhere, searchFilter);
+      Object.assign(coachWhere, searchFilter);
     }
 
-    const [reviews, totalCount] = await Promise.all([
-      prisma.review.findMany({
-        where: whereClause,
-        skip,
-        take: limit,
-        include: {
-          reviewer: {
-            select: {
-              id: true,
-              fullName: true,
-              email: true,
-              avatarUrl: true,
-            },
+    let reviews: any[] = [];
+    let totalCount = 0;
+
+    if (targetType === "COACH") {
+      [reviews, totalCount] = await Promise.all([
+        prisma.coachReview.findMany({
+          where: coachWhere,
+          skip,
+          take: limit,
+          include: {
+            user: true,
+            coach: { include: { user: true } },
           },
-          reviewee: {
-            select: {
-              id: true,
-              fullName: true,
-              email: true,
-            },
+          orderBy: { createdAt: "desc" },
+        }),
+        prisma.coachReview.count({ where: coachWhere }),
+      ]);
+      reviews = reviews.map((r) => ({ ...r, targetType: "COACH" }));
+    } else if (targetType === "PROGRAM") {
+      [reviews, totalCount] = await Promise.all([
+        prisma.programReview.findMany({
+          where: programWhere,
+          skip,
+          take: limit,
+          include: {
+            user: true,
+            program: true,
           },
-          program: {
-            select: {
-              id: true,
-              title: true,
-            },
-          },
-        },
-        orderBy: [
-          {
-            createdAt: "desc",
-          },
-        ],
-      }),
-      prisma.review.count({ where: whereClause }),
-    ]);
+          orderBy: { createdAt: "desc" },
+        }),
+        prisma.programReview.count({ where: programWhere }),
+      ]);
+      reviews = reviews.map((r) => ({ ...r, targetType: "PROGRAM" }));
+    } else {
+      // Combined view - this is tricky with pagination and separate tables
+      // For now, let's fetch from both and combine, then sort.
+      // Note: This won't be perfectly efficient for very large datasets,
+      // but for an admin dashboard with limit/skip it's usually acceptable.
+      const [pReviews, pCount, cReviews, cCount] = await Promise.all([
+        prisma.programReview.findMany({
+          where: programWhere,
+          include: { user: true, program: true },
+          orderBy: { createdAt: "desc" },
+          take: skip + limit,
+        }),
+        prisma.programReview.count({ where: programWhere }),
+        prisma.coachReview.findMany({
+          where: coachWhere,
+          include: { user: true, coach: { include: { user: true } } },
+          orderBy: { createdAt: "desc" },
+          take: skip + limit,
+        }),
+        prisma.coachReview.count({ where: coachWhere }),
+      ]);
+
+      const allReviews = [
+        ...pReviews.map((r) => ({ ...r, targetType: "PROGRAM" })),
+        ...cReviews.map((r) => ({ ...r, targetType: "COACH" })),
+      ].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+
+      reviews = allReviews.slice(skip, skip + limit);
+      totalCount = pCount + cCount;
+    }
 
     return sendSuccess(
       {
-        reviews,
+        reviews: reviews.map((r) => ({
+          id: r.id,
+          rating: r.rating,
+          content: r.comment,
+          targetType: r.targetType,
+          createdAt: r.createdAt,
+          reviewer: {
+            id: r.user.id,
+            fullName: r.user.fullName,
+            email: r.user.email,
+            avatarUrl: r.user.avatarUrl,
+          },
+          target: r.targetType === "PROGRAM" ? r.program : r.coach,
+        })),
         pagination: {
           total: totalCount,
           page,
@@ -431,17 +468,17 @@ export class AdminService {
           totalPages: Math.ceil(totalCount / limit),
         },
       },
-      "Reviews fetched successfully"
+      "Reviews fetched successfully",
     );
   }
 
-  static async getDashboardStats() {
+  async getDashboardStats() {
     // Get total revenue (sum of all paid enrollments)
     const enrollments = await prisma.enrollment.findMany({
       where: {
         paymentStatus: "PAID",
       },
-      include: {
+      select: {
         program: {
           select: {
             price: true,
@@ -452,7 +489,7 @@ export class AdminService {
 
     const totalRevenue = enrollments.reduce(
       (sum, enrollment) => sum + (enrollment.program.price || 0),
-      0
+      0,
     );
 
     // Get total users count
@@ -529,7 +566,7 @@ export class AdminService {
           lt: lastMonth,
         },
       },
-      include: {
+      select: {
         program: {
           select: {
             price: true,
@@ -540,7 +577,7 @@ export class AdminService {
 
     const revenueLastMonth = enrollmentsLastMonth.reduce(
       (sum, enrollment) => sum + (enrollment.program.price || 0),
-      0
+      0,
     );
 
     const revenueGrowthPercent =
@@ -577,11 +614,11 @@ export class AdminService {
           },
         },
       },
-      "Dashboard stats fetched successfully"
+      "Dashboard stats fetched successfully",
     );
   }
 
-  static async getRecentSignups(limit: number = 5) {
+  async getRecentSignups(limit: number = 5) {
     const recentUsers = await prisma.user.findMany({
       take: limit,
       orderBy: {
@@ -605,15 +642,15 @@ export class AdminService {
         user.role === "COACH"
           ? "Coach"
           : user.role === "STUDENT"
-          ? "Student"
-          : "Admin",
+            ? "Student"
+            : "Admin",
       joined: user.createdAt.toISOString(),
     }));
 
     return sendSuccess({ signups }, "Recent signups fetched successfully");
   }
 
-  static async getPlatformActivity(limit: number = 10) {
+  async getPlatformActivity(limit: number = 10) {
     // Get recent coaches
     const recentCoaches = await prisma.coach.findMany({
       take: 3,
@@ -704,11 +741,11 @@ export class AdminService {
 
     return sendSuccess(
       { activities: sortedActivities },
-      "Platform activity fetched successfully"
+      "Platform activity fetched successfully",
     );
   }
 
-  static async getEvents(params?: AdminEventQueryData) {
+  async getEvents(params?: AdminEventQueryData) {
     const { search, eventType, status, page = 1, limit = 10 } = params || {};
     const skip = (page - 1) * limit;
 
@@ -781,13 +818,13 @@ export class AdminService {
           totalPages: Math.ceil(totalCount / limit),
         },
       },
-      "Events fetched successfully"
+      "Events fetched successfully",
     );
   }
 
-  static async updateCohort(
+  async updateCohort(
     cohortId: string,
-    data: { name?: string; startDate?: string; endDate?: string; maxStudents?: number }
+    data: any,
   ) {
     const cohort = await prisma.cohort.findUnique({
       where: { id: cohortId },
@@ -819,11 +856,11 @@ export class AdminService {
 
     return sendSuccess(
       { cohort: updatedCohort },
-      "Cohort updated successfully"
+      "Cohort updated successfully",
     );
   }
 
-  static async getCohortsByProgram(programId: string) {
+  async getCohortsByProgram(programId: string) {
     const cohorts = await prisma.cohort.findMany({
       where: { programId },
       include: {
@@ -837,9 +874,9 @@ export class AdminService {
     return sendSuccess({ cohorts }, "Cohorts fetched successfully");
   }
 
-  static async createCohort(
+  async createCohort(
     programId: string,
-    data: { name?: string; startDate: string; maxStudents?: number }
+    data: { name?: string; startDate: string; maxStudents?: number },
   ) {
     const program = await prisma.program.findUnique({
       where: { id: programId },
@@ -888,3 +925,5 @@ function getRelativeTime(date: Date): string {
     return date.toLocaleDateString();
   }
 }
+
+export const adminService = new AdminService();

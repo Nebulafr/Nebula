@@ -19,6 +19,9 @@ export * from "./use-reviews-queries";
 // Categories hooks
 export * from "./use-categories-queries";
 
+// Checkout hooks
+export * from "./use-checkout-queries";
+
 // Admin hooks
 export * from "./use-admin-queries";
 
@@ -38,6 +41,7 @@ export const QUERY_KEYS = {
 
   // Programs
   PROGRAMS: "programs",
+  GROUPED_PROGRAMS: "grouped-programs",
   RECOMMENDED_PROGRAMS: "recommended-programs",
   POPULAR_PROGRAMS: "popular-programs",
   PROGRAM_BY_SLUG: "program-by-slug",

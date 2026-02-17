@@ -68,10 +68,10 @@ function StudentMessagingPageContent() {
       const updated = prev.map((c) =>
         c.id === data.conversationId
           ? {
-              ...c,
-              lastMessage: data.lastMessage,
-              lastMessageTime: new Date(data.lastMessageTime),
-            }
+            ...c,
+            lastMessage: data.lastMessage,
+            lastMessageTime: new Date(data.lastMessageTime),
+          }
           : c
       );
       // Sort by most recent message
@@ -165,6 +165,9 @@ function StudentMessagingPageContent() {
 
       newSocket.on("error", (error: any) => {
         console.error("Student socket error:", error);
+        if (error?.message === "Authentication required") {
+          console.log("Socket auth failed - user may need to re-login");
+        }
       });
 
       return () => {

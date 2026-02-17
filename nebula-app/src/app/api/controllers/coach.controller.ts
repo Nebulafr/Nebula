@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { CoachService } from "../services/coach.service";
+import { coachService } from "../services/coach.service";
 import {
   coachQuerySchema,
   updateCoachProfileSchema,
@@ -13,6 +13,7 @@ import {
 export class CoachController {
   async getAll(request: NextRequest) {
     const { searchParams } = new URL(request.url);
+    const grouped = searchParams.get("grouped") === "true";
 
     const queryParams = {
       category: searchParams.get("category") || undefined,
@@ -22,13 +23,17 @@ export class CoachController {
 
     const payload = coachQuerySchema.parse(queryParams);
 
-    return await CoachService.getCoaches(payload);
+    if (grouped) {
+      return await coachService.getGroupedCoaches(payload);
+    }
+
+    return await coachService.getCoaches(payload);
   }
 
   async getProfile(request: NextRequest) {
     const user = (request as any).user;
 
-    return await CoachService.getProfile(user.id);
+    return await coachService.getProfile(user.id);
   }
 
   async createCoach(request: NextRequest) {
@@ -43,7 +48,7 @@ export class CoachController {
 
     const payload = createCoachSchema.parse(body);
 
-    return await CoachService.createCoach(user.id, payload);
+    return await coachService.createCoach(user.id, payload);
   }
 
   async updateCoach(request: NextRequest) {
@@ -58,7 +63,7 @@ export class CoachController {
 
     const payload = updateCoachProfileSchema.parse(body);
 
-    return await CoachService.updateCoach(user.id, payload);
+    return await coachService.updateCoach(user.id, payload);
   }
 
   async getById(coachId?: string, request?: NextRequest) {
@@ -66,7 +71,7 @@ export class CoachController {
       throw new BadRequestException("Coach ID is required");
     }
 
-    return await CoachService.getCoachById(coachId, request);
+    return await coachService.getCoachById(coachId, request);
   }
 
   async getSuggestedCoaches(request: NextRequest) {
@@ -75,7 +80,7 @@ export class CoachController {
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get("limit") || "4");
 
-    return await CoachService.getSuggestedCoaches(user.id, limit);
+    return await coachService.getSuggestedCoaches(user.id, limit);
   }
 
   async connectGoogleCalendar(request: NextRequest) {
@@ -93,10 +98,23 @@ export class CoachController {
       throw new BadRequestException("Google Calendar access token is required");
     }
 
-    return await CoachService.connectGoogleCalendar(
+    return await coachService.connectGoogleCalendar(
       user.id,
       googleCalendarAccessToken,
-      googleCalendarRefreshToken
+      googleCalendarRefreshToken,
     );
   }
+
+  async getAvailability(request: NextRequest) {
+    const user = (request as any).user;
+    return await coachService.getAvailability(user.id);
+  }
+
+  async updateAvailability(request: NextRequest) {
+    const user = (request as any).user;
+    const body = await request.json();
+    return await coachService.updateAvailability(user.id, body.availability);
+  }
 }
+
+export const coachController = new CoachController();

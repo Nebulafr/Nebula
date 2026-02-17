@@ -7,7 +7,7 @@ import { Loader2, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
-import { useCategories, usePrograms } from "@/hooks";
+import { useCategories, useGroupedPrograms } from "@/hooks";
 import { ProgramWithRelations } from "@/types/program";
 import { Input } from "@/components/ui/input";
 import { useTranslations } from "next-intl";
@@ -20,7 +20,7 @@ export default function ProgramsPage() {
   const [activeCategory, setActiveCategory] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const { data: categoriesResponse } = useCategories();
-  const { data: programsResponse, isLoading: loading } = usePrograms({
+  const { data: programsResponse, isLoading: loading } = useGroupedPrograms({
     limit: 50,
     category: activeCategory === "all" ? undefined : activeCategory,
     search: searchTerm || undefined,

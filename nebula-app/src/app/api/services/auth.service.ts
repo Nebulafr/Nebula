@@ -13,27 +13,27 @@ import HttpException, {
 } from "../utils/http-exception";
 import { RESPONSE_CODE } from "@/types";
 import { sendSuccess } from "../utils/send-response";
-import { EmailService } from "./email.service";
+import { emailService } from "./email.service";
 import crypto from "crypto";
 
 export class AuthService {
-  static generateAccessToken(userId: string): string {
+  generateAccessToken(userId: string): string {
     const secret = process.env.ACCESS_TOKEN_SECRET || "ACCESS_TOKEN_SECRET";
     return jwt.sign({ userId, type: "access" }, secret, { expiresIn: "7d" });
   }
 
-  static async hashPassword(password: string): Promise<string> {
+  async hashPassword(password: string): Promise<string> {
     return bcrypt.hash(password, 12);
   }
 
-  static async verifyPassword(
+  async verifyPassword(
     password: string,
     hashedPassword: string,
   ): Promise<boolean> {
     return bcrypt.compare(password, hashedPassword);
   }
 
-  static async register(data: RegisterData) {
+  async register(data: RegisterData) {
     const { email, password, fullName, role } = data;
 
     const existingUser = await this.findUserByEmail(email);
@@ -67,20 +67,22 @@ export class AuthService {
     const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
     const verificationUrl = `${baseUrl}/verify-email?token=${verificationToken}`;
 
-    await EmailService.sendVerificationEmail(
+    await emailService.sendVerificationEmail(
       email,
       fullName || "Nebula User",
       verificationUrl,
     );
 
+    const { hashedPassword: _, verificationToken: __, ...userWithoutPassword } = user;
+
     return sendSuccess(
-      { user },
+      { user: userWithoutPassword },
       "Account created. Please check your email to verify your account.",
       201,
     );
   }
 
-  static async signin(data: SigninData) {
+  async signin(data: SigninData) {
     const { email, password } = data;
 
     const user = await this.findUserByEmail(email);
@@ -107,10 +109,11 @@ export class AuthService {
     }
 
     const accessToken = this.generateAccessToken(user.id);
-    return sendSuccess({ accessToken, user }, "Signed in successfully");
+    const { hashedPassword: _, verificationToken: __, ...userWithoutPassword } = user;
+    return sendSuccess({ accessToken, user: userWithoutPassword }, "Signed in successfully");
   }
 
-  static async verifyEmail(token: string) {
+  async verifyEmail(token: string) {
     const user = await prisma.user.findUnique({
       where: { verificationToken: token },
     });
@@ -134,7 +137,7 @@ export class AuthService {
       );
     }
 
-    await prisma.user.update({
+    const updatedUser = await prisma.user.update({
       where: { id: user.id },
       data: {
         status: "ACTIVE",
@@ -144,20 +147,23 @@ export class AuthService {
       },
     });
 
+    const { hashedPassword: _, verificationToken: __, ...userWithoutPassword } = updatedUser;
+
     return sendSuccess(
-      null,
+      { user: userWithoutPassword },
       "Email verified successfully. You can now sign in.",
     );
   }
 
-  static async googleAuth(data: GoogleAuthData) {
+  async googleAuth(data: GoogleAuthData) {
     const { googleId, email, fullName, role, avatarUrl } = data;
 
     let user = await this.findUserByGoogleId(googleId);
 
     if (user) {
       const accessToken = this.generateAccessToken(user.id);
-      return sendSuccess({ accessToken, user }, "Signed in successfully");
+      const { hashedPassword: _, verificationToken: __, ...userWithoutPassword } = user;
+      return sendSuccess({ accessToken, user: userWithoutPassword }, "Signed in successfully");
     }
 
     user = await this.findUserByEmail(email);
@@ -172,8 +178,9 @@ export class AuthService {
       });
 
       const accessToken = this.generateAccessToken(user.id);
+      const { hashedPassword: _, verificationToken: __, ...userWithoutPassword } = user;
       return sendSuccess(
-        { accessToken, user },
+        { accessToken, user: userWithoutPassword },
         "Account linked and signed in successfully",
       );
     }
@@ -194,24 +201,32 @@ export class AuthService {
     });
 
     const accessToken = this.generateAccessToken(user.id);
+    const { hashedPassword: _, verificationToken: __, ...userWithoutPassword } = user;
     return sendSuccess(
-      { accessToken, user },
+      { accessToken, user: userWithoutPassword },
       "Account created successfully",
       201,
     );
   }
 
-  static async getProfile(userId: string) {
+  async getProfile(userId: string) {
     const user = await this.getUserProfile(userId);
     console.log({ user });
     if (!user) {
       throw new NotFoundException("User profile not found in database");
     }
 
+    // Transform specialties to string array if coach exists
+    if (user.coach && (user.coach as any).specialties) {
+      (user.coach as any).specialties = (user.coach as any).specialties.map(
+        (s: any) => s.category.name
+      );
+    }
+
     return sendSuccess({ user }, "Profile fetched successfully");
   }
 
-  static async findUserByEmail(email: string) {
+  async findUserByEmail(email: string) {
     return prisma.user.findUnique({
       where: { email },
       include: {
@@ -221,7 +236,7 @@ export class AuthService {
     });
   }
 
-  static async findUserByGoogleId(googleId: string) {
+  async findUserByGoogleId(googleId: string) {
     return prisma.user.findFirst({
       where: { googleId },
       include: {
@@ -231,17 +246,25 @@ export class AuthService {
     });
   }
 
-  static async getUserProfile(userId: string) {
+  async getUserProfile(userId: string) {
     return prisma.user.findUnique({
       where: { id: userId },
       include: {
-        coach: true,
+        coach: {
+          include: {
+            specialties: {
+              include: {
+                category: true,
+              },
+            },
+          },
+        },
         student: true,
       },
     });
   }
 
-  static async updateProfile(userId: string, data: any) {
+  async updateProfile(userId: string, data: any) {
     try {
       // Only allow updating specific fields for security
       const allowedFields = ["fullName", "avatarUrl"];
@@ -286,7 +309,7 @@ export class AuthService {
     }
   }
 
-  static async changePassword(userId: string, data: ChangePasswordData) {
+  async changePassword(userId: string, data: ChangePasswordData) {
     try {
       const { currentPassword, newPassword } = data;
 
@@ -343,7 +366,7 @@ export class AuthService {
     }
   }
 
-  static async forgotPassword(email: string) {
+  async forgotPassword(email: string) {
     const user = await this.findUserByEmail(email);
 
     // We don't want to reveal if the email exists for security (standard practice)
@@ -360,7 +383,7 @@ export class AuthService {
       const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
       const resetUrl = `${baseUrl}/reset-password?token=${resetToken}`;
 
-      await EmailService.sendPasswordResetEmail(
+      await emailService.sendPasswordResetEmail(
         email,
         user.fullName || "Nebula User",
         resetUrl,
@@ -373,7 +396,7 @@ export class AuthService {
     );
   }
 
-  static async resetPassword(token: string, data: any) {
+  async resetPassword(token: string, data: any) {
     const user = await prisma.user.findUnique({
       where: { resetToken: token },
     });
@@ -406,3 +429,5 @@ export class AuthService {
     );
   }
 }
+
+export const authService = new AuthService();

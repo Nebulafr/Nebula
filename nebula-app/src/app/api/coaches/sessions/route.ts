@@ -1,14 +1,17 @@
 import { NextRequest } from "next/server";
 import { requireCoach } from "../../middleware/auth";
 import CatchError from "../../utils/catch-error";
-import { CoachDashboardController } from "../../controllers/coach-dashboard.controller";
-
-const controller = new CoachDashboardController();
+import { coachDashboardController } from "../../controllers/coach-dashboard.controller";
 
 export const GET = CatchError(
-  requireCoach(async (req: NextRequest) => await controller.getSessions(req))
+  requireCoach(
+    async (req: NextRequest) => await coachDashboardController.getSessions(req),
+  ),
 );
 
 export const POST = CatchError(
-  requireCoach(async (req: NextRequest) => await controller.createSession(req))
+  requireCoach(
+    async (req: NextRequest) =>
+      await coachDashboardController.createSession(req),
+  ),
 );

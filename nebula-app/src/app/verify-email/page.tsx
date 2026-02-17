@@ -23,6 +23,7 @@ function VerifyEmailContent() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const t = useTranslations("auth.verifyEmail");
   const router = useRouter();
+  const [countdown, setCountdown] = useState(5);
 
   useEffect(() => {
     const verifyToken = async () => {
@@ -49,10 +50,22 @@ function VerifyEmailContent() {
     verifyToken();
   }, [token]);
 
+  // Handle countdown and redirect
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (status === "success" && countdown > 0) {
+      timer = setInterval(() => {
+        setCountdown((prev) => prev - 1);
+      }, 1000);
+    } else if (status === "success" && countdown === 0) {
+      router.push("/login");
+    }
+    return () => clearInterval(timer);
+  }, [status, countdown, router]);
+
   // Show toast when error occurs
   useEffect(() => {
     if (status === "error" && errorMessage) {
-      // Check if it's a translation key or a custom message
       const message = errorMessage === "missingToken" || errorMessage === "verificationFailed" 
         ? t(errorMessage) 
         : errorMessage;
@@ -80,7 +93,12 @@ function VerifyEmailContent() {
             <Loader2 className="h-16 w-16 animate-spin text-primary" />
           )}
           {status === "success" && (
-            <CheckCircle2 className="h-16 w-16 text-teal-600" />
+            <div className="flex flex-col items-center gap-4">
+              <CheckCircle2 className="h-16 w-16 text-teal-600" />
+              <p className="text-sm text-muted-foreground">
+                {t("redirecting", { seconds: countdown })}
+              </p>
+            </div>
           )}
           {status === "error" && (
             <XCircle className="h-16 w-16 text-destructive" />

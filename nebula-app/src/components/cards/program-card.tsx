@@ -36,10 +36,9 @@ export interface ProgramCardData {
 
 interface ProgramCardProps {
   program: ProgramCardData;
-  variant?: "public" | "dashboard";
 }
 
-export function ProgramCard({ program, variant }: ProgramCardProps) {
+export function ProgramCard({ program }: ProgramCardProps) {
   const t = useTranslations("programs.popular");
 
   return (

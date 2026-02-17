@@ -1,12 +1,10 @@
-import CatchError from "../../utils/catch-error";
-import { AdminController } from "../../controllers/admin.controller";
-import { isAuthenticated } from "../../middleware/auth";
 import { NextRequest } from "next/server";
-
-const adminController = new AdminController();
+import { adminController } from "../../controllers/admin.controller";
+import { requireAdmin } from "../../middleware/auth";
+import CatchError from "../../utils/catch-error";
 
 export const GET = CatchError(
-  isAuthenticated(
-    async (req: NextRequest) => await adminController.getReviews(req)
-  )
+  requireAdmin(
+    async (req: NextRequest) => await adminController.getReviews(req),
+  ),
 );

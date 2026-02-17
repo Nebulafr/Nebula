@@ -1,13 +1,13 @@
 "use client";
 
-import React, {
+import {
   createContext,
   useContext,
   useState,
   useCallback,
   ReactNode,
 } from "react";
-import { DifficultyLevel } from "@/generated/prisma";
+import { ExperienceLevel } from "@/generated/prisma";
 
 export interface ProgramModule {
   title: string;
@@ -34,7 +34,7 @@ export interface ProposeProgramFormData {
   title: string;
   description: string;
   category: string;
-  targetAudience: string;
+  targetAudience: ExperienceLevel[];
   objectives: string[];
   modules: ProgramModule[];
   isMultiCoach: boolean;
@@ -43,7 +43,7 @@ export interface ProposeProgramFormData {
   // Step 2: Additional fields
   price: number;
   duration: number;
-  difficultyLevel: DifficultyLevel;
+  difficultyLevel: ExperienceLevel;
   maxStudents: number;
   tags: string[];
   prerequisites: string[];
@@ -53,7 +53,7 @@ interface ProposeProgramContextValue {
   formData: ProposeProgramFormData;
   updateFormData: (data: Partial<ProposeProgramFormData>) => void;
   updateAcknowledgments: (
-    key: keyof ProposeProgramFormData["acknowledgments"]
+    key: keyof ProposeProgramFormData["acknowledgments"],
   ) => void;
   addObjective: (objective: string) => void;
   removeObjective: (index: number) => void;
@@ -68,6 +68,8 @@ interface ProposeProgramContextValue {
   removeTag: (index: number) => void;
   addPrerequisite: (prerequisite: string) => void;
   removePrerequisite: (index: number) => void;
+  addTargetAudience: (level: ExperienceLevel) => void;
+  removeTargetAudience: (level: ExperienceLevel) => void;
   resetForm: () => void;
   isStep1Valid: boolean;
   isStep2Valid: boolean;
@@ -88,7 +90,7 @@ const initialFormData: ProposeProgramFormData = {
   title: "",
   description: "",
   category: "",
-  targetAudience: "",
+  targetAudience: [],
   objectives: [],
   modules: [
     { title: "Week 1: ", week: 1, description: "", materials: [] },
@@ -99,7 +101,7 @@ const initialFormData: ProposeProgramFormData = {
   coCoaches: [],
   price: 0,
   duration: 3,
-  difficultyLevel: DifficultyLevel.BEGINNER,
+  difficultyLevel: ExperienceLevel.BEGINNER,
   maxStudents: 30,
   tags: [],
   prerequisites: [],
@@ -120,7 +122,7 @@ export function ProposeProgramProvider({ children }: { children: ReactNode }) {
     (data: Partial<ProposeProgramFormData>) => {
       setFormData((prev) => ({ ...prev, ...data }));
     },
-    []
+    [],
   );
 
   const updateAcknowledgments = useCallback(
@@ -133,7 +135,7 @@ export function ProposeProgramProvider({ children }: { children: ReactNode }) {
         },
       }));
     },
-    []
+    [],
   );
 
   const addObjective = useCallback((objective: string) => {
@@ -172,11 +174,11 @@ export function ProposeProgramProvider({ children }: { children: ReactNode }) {
       setFormData((prev) => ({
         ...prev,
         modules: prev.modules.map((m, i) =>
-          i === index ? { ...m, ...module } : m
+          i === index ? { ...m, ...module } : m,
         ),
       }));
     },
-    []
+    [],
   );
 
   const removeModule = useCallback((index: number) => {
@@ -195,11 +197,11 @@ export function ProposeProgramProvider({ children }: { children: ReactNode }) {
         modules: prev.modules.map((m, i) =>
           i === moduleIndex
             ? { ...m, materials: [...m.materials, ...files] }
-            : m
+            : m,
         ),
       }));
     },
-    []
+    [],
   );
 
   const removeModuleMaterial = useCallback(
@@ -209,11 +211,11 @@ export function ProposeProgramProvider({ children }: { children: ReactNode }) {
         modules: prev.modules.map((m, i) =>
           i === moduleIndex
             ? { ...m, materials: m.materials.filter((f) => f !== file) }
-            : m
+            : m,
         ),
       }));
     },
-    []
+    [],
   );
 
   const addCoCoach = useCallback((coach: CoCoach) => {
@@ -262,6 +264,22 @@ export function ProposeProgramProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
+  const addTargetAudience = useCallback((level: ExperienceLevel) => {
+    setFormData((prev) => ({
+      ...prev,
+      targetAudience: prev.targetAudience.includes(level)
+        ? prev.targetAudience
+        : [...prev.targetAudience, level],
+    }));
+  }, []);
+
+  const removeTargetAudience = useCallback((level: ExperienceLevel) => {
+    setFormData((prev) => ({
+      ...prev,
+      targetAudience: prev.targetAudience.filter((l) => l !== level),
+    }));
+  }, []);
+
   const resetForm = useCallback(() => {
     setFormData(initialFormData);
     setSubmitting(false);
@@ -275,10 +293,11 @@ export function ProposeProgramProvider({ children }: { children: ReactNode }) {
     formData.title.trim().length > 0 &&
     formData.description.trim().length >= 10 &&
     formData.category.trim().length > 0 &&
+    formData.targetAudience.length > 0 &&
     formData.objectives.length > 0 &&
     formData.modules.length > 0 &&
     formData.modules.every(
-      (m) => m.title.trim().length > 0 && m.description.trim().length > 0
+      (m) => m.title.trim().length > 0 && m.description.trim().length > 0,
     );
 
   const value: ProposeProgramContextValue = {
@@ -298,6 +317,8 @@ export function ProposeProgramProvider({ children }: { children: ReactNode }) {
     removeTag,
     addPrerequisite,
     removePrerequisite,
+    addTargetAudience,
+    removeTargetAudience,
     resetForm,
     isStep1Valid,
     isStep2Valid,
@@ -320,7 +341,7 @@ export function useProposeProgramContext() {
   const context = useContext(ProposeProgramContext);
   if (context === undefined) {
     throw new Error(
-      "useProposeProgramContext must be used within a ProposeProgramProvider"
+      "useProposeProgramContext must be used within a ProposeProgramProvider",
     );
   }
   return context;

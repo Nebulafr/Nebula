@@ -12,7 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PlaceHolderImages } from "@/lib/images/placeholder-images";
-import { ArrowLeft, Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff, Mail } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { UserRole } from "@/generated/prisma";
@@ -78,10 +78,12 @@ export default function SignupPage() {
   const signupImage = PlaceHolderImages.find((img) => img.id === "coach-hero");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isSignedUp, setIsSignedUp] = useState(false);
   const { signUp, signInWithGoogle } = useAuthActions();
   const t = useTranslations("auth.signup");
   const f = useTranslations("auth.fields");
   const c = useTranslations("common");
+  const tLogin = useTranslations("auth.login");
 
   const form = useForm<SignupFormValues>({
     resolver: zodResolver(signupFormSchema),
@@ -108,6 +110,7 @@ export default function SignupPage() {
       });
 
       if (response.success) {
+        setIsSignedUp(true);
         toast.success(response.message || "Please check your email to verify your account");
       }
     } catch (error: any) {
@@ -164,141 +167,166 @@ export default function SignupPage() {
         <div className="flex items-center justify-center py-12 lg:col-span-2">
           <div className="mx-auto grid w-[350px] gap-6">
             <Card className="border-none shadow-none">
-              <CardHeader className="p-0 text-left">
-                <Link
-                  href="/"
-                  className="flex items-center gap-2 mb-4 text-sm font-medium text-muted-foreground hover:text-foreground"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                  {useTranslations("auth.login")("backToWebsite")}
-                </Link>
-                <CardTitle className="text-3xl font-bold text-primary">
-                  {t("title")}
-                </CardTitle>
-                <CardDescription>
-                  {t("subtitle")}
-                </CardDescription>
-              </CardHeader>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(handleSignup)}>
-                  <CardContent className="grid gap-4 p-0 mt-6">
-                    <FormField
-                      control={form.control}
-                      name="fullName"
-                      render={({ field }) => (
-                        <FormItem className="grid gap-2 space-y-0">
-                          <FormLabel>{t("fullName")}</FormLabel>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              placeholder={t("fullNamePlaceholder")}
-                              disabled={loading}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem className="grid gap-2 space-y-0">
-                          <FormLabel>{f("email")}</FormLabel>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              type="email"
-                              placeholder={f("emailPlaceholder")}
-                              disabled={loading}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="password"
-                      render={({ field }) => (
-                        <FormItem className="grid gap-2 space-y-0">
-                          <FormLabel>{f("password")}</FormLabel>
-                          <div className="relative">
-                            <FormControl>
-                              <Input
-                                {...field}
-                                type={showPassword ? "text" : "password"}
-                                disabled={loading}
-                                className="pr-10"
-                              />
-                            </FormControl>
-                            <button
-                              type="button"
-                              className="absolute inset-y-0 right-0 flex items-center pr-3"
-                              onClick={() => setShowPassword(!showPassword)}
-                            >
-                              {showPassword ? (
-                                <EyeOff className="h-4 w-4 text-muted-foreground" />
-                              ) : (
-                                <Eye className="h-4 w-4 text-muted-foreground" />
-                              )}
-                            </button>
-                          </div>
-                          <FormMessage />
-                          <p className="text-xs text-muted-foreground">
-                            {t("passwordHint")}
-                          </p>
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="confirmPassword"
-                      render={({ field }) => (
-                        <FormItem className="grid gap-2 space-y-0">
-                          <FormLabel>{f("confirmPassword")}</FormLabel>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              type="password"
-                              disabled={loading}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <Button
-                      type="submit"
-                      className="w-full"
-                      size="lg"
-                      disabled={loading}
-                    >
-                      {loading ? t("signingUp") : t("signUp")}
+              {isSignedUp ? (
+                <div className="text-center space-y-6 py-8">
+                  <div className="flex justify-center">
+                    <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Mail className="h-10 w-10 text-primary" />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <CardTitle className="text-3xl font-bold text-primary">
+                      {t("checkEmail")}
+                    </CardTitle>
+                    <CardDescription className="text-base text-balance">
+                      {t("checkEmailDesc", { email: form.getValues("email") })}
+                    </CardDescription>
+                  </div>
+                  <div className="pt-4">
+                    <Button asChild className="w-full" size="lg">
+                      <Link href="/login">{t("backToLogin")}</Link>
                     </Button>
-                  </CardContent>
-                </form>
-              </Form>
-              <div className="relative mt-4">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t" />
+                  </div>
                 </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background px-2 text-muted-foreground">
-                    {useTranslations("auth.login")("orContinueWith")}
-                  </span>
-                </div>
-              </div>
-              <Button
-                variant="outline"
-                className="w-full mt-4"
-                size="lg"
-                onClick={handleGoogleSignIn}
-                disabled={loading}
-              >
-                <GoogleIcon className="mr-2 h-5 w-5" />
-                {loading ? t("signingUp") : t("googleSignUp")}
-              </Button>
+              ) : (
+                <>
+                  <CardHeader className="p-0 text-left">
+                    <Link
+                      href="/"
+                      className="flex items-center gap-2 mb-4 text-sm font-medium text-muted-foreground hover:text-foreground"
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                      {tLogin("backToWebsite")}
+                    </Link>
+                    <CardTitle className="text-3xl font-bold text-primary">
+                      {t("title")}
+                    </CardTitle>
+                    <CardDescription>
+                      {t("subtitle")}
+                    </CardDescription>
+                  </CardHeader>
+                  <Form {...form}>
+                    <form onSubmit={form.handleSubmit(handleSignup)}>
+                      <CardContent className="grid gap-4 p-0 mt-6">
+                        <FormField
+                          control={form.control}
+                          name="fullName"
+                          render={({ field }) => (
+                            <FormItem className="grid gap-2 space-y-0">
+                              <FormLabel>{t("fullName")}</FormLabel>
+                              <FormControl>
+                                <Input
+                                  {...field}
+                                  placeholder={t("fullNamePlaceholder")}
+                                  disabled={loading}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="email"
+                          render={({ field }) => (
+                            <FormItem className="grid gap-2 space-y-0">
+                              <FormLabel>{f("email")}</FormLabel>
+                              <FormControl>
+                                <Input
+                                  {...field}
+                                  type="email"
+                                  placeholder={f("emailPlaceholder")}
+                                  disabled={loading}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="password"
+                          render={({ field }) => (
+                            <FormItem className="grid gap-2 space-y-0">
+                              <FormLabel>{f("password")}</FormLabel>
+                              <div className="relative">
+                                <FormControl>
+                                  <Input
+                                    {...field}
+                                    type={showPassword ? "text" : "password"}
+                                    disabled={loading}
+                                    className="pr-10"
+                                  />
+                                </FormControl>
+                                <button
+                                  type="button"
+                                  className="absolute inset-y-0 right-0 flex items-center pr-3"
+                                  onClick={() => setShowPassword(!showPassword)}
+                                >
+                                  {showPassword ? (
+                                    <EyeOff className="h-4 w-4 text-muted-foreground" />
+                                  ) : (
+                                    <Eye className="h-4 w-4 text-muted-foreground" />
+                                  )}
+                                </button>
+                              </div>
+                              <FormMessage />
+                              <p className="text-xs text-muted-foreground">
+                                {t("passwordHint")}
+                              </p>
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="confirmPassword"
+                          render={({ field }) => (
+                            <FormItem className="grid gap-2 space-y-0">
+                              <FormLabel>{f("confirmPassword")}</FormLabel>
+                              <FormControl>
+                                <Input
+                                  {...field}
+                                  type="password"
+                                  disabled={loading}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <Button
+                          type="submit"
+                          className="w-full"
+                          size="lg"
+                          disabled={loading}
+                        >
+                          {loading ? t("signingUp") : t("signUp")}
+                        </Button>
+                      </CardContent>
+                    </form>
+                  </Form>
+                  <div className="relative mt-4">
+                    <div className="absolute inset-0 flex items-center">
+                      <span className="w-full border-t" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-background px-2 text-muted-foreground">
+                        {tLogin("orContinueWith")}
+                      </span>
+                    </div>
+                  </div>
+                  <Button
+                    variant="outline"
+                    className="w-full mt-4"
+                    size="lg"
+                    onClick={handleGoogleSignIn}
+                    disabled={loading}
+                  >
+                    <GoogleIcon className="mr-2 h-5 w-5" />
+                    {loading ? t("signingUp") : t("googleSignUp")}
+                  </Button>
+                </>
+              )}
             </Card>
             <div className="mt-4 text-center text-sm">
               {t("hasAccount")}{" "}

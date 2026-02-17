@@ -102,7 +102,7 @@ export default function AdminLayout({
 }) {
   const pathname = usePathname();
   const t = useTranslations("common");
-  const { signOut } = useAuth();
+  const { signOut, profile } = useAuth();
 
   const handleLogout = async () => {
     await signOut();
@@ -115,8 +115,10 @@ export default function AdminLayout({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Avatar className="h-8 w-8">
-                <AvatarImage src="https://i.pravatar.cc/150?u=admin" />
-                <AvatarFallback>A</AvatarFallback>
+                <AvatarImage src={profile?.avatarUrl || undefined} />
+                <AvatarFallback>
+                  {profile?.fullName?.charAt(0) || "A"}
+                </AvatarFallback>
               </Avatar>
               <span className="font-headline text-lg font-bold">{t("admin")}</span>
             </div>

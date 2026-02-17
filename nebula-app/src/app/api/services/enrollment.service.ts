@@ -21,6 +21,9 @@ export const enrollmentService = {
             include: {
               category: true,
               modules: {
+                include: {
+                  materials: true,
+                },
                 orderBy: {
                   week: "asc",
                 },
@@ -151,79 +154,78 @@ export const enrollmentService = {
   async enrollInProgram(studentId: string, slug: string, enrollmentData: any) {
     const { coachId, time, date } = enrollmentData;
 
-    const program = await prisma.program.findUnique({
-      where: {
-        slug,
-        isActive: true,
-      },
-      include: {
-        cohorts: {
-          where: {
-            status: "UPCOMING",
-            startDate: {
-              gte: new Date(),
+    return await prisma.$transaction(async (tx) => {
+      const program = await tx.program.findUnique({
+        where: {
+          slug,
+          isActive: true,
+        },
+        include: {
+          cohorts: {
+            where: {
+              status: "UPCOMING",
+              startDate: {
+                gte: new Date(),
+              },
             },
-          },
-          orderBy: {
-            startDate: "asc",
-          },
-          include: {
-            _count: {
-              select: { enrollments: true },
+            orderBy: {
+              startDate: "asc",
+            },
+            include: {
+              _count: {
+                select: { enrollments: true },
+              },
             },
           },
         },
-      },
-    });
+      });
 
-    if (!program) {
-      throw new NotFoundException("Program not found");
-    }
+      if (!program) {
+        throw new NotFoundException("Program not found");
+      }
 
-    let cohortId: string | null = null;
-    if (program.cohorts && program.cohorts.length > 0) {
-      const cohort = program.cohorts.find(
-        (c) => c._count.enrollments < c.maxStudents,
-      );
+      let cohortId: string | null = null;
+      if (program.cohorts && program.cohorts.length > 0) {
+        const cohort = program.cohorts.find(
+          (c) => c._count.enrollments < c.maxStudents,
+        );
 
-      if (!cohort) {
+        if (!cohort) {
+          throw new BadRequestException(
+            "All upcoming cohorts for this program are currently full",
+          );
+        }
+        cohortId = cohort.id;
+      }
+
+      const existingEnrollment = await tx.enrollment.findFirst({
+        where: {
+          studentId,
+          programId: program.id,
+        },
+      });
+
+      if (existingEnrollment) {
         throw new BadRequestException(
-          "All upcoming cohorts for this program are currently full",
+          "You are already enrolled in this program"
         );
       }
-      cohortId = cohort.id;
-    }
 
-    const existingEnrollment = await prisma.enrollment.findFirst({
-      where: {
-        studentId,
-        programId: program.id,
-      },
-    });
+      if (
+        program.maxStudents &&
+        (program.currentEnrollments || 0) >= program.maxStudents
+      ) {
+        throw new BadRequestException(
+          "This program has reached its maximum enrollment capacity"
+        );
+      }
 
-    if (existingEnrollment) {
-      throw new BadRequestException(
-        "You are already enrolled in this program"
-      );
-    }
-
-    if (
-      program.maxStudents &&
-      (program.currentEnrollments || 0) >= program.maxStudents
-    ) {
-      throw new BadRequestException(
-        "This program has reached its maximum enrollment capacity"
-      );
-    }
-
-    return await prisma.$transaction(async (prisma) => {
-      const enrollment = await prisma.enrollment.create({
+      const enrollment = await tx.enrollment.create({
         data: {
           programId: program.id,
           coachId: coachId,
           studentId: studentId,
           cohortId: cohortId,
-          time: time,
           enrollmentDate: new Date(
             date || moment().format("YYYY-MM-DD")
           ),
@@ -231,7 +233,7 @@ export const enrollmentService = {
         },
       });
 
-      await prisma.program.update({
+      await tx.program.update({
         where: { id: program.id },
         data: {
           currentEnrollments: { increment: 1 },

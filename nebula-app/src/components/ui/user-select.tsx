@@ -12,6 +12,7 @@ const Select = ReactSelect as React.ComponentType<SelectProps<any, false>>;
 export interface UserSelectOption {
   value: string;
   label: string;
+
 }
 
 interface UserSelectProps {
@@ -19,32 +20,32 @@ interface UserSelectProps {
   onChange: (userId: string | CoCoach | null) => void;
   placeholder?: string;
   className?: string;
+  role?: UserRole;
 }
 
 export function UserSelect({
   value,
   onChange,
   placeholder = "Select a user...",
+  role,
 }: UserSelectProps) {
-  const { data: usersResponse, isLoading: loading } = useAdminUsers({ limit: 100 });
+  const { data: usersResponse, isLoading: loading } = useAdminUsers({ limit: 100, role });
   const { profile } = useAuth();
   const users = usersResponse?.users || [];
 
   const options = React.useMemo(() => {
     return users
-      .filter(
-        (user: any) => user.role === UserRole.COACH && user.id !== profile?.id
-      )
       .map((user: any) => ({
         value: {
           id: user.id,
+          coachId: user.coach?.id,
           name: user.fullName || user.email,
           avatar: user.avatarUrl,
         },
         label: `${user.fullName || user.email} (${user.role.toLowerCase()})`,
         avatar: user.avatarUrl,
       }));
-  }, [users, profile?.id]);
+  }, [users]);
 
   const selectedOption = value
     ? options.find(

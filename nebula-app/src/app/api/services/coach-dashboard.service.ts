@@ -1,9 +1,18 @@
 import { prisma } from "@/lib/prisma";
+import { Prisma, SessionStatus } from "@/generated/prisma";
 import { sendSuccess } from "../utils/send-response";
 import { NotFoundException } from "../utils/http-exception";
+import {
+  CoachDashboardStats,
+  FormattedStudent,
+  Payout,
+  SessionFilter,
+  TransformedProgram,
+  TransformedSession,
+} from "./types/coach-dashboard.types";
 
 export class CoachDashboardService {
-  static async getStats(userId: string) {
+  async getStats(userId: string) {
     // Get coach profile
     const coach = await prisma.coach.findUnique({
       where: { userId },
@@ -81,7 +90,7 @@ export class CoachDashboardService {
         },
         paymentStatus: "PAID",
       },
-      include: {
+      select: {
         program: {
           select: {
             price: true,
@@ -105,7 +114,7 @@ export class CoachDashboardService {
         },
         paymentStatus: "PAID",
       },
-      include: {
+      select: {
         program: {
           select: {
             price: true,
@@ -137,7 +146,7 @@ export class CoachDashboardService {
         ? ((sessionsThisMonth - sessionsLastMonth) / sessionsLastMonth) * 100
         : 0;
 
-    const stats = {
+    const stats: CoachDashboardStats = {
       totalRevenue: revenueThisMonth / 100, // Convert cents to dollars
       revenueChange: Math.round(revenueChange * 10) / 10,
       activeStudents,
@@ -153,7 +162,10 @@ export class CoachDashboardService {
     return sendSuccess(stats, "Coach stats fetched successfully");
   }
 
-  static async getSessions(userId: string, filter: string = "upcoming") {
+  async getSessions(
+    userId: string,
+    filter: SessionFilter = "upcoming"
+  ) {
     // Get coach profile
     const coach = await prisma.coach.findUnique({
       where: { userId },
@@ -179,7 +191,7 @@ export class CoachDashboardService {
       59
     );
 
-    let whereClause: any = {
+    let whereClause: Prisma.SessionWhereInput = {
       coachId: coach.id,
     };
 
@@ -227,27 +239,25 @@ export class CoachDashboardService {
       take: 50,
     });
 
-    const transformedSessions = sessions.map((session) => ({
-      id: session.id,
-      title: session.title,
-      description: session.description,
-      scheduledTime: session.scheduledTime.toISOString(),
-      duration: session.duration,
-      status: session.status,
-      meetLink: session.meetLink,
-      notes: session.notes,
-      students: session.attendance.map((att) => ({
-        id: att.student.id,
-        fullName: att.student.user.fullName,
-        email: att.student.user.email,
-        avatarUrl: att.student.user.avatarUrl,
-        attended: att.attended,
-        joinTime: att.joinTime?.toISOString(),
-        leaveTime: att.leaveTime?.toISOString(),
-      })),
-      createdAt: session.createdAt.toISOString(),
-      updatedAt: session.updatedAt.toISOString(),
-    }));
+    const transformedSessions: TransformedSession[] = sessions.map(
+      (session) => ({
+        id: session.id,
+        title: session.title,
+        description: session.description,
+        scheduledTime: session.scheduledTime.toISOString(),
+        duration: session.duration,
+        status: session.status,
+        meetLink: session.meetLink,
+        students: session.attendance.map((att) => ({
+          id: att.student.id,
+          fullName: att.student.user.fullName,
+          email: att.student.user.email,
+          avatarUrl: att.student.user.avatarUrl,
+        })),
+        createdAt: session.createdAt.toISOString(),
+        updatedAt: session.updatedAt.toISOString(),
+      })
+    );
 
     return sendSuccess(
       { sessions: transformedSessions },
@@ -255,7 +265,7 @@ export class CoachDashboardService {
     );
   }
 
-  static async createSession(
+  async createSession(
     userId: string,
     data: {
       title: string;
@@ -356,7 +366,7 @@ export class CoachDashboardService {
     return sendSuccess({ session }, "Session created successfully", 201);
   }
 
-  static async getPrograms(userId: string, status: string = "all") {
+  async getPrograms(userId: string, status: string = "all") {
     // Get coach profile
     const coach = await prisma.coach.findUnique({
       where: { userId },
@@ -367,7 +377,7 @@ export class CoachDashboardService {
       throw new NotFoundException("Coach profile not found");
     }
 
-    let whereClause: any = {
+    let whereClause: Prisma.ProgramWhereInput = {
       coachId: coach.id,
     };
 
@@ -405,28 +415,30 @@ export class CoachDashboardService {
       },
     });
 
-    const transformedPrograms = programs.map((program) => ({
-      id: program.id,
-      title: program.title,
-      slug: program.slug,
-      description: program.description,
-      objectives: program.objectives,
-      price: program.price,
-      duration: program.duration,
-      difficultyLevel: program.difficultyLevel,
-      maxStudents: program.maxStudents,
-      currentEnrollments: program._count.enrollments,
-      isActive: program.isActive,
-      status: program.status,
-      rating: program.rating,
-      totalReviews: program._count.reviews,
-      tags: program.tags,
-      prerequisites: program.prerequisites,
-      category: program.category,
-      modules: program.modules,
-      createdAt: program.createdAt.toISOString(),
-      updatedAt: program.updatedAt.toISOString(),
-    }));
+    const transformedPrograms: TransformedProgram[] = programs.map(
+      (program) => ({
+        id: program.id,
+        title: program.title,
+        slug: program.slug,
+        description: program.description,
+        objectives: program.objectives,
+        price: program.price,
+        duration: program.duration,
+        difficultyLevel: program.difficultyLevel,
+        maxStudents: program.maxStudents,
+        currentEnrollments: program._count.enrollments,
+        isActive: program.isActive,
+        status: program.status,
+        rating: program.rating,
+        totalReviews: program._count.reviews,
+        tags: program.tags,
+        prerequisites: program.prerequisites,
+        category: program.category,
+        modules: program.modules,
+        createdAt: program.createdAt.toISOString(),
+        updatedAt: program.updatedAt.toISOString(),
+      })
+    );
 
     return sendSuccess(
       { programs: transformedPrograms },
@@ -434,7 +446,7 @@ export class CoachDashboardService {
     );
   }
 
-  static async getStudents(
+  async getStudents(
     userId: string,
     params: { search?: string; page?: number; limit?: number } = {}
   ) {
@@ -451,7 +463,7 @@ export class CoachDashboardService {
       throw new NotFoundException("Coach profile not found");
     }
 
-    const whereClause: any = {
+    const whereClause: Prisma.StudentWhereInput = {
       enrollments: {
         some: {
           coachId: coach.id,
@@ -483,7 +495,9 @@ export class CoachDashboardService {
         where: whereClause,
         skip,
         take: limit,
-        include: {
+        select: {
+          id: true,
+          createdAt: true,
           user: {
             select: {
               id: true,
@@ -494,7 +508,9 @@ export class CoachDashboardService {
           },
           enrollments: {
             where: { coachId: coach.id },
-            include: {
+            select: {
+              status: true,
+              enrollmentDate: true,
               program: {
                 select: {
                   title: true,
@@ -512,7 +528,7 @@ export class CoachDashboardService {
                 coachId: coach.id,
               },
             },
-            include: {
+            select: {
               session: {
                 select: {
                   scheduledTime: true,
@@ -526,18 +542,19 @@ export class CoachDashboardService {
             createdAt: "desc",
           },
         ],
-      }),
+      }) as Promise<any[]>,
       prisma.student.count({ where: whereClause }),
     ]);
 
-    const formattedStudents = students.map((student) => {
+    const formattedStudents: FormattedStudent[] = (students as any[]).map((student) => {
       const enrollment = student.enrollments[0];
       const sessionAttendances = student.sessions;
 
       const totalSessions = sessionAttendances.length;
       const attendedSessions = sessionAttendances.filter(
-        (a) => a.attended
+        (a: any) => a.attended
       ).length;
+
 
       // Find last session date
       let lastSessionDate = null;
@@ -584,7 +601,7 @@ export class CoachDashboardService {
     );
   }
 
-  static async getRecentPayouts(userId: string, limit: number = 5) {
+  async getRecentPayouts(userId: string, limit: number = 5) {
     const coach = await prisma.coach.findUnique({
       where: { userId },
       select: { id: true },
@@ -631,13 +648,13 @@ export class CoachDashboardService {
       }
     });
 
-    const payouts = Array.from(monthlyEarnings.values())
+    const payouts: Payout[] = Array.from(monthlyEarnings.values())
       .sort((a, b) => b.date.getTime() - a.date.getTime())
       .slice(0, limit)
       .map((p) => ({
         id: `${p.year}-${p.month}`,
         month: `${p.month} ${p.year}`,
-        amount: p.amount,
+        amount: p.amount / 100, // Convert cents to dollars for consistency
         method: "Bank Transfer",
         date: p.date.toISOString(),
       }));
@@ -654,3 +671,5 @@ export class CoachDashboardService {
     );
   }
 }
+
+export const coachDashboardService = new CoachDashboardService();

@@ -49,6 +49,9 @@ export interface AdminUser {
   role: "COACH" | "STUDENT" | "ADMIN";
   status: "ACTIVE" | "INACTIVE" | "SUSPENDED";
   avatarUrl?: string;
+  coach?: {
+    id: string;
+  };
   createdAt: string;
   updatedAt: string;
 }

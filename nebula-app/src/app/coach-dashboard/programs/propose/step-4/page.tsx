@@ -42,7 +42,6 @@ export default function ProposeStep4Page() {
   const { data: categoriesResponse } = useCategories();
   const categories = (categoriesResponse as any)?.data?.categories || [];
 
-  // Find category name by ID
   const getCategoryName = (categoryId: string) => {
     const cat = categories.find((c: any) => c.id === categoryId);
     return cat?.name || categoryId || t("notSelected");
@@ -54,9 +53,7 @@ export default function ProposeStep4Page() {
         <Stepper currentStep={4} />
         <div className="mt-12">
           <h1 className="text-3xl font-bold">{t("title")}</h1>
-          <p className="mt-2 text-muted-foreground">
-            {t("description")}
-          </p>
+          <p className="mt-2 text-muted-foreground">{t("description")}</p>
         </div>
 
         <div className="space-y-8 mt-8">
@@ -72,13 +69,17 @@ export default function ProposeStep4Page() {
               <Separator />
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                 <div>
-                  <p className="text-muted-foreground">{t("labels.careerTrack")}</p>
+                  <p className="text-muted-foreground">
+                    {t("labels.careerTrack")}
+                  </p>
                   <p className="font-medium">
                     {getCategoryName(formData.category)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">{t("labels.targetAudience")}</p>
+                  <p className="text-muted-foreground">
+                    {t("labels.targetAudience")}
+                  </p>
                   <p className="font-medium">
                     {formData.targetAudience || t("notSpecified")}
                   </p>
@@ -90,19 +91,25 @@ export default function ProposeStep4Page() {
                   </p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">{t("labels.duration")}</p>
+                  <p className="text-muted-foreground">
+                    {t("labels.duration")}
+                  </p>
                   <p className="font-medium">
                     {formData.duration || t("notSpecified")}
                   </p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">{t("labels.difficulty")}</p>
+                  <p className="text-muted-foreground">
+                    {t("labels.difficulty")}
+                  </p>
                   <p className="font-medium capitalize">
                     {formData.difficultyLevel}
                   </p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">{t("labels.maxStudents")}</p>
+                  <p className="text-muted-foreground">
+                    {t("labels.maxStudents")}
+                  </p>
                   <p className="font-medium">{formData.maxStudents}</p>
                 </div>
               </div>
@@ -110,7 +117,9 @@ export default function ProposeStep4Page() {
                 <>
                   <Separator />
                   <div>
-                    <p className="text-muted-foreground text-sm mb-2">{t("labels.tags")}</p>
+                    <p className="text-muted-foreground text-sm mb-2">
+                      {t("labels.tags")}
+                    </p>
                     <div className="flex flex-wrap gap-2">
                       {formData.tags.map((tag, i) => (
                         <Badge key={i} variant="secondary">
@@ -142,7 +151,9 @@ export default function ProposeStep4Page() {
           {/* Objectives Card */}
           <Card>
             <CardContent className="p-6 space-y-4">
-              <h3 className="font-semibold text-lg">{t("sections.objectives")}</h3>
+              <h3 className="font-semibold text-lg">
+                {t("sections.objectives")}
+              </h3>
               {formData.objectives.length > 0 ? (
                 <ul className="space-y-3 list-disc list-inside">
                   {formData.objectives.map((obj, i) => (
@@ -162,9 +173,7 @@ export default function ProposeStep4Page() {
           {/* Modules & Materials Card */}
           <Card>
             <CardContent className="p-6 space-y-4">
-              <h3 className="font-semibold text-lg">
-                {t("sections.modules")}
-              </h3>
+              <h3 className="font-semibold text-lg">{t("sections.modules")}</h3>
               <div className="space-y-6">
                 {formData.modules.map((mod, i) => (
                   <div key={i} className="p-4 rounded-md border">
@@ -207,7 +216,9 @@ export default function ProposeStep4Page() {
           {formData.isMultiCoach && formData.coCoaches.length > 0 && (
             <Card>
               <CardContent className="p-6 space-y-4">
-                <h3 className="font-semibold text-lg">{t("sections.coCoaches")}</h3>
+                <h3 className="font-semibold text-lg">
+                  {t("sections.coCoaches")}
+                </h3>
                 <div className="space-y-3">
                   {formData.coCoaches.map((coach) => (
                     <div key={coach.id} className="flex items-center gap-3">

@@ -7,7 +7,7 @@ import {
 } from "../utils/http-exception";
 
 export class MessagingService {
-  static async getUserConversations(userId: string, limit: number = 10) {
+  async getUserConversations(userId: string, limit: number = 10) {
     const conversations = await prisma.conversation.findMany({
       where: {
         participants: {
@@ -26,6 +26,11 @@ export class MessagingService {
                 fullName: true,
                 avatarUrl: true,
                 role: true,
+                coach: {
+                  select: {
+                    id: true,
+                  },
+                },
               },
             },
           },
@@ -72,6 +77,8 @@ export class MessagingService {
           ? new Date(conversation.lastMessageTime).toLocaleString()
           : "",
         unread: currentUserParticipant?.unreadCount || 0,
+        otherUserId: otherParticipant?.user.id,
+        coachId: otherParticipant?.user.coach?.id,
         role: otherParticipant?.user.role || "STUDENT",
         participants: conversation.participants.map((p) => ({
           id: p.user.id,
@@ -88,7 +95,7 @@ export class MessagingService {
     );
   }
 
-  static async createConversation(
+  async createConversation(
     participants: string[],
     type: ConversationType = "DIRECT",
     title?: string
@@ -152,7 +159,7 @@ export class MessagingService {
     );
   }
 
-  static async getConversationMessages(
+  async getConversationMessages(
     conversationId: string,
     userId: string,
     page = 1,
@@ -213,99 +220,105 @@ export class MessagingService {
     );
   }
 
-  static async sendMessage(
+  async sendMessage(
     conversationId: string,
     senderId: string,
     content: string,
     type: MessageType = "TEXT"
   ) {
-    // Verify user is a participant
-    const participant = await this.verifyParticipant(conversationId, senderId);
-    if (!participant) {
-      throw new UnauthorizedException(
-        "Not authorized to send messages to this conversation"
-      );
-    }
+    return await prisma.$transaction(async (tx) => {
+      // Verify user is a participant
+      const participant = await this.verifyParticipant(conversationId, senderId, tx);
+      if (!participant) {
+        throw new UnauthorizedException(
+          "Not authorized to send messages to this conversation"
+        );
+      }
 
-    const message = await prisma.message.create({
-      data: {
-        conversationId,
-        senderId,
-        content,
-        type,
-      },
-      include: {
-        sender: {
-          select: {
-            id: true,
-            fullName: true,
-            avatarUrl: true,
+      const message = await tx.message.create({
+        data: {
+          conversationId,
+          senderId,
+          content,
+          type,
+        },
+        include: {
+          sender: {
+            select: {
+              id: true,
+              fullName: true,
+              avatarUrl: true,
+            },
           },
         },
-      },
-    });
+      });
 
-    // Update conversation with last message
-    await prisma.conversation.update({
-      where: { id: conversationId },
-      data: {
-        lastMessage: content,
-        lastMessageTime: new Date(),
-        updatedAt: new Date(),
-      },
-    });
+      // Update conversation with last message
+      await tx.conversation.update({
+        where: { id: conversationId },
+        data: {
+          lastMessage: content,
+          lastMessageTime: new Date(),
+          updatedAt: new Date(),
+        },
+      });
 
-    // Update unread count for other participants
-    await prisma.conversationParticipant.updateMany({
-      where: {
-        conversationId,
-        userId: { not: senderId },
-      },
-      data: {
-        unreadCount: { increment: 1 },
-      },
-    });
+      // Update unread count for other participants
+      await tx.conversationParticipant.updateMany({
+        where: {
+          conversationId,
+          userId: { not: senderId },
+        },
+        data: {
+          unreadCount: { increment: 1 },
+        },
+      });
 
-    return sendSuccess(
-      {
-        id: message.id,
-      },
-      "Message sent successfully",
-      201
-    );
+      return sendSuccess(
+        {
+          id: message.id,
+        },
+        "Message sent successfully",
+        201
+      );
+    });
   }
 
-  static async markMessagesAsRead(conversationId: string, userId: string) {
-    await prisma.conversationParticipant.updateMany({
-      where: {
-        conversationId,
-        userId,
-      },
-      data: {
-        unreadCount: 0,
-      },
-    });
+  async markMessagesAsRead(conversationId: string, userId: string) {
+    return await prisma.$transaction(async (tx) => {
+      await tx.conversationParticipant.updateMany({
+        where: {
+          conversationId,
+          userId,
+        },
+        data: {
+          unreadCount: 0,
+        },
+      });
 
-    await prisma.message.updateMany({
-      where: {
-        conversationId,
-        senderId: { not: userId },
-        isRead: false,
-      },
-      data: {
-        isRead: true,
-        readAt: new Date(),
-      },
-    });
+      await tx.message.updateMany({
+        where: {
+          conversationId,
+          senderId: { not: userId },
+          isRead: false,
+        },
+        data: {
+          isRead: true,
+          readAt: new Date(),
+        },
+      });
 
-    return sendSuccess(null, "Messages marked as read successfully");
+      return sendSuccess(null, "Messages marked as read successfully");
+    });
   }
 
-  private static async verifyParticipant(
+  private async verifyParticipant(
     conversationId: string,
-    userId: string
+    userId: string,
+    tx?: any
   ) {
-    return await prisma.conversationParticipant.findFirst({
+    const prismaClient = tx || prisma;
+    return await prismaClient.conversationParticipant.findFirst({
       where: {
         conversationId,
         userId,
@@ -313,3 +326,5 @@ export class MessagingService {
     });
   }
 }
+
+export const messagingService = new MessagingService();

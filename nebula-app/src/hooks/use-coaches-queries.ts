@@ -20,6 +20,7 @@ export function useCoaches(filters?: {
   category?: string;
   search?: string;
   limit?: number;
+  grouped?: boolean;
 }) {
   return useQuery({
     queryKey: [COACHES_QUERY_KEY, filters],

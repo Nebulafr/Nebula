@@ -1,15 +1,9 @@
 "use client";
 
-import Link from "next/link";
-import Image from "next/image";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ExternalLink, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { usePublicEvents } from "@/hooks";
 import { Event } from "@/types/event";
-import { getEventBackgroundColor, getDefaultAvatar, getAccessTypeText } from "@/lib/event-utils";
-import { useTranslations, useFormatter } from "next-intl";
+import { useTranslations } from "next-intl";
 import { WebinarCard } from "@/components/cards/webinar-card";
 
 

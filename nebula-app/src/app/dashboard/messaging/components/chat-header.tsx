@@ -1,10 +1,11 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, MoreVertical } from "lucide-react";
 import { formatChatHeader } from "@/lib/chat-utils";
+import Link from "next/link";
+
 
 interface ChatHeaderProps {
   conversation: any;
@@ -17,20 +18,13 @@ export function ChatHeader({
   onBack,
   onMoreOptions,
 }: ChatHeaderProps) {
-  const router = useRouter();
-
   if (!conversation) {
     return null;
   }
 
   const headerInfo = formatChatHeader(conversation);
+  const coachId = conversation.coachId || conversation.otherUserId;
 
-  const handleAvatarClick = () => {
-    const coachId = conversation.coachId || conversation.otherUserId;
-    if (coachId) {
-      router.push(`/coaches/${coachId}`);
-    }
-  };
 
   return (
     <div className="flex items-center justify-between border-b border-gray-200 bg-white p-6">
@@ -43,31 +37,46 @@ export function ChatHeader({
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <button
-          onClick={handleAvatarClick}
-          className="cursor-pointer hover:opacity-80 transition-opacity"
-          title="View coach profile"
-        >
-          <Avatar className="h-10 w-10">
-            <AvatarImage src={conversation.avatar} />
-            <AvatarFallback className="bg-gray-100 text-gray-600 font-medium">
-              {headerInfo.initials}
-            </AvatarFallback>
-          </Avatar>
-        </button>
-        <div>
-          <button
-            onClick={handleAvatarClick}
-            className="text-left hover:underline"
+        {coachId ? (
+          <Link
+            href={`/coaches/${coachId}`}
+            className="cursor-pointer hover:opacity-80 transition-opacity"
+            title="View coach profile"
           >
+            <Avatar className="h-10 w-10">
+              <AvatarImage src={conversation.avatar} />
+              <AvatarFallback className="bg-gray-100 text-gray-600 font-medium">
+                {headerInfo.initials}
+              </AvatarFallback>
+            </Avatar>
+          </Link>
+        ) : (
+          <div className="cursor-default">
+            <Avatar className="h-10 w-10">
+              <AvatarImage src={conversation.avatar} />
+              <AvatarFallback className="bg-gray-100 text-gray-600 font-medium">
+                {headerInfo.initials}
+              </AvatarFallback>
+            </Avatar>
+          </div>
+        )}
+        <div>
+          {coachId ? (
+            <Link href={`/coaches/${coachId}`} className="text-left hover:underline">
+              <h2 className="font-semibold text-lg text-gray-900">
+                {headerInfo.displayName}
+              </h2>
+            </Link>
+          ) : (
             <h2 className="font-semibold text-lg text-gray-900">
               {headerInfo.displayName}
             </h2>
-          </button>
+          )}
           <p className="text-sm text-gray-500 font-medium">
             {headerInfo.displayRole}
           </p>
         </div>
+
       </div>
       <Button
         variant="ghost"
@@ -77,6 +86,6 @@ export function ChatHeader({
       >
         <MoreVertical className="h-5 w-5 text-gray-400" />
       </Button>
-    </div>
+    </div >
   );
 }

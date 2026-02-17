@@ -20,6 +20,18 @@
     "optional": "Facultatif",
     "cancel": "Annuler",
     "processing": "Traitement...",
+    "checkout": {
+      "success": {
+        "title": "Paiement réussi",
+        "description": "Merci pour votre achat. Vous avez été inscrit avec succès.",
+        "button": "Continuer"
+      },
+      "error": {
+        "title": "Paiement échoué",
+        "description": "Un problème est survenu lors du traitement de votre paiement. Veuillez réessayer.",
+        "button": "Réessayer"
+      }
+    },
     "onboarding": {
       "student": {
         "step1": {
@@ -121,11 +133,11 @@
           "heading": "Logistique",
           "subheading": "Quelle est votre disponibilité et votre tarif horaire souhaité ?",
           "availability": "Disponibilité hebdomadaire",
-          "hourlyRate": "Tarif horaire souhaité (EUR)",
-          "ratePlaceholder": "ex : 75",
+          "rate": "Tarif horaire souhaité (EUR)",
+          "placeholder": "ex : 75",
           "submit": "Soumettre la candidature",
           "submitting": "Envoi en cours...",
-          "authError": "Vous devez être connecté pour soumettre une candidature.",
+          "loginRequired": "Vous devez être connecté pour soumettre une candidature.",
           "submitError": "Impossible de soumettre votre candidature. Veuillez réessayer."
         }
       },

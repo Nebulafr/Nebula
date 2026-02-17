@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { AuthService } from "../services/auth.service";
+import { authService } from "../services/auth.service";
 import {
   googleAuthSchema,
   signinSchema,
@@ -24,7 +24,7 @@ export class AuthController {
 
     const payload = signupSchema.parse(body);
 
-    return await AuthService.register(payload);
+    return await authService.register(payload);
   }
 
   async signin(request: NextRequest) {
@@ -37,7 +37,7 @@ export class AuthController {
 
     const payload = signinSchema.parse(body);
 
-    return await AuthService.signin(payload);
+    return await authService.signin(payload);
   }
 
   async googleAuth(request: NextRequest) {
@@ -50,17 +50,17 @@ export class AuthController {
 
     const payload = googleAuthSchema.parse(body);
 
-    return await AuthService.googleAuth(payload);
+    return await authService.googleAuth(payload);
   }
 
   async getProfile(request: NextRequest) {
     const user = (request as any).user;
-    
+
     if (!user) {
       throw new UnauthorizedException("Authentication required");
     }
 
-    return await AuthService.getProfile(user.id);
+    return await authService.getProfile(user.id);
   }
 
   async updateProfile(request: NextRequest) {
@@ -77,7 +77,7 @@ export class AuthController {
       throw new BadRequestException("Invalid JSON body");
     }
 
-    return await AuthService.updateProfile(user.id, body);
+    return await authService.updateProfile(user.id, body);
   }
 
   async changePassword(request: NextRequest) {
@@ -96,7 +96,7 @@ export class AuthController {
 
     const payload = changePasswordSchema.parse(body);
 
-    return await AuthService.changePassword(user.id, payload);
+    return await authService.changePassword(user.id, payload);
   }
 
   async verifyEmail(request: NextRequest) {
@@ -107,7 +107,7 @@ export class AuthController {
       throw new BadRequestException("Verification token is required");
     }
 
-    return await AuthService.verifyEmail(token);
+    return await authService.verifyEmail(token);
   }
 
   async forgotPassword(request: NextRequest) {
@@ -120,7 +120,7 @@ export class AuthController {
 
     const payload = forgotPasswordSchema.parse(body);
 
-    return await AuthService.forgotPassword(payload.email);
+    return await authService.forgotPassword(payload.email);
   }
 
   async resetPassword(request: NextRequest) {
@@ -140,6 +140,8 @@ export class AuthController {
 
     const payload = resetPasswordSchema.parse(body);
 
-    return await AuthService.resetPassword(token, payload);
+    return await authService.resetPassword(token, payload);
   }
 }
+
+export const authController = new AuthController();

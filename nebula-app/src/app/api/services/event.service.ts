@@ -8,12 +8,13 @@ import { prisma } from "@/lib/prisma";
 import {
   UnauthorizedException,
   NotFoundException,
+  BadRequestException,
 } from "../utils/http-exception";
 import { sendSuccess } from "../utils/send-response";
 import { generateSlug } from "@/lib/utils";
 
 export class EventService {
-  static create = async (request: NextRequest, data: CreateEventData) => {
+  create = async (request: NextRequest, data: CreateEventData) => {
     const user = (request as any).user;
 
     if (user.role !== "ADMIN") {
@@ -34,7 +35,18 @@ export class EventService {
     }
 
     const payload = createEventSchema.parse(data);
-    const { organizerId, ...eventData } = payload as any;
+    let { organizerId, ...eventData } = payload as any;
+
+    // Robustness: If organizerId is a Coach.id, resolve it to User.id
+    if (organizerId) {
+      const coach = await prisma.coach.findUnique({
+        where: { id: organizerId },
+        select: { userId: true },
+      });
+      if (coach) {
+        organizerId = coach.userId;
+      }
+    }
 
     const event = await prisma.event.create({
       data: {
@@ -83,11 +95,11 @@ export class EventService {
     return sendSuccess(
       { event: transformedEvent },
       "Event created successfully",
-      201
+      201,
     );
   };
 
-  static find = async (request: NextRequest) => {
+  find = async (request: NextRequest) => {
     const { searchParams } = new URL(request.url);
 
     const search = searchParams.get("search") || undefined;
@@ -99,8 +111,13 @@ export class EventService {
 
     const limit = limitParam ? parseInt(limitParam) : 20;
     const offset = offsetParam ? parseInt(offsetParam) : 0;
+    const isPublicParam = searchParams.get("isPublic");
 
     const whereClause: any = {};
+
+    if (isPublicParam !== null) {
+      whereClause.isPublic = isPublicParam === "true";
+    }
 
     if (eventType) {
       whereClause.eventType = eventType;
@@ -110,7 +127,7 @@ export class EventService {
       whereClause.status = status;
     }
 
-    if (accessType) {
+    if (accessType && accessType !== "all") {
       whereClause.accessType = accessType;
     }
 
@@ -222,7 +239,7 @@ export class EventService {
     });
   };
 
-  static findById = async (id: string) => {
+  findById = async (id: string) => {
     const event = await prisma.event.findUnique({
       where: {
         id,
@@ -312,7 +329,7 @@ export class EventService {
     return sendSuccess({ event: transformedEvent });
   };
 
-  static findBySlug = async (slug: string) => {
+  findBySlug = async (slug: string) => {
     const event = await prisma.event.findUnique({
       where: {
         slug,
@@ -410,10 +427,10 @@ export class EventService {
     return sendSuccess({ event: transformedEvent });
   };
 
-  static update = async (
+  update = async (
     request: NextRequest,
     id: string,
-    data: UpdateEventData
+    data: UpdateEventData,
   ) => {
     const user = (request as any).user;
 
@@ -491,11 +508,11 @@ export class EventService {
 
     return sendSuccess(
       { event: transformedEvent },
-      "Event updated successfully"
+      "Event updated successfully",
     );
   };
 
-  static remove = async (request: NextRequest, id: string) => {
+  remove = async (request: NextRequest, id: string) => {
     const user = (request as any).user;
 
     const existingEvent = await prisma.event.findUnique({
@@ -508,10 +525,12 @@ export class EventService {
       return sendSuccess(null, "Event already deleted or not found", 204);
     }
 
-    // Role-based security: ADMINs can delete any event, 
+    // Role-based security: ADMINs can delete any event,
     // others must be the organizer of the event.
     if (user.role !== "ADMIN" && existingEvent.organizerId !== user.id) {
-      throw new UnauthorizedException("You are not authorized to delete this event");
+      throw new UnauthorizedException(
+        "You are not authorized to delete this event",
+      );
     }
 
     await prisma.event.delete({
@@ -523,77 +542,101 @@ export class EventService {
     return sendSuccess(null, "Event deleted successfully", 204);
   };
 
-  static registerForEvent = async (userId: string, eventId: string) => {
-    const event = await prisma.event.findUnique({
-      where: { id: eventId },
-      include: {
-        organizer: {
-          select: {
-            fullName: true,
-            email: true,
+  registerForEvent = async (userId: string, eventId: string) => {
+    return await prisma.$transaction(async (tx) => {
+      const user = await tx.user.findUnique({
+        where: { id: userId },
+        select: {
+          student: { select: { id: true } },
+        },
+      });
+
+      if (!user || !user.student) {
+        throw new NotFoundException("Student profile not found");
+      }
+
+      const studentId = user.student.id;
+
+      const event = await tx.event.findUnique({
+        where: { id: eventId },
+        include: {
+          _count: {
+            select: {
+              attendees: {
+                where: {
+                  status: { in: ["REGISTERED", "CONFIRMED", "ATTENDED"] },
+                },
+              },
+            },
           },
         },
-      },
-    });
+      });
 
-    if (!event) {
-      throw new NotFoundException("Event not found");
-    }
+      if (!event) {
+        throw new NotFoundException("Event not found");
+      }
 
-    const existingRegistration = await prisma.eventAttendee.findUnique({
-      where: {
-        eventId_studentId: {
-          eventId,
-          studentId: userId,
+      if (event.maxAttendees && event._count.attendees >= event.maxAttendees) {
+        throw new BadRequestException(
+          "This event has reached its maximum capacity",
+        );
+      }
+
+      const existingRegistration = await tx.eventAttendee.findUnique({
+        where: {
+          eventId_studentId: {
+            eventId,
+            studentId,
+          },
         },
-      },
+      });
+
+      if (existingRegistration) {
+        throw new BadRequestException("Already registered for this event");
+      }
+
+      const registration = await tx.eventAttendee.create({
+        data: {
+          studentId,
+          eventId,
+          status: "REGISTERED",
+        },
+      });
+
+      return sendSuccess(
+        {
+          message: "Successfully registered for event",
+          registration: {
+            id: registration.id,
+            eventId: registration.eventId,
+            registeredAt: registration.registeredAt,
+          },
+        },
+        "Successfully registered for event",
+        201,
+      );
     });
+  };
 
-    if (existingRegistration) {
-      throw new Error("Already registered for this event");
-    }
-
+  unregisterFromEvent = async (userId: string, eventId: string) => {
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
-        email: true,
-        fullName: true,
         student: { select: { id: true } },
       },
     });
 
-    if (!user) {
-      throw new NotFoundException("User not found");
+    if (!user || !user.student) {
+      throw new NotFoundException("Student profile not found");
     }
 
-    const registration = await prisma.eventAttendee.create({
-      data: {
-        studentId: user.student!.id,
-        eventId,
-        status: "REGISTERED",
-      },
-    });
+    const studentId = user.student.id;
 
-    return sendSuccess(
-      {
-        message: "Successfully registered for event",
-        registration: {
-          id: registration.id,
-          eventId: registration.eventId,
-          registeredAt: registration.registeredAt || registration.createdAt,
-        },
-      },
-      "Successfully registered for event",
-      201
-    );
-  };
-
-  static unregisterFromEvent = async (userId: string, eventId: string) => {
     const registration = await prisma.eventAttendee.findUnique({
       where: {
         eventId_studentId: {
           eventId,
-          studentId: userId,
+          studentId,
         },
       },
     });
@@ -606,14 +649,16 @@ export class EventService {
       where: {
         eventId_studentId: {
           eventId,
-          studentId: userId,
+          studentId,
         },
       },
     });
 
     return sendSuccess(
       { message: "Successfully unregistered from event" },
-      "Successfully unregistered from event"
+      "Successfully unregistered from event",
     );
   };
 }
+
+export const eventService = new EventService();

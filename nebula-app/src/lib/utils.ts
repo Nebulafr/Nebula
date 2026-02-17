@@ -44,6 +44,7 @@ interface RequestOptions {
   headers?: Record<string, string>;
   requireAuth?: boolean;
   throwOnError?: boolean;
+  timeout?: number;
 }
 
 export async function makeRequest<T = any>(
@@ -56,6 +57,7 @@ export async function makeRequest<T = any>(
     headers = {},
     requireAuth = true,
     throwOnError = false,
+    timeout = 30000,
   } = options;
 
   const requestHeaders: Record<string, string> = {
@@ -89,7 +91,7 @@ export async function makeRequest<T = any>(
 
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
 
     const response = await fetch(`/api${endpoint}`, {
       ...config,

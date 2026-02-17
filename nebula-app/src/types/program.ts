@@ -53,7 +53,12 @@ export type ProgramWithRelations = Program & {
     title: string;
     week: number;
     description?: string;
-    materials?: string[];
+    materials?: Array<{
+      id: string;
+      fileName: string;
+      url: string;
+      mimeType: string;
+    }>;
   }[];
   reviews: Array<{
     id: string;
