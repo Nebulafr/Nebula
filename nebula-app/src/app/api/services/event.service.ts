@@ -12,6 +12,7 @@ import {
 } from "../utils/http-exception";
 import { sendSuccess } from "../utils/send-response";
 import { generateSlug } from "@/lib/utils";
+import { paymentService } from "./payment.service";
 
 export class EventService {
   create = async (request: NextRequest, data: CreateEventData) => {
@@ -75,10 +76,10 @@ export class EventService {
       slug: event.slug,
       organizer: (event as any).organizer
         ? {
-            id: (event as any).organizer.id,
-            fullName: (event as any).organizer.fullName,
-            avatarUrl: (event as any).organizer.avatarUrl,
-          }
+          id: (event as any).organizer.id,
+          fullName: (event as any).organizer.fullName,
+          avatarUrl: (event as any).organizer.avatarUrl,
+        }
         : null,
       isPublic: event.isPublic,
       maxAttendees: event.maxAttendees,
@@ -88,6 +89,7 @@ export class EventService {
       additionalInfo: event.additionalInfo,
       lumaEventLink: event.lumaEventLink,
       accessType: event.accessType,
+      price: (event as any).price || 0,
       createdAt: event.createdAt.toISOString(),
       updatedAt: event.updatedAt.toISOString(),
     };
@@ -203,10 +205,10 @@ export class EventService {
       slug: event.slug,
       organizer: event!.organizer
         ? {
-            id: event!.organizer.id,
-            fullName: event.organizer.fullName,
-            avatarUrl: event.organizer.avatarUrl,
-          }
+          id: event!.organizer.id,
+          fullName: event.organizer.fullName,
+          avatarUrl: event.organizer.avatarUrl,
+        }
         : null,
       isPublic: event.isPublic,
       maxAttendees: event.maxAttendees,
@@ -224,6 +226,7 @@ export class EventService {
       additionalInfo: event.additionalInfo,
       lumaEventLink: event.lumaEventLink,
       accessType: event.accessType,
+      price: (event as any).price || 0,
       createdAt: event.createdAt.toISOString(),
       updatedAt: event.updatedAt.toISOString(),
     }));
@@ -301,10 +304,10 @@ export class EventService {
       slug: event.slug,
       organizer: (event as any).organizer
         ? {
-            id: (event as any).organizer.id,
-            fullName: (event as any).organizer.fullName,
-            avatarUrl: (event as any).organizer.avatarUrl,
-          }
+          id: (event as any).organizer.id,
+          fullName: (event as any).organizer.fullName,
+          avatarUrl: (event as any).organizer.avatarUrl,
+        }
         : null,
       isPublic: event.isPublic,
       maxAttendees: event.maxAttendees,
@@ -322,6 +325,7 @@ export class EventService {
       additionalInfo: event.additionalInfo,
       lumaEventLink: event.lumaEventLink,
       accessType: event.accessType,
+      price: (event as any).price || 0,
       createdAt: event.createdAt.toISOString(),
       updatedAt: event.updatedAt.toISOString(),
     };
@@ -399,10 +403,10 @@ export class EventService {
       slug: event.slug,
       organizer: (event as any).organizer
         ? {
-            id: (event as any).organizer.id,
-            fullName: (event as any).organizer.fullName,
-            avatarUrl: (event as any).organizer.avatarUrl,
-          }
+          id: (event as any).organizer.id,
+          fullName: (event as any).organizer.fullName,
+          avatarUrl: (event as any).organizer.avatarUrl,
+        }
         : null,
       isPublic: event.isPublic,
       maxAttendees: event.maxAttendees,
@@ -420,6 +424,7 @@ export class EventService {
       additionalInfo: event.additionalInfo,
       lumaEventLink: event.lumaEventLink,
       accessType: event.accessType,
+      price: (event as any).price || 0,
       createdAt: event.createdAt.toISOString(),
       updatedAt: event.updatedAt.toISOString(),
     };
@@ -489,10 +494,10 @@ export class EventService {
       slug: event!.slug,
       organizer: (event as any)!.organizer
         ? {
-            id: (event as any)!.organizer.id,
-            fullName: (event as any)!.organizer.fullName,
-            avatarUrl: (event as any)!.organizer.avatarUrl,
-          }
+          id: (event as any)!.organizer.id,
+          fullName: (event as any)!.organizer.fullName,
+          avatarUrl: (event as any)!.organizer.avatarUrl,
+        }
         : null,
       isPublic: event!.isPublic,
       maxAttendees: event!.maxAttendees,
@@ -502,6 +507,8 @@ export class EventService {
       whatToBring: event!.whatToBring,
       additionalInfo: event!.additionalInfo,
       lumaEventLink: event!.lumaEventLink,
+      accessType: event!.accessType,
+      price: event!.price,
       createdAt: event!.createdAt.toISOString(),
       updatedAt: event!.updatedAt.toISOString(),
     };
@@ -520,17 +527,48 @@ export class EventService {
     });
 
     if (!existingEvent) {
-      // If event is already gone, return success (idempotent behavior)
-      // and avoid throwing 404 which creates noise in logs
-      return sendSuccess(null, "Event already deleted or not found", 204);
+      return sendSuccess({ event: null }, "Event already deleted or not found", 200);
     }
 
-    // Role-based security: ADMINs can delete any event,
-    // others must be the organizer of the event.
     if (user.role !== "ADMIN" && existingEvent.organizerId !== user.id) {
       throw new UnauthorizedException(
         "You are not authorized to delete this event",
       );
+    }
+
+    const paidAttendees = await prisma.eventAttendee.findMany({
+      where: {
+        eventId: id,
+        paymentStatus: "PAID",
+        status: {
+          in: ["REGISTERED", "CONFIRMED"],
+        },
+        event: {
+          price: {
+            gt: 0,
+          }
+        }
+        
+      },
+      select: { id: true },
+    });
+
+    if (paidAttendees.length > 0) {
+      console.log(
+        `Found ${paidAttendees.length} paid attendees for event ${id}. Processing refunds...`,
+      );
+
+      for (const attendee of paidAttendees) {
+        try {
+          await paymentService.processRefund("EVENT", attendee.id);
+          console.log(`Refunded attendee ${attendee.id}`);
+        } catch (error) {
+          console.error(`Failed to refund attendee ${attendee.id}:`, error);
+          throw new BadRequestException(
+            `Failed to process refund for attendee ${attendee.id}. Deletion aborted. Please try again or contact support. Error: ${(error as Error).message}`,
+          );
+        }
+      }
     }
 
     await prisma.event.delete({
@@ -539,7 +577,7 @@ export class EventService {
       },
     });
 
-    return sendSuccess(null, "Event deleted successfully", 204);
+    return sendSuccess({ event: null }, "Event deleted successfully", 200);
   };
 
   registerForEvent = async (userId: string, eventId: string) => {

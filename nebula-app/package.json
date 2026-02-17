@@ -19,6 +19,7 @@
     "db:reset": "npx prisma migrate reset",
     "seed:admin": "npx tsx scripts/seed-admin.ts",
     "seed:categories": "npx tsx scripts/seed-categories.ts",
+    "seed:json": "npx tsx scripts/seed-from-json.ts",
     "clean": "rm -rf .next dist node_modules/.cache"
   },
   "dependencies": {

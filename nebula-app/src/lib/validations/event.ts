@@ -62,6 +62,7 @@ export const createEventSchema = z.object({
     .url("Luma event link must be a valid URL")
     .min(1, "Luma event link is required"),
   accessType: z.string().min(1, "Access type is required"),
+  price: z.number().int().min(0).default(0),
 });
 
 export const updateEventSchema = z.object({
@@ -125,6 +126,7 @@ export const updateEventSchema = z.object({
     .max(2000, "Additional info must be less than 2000 characters")
     .optional(),
   accessType: z.string().min(1, "Access type is required").optional(),
+  price: z.number().int().min(0).optional(),
 });
 
 export type CreateEventData = z.infer<typeof createEventSchema>;

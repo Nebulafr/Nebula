@@ -2,6 +2,7 @@
   "programDetails": {
     "browseAll": "Browse all programs",
     "programInfoNotAvailable": "Program information not available.",
+    "notStudent": "This feature is only available for students.",
     "selectRating": "Please select a rating.",
     "writeReview": "Please write a review.",
     "failedSubmitting": "Failed to submit review. Please try again.",
