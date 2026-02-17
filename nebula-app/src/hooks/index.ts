@@ -19,6 +19,9 @@ export * from "./use-reviews-queries";
 // Categories hooks
 export * from "./use-categories-queries";
 
+// Checkout hooks
+export * from "./use-checkout-queries";
+
 // Admin hooks
 export * from "./use-admin-queries";
 

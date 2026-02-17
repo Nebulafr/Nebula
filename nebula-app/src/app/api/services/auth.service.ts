@@ -73,8 +73,10 @@ export class AuthService {
       verificationUrl,
     );
 
+    const { hashedPassword: _, verificationToken: __, ...userWithoutPassword } = user;
+
     return sendSuccess(
-      { user },
+      { user: userWithoutPassword },
       "Account created. Please check your email to verify your account.",
       201,
     );
@@ -107,7 +109,8 @@ export class AuthService {
     }
 
     const accessToken = this.generateAccessToken(user.id);
-    return sendSuccess({ accessToken, user }, "Signed in successfully");
+    const { hashedPassword: _, verificationToken: __, ...userWithoutPassword } = user;
+    return sendSuccess({ accessToken, user: userWithoutPassword }, "Signed in successfully");
   }
 
   async verifyEmail(token: string) {
@@ -144,8 +147,10 @@ export class AuthService {
       },
     });
 
+    const { hashedPassword: _, verificationToken: __, ...userWithoutPassword } = updatedUser;
+
     return sendSuccess(
-      { user: updatedUser },
+      { user: userWithoutPassword },
       "Email verified successfully. You can now sign in.",
     );
   }
@@ -157,7 +162,8 @@ export class AuthService {
 
     if (user) {
       const accessToken = this.generateAccessToken(user.id);
-      return sendSuccess({ accessToken, user }, "Signed in successfully");
+      const { hashedPassword: _, verificationToken: __, ...userWithoutPassword } = user;
+      return sendSuccess({ accessToken, user: userWithoutPassword }, "Signed in successfully");
     }
 
     user = await this.findUserByEmail(email);
@@ -172,8 +178,9 @@ export class AuthService {
       });
 
       const accessToken = this.generateAccessToken(user.id);
+      const { hashedPassword: _, verificationToken: __, ...userWithoutPassword } = user;
       return sendSuccess(
-        { accessToken, user },
+        { accessToken, user: userWithoutPassword },
         "Account linked and signed in successfully",
       );
     }
@@ -194,8 +201,9 @@ export class AuthService {
     });
 
     const accessToken = this.generateAccessToken(user.id);
+    const { hashedPassword: _, verificationToken: __, ...userWithoutPassword } = user;
     return sendSuccess(
-      { accessToken, user },
+      { accessToken, user: userWithoutPassword },
       "Account created successfully",
       201,
     );

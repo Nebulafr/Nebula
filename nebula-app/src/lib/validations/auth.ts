@@ -15,7 +15,9 @@ export const signupSchema = z.object({
     .regex(/[0-9]/, "Password must contain at least one number")
     .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character"),
   fullName: z.string().min(2, "Full name must be at least 2 characters"),
-  role: z.nativeEnum(UserRole),
+  role: z.nativeEnum(UserRole).refine((val) => ["STUDENT", "COACH"].includes(val), {
+    message: "Invalid role selected",
+  }),
 });
 
 export const registerSchema = z.object({
@@ -28,7 +30,9 @@ export const registerSchema = z.object({
     .regex(/[0-9]/, "Password must contain at least one number")
     .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character"),
   fullName: z.string().min(2, "Full name must be at least 2 characters"),
-  role: z.nativeEnum(UserRole),
+  role: z.nativeEnum(UserRole).refine((val) => ["STUDENT", "COACH"].includes(val), {
+    message: "Invalid role selected",
+  }),
 });
 
 export const signinSchema = z.object({
@@ -40,7 +44,9 @@ export const googleAuthSchema = z.object({
   googleId: z.string(),
   email: z.string().email(),
   fullName: z.string(),
-  role: z.nativeEnum(UserRole),
+  role: z.nativeEnum(UserRole).refine((val) => ["STUDENT", "COACH"].includes(val), {
+    message: "Invalid role selected",
+  }),
   avatarUrl: z.string().optional(),
 });
 

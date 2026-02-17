@@ -8,7 +8,9 @@ import { ArrowLeft, Star, Video, Loader2, Home } from "lucide-react";
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
 import { useParams } from "next/navigation";
-import { useEventBySlug } from "@/hooks";
+import { useEventBySlug, useAuth, useEventCheckout } from "@/hooks";
+import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 import { useTranslations, useLocale } from "next-intl";
 import {
   getDefaultAvatar,
@@ -16,12 +18,18 @@ import {
   getEventBackgroundColor,
 } from "@/lib/event-utils";
 
+import { CheckoutStatusModal } from "@/components/checkout/checkout-status-modal";
+
 export default function WebinarPage() {
   const t = useTranslations("events.details");
   const tCoach = useTranslations("coachDetails");
   const locale = useLocale();
   const params = useParams<{ slug: string }>();
   const slug = params.slug;
+  const router = useRouter();
+  const { isAuthenticated } = useAuth();
+
+  const { mutateAsync: initiateCheckout, isPending: isCheckingOut } = useEventCheckout();
 
   const {
     data: eventResponse,
@@ -32,7 +40,34 @@ export default function WebinarPage() {
   const event = eventResponse?.data?.event || null;
   const error = queryError ? t("webinarNotFound") : null;
 
-  console.log({ event });
+  const handleEventCheckout = async () => {
+    if (!event) return;
+
+    if (!isAuthenticated) {
+      toast.info("Please log in to register for this event");
+      router.push(`/login?returnUrl=/events/webinar/${slug}`);
+      return;
+    }
+
+    try {
+      const response = await initiateCheckout({
+        eventId: event.id,
+        successUrl: window.location.href + "?success=true",
+        cancelUrl: window.location.href + "?canceled=true",
+      });
+
+      if (response.success && (response.data as any)?.url) {
+        window.location.href = (response.data as any).url;
+      } else {
+        // Error toast is handled by the hook
+        toast.error(response.message);
+      }
+    } catch (error) {
+      console.error("Checkout error:", error);
+      // error toast handled by hook
+    }
+  };
+
 
   if (loading) {
     return (
@@ -80,6 +115,7 @@ export default function WebinarPage() {
     <div className="flex min-h-screen flex-col bg-background">
       <Header />
       <main className="flex-1 py-12 md:py-20">
+        <CheckoutStatusModal />
         <div className="container">
           <div className="mb-8">
             <Button variant="ghost" asChild>
@@ -111,7 +147,7 @@ export default function WebinarPage() {
                       {event.title}
                     </h2>
                     <p className="text-white/80 mt-2">
-                       {t("hostedBy")} {event.organizer?.fullName || "Expert Host"}
+                      {t("hostedBy")} {event.organizer?.fullName || "Expert Host"}
                     </p>
                   </div>
                 </div>
@@ -212,15 +248,11 @@ export default function WebinarPage() {
               <Button
                 size="lg"
                 className="w-full bg-foreground text-background hover:bg-foreground/90"
-                asChild
+                onClick={handleEventCheckout}
+                disabled={isCheckingOut}
               >
-                <a
-                  href={event.lumaEventLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {t("registerOnLuma")}
-                </a>
+                {isCheckingOut && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {t("registerNow")}
               </Button>
 
               <div className="mt-12">

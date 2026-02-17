@@ -110,6 +110,7 @@ model User {
   fullName       String?    @map("full_name")
   avatarUrl      String?    @map("avatar_url")
   emailVerified  DateTime?  @map("email_verified")
+  stripeCustomerId String?  @map("stripe_customer_id")
 
   verificationToken        String?   @unique @map("verification_token")
   verificationTokenExpires DateTime? @map("verification_token_expires")
@@ -205,6 +206,9 @@ model Session {
   description   String?       @db.Text
   scheduledTime DateTime      @map("scheduled_time")
   duration      Int
+  price         Int           @default(0)
+  paymentStatus PaymentStatus @default(PENDING) @map("payment_status")
+  stripeSessionId String?     @map("stripe_session_id")
   status        SessionStatus @default(SCHEDULED)
   meetLink      String?       @map("meet_link")
   googleEventId String?       @map("google_event_id")
@@ -468,6 +472,7 @@ model Enrollment {
   completionDate DateTime?
   progress       Float            @default(0)
   paymentStatus  PaymentStatus    @default(PENDING)
+  stripeSessionId String?         @map("stripe_session_id")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -591,6 +596,7 @@ model Event {
   organizerId    String   @map("organizer_id")
   isPublic       Boolean  @default(true) @map("is_public")
   maxAttendees   Int?     @map("max_attendees")
+  price          Int      @default(0)
   status         String?
   tags           String[]
   meetLink       String?  @map("meet_link")
@@ -620,6 +626,8 @@ model EventAttendee {
   eventId      String              @map("event_id")
   studentId    String              @map("student_id")
   status       EventAttendeeStatus @default(REGISTERED)
+  paymentStatus PaymentStatus      @default(PENDING) @map("payment_status")
+  stripeSessionId String?          @map("stripe_session_id")
   registeredAt DateTime            @default(now()) @map("registered_at")
   attendedAt   DateTime?           @map("attended_at")
   cancelledAt  DateTime?           @map("cancelled_at")

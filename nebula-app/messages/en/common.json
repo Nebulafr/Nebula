@@ -20,6 +20,18 @@
     "optional": "Optional",
     "cancel": "Cancel",
     "processing": "Processing...",
+    "checkout": {
+      "success": {
+        "title": "Payment Successful",
+        "description": "Thank you for your purchase. You have been successfully enrolled.",
+        "button": "Continue"
+      },
+      "error": {
+        "title": "Payment Failed",
+        "description": "There was an issue processing your payment. Please try again.",
+        "button": "Try Again"
+      }
+    },
     "onboarding": {
       "student": {
         "step1": {

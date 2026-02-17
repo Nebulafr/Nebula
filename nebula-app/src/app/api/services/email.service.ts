@@ -17,6 +17,15 @@ interface WebinarRegistrationEmailData {
   organizerName: string;
 }
 
+interface EventRegistrationEmailData {
+  userName: string;
+  eventTitle: string;
+  eventDate: string;
+  organizerName: string;
+  lumaEventLink: string;
+  eventImage?: string;
+}
+
 interface SessionBookingEmailData {
   studentName: string;
   coachName: string;
@@ -101,8 +110,8 @@ export class EmailService {
             <div class="meeting-info">
               <h3>${data.eventTitle}</h3>
               <p><strong>Date & Time:</strong> ${new Date(
-                data.eventDate,
-              ).toLocaleString()}</p>
+      data.eventDate,
+    ).toLocaleString()}</p>
               <p><strong>Host:</strong> ${data.organizerName}</p>
               <p><strong>Description:</strong></p>
               <p>${data.eventDescription}</p>
@@ -112,14 +121,12 @@ export class EmailService {
             <p>Click the button below to join the webinar at the scheduled time:</p>
             
             <p style="text-align: center; margin: 30px 0;">
-              <a href="${
-                data.meetingUrl
-              }" class="button" target="_blank">Join Google Meet</a>
+              <a href="${data.meetingUrl
+      }" class="button" target="_blank">Join Google Meet</a>
             </p>
             
-            <p><strong>Meeting Link:</strong> <a href="${
-              data.meetingUrl
-            }" target="_blank">${data.meetingUrl}</a></p>
+            <p><strong>Meeting Link:</strong> <a href="${data.meetingUrl
+      }" target="_blank">${data.meetingUrl}</a></p>
             
             <h3>Important Notes</h3>
             <ul>
@@ -174,6 +181,93 @@ export class EmailService {
     });
   }
 
+
+
+  async sendEventRegistrationEmail(
+    userEmail: string,
+    data: EventRegistrationEmailData,
+  ): Promise<{ success: boolean; error?: string }> {
+    const subject = `Event Registration Confirmed: ${data.eventTitle}`;
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          .container { max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif; }
+          .header { background-color: #059669; color: white; padding: 20px; text-align: center; }
+          .content { padding: 30px; background-color: #ffffff; }
+          .event-info { background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0; }
+          .button { display: inline-block; background-color: #059669; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; }
+          .footer { background-color: #f9fafb; padding: 20px; text-align: center; color: #6b7280; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>Registration Confirmed!</h1>
+          </div>
+          
+          <div class="content">
+            <h2>Hi ${data.userName}!</h2>
+            
+            <p>You have successfully registered for <strong>${data.eventTitle}</strong>.</p>
+            
+            <div class="event-info">
+              <h3>Event Details</h3>
+              <p><strong>Date & Time:</strong> ${new Date(
+      data.eventDate,
+    ).toLocaleString()}</p>
+              <p><strong>Organizer:</strong> ${data.organizerName}</p>
+              
+              <div style="text-align: center; margin-top: 20px;">
+                <a href="${data.lumaEventLink
+      }" class="button" target="_blank">View Event Page</a>
+              </div>
+            </div>
+
+            <p><strong>Event Link:</strong> <a href="${data.lumaEventLink
+      }" target="_blank">${data.lumaEventLink}</a></p>
+            
+            <p>We look forward to seeing you there!</p>
+            
+            <p>Best regards,<br>The Nebula Team</p>
+          </div>
+          
+          <div class="footer">
+            <p>© ${new Date().getFullYear()} Nebula. All rights reserved.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    const text = `
+      Registration Confirmed: ${data.eventTitle}
+      
+      Hi ${data.userName},
+      
+      You have successfully registered for ${data.eventTitle}.
+      
+      Event Details:
+      - Date: ${new Date(data.eventDate).toLocaleString()}
+      - Organizer: ${data.organizerName}
+      
+      View Event: ${data.lumaEventLink}
+      
+      Best regards,
+      The Nebula Team
+    `;
+
+    return this.sendEmail({
+      to: userEmail,
+      subject,
+      html,
+      text,
+    });
+  }
+
   async sendSessionBookingEmails(
     coachEmail: string,
     studentEmail: string,
@@ -195,9 +289,8 @@ export class EmailService {
       if (!coachResult.success || !studentResult.success) {
         return {
           success: false,
-          error: `Failed to send emails: ${coachResult.error || ""} ${
-            studentResult.error || ""
-          }`.trim(),
+          error: `Failed to send emails: ${coachResult.error || ""} ${studentResult.error || ""
+            }`.trim(),
         };
       }
 
@@ -239,27 +332,25 @@ export class EmailService {
           <div class="content">
             <h2>Hi ${data.coachName}!</h2>
             
-            <p>Great news! ${
-              data.studentName
-            } has booked a coaching session with you.</p>
+            <p>Great news! ${data.studentName
+      } has booked a coaching session with you.</p>
             
             <div class="session-info">
               <h3>Session Details</h3>
               <p><strong>Student:</strong> ${data.studentName}</p>
               <p><strong>Date & Time:</strong> ${new Date(
-                data.sessionDate,
-              ).toLocaleString()}</p>
+        data.sessionDate,
+      ).toLocaleString()}</p>
               <p><strong>Duration:</strong> ${data.duration} minutes</p>
-              ${
-                data.meetLink
-                  ? `
+              ${data.meetLink
+        ? `
                 <p><strong>Meeting Link:</strong> <a href="${data.meetLink}" target="_blank">${data.meetLink}</a></p>
                 <p style="text-align: center; margin: 20px 0;">
                   <a href="${data.meetLink}" class="button" target="_blank">Join Google Meet</a>
                 </p>
               `
-                  : ""
-              }
+        : ""
+      }
             </div>
             
             <h3>Preparation Tips</h3>
@@ -321,19 +412,18 @@ export class EmailService {
               <h3>Session Details</h3>
               <p><strong>Coach:</strong> ${data.coachName}</p>
               <p><strong>Date & Time:</strong> ${new Date(
-                data.sessionDate,
-              ).toLocaleString()}</p>
+      data.sessionDate,
+    ).toLocaleString()}</p>
               <p><strong>Duration:</strong> ${data.duration} minutes</p>
-              ${
-                data.meetLink
-                  ? `
+              ${data.meetLink
+        ? `
                 <p><strong>Meeting Link:</strong> <a href="${data.meetLink}" target="_blank">${data.meetLink}</a></p>
                 <p style="text-align: center; margin: 20px 0;">
                   <a href="${data.meetLink}" class="button" target="_blank">Join Google Meet</a>
                 </p>
               `
-                  : ""
-              }
+        : ""
+      }
             </div>
             
             <h3>What to Expect</h3>

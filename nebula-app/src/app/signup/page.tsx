@@ -83,6 +83,7 @@ export default function SignupPage() {
   const t = useTranslations("auth.signup");
   const f = useTranslations("auth.fields");
   const c = useTranslations("common");
+  const tLogin = useTranslations("auth.login");
 
   const form = useForm<SignupFormValues>({
     resolver: zodResolver(signupFormSchema),
@@ -195,7 +196,7 @@ export default function SignupPage() {
                       className="flex items-center gap-2 mb-4 text-sm font-medium text-muted-foreground hover:text-foreground"
                     >
                       <ArrowLeft className="h-4 w-4" />
-                      {useTranslations("auth.login")("backToWebsite")}
+                      {tLogin("backToWebsite")}
                     </Link>
                     <CardTitle className="text-3xl font-bold text-primary">
                       {t("title")}
@@ -310,7 +311,7 @@ export default function SignupPage() {
                     </div>
                     <div className="relative flex justify-center text-xs uppercase">
                       <span className="bg-background px-2 text-muted-foreground">
-                        {useTranslations("auth.login")("orContinueWith")}
+                        {tLogin("orContinueWith")}
                       </span>
                     </div>
                   </div>

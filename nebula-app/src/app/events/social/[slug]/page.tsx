@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import {
   ArrowLeft,
   CheckCircle,
@@ -20,11 +21,9 @@ import {
   Users,
   Loader2,
 } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
-import { useParams } from "next/navigation";
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
-import { useEventBySlug } from "@/hooks";
+import { useEventBySlug, useEventCheckout, useAuth } from "@/hooks";
 import { useTranslations, useLocale } from "next-intl";
 import { Event } from "@/types/event";
 import {
@@ -33,15 +32,20 @@ import {
   getEventGradientBackground,
   getAccessTypeText,
 } from "@/lib/event-utils";
+import { toast } from "react-toastify";
+import { CheckoutStatusModal } from "@/components/checkout/checkout-status-modal";
+import { useParams, useRouter } from "next/navigation";
 
 export default function SocialEventPage() {
   const t = useTranslations("events.details");
   const locale = useLocale();
   const params = useParams<{ slug: string }>();
   const slug = params.slug;
+  const router = useRouter();
+  const { isAuthenticated } = useAuth();
+  const { mutateAsync: initiateCheckout, isPending: isCheckingOut } = useEventCheckout();
+
   const [showRegistration, setShowRegistration] = useState(false);
-  const [showPayment, setShowPayment] = useState(false);
-  const [isRegistered, setIsRegistered] = useState(false);
 
   const {
     data: eventResponse,
@@ -52,19 +56,28 @@ export default function SocialEventPage() {
   const event = eventResponse?.data?.event || null;
   const error = queryError ? t("eventNotFound") : null;
 
-  const handlePaymentSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setShowPayment(false);
-    setIsRegistered(true);
-  };
+  const handleEventCheckout = async () => {
+    if (!event) return;
 
-  const handleCloseSuccess = () => {
-    setIsRegistered(false);
-  };
+    if (!isAuthenticated) {
+      toast.info("Please log in to register for this event");
+      router.push(`/login?returnUrl=/events/social/${slug}`);
+      return;
+    }
 
-  const handleBackFromPayment = () => {
-    setShowPayment(false);
-    setShowRegistration(true);
+    try {
+      const response = await initiateCheckout({
+        eventId: event.id,
+        successUrl: window.location.href + "?success=true",
+        cancelUrl: window.location.href + "?canceled=true",
+      });
+
+      if (response.success && (response.data as any)?.url) {
+        window.location.href = (response.data as any).url;
+      }
+    } catch (error) {
+      console.error("Checkout error:", error);
+    }
   };
 
   if (loading) {
@@ -110,108 +123,9 @@ export default function SocialEventPage() {
   }
 
   const images = event.images && event.images.length > 0 ? event.images : [];
+  const attendeesCount = Array.isArray(event.attendees) ? event.attendees.length : (event.attendees || 0);
 
   const renderBookingState = () => {
-    if (isRegistered) {
-      return (
-        <Card className="mb-6 rounded-xl border bg-green-50">
-          <CardContent className="p-8 text-center text-foreground">
-            <CheckCircle className="h-12 w-12 mx-auto mb-4 text-green-600" />
-            <h3 className="font-headline text-2xl font-bold">
-              {t("registered")}
-            </h3>
-            <p className="mt-2 text-muted-foreground">
-              {t("registeredDesc", { title: event.title })}
-            </p>
-            <Button
-              onClick={handleCloseSuccess}
-              variant="outline"
-              className="w-full mt-6 bg-transparent border-green-700 text-green-700 hover:bg-green-100 hover:text-green-800"
-            >
-              {t("close")}
-            </Button>
-          </CardContent>
-        </Card>
-      );
-    }
-
-    if (showPayment) {
-      return (
-        <Card className="mt-6 shadow-lg">
-          <CardContent className="p-6">
-            <div className="flex justify-between items-start mb-8">
-              <div>
-                <Button
-                  variant="ghost"
-                  onClick={handleBackFromPayment}
-                  className="mb-4 -ml-4"
-                >
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  {t("backToEvents")}
-                </Button>
-                <h3 className="font-semibold text-lg">{t("completeBooking")}</h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {t("bookingFor", {
-                    date: new Date(event.date).toLocaleDateString(locale === "fr" ? "fr-FR" : "en-US", {
-                      weekday: "long",
-                      month: "long",
-                      day: "numeric",
-                    }),
-                    time: new Date(event.date).toLocaleTimeString(locale === "fr" ? "fr-FR" : "en-US", {
-                      hour: "numeric",
-                      minute: "2-digit",
-                      hour12: locale !== "fr",
-                    })
-                  })}
-                </p>
-              </div>
-              <p className="text-lg font-bold">
-                {event.isPublic
-                  ? t("free")
-                  : new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-US", {
-                      style: "currency",
-                      currency: "EUR",
-                    }).format(25)}
-              </p>
-            </div>
-            <form onSubmit={handlePaymentSubmit}>
-              <div className="grid gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="card">{t("cardDetails")}</Label>
-                  <div className="relative">
-                    <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                    <Input
-                      id="card"
-                      placeholder={t("cardNumber")}
-                      className="pl-10"
-                      required
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="expiry">{t("expiry")}</Label>
-                    <Input id="expiry" placeholder="MM/YY" required />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="cvc">{t("cvc")}</Label>
-                    <Input id="cvc" placeholder="CVC" required />
-                  </div>
-                </div>
-                <Button
-                  size="lg"
-                  type="submit"
-                  className="w-full mt-4 bg-foreground text-background hover:bg-foreground/90"
-                >
-                  Confirm Payment
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      );
-    }
-
     return (
       <Card className="mb-6 rounded-xl border">
         <CardContent className="p-8">
@@ -263,27 +177,27 @@ export default function SocialEventPage() {
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-semibold">
-                    {t(event.accessType?.toLowerCase() === "free" ? "free" : "premium")} {t("perGuest")}
+                    {event.price === 0 ? t("free") : `$${event.price || 0}`} {t("perPerson")}
                   </p>
-                  <Badge variant="outline" className="mt-1">
-                    {t("spotsLeft", {
-                      count: event.maxAttendees
-                        ? event.maxAttendees - event.attendees
-                        : 10
-                    })}
-                  </Badge>
+                  {event.maxAttendees && (
+                    <Badge variant="outline" className="mt-1">
+                      {t("spotsLeft", {
+                        count: event.maxAttendees - attendeesCount
+                      })}
+                    </Badge>
+                  )}
                 </div>
               </CardContent>
             </Card>
           </div>
-          <Button size="lg" className="w-full mt-6" asChild>
-            <a
-              href={event.lumaEventLink}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {t("registerOnLuma")}
-            </a>
+          <Button
+            size="lg"
+            className="w-full mt-6"
+            onClick={handleEventCheckout}
+            disabled={isCheckingOut}
+          >
+            {isCheckingOut && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {t("registerNow")}
           </Button>
         </CardContent>
       </Card>
@@ -294,6 +208,7 @@ export default function SocialEventPage() {
     <div className="flex min-h-screen flex-col bg-background">
       <Header />
       <main className="flex-1">
+        <CheckoutStatusModal />
         <section className="container py-12 md:py-20">
           <div className="mb-8">
             <Button variant="ghost" asChild>
@@ -363,7 +278,7 @@ export default function SocialEventPage() {
                       <div>
                         <p className="font-semibold">{t("location")}</p>
                         <p className="text-sm text-muted-foreground">
-                          {event.location}
+                          {event.location || t("onlineEvent")}
                         </p>
                       </div>
                     </div>
