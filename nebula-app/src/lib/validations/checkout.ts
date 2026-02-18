@@ -11,6 +11,7 @@ export const checkoutSessionSchema = z.object({
     coachId: z.string(),
     scheduledTime: z.string(),
     duration: z.number().int().positive(),
+    timezone: z.string().optional(),
     successUrl: z.string().url(),
     cancelUrl: z.string().url(),
 });

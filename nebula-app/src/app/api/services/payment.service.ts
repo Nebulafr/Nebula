@@ -8,12 +8,12 @@ import { sessionService } from "./session.service";
 
 export class PaymentService {
     async handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
-        const { type, programId, userId, cohortId, coachId, scheduledTime, duration, eventId } = session.metadata || {};
+        const { type, programId, userId, cohortId, coachId, scheduledTime, duration, eventId, timezone } = session.metadata || {};
 
         if (type === "PROGRAM_ENROLLMENT" && programId && userId) {
             await this.handleProgramEnrollment(programId, userId, session.id, cohortId);
         } else if (type === "SESSION_BOOKING" && coachId && userId && scheduledTime && duration) {
-            await this.handleSessionBooking(coachId, userId, scheduledTime, duration, session.id);
+            await this.handleSessionBooking(coachId, userId, scheduledTime, duration, session.id, timezone);
         } else if (type === "EVENT_REGISTRATION" && eventId && userId) {
             await this.handleEventRegistration(eventId, userId, session.id);
         }
@@ -62,13 +62,14 @@ export class PaymentService {
         });
     }
 
-    private async handleSessionBooking(coachId: string, userId: string, scheduledTime: string, duration: string, stripeSessionId: string) {
+    private async handleSessionBooking(coachId: string, userId: string, scheduledTime: string, duration: string, stripeSessionId: string, timezone?: string) {
         await sessionService.completeSessionCheckout({
             coachId,
             studentUserId: userId,
             scheduledTime: new Date(scheduledTime),
             duration: parseInt(duration),
             stripeSessionId,
+            timezone,
         });
     }
 
@@ -180,21 +181,17 @@ export class PaymentService {
             throw new BadRequestException("No payment associated with this record");
         }
 
-        // Retrieve Checkout Session to get Payment Intent
         const checkoutSession = await stripe.checkout.sessions.retrieve(stripeSessionId);
         const paymentIntentId = checkoutSession.payment_intent as string;
 
         if (!paymentIntentId) {
-            // It might be a setup mode session or payment not yet successful/captured if delayed
             throw new BadRequestException("No Payment Intent found for this session");
         }
 
-        // Create Refund
         await stripe.refunds.create({
             payment_intent: paymentIntentId,
         });
 
-        // Update Database
         await updateStatus();
     }
 }

@@ -120,6 +120,7 @@ export default function CoachDetailPage() {
         duration: 60, // Default duration, could be made dynamic later
         successUrl: window.location.href + "?success=true",
         cancelUrl: window.location.href + "?canceled=true",
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       });
 
       if (response && response.success && (response.data as any)?.url) {

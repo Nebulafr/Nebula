@@ -5,10 +5,12 @@ import {
     createEventCheckout,
 } from "@/actions/checkout";
 import { handleAndToastError } from "@/lib/error-handler";
+import { CheckoutProgramData, CheckoutSessionData, CheckoutEventData } from "@/lib/validations/checkout";
+
 
 export function useProgramCheckout() {
     return useMutation({
-        mutationFn: (data: Parameters<typeof createProgramCheckout>[0]) =>
+        mutationFn: (data: CheckoutProgramData) =>
             createProgramCheckout(data),
         onError: (error: any) => {
             handleAndToastError(error, "Failed to initiate program checkout.");
@@ -18,7 +20,7 @@ export function useProgramCheckout() {
 
 export function useSessionCheckout() {
     return useMutation({
-        mutationFn: (data: Parameters<typeof createSessionCheckout>[0]) =>
+        mutationFn: (data: CheckoutSessionData) =>
             createSessionCheckout(data),
         onError: (error: any) => {
             handleAndToastError(error, "Failed to initiate session checkout.");
@@ -28,7 +30,7 @@ export function useSessionCheckout() {
 
 export function useEventCheckout() {
     return useMutation({
-        mutationFn: (data: Parameters<typeof createEventCheckout>[0]) =>
+        mutationFn: (data: CheckoutEventData) =>
             createEventCheckout(data),
         onError: (error: any) => {
             handleAndToastError(error, "Failed to initiate event checkout.");

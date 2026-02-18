@@ -25,8 +25,9 @@ export class SessionService {
     studentUserId: string;
     scheduledTime: Date;
     duration: number;
+    timezone?: string;
   }) {
-    const { coachId, studentUserId, scheduledTime, duration } = data;
+    const { coachId, studentUserId, scheduledTime, duration, timezone: providedTimezone } = data;
 
     const coach = await prisma.coach.findUnique({
       where: {
@@ -58,6 +59,7 @@ export class SessionService {
           },
         },
       },
+
     });
 
     if (!student) {
@@ -67,7 +69,8 @@ export class SessionService {
     }
 
     const sessionStartDate = scheduledTime;
-    const sessionDateTime = moment(sessionStartDate);
+    const timezone = providedTimezone || student.timeZone || "UTC";
+    const sessionDateTime = moment(sessionStartDate).tz(timezone);
 
     // Validate sessionDateTime validity
     if (!sessionDateTime.isValid()) {
@@ -104,14 +107,16 @@ export class SessionService {
     scheduledTime: Date;
     duration: number;
     stripeSessionId: string;
+    timezone?: string;
   }) {
-    const { coachId, studentUserId, scheduledTime, duration, stripeSessionId } = data;
+    const { coachId, studentUserId, scheduledTime, duration, stripeSessionId, timezone } = data;
 
     const { coach, student, sessionDateTime, sessionEndTime } = await this.validateBooking({
       coachId,
       studentUserId,
       scheduledTime,
-      duration
+      duration,
+      timezone
     });
 
     let meetLink = null;
@@ -138,6 +143,8 @@ export class SessionService {
         coachId,
         scheduledTime,
         duration,
+        title: `1-on-1 Session with ${coach.user.fullName} and ${student.user.fullName}`,
+        description: `1-on-1 Session between ${coach.user.fullName} and ${student.user.fullName}`,
         status: SessionStatus.SCHEDULED,
         paymentStatus: PaymentStatus.PAID,
         stripeSessionId,
@@ -238,7 +245,8 @@ export class SessionService {
       coachId,
       studentUserId,
       scheduledTime,
-      duration
+      duration,
+      timezone: providedTimezone
     });
 
     // Create session (Original behavior: REQUESTED, not PAID)

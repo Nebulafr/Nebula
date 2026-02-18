@@ -54,7 +54,7 @@ export class CheckoutService {
     }
 
     async createSessionCheckout(userId: string, email: string, data: CheckoutSessionData) {
-        const { coachId, scheduledTime, duration } = data;
+        const { coachId, scheduledTime, duration, timezone } = data;
 
         // Validate booking first (checks availability, conflicts, etc.)
         const { coach } = await sessionService.validateBooking({
@@ -62,6 +62,7 @@ export class CheckoutService {
             studentUserId: userId,
             scheduledTime: new Date(scheduledTime),
             duration,
+            timezone,
         });
 
         const price = Math.round((coach.hourlyRate * duration) / 60);
@@ -91,6 +92,7 @@ export class CheckoutService {
                 userId: userId,
                 scheduledTime: scheduledTime,
                 duration: duration.toString(),
+                timezone: timezone || "",
             },
         });
 
