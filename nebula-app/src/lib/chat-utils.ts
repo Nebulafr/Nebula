@@ -137,7 +137,7 @@ export function formatChatHeader(conversation: any): ChatHeaderInfo {
  */
 export function formatMessagePreview(
   message: string | null | undefined,
-  maxLength: number = 50
+  maxLength: number = 15
 ): string {
   if (!message || message.trim().length === 0) {
     return "No messages yet";

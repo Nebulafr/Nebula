@@ -122,7 +122,7 @@ function ConversationItem({
   const displayName = formatUserName(conversation.name);
   const initials = getUserInitials(conversation.name);
   const timeDisplay = formatChatTime(conversation.time);
-  const messagePreview = formatMessagePreview(conversation.lastMessage, 20);
+  const messagePreview = formatMessagePreview(conversation.lastMessage, 15);
   const unreadDisplay = formatUnreadCount(conversation.unread);
 
   return (
