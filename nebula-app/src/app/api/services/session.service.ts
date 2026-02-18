@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { PaymentStatus, SessionStatus } from "@/generated/prisma";
 import { createCalendarEvent } from "@/lib/google-api";
 import { emailService } from "./email.service";
+import { paymentService } from "./payment.service";
 import { sendSuccess } from "../utils/send-response";
 import {
   NotFoundException,
@@ -456,6 +457,24 @@ export class SessionService {
 
     if (session.status !== "REQUESTED") {
       throw new BadRequestException("Only requested sessions can be rejected");
+    }
+
+    if (session.paymentStatus === PaymentStatus.PAID && session.stripeSessionId) {
+      await paymentService.processRefund("SESSION", sessionId);
+
+      // Fetch updated session
+      const updatedSession = await prisma.session.findUnique({
+        where: { id: sessionId },
+        include: {
+          coach: { include: { user: true } },
+          attendance: { include: { student: { include: { user: true } } } }
+        }
+      });
+
+      return sendSuccess(
+        { session: this.transformSession(updatedSession) },
+        "Session rejected and refunded successfully",
+      );
     }
 
     const updatedSession = await prisma.session.update({
@@ -995,31 +1014,56 @@ export class SessionService {
       throw new BadRequestException("Session is already cancelled");
     }
 
-    const cancelledSession = await prisma.session.update({
-      where: { id: sessionId },
-      data: {
-        status: "CANCELLED",
-        updatedAt: new Date(),
-      },
-      include: {
-        coach: {
-          include: {
-            user: true,
+    let cancelledSession;
+
+    if (session.paymentStatus === PaymentStatus.PAID && session.stripeSessionId) {
+      await paymentService.processRefund("SESSION", sessionId);
+      cancelledSession = await prisma.session.findUnique({
+        where: { id: sessionId },
+        include: {
+          coach: {
+            include: {
+              user: true,
+            },
           },
-        },
-        attendance: {
-          include: {
-            student: {
-              include: {
-                user: true,
+          attendance: {
+            include: {
+              student: {
+                include: {
+                  user: true,
+                },
               },
             },
           },
         },
-      },
-    });
+      });
+      if (!cancelledSession) throw new NotFoundException("Session not found after refund");
+    } else {
+      cancelledSession = await prisma.session.update({
+        where: { id: sessionId },
+        data: {
+          status: "CANCELLED",
+          updatedAt: new Date(),
+        },
+        include: {
+          coach: {
+            include: {
+              user: true,
+            },
+          },
+          attendance: {
+            include: {
+              student: {
+                include: {
+                  user: true,
+                },
+              },
+            },
+          },
+        },
+      });
+    }
 
-    // Handle Google Calendar deletion if applicable
     if (session.googleEventId && session.coach.googleCalendarAccessToken) {
       try {
         await this.deleteGoogleCalendarEvent(

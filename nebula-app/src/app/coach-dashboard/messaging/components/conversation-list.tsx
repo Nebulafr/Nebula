@@ -122,7 +122,7 @@ function ConversationItem({
   const displayName = formatUserName(conversation.name);
   const initials = getUserInitials(conversation.name);
   const timeDisplay = formatChatTime(conversation.time);
-  const messagePreview = formatMessagePreview(conversation.lastMessage);
+  const messagePreview = formatMessagePreview(conversation.lastMessage, 20);
   const unreadDisplay = formatUnreadCount(conversation.unread);
 
   return (
@@ -135,7 +135,6 @@ function ConversationItem({
       `}
     >
       <div className="flex items-center gap-3">
-        {/* Rounded Avatar */}
         <Avatar className="h-12 w-12 border-2 border-gray-100">
           <AvatarImage src={conversation.avatar} />
           <AvatarFallback className="font-medium text-gray-600 bg-gray-100">
@@ -144,7 +143,6 @@ function ConversationItem({
         </Avatar>
 
         <div className="flex-1 min-w-0">
-          {/* Name and Timestamp Row */}
           <div className="flex items-start justify-between mb-1">
             <h3 className="font-bold text-sm text-gray-900 truncate">
               {displayName}
@@ -161,7 +159,6 @@ function ConversationItem({
             </div>
           </div>
 
-          {/* Last Message */}
           <p className="text-sm text-muted-foreground truncate leading-relaxed">
             {messagePreview}
           </p>
