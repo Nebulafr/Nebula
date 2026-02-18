@@ -14,15 +14,10 @@ export function UpcomingEventsSection() {
     data: eventsResponse,
     isLoading: loading,
     error,
-  } = usePublicEvents({ limit: 3 });
+  } = usePublicEvents({ limit: 3, eventType: "WEBINAR", status: "UPCOMING" });
 
-  const allEvents = eventsResponse?.data?.events || [];
-  const upcomingEvents = allEvents.filter((event: Event) => {
-
-    return event.status === "UPCOMING";
-  });
-
-  const events = upcomingEvents.filter((event: Event) => event.eventType === "WEBINAR");
+  const events = eventsResponse?.data?.events || [];
+ 
 
   if (error) {
     return (

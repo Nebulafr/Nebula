@@ -3,6 +3,7 @@ import { stripe } from "@/lib/stripe";
 import { NotFoundException } from "../utils/http-exception";
 import { CheckoutProgramData, CheckoutSessionData, CheckoutEventData } from "@/lib/validations/checkout";
 import { paymentService } from "./payment.service";
+import { sessionService } from "./session.service";
 import { sendSuccess } from "../utils/send-response";
 
 export class CheckoutService {
@@ -55,14 +56,13 @@ export class CheckoutService {
     async createSessionCheckout(userId: string, email: string, data: CheckoutSessionData) {
         const { coachId, scheduledTime, duration } = data;
 
-        const coach = await prisma.coach.findUnique({
-            where: { id: coachId },
-            include: { user: true },
+        // Validate booking first (checks availability, conflicts, etc.)
+        const { coach } = await sessionService.validateBooking({
+            coachId,
+            studentUserId: userId,
+            scheduledTime: new Date(scheduledTime),
+            duration,
         });
-
-        if (!coach) {
-            throw new NotFoundException("Coach not found");
-        }
 
         const price = Math.round((coach.hourlyRate * duration) / 60);
 

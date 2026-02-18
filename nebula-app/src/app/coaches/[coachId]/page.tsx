@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,12 +19,12 @@ import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { WeeklyTimeSlotPicker } from "@/components/ui/weekly-time-slot-picker";
 import { cn } from "@/lib/utils";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Footer } from "@/components/layout/footer";
 import { toast } from "react-toastify";
 import { useAuth } from "@/hooks/use-auth";
 import { Header } from "@/components/layout/header";
-import { useBookCoachSession } from "@/hooks/use-session-queries";
+import { useSessionCheckout } from "@/hooks/use-checkout-queries";
 import { useCoachById } from "@/hooks/use-coach-queries";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -41,11 +41,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { reviewCoach } from "@/actions/reviews";
 import { createConversation } from "@/actions/messaging";
+import { UserRole } from "@/enums";
 
 export default function CoachDetailPage() {
   const t = useTranslations("coachDetails");
   const [bookingStep, setBookingStep] = useState(0);
   const params = useParams<{ coachId: string }>();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const { profile, isAuthenticated } = useAuth();
   const [date, setDate] = useState<Date | undefined>();
@@ -65,9 +67,28 @@ export default function CoachDetailPage() {
 
   const queryClient = useQueryClient();
 
-  const bookSessionMutation = useBookCoachSession();
+  const { mutateAsync: initiateCheckout, isPending: isCheckingOut } = useSessionCheckout();
+
+  useEffect(() => {
+    if (searchParams.get("success") === "true") {
+      setBookingStep(2);
+      // Clean up the URL
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, "", newUrl);
+    } else if (searchParams.get("canceled") === "true") {
+      toast.info(t("bookingCancelled") || "Booking cancelled");
+      // Clean up the URL
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, "", newUrl);
+    }
+  }, [searchParams, t]);
 
   const handleBookClick = () => {
+    if (profile?.role !== UserRole.STUDENT) {
+      toast.info(t("notStudent"));
+      return;
+    }
+
     if (!isAuthenticated) {
       router.replace("/login");
       return;
@@ -87,29 +108,28 @@ export default function CoachDetailPage() {
       return;
     }
 
-    bookSessionMutation.mutate(
-      {
+    const [hours, minutes] = selectedTime.split(":").map(Number);
+    const sessionDate = new Date(date);
+    sessionDate.setHours(hours, minutes, 0, 0);
+    const scheduledTime = sessionDate.toISOString();
+
+    try {
+      const response = await initiateCheckout({
         coachId: params.coachId,
-        date,
-        time: selectedTime,
-      },
-      {
-        onSuccess: (result) => {
-          if (result.success) {
-            setBookingStep(2); // Go to success step
-          } else {
-            toast.error(result.error || t("failedToBook"));
-          }
-        },
-        onError: (error: any) => {
-          console.error("Booking failed:", error);
-          toast.error(
-            error.message ||
-              t("bookingError"),
-          );
-        },
-      },
-    );
+        scheduledTime,
+        duration: 60, // Default duration, could be made dynamic later
+        successUrl: window.location.href + "?success=true",
+        cancelUrl: window.location.href + "?canceled=true",
+      });
+
+      if (response && response.success && (response.data as any)?.url) {
+        window.location.href = (response.data as any).url;
+      } else {
+        toast.error(response.error || t("failedToInitiateCheckout"));
+      }
+    } catch (error) {
+      console.error("Checkout error:", error);
+    }
   };
 
   const handleMessageClick = async () => {
@@ -315,11 +335,10 @@ export default function CoachDetailPage() {
                       >
                         <Card className="p-6 flex items-center gap-4 hover:shadow-lg transition-shadow">
                           <div
-                            className={`flex h-10 w-10 items-center justify-center rounded-full ${
-                              program.category === "Career Prep"
-                                ? "bg-primary/10"
-                                : "bg-blue-500/10"
-                            }`}
+                            className={`flex h-10 w-10 items-center justify-center rounded-full ${program.category === "Career Prep"
+                              ? "bg-primary/10"
+                              : "bg-blue-500/10"
+                              }`}
                           >
                             {program.category === "Career Prep" ? (
                               <Briefcase className="h-5 w-5 text-primary" />
@@ -347,7 +366,7 @@ export default function CoachDetailPage() {
               <div className="sticky top-24">
                 <EnrollmentForm
                   step={bookingStep}
-                  loading={bookSessionMutation.isPending}
+                  loading={isCheckingOut}
                   selectedDate={date}
                   setSelectedDate={setDate}
                   selectedTime={selectedTime}
@@ -588,11 +607,11 @@ function EnrollmentForm({
         <CardContent className="p-6 text-center">
           <h3 className="font-headline text-2xl font-bold">{t("bookSession")}</h3>
           <p className="text-muted-foreground mt-2 mb-6">{t("findTime")}</p>
-          { (
+          {(
             <Button size="lg" className="w-full" onClick={onEnroll}>
               <PlusCircle className="mr-2 h-5 w-5" /> {t("bookNow")}
             </Button>
-          ) }
+          )}
           {
             <Button
               size="lg"

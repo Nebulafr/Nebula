@@ -61,6 +61,8 @@
     "backToCoaches": "Coachs",
     "failedToBook": "Échec de la réservation de la séance. Veuillez réessayer.",
     "bookingError": "Une erreur est survenue lors de la réservation. Veuillez réessayer.",
+    "bookingCancelled": "Réservation annulée",
+    "failedToInitiateCheckout": "Échec de l'initialisation du paiement. Veuillez réessayer.",
     "workedAt": "{name} a travaillé chez :",
     "programsBy": "Programmes par {name}",
     "bookSession": "Réserver une séance",

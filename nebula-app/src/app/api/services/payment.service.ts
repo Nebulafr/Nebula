@@ -4,6 +4,7 @@ import Stripe from "stripe";
 import { NotFoundException, BadRequestException } from "../utils/http-exception";
 import { stripe } from "@/lib/stripe";
 import { emailService } from "./email.service";
+import { sessionService } from "./session.service";
 
 export class PaymentService {
     async handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
@@ -62,24 +63,12 @@ export class PaymentService {
     }
 
     private async handleSessionBooking(coachId: string, userId: string, scheduledTime: string, duration: string, stripeSessionId: string) {
-        const student = await prisma.student.findUnique({ where: { userId } });
-        if (!student) throw new NotFoundException(`Student not found for userId: ${userId}`);
-
-        await prisma.session.create({
-            data: {
-                coachId,
-                scheduledTime: new Date(scheduledTime),
-                duration: parseInt(duration),
-                status: SessionStatus.SCHEDULED,
-                paymentStatus: PaymentStatus.PAID,
-                stripeSessionId,
-                attendance: {
-                    create: {
-                        studentId: student.id,
-                        // attended: false, // Default
-                    },
-                },
-            },
+        await sessionService.completeSessionCheckout({
+            coachId,
+            studentUserId: userId,
+            scheduledTime: new Date(scheduledTime),
+            duration: parseInt(duration),
+            stripeSessionId,
         });
     }
 
@@ -109,7 +98,7 @@ export class PaymentService {
             return;
         }
 
-        const newAttendee = await prisma.eventAttendee.create({
+        await prisma.eventAttendee.create({
             data: {
                 eventId,
                 studentId: student.id,

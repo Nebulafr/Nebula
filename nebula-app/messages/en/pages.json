@@ -65,6 +65,8 @@
     "backToCoaches": "Coaches",
     "failedToBook": "Failed to book session. Please try again.",
     "bookingError": "An error occurred while booking. Please try again.",
+    "bookingCancelled": "Booking cancelled",
+    "failedToInitiateCheckout": "Failed to initiate checkout. Please try again.",
     "workedAt": "{name} has worked at:",
     "programsBy": "Programs by {name}",
     "bookSession": "Book a session",

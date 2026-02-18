@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { SessionStatus } from "@/generated/prisma";
+import { PaymentStatus, SessionStatus } from "@/generated/prisma";
 import { createCalendarEvent } from "@/lib/google-api";
 import { emailService } from "./email.service";
 import { sendSuccess } from "../utils/send-response";
@@ -19,6 +19,178 @@ interface BookSessionData {
 }
 
 export class SessionService {
+  async validateBooking(data: {
+    coachId: string;
+    studentUserId: string;
+    scheduledTime: Date;
+    duration: number;
+  }) {
+    const { coachId, studentUserId, scheduledTime, duration } = data;
+
+    const coach = await prisma.coach.findUnique({
+      where: {
+        id: coachId,
+        isActive: true, // Ensure coach is active
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    if (!coach) {
+      throw new NotFoundException("Coach not found or inactive");
+    }
+
+    const student = await prisma.student.findUnique({
+      where: { userId: studentUserId },
+      include: {
+        user: {
+          select: {
+            fullName: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    if (!student) {
+      throw new BadRequestException(
+        "Please complete your student profile to book sessions",
+      );
+    }
+
+    const sessionStartDate = scheduledTime;
+    const sessionDateTime = moment(sessionStartDate);
+
+    // Validate sessionDateTime validity
+    if (!sessionDateTime.isValid()) {
+      throw new BadRequestException("Invalid session date or time");
+    }
+
+    const sessionEndTime = sessionDateTime.clone().add(duration, "minutes");
+    const sessionEndDate = sessionEndTime.toDate();
+
+    // Check availability
+    await this.verifyCoachAvailability(coach, sessionDateTime, duration);
+
+    // Check conflicts
+    await this.checkForConflictingSessions(
+      coach.id,
+      sessionStartDate,
+      sessionEndDate,
+      duration,
+    );
+
+    await this.checkStudentConflicts(
+      student.id,
+      sessionStartDate,
+      sessionEndDate,
+      duration,
+    );
+
+    return { coach, student, sessionStartDate, sessionEndDate, sessionDateTime, sessionEndTime };
+  }
+
+  async completeSessionCheckout(data: {
+    coachId: string;
+    studentUserId: string;
+    scheduledTime: Date;
+    duration: number;
+    stripeSessionId: string;
+  }) {
+    const { coachId, studentUserId, scheduledTime, duration, stripeSessionId } = data;
+
+    const { coach, student, sessionDateTime, sessionEndTime } = await this.validateBooking({
+      coachId,
+      studentUserId,
+      scheduledTime,
+      duration
+    });
+
+    let meetLink = null;
+    let googleEventId = null;
+
+    if (coach.googleCalendarAccessToken) {
+      try {
+        const calendarResult = await this.createGoogleCalendarEvent(
+          coach,
+          student.user,
+          sessionDateTime,
+          sessionEndTime,
+          duration
+        );
+        meetLink = calendarResult.meetLink;
+        googleEventId = calendarResult.googleEventId;
+      } catch (error) {
+        console.error("Error creating Google Calendar event:", error);
+      }
+    }
+
+    const session = await prisma.session.create({
+      data: {
+        coachId,
+        scheduledTime,
+        duration,
+        status: SessionStatus.SCHEDULED,
+        paymentStatus: PaymentStatus.PAID,
+        stripeSessionId,
+        meetLink,
+        googleEventId,
+        attendance: {
+          create: {
+            studentId: student.id,
+          }
+        }
+      },
+      include: {
+        coach: { include: { user: true } },
+        attendance: { include: { student: { include: { user: true } } } }
+      }
+    });
+
+    await this.updateCoachStats(coach.id, student.id, session.id);
+
+    await this.sendSessionNotifications(
+      coach,
+      student,
+      sessionDateTime,
+      duration,
+      meetLink
+    );
+
+    return session;
+  }
+
+  private async updateCoachStats(coachId: string, studentId: string, currentSessionId: string) {
+    const previousSessionsCount = await prisma.session.count({
+      where: {
+        coachId: coachId,
+        status: {
+          in: [SessionStatus.SCHEDULED, SessionStatus.COMPLETED],
+        },
+        attendance: {
+          some: { studentId },
+        },
+        id: { not: currentSessionId },
+      },
+    });
+
+    await prisma.coach.update({
+      where: { id: coachId },
+      data: {
+        totalSessions: { increment: 1 },
+        studentsCoached:
+          previousSessionsCount === 0 ? { increment: 1 } : undefined,
+      },
+    });
+  }
+
   async bookSession(data: BookSessionData) {
     const {
       coachId,
@@ -29,142 +201,70 @@ export class SessionService {
       timezone: providedTimezone,
     } = data;
 
-    const result = await prisma.$transaction(
-      async (tx) => {
-        // Get coach with Google Calendar tokens and user details
-        const coach = await tx.coach.findUnique({
-          where: {
-            id: coachId,
-            isActive: true,
-          },
-          include: {
-            user: {
-              select: {
-                id: true,
-                fullName: true,
-                email: true,
-              },
-            },
-          },
-        });
+    // Helper to construct Date from date+time+timezone
+    // We need to fetch student's timezone if not provided, which validateBooking does internally via student fetch?
+    // Actually validateBooking expects a Date object.
 
-        if (!coach) {
-          throw new NotFoundException("Coach not found");
-        }
+    // We need to fetch student to get timezone if not provided, OR we can rely on client passing it.
+    // To match previous logic exactly is hard without fetching student first.
+    // But validateBooking fetches student.
 
-        // Get student details
-        const student = await tx.student.findUnique({
-          where: { userId: studentUserId },
-          include: {
-            user: {
-              select: {
-                fullName: true,
-                email: true,
-              },
-            },
-          },
-        });
+    // Let's do a pre-fetch just for timezone parsing if needed, or duplicate the date parsing logic.
+    // Previous logic fetched student inside transaction.
 
-        if (!student) {
-          throw new BadRequestException(
-            "Please complete your student profile to book sessions",
-          );
-        }
+    let timezone = providedTimezone || "UTC";
+    if (!providedTimezone) {
+      const student = await prisma.student.findUnique({ where: { userId: studentUserId }, select: { timeZone: true } });
+      if (student && student.timeZone) {
+        timezone = student.timeZone;
+      }
+    }
 
-        // Calculate session times
-        const timezone = providedTimezone || student.timeZone || "UTC";
-
-        // Extract only the date part if it's an ISO string to avoid timezone shifts during initial parse
-        const datePart = date.includes("T") ? date.split("T")[0] : date;
-
-        const sessionDateTime = moment.tz(
-          `${datePart} ${startTime}`,
-          "YYYY-MM-DD HH:mm",
-          timezone,
-        );
-
-        if (!sessionDateTime.isValid()) {
-          throw new BadRequestException("Invalid session date or time format");
-        }
-
-        const sessionEndTime = sessionDateTime.clone().add(duration, "minutes");
-        const sessionStartDate = sessionDateTime.toDate();
-        const sessionEndDate = sessionEndTime.toDate();
-
-        // Check for availability
-        await this.verifyCoachAvailability(coach, sessionDateTime, duration);
-
-        // Check for conflicts
-        await this.checkForConflictingSessions(
-          coach.id,
-          sessionStartDate,
-          sessionEndDate,
-          duration,
-          undefined,
-          tx,
-        );
-
-        // Check for student conflicts
-        await this.checkStudentConflicts(
-          student.id,
-          sessionStartDate,
-          sessionEndDate,
-          duration,
-          undefined,
-          tx,
-        );
-
-        // Create session and related records
-        const session = await tx.session.create({
-          data: {
-            coachId,
-            scheduledTime: sessionDateTime.toDate(),
-            duration,
-            status: SessionStatus.REQUESTED,
-            attendance: {
-              create: {
-                studentId: student.id,
-              },
-            },
-          },
-          include: {
-            attendance: {
-              include: {
-                student: {
-                  include: {
-                    user: true,
-                  },
-                },
-              },
-            },
-            coach: {
-              include: {
-                user: true,
-              },
-            },
-          },
-        });
-
-        return {
-          coach,
-          student,
-          session,
-          sessionDateTime,
-        };
-      },
-      { timeout: 15000 },
+    const datePart = date.includes("T") ? date.split("T")[0] : date;
+    const sessionDateTime = moment.tz(
+      `${datePart} ${startTime}`,
+      "YYYY-MM-DD HH:mm",
+      timezone,
     );
 
-    const { coach, student, session, sessionDateTime } = result;
+    if (!sessionDateTime.isValid()) {
+      throw new BadRequestException("Invalid session date or time format");
+    }
 
-    // Send email notifications outside transaction
-    // For now, let's keep it here for the initial request notification
+    const scheduledTime = sessionDateTime.toDate();
+
+    const { coach, student } = await this.validateBooking({
+      coachId,
+      studentUserId,
+      scheduledTime,
+      duration
+    });
+
+    // Create session (Original behavior: REQUESTED, not PAID)
+    const session = await prisma.session.create({
+      data: {
+        coachId,
+        scheduledTime,
+        duration,
+        status: SessionStatus.REQUESTED,
+        attendance: {
+          create: {
+            studentId: student.id,
+          },
+        },
+      },
+      include: {
+        coach: { include: { user: true } },
+        attendance: { include: { student: { include: { user: true } } } }
+      }
+    });
+
     await this.sendSessionNotifications(
       coach,
       student,
       sessionDateTime,
       duration,
-      null, // No meet link yet for requested sessions
+      null,
     );
 
     return sendSuccess(
@@ -207,7 +307,6 @@ export class SessionService {
     let meetLink = null;
     let googleEventId = null;
 
-    // Create Google Calendar event if coach has tokens
     if (session.coach.googleCalendarAccessToken) {
       try {
         const sessionDateTime = moment(session.scheduledTime);
@@ -238,7 +337,6 @@ export class SessionService {
 
     const updatedSession = await prisma.$transaction(
       async (tx) => {
-        // Re-check for conflicts inside the transaction to ensure atomicity
         await this.checkForConflictingSessions(
           session.coachId,
           sessionStartDate,
@@ -285,10 +383,8 @@ export class SessionService {
           },
         });
 
-        // Increment coach stats
         const studentId = updated.attendance[0]?.studentId;
         if (studentId) {
-          // Check if it's the student's first scheduled/completed session with this coach
           const previousSessionsCount = await tx.session.count({
             where: {
               coachId: updated.coachId,
@@ -317,7 +413,6 @@ export class SessionService {
       { timeout: 15000 },
     );
 
-    // Send email notifications for approval
     const coach = updatedSession.coach;
     const studentForNotification = updatedSession.attendance[0]?.student;
     const sessionDateTime = moment(updatedSession.scheduledTime);
@@ -418,8 +513,7 @@ export class SessionService {
           `Requested time ${sessionDateTime.format("HH:mm")} - ${sessionDateTime
             .clone()
             .add(duration, "minutes")
-            .format("HH:mm")} is outside of coach's available hours (${
-            dayAvail.startTime
+            .format("HH:mm")} is outside of coach's available hours (${dayAvail.startTime
           } - ${dayAvail.endTime})`,
         );
       }
@@ -1192,28 +1286,28 @@ export class SessionService {
       updatedAt: session.updatedAt.toISOString(),
       coach: session.coach
         ? {
-            id: session.coach.id,
-            fullName: session.coach.user?.fullName,
-            email: session.coach.user?.email,
-            avatarUrl: session.coach.user?.avatarUrl,
-          }
+          id: session.coach.id,
+          fullName: session.coach.user?.fullName,
+          email: session.coach.user?.email,
+          avatarUrl: session.coach.user?.avatarUrl,
+        }
         : null,
       attendance: session.attendance
         ? session.attendance.map((att: any) => ({
-            id: att.id,
-            attended: att.attended,
-            joinTime: att.joinTime?.toISOString(),
-            leaveTime: att.leaveTime?.toISOString(),
-            participationScore: att.participationScore,
-            student: att.student
-              ? {
-                  id: att.student.id,
-                  fullName: att.student.user?.fullName,
-                  email: att.student.user?.email,
-                  avatarUrl: att.student.user?.avatarUrl,
-                }
-              : null,
-          }))
+          id: att.id,
+          attended: att.attended,
+          joinTime: att.joinTime?.toISOString(),
+          leaveTime: att.leaveTime?.toISOString(),
+          participationScore: att.participationScore,
+          student: att.student
+            ? {
+              id: att.student.id,
+              fullName: att.student.user?.fullName,
+              email: att.student.user?.email,
+              avatarUrl: att.student.user?.avatarUrl,
+            }
+            : null,
+        }))
         : [],
     };
   }
