@@ -175,9 +175,9 @@ export class AdminService {
             emailTemplate = "APPLICATION_DECLINED";
             break;
           case "activate":
-            if (program.status !== "SUBMITTED") {
+            if (!["SUBMITTED", "INACTIVE"].includes(program.status)) {
               throw new BadRequestException(
-                "Only submitted programs can be activated",
+                "Only submitted or inactive programs can be activated",
               );
             }
             status = "ACTIVE";
@@ -230,10 +230,10 @@ export class AdminService {
           updatedProgram,
           emailData: emailTemplate
             ? {
-                email: program.coach.user.email,
-                template: emailTemplate,
-                fullName: program.coach.user.fullName || "Coach",
-              }
+              email: program.coach.user.email,
+              template: emailTemplate,
+              fullName: program.coach.user.fullName || "Coach",
+            }
             : null,
           action,
         };
@@ -537,7 +537,7 @@ export class AdminService {
     const signupGrowthPercent =
       newSignupsLastMonth > 0
         ? ((newSignupsThisMonth - newSignupsLastMonth) / newSignupsLastMonth) *
-          100
+        100
         : 0;
 
     // Get active coaches count
@@ -590,27 +590,23 @@ export class AdminService {
         stats: {
           revenue: {
             value: `$${totalRevenue.toLocaleString()}`,
-            change: `${
-              revenueGrowthPercent >= 0 ? "+" : ""
-            }${revenueGrowthPercent.toFixed(1)}% from last month`,
+            change: `${revenueGrowthPercent >= 0 ? "+" : ""
+              }${revenueGrowthPercent.toFixed(1)}% from last month`,
           },
           users: {
             value: totalUsers.toLocaleString(),
-            change: `${
-              userGrowth >= 0 ? "+" : ""
-            }${userGrowth} from last month`,
+            change: `${userGrowth >= 0 ? "+" : ""
+              }${userGrowth} from last month`,
           },
           signups: {
             value: `+${newSignupsThisMonth}`,
-            change: `${
-              signupGrowthPercent >= 0 ? "+" : ""
-            }${signupGrowthPercent.toFixed(1)}% from last month`,
+            change: `${signupGrowthPercent >= 0 ? "+" : ""
+              }${signupGrowthPercent.toFixed(1)}% from last month`,
           },
           coaches: {
             value: activeCoaches.toString(),
-            change: `${
-              coachGrowth >= 0 ? "+" : ""
-            }${coachGrowth} since last month`,
+            change: `${coachGrowth >= 0 ? "+" : ""
+              }${coachGrowth} since last month`,
           },
         },
       },
@@ -705,9 +701,8 @@ export class AdminService {
     recentCoaches.forEach((coach) => {
       activities.push({
         type: "New Coach",
-        description: `${
-          coach.user.fullName || "A new coach"
-        } has been approved as a new coach.`,
+        description: `${coach.user.fullName || "A new coach"
+          } has been approved as a new coach.`,
         time: getRelativeTime(coach.createdAt),
         timestamp: coach.createdAt,
       });
@@ -725,9 +720,8 @@ export class AdminService {
     recentStudents.forEach((student) => {
       activities.push({
         type: "New Student",
-        description: `${
-          student.user.fullName || student.user.email
-        } signed up as a new student.`,
+        description: `${student.user.fullName || student.user.email
+          } signed up as a new student.`,
         time: getRelativeTime(student.createdAt),
         timestamp: student.createdAt,
       });

@@ -122,6 +122,7 @@ export default function ProgramDetailPage({
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedTime, setSelectedTime] = useState<string>("");
+  const [hasFutureCohort, setHasFutureCohort] = useState(false);
   const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
@@ -152,29 +153,25 @@ export default function ProgramDetailPage({
 
   useEffect(() => {
     if (program) {
-      const now = new Date();
-      if (program.cohorts && program.cohorts.length > 0) {
-        const futureCohorts = program.cohorts
-          .map((c: Cohort) => ({ ...c, startDate: new Date(c.startDate) }))
-          .filter(
-            (c: Cohort & { startDate: Date }) =>
-              c.startDate > now && c.status === "UPCOMING",
-          )
-          .sort(
-            (a: { startDate: Date }, b: { startDate: Date }) =>
-              a.startDate.getTime() - b.startDate.getTime(),
-          );
+      // cohorts are pre-filtered (UPCOMING, future) and sorted by the DB
+      const upcomingCohorts = program.cohorts ?? [];
 
-        if (futureCohorts.length > 0) {
-          const nextCohort = futureCohorts[0];
-          setSelectedDate(nextCohort.startDate);
-          const timeStr = nextCohort.startDate.toLocaleTimeString([], {
+      if (upcomingCohorts.length > 0) {
+        const nextCohort = upcomingCohorts[0];
+        const startDate = new Date(nextCohort.startDate);
+        setSelectedDate(startDate);
+        setSelectedTime(
+          startDate.toLocaleTimeString([], {
             hour: "2-digit",
             minute: "2-digit",
             hour12: false,
-          });
-          setSelectedTime(timeStr);
-        }
+          }),
+        );
+        setHasFutureCohort(true);
+      } else {
+        setSelectedDate(undefined);
+        setSelectedTime("");
+        setHasFutureCohort(false);
       }
     }
   }, [program]);
@@ -379,8 +376,17 @@ export default function ProgramDetailPage({
                   size="lg"
                   onClick={() => setEnrollmentStep(1)}
                   variant={enrollmentStep > 0 ? "outline" : "default"}
+                  disabled={!hasFutureCohort}
                 >
-                  <PlusCircle className="mr-2 h-5 w-5" /> {t("enrollNow")}
+                  {hasFutureCohort ? (
+                    <>
+                      <PlusCircle className="mr-2 h-5 w-5" /> {t("enrollNow")}
+                    </>
+                  ) : (
+                    <>
+                      <PlusCircle className="mr-2 h-5 w-5" /> {t("noUpcomingCohort")}
+                    </>
+                  )}
                 </Button>
               )}
               {isEnrolled && (
@@ -430,6 +436,7 @@ export default function ProgramDetailPage({
                     loading={enrolling}
                     selectedDate={selectedDate}
                     selectedTime={selectedTime}
+                    hasFutureCohort={hasFutureCohort}
                     onEnroll={handleEnrollClick}
                     onCancel={() => setEnrollmentStep(0)}
                   />
@@ -467,6 +474,7 @@ export default function ProgramDetailPage({
                   loading={enrolling}
                   selectedDate={selectedDate}
                   selectedTime={selectedTime}
+                  hasFutureCohort={hasFutureCohort}
                   onEnroll={handleEnrollClick}
                   onCancel={() => setEnrollmentStep(0)}
                 />
@@ -476,6 +484,8 @@ export default function ProgramDetailPage({
                     size="lg"
                     className="w-full"
                     onClick={() => setEnrollmentStep(1)}
+                    disabled={!hasFutureCohort}
+                    title={!hasFutureCohort ? t("noUpcomingCohort") : undefined}
                   >
                     <PlusCircle className="mr-2 h-5 w-5" /> {t("enrollNow")}
                   </Button>
@@ -844,6 +854,7 @@ function EnrollmentForm({
   loading,
   selectedDate,
   selectedTime,
+  hasFutureCohort,
   onEnroll,
   onCancel,
 }: {
@@ -851,6 +862,7 @@ function EnrollmentForm({
   loading: boolean;
   selectedDate: Date | undefined;
   selectedTime: string;
+  hasFutureCohort: boolean;
   onEnroll: () => void;
   onCancel: () => void;
 }) {
@@ -874,15 +886,28 @@ function EnrollmentForm({
               <X className="h-4 w-4" />
             </Button>
           </div>
-          <div className="text-center my-6">
-            <p className="text-muted-foreground">{t("nextCohortStarts")}</p>
-            <p className="text-xl font-bold mt-1">
-              {selectedDate?.toLocaleDateString(locale === "fr" ? "fr-FR" : "en-US")} at {selectedTime}
-            </p>
-          </div>
-          <Button className="w-full" onClick={onEnroll} disabled={loading}>
-            {loading ? t("submitting") : t("enrollNow")}
-          </Button>
+          {!hasFutureCohort ? (
+            <div className="text-center my-6 space-y-2">
+              <p className="text-muted-foreground text-sm">
+                {t("noUpcomingCohort")}
+              </p>
+              <p className="text-xs text-muted-foreground/70">
+                {t("checkBackLater")}
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="text-center my-6">
+                <p className="text-muted-foreground">{t("nextCohortStarts")}</p>
+                <p className="text-xl font-bold mt-1">
+                  {selectedDate?.toLocaleDateString(locale === "fr" ? "fr-FR" : "en-US")} at {selectedTime}
+                </p>
+              </div>
+              <Button className="w-full" onClick={onEnroll} disabled={loading}>
+                {loading ? t("submitting") : t("enrollNow")}
+              </Button>
+            </>
+          )}
         </CardContent>
       </Card>
     );

@@ -34,6 +34,8 @@
     "programModules": "Modules du programme",
     "week": "Semaine {count}",
     "joinNextCohort": "Rejoindre la prochaine cohorte",
+    "noUpcomingCohort": "Aucune cohorte à venir disponible",
+    "checkBackLater": "Revenez plus tard pour les prochaines dates de cohorte.",
     "nextCohortStarts": "La prochaine cohorte commence le :",
     "enrollSuccessTitle": "Vous y êtes !",
     "enrollSuccessDesc": "Bienvenue dans le programme. Vous pouvez consulter les détails de votre inscription sur votre tableau de bord.",

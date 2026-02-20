@@ -112,10 +112,10 @@ export class ProgramService {
         coCoaches:
           validCoCoachIds.length > 0
             ? {
-                create: validCoCoachIds.map((coachId) => ({
-                  coachId,
-                })),
-              }
+              create: validCoCoachIds.map((coachId) => ({
+                coachId,
+              })),
+            }
             : undefined,
       },
       include: {
@@ -439,6 +439,10 @@ export class ProgramService {
           },
         },
         cohorts: {
+          where: {
+            status: "UPCOMING",
+            startDate: { gt: new Date() },
+          },
           orderBy: {
             startDate: "asc",
           },
@@ -693,17 +697,17 @@ export class ProgramService {
       const existingReview =
         targetType === "COACH"
           ? await prisma.coachReview.findFirst({
-              where: {
-                userId,
-                coachId: targetId,
-              },
-            })
+            where: {
+              userId,
+              coachId: targetId,
+            },
+          })
           : await prisma.programReview.findFirst({
-              where: {
-                userId,
-                programId: targetId,
-              },
-            });
+            where: {
+              userId,
+              programId: targetId,
+            },
+          });
 
       return !!existingReview;
     } catch (error) {

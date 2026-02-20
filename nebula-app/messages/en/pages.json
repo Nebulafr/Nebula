@@ -40,6 +40,8 @@
     "programModules": "Program Modules",
     "week": "Week {count}",
     "joinNextCohort": "Join Next Cohort",
+    "noUpcomingCohort": "No upcoming cohort available",
+    "checkBackLater": "Check back later for new cohort dates.",
     "nextCohortStarts": "The next cohort starts on:",
     "enrollSuccessTitle": "You're In!",
     "enrollSuccessDesc": "Welcome to the program. You can view your enrollment details on your dashboard.",
