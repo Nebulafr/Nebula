@@ -13,6 +13,7 @@ import {
 import {
   ArrowRight,
   ChevronRight,
+  CreditCard,
   MessageCircle,
   PlusCircle,
   Star,
@@ -21,9 +22,9 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Footer } from "@/components/layout/footer";
-import { enrollInProgram, getEnrollments } from "@/actions/enrollment";
+import { getEnrollments } from "@/actions/enrollment";
 import { toast } from "react-toastify";
 import { Header } from "@/components/layout/header";
 import { useAuth } from "@/hooks/use-auth";
@@ -44,6 +45,7 @@ import { reviewProgram } from "@/actions/reviews";
 import { useQueryClient } from "@tanstack/react-query";
 import { PROGRAM_BY_SLUG_QUERY_KEY } from "@/hooks/use-programs-queries";
 import { UserRole } from "../../../../generated/prisma/edge";
+import { useProgramCheckout } from "@/hooks/use-checkout-queries";
 
 type Cohort = {
   id: string;
@@ -110,6 +112,8 @@ export default function ProgramDetailPage({
   const { slug } = use(params);
   const { profile, isStudent } = useAuth();
   const queryClient = useQueryClient();
+  const searchParams = useSearchParams();
+  const router = useRouter();
 
   // Use the platform hook for fetching program data
   const { data: programResponse, isLoading, error } = useProgramBySlug(slug);
@@ -117,19 +121,34 @@ export default function ProgramDetailPage({
     | ProgramWithRelations
     | undefined;
 
+  const { mutateAsync: initiateCheckout, isPending: isCheckingOut } =
+    useProgramCheckout();
+
   const [enrollmentStep, setEnrollmentStep] = useState(0);
-  const [enrolling, setEnrolling] = useState(false);
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [hasFutureCohort, setHasFutureCohort] = useState(false);
+  const [nextCohortId, setNextCohortId] = useState<string | undefined>();
   const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
-  const router = useRouter();
+
+  // Handle Stripe return URLs
+  useEffect(() => {
+    if (searchParams.get("enrolled") === "true") {
+      setIsEnrolled(true);
+      setEnrollmentStep(0);
+      toast.success(t("enrollSuccessTitle"));
+      window.history.replaceState({}, "", window.location.pathname);
+    } else if (searchParams.get("canceled") === "true") {
+      toast.info(t("checkoutCanceled"));
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, [searchParams, t]);
 
   useEffect(() => {
     const checkEnrollmentStatus = async () => {
@@ -140,6 +159,10 @@ export default function ProgramDetailPage({
             const isStudentEnrolled = response.data!.enrollments.some(
               (en: any) => en.programId === program.id,
             );
+            console.log("Enrollment check:", {
+              programId: program.id,
+              isEnrolled: isStudentEnrolled,
+            });
             setIsEnrolled(isStudentEnrolled);
           }
         } catch (error) {
@@ -160,6 +183,7 @@ export default function ProgramDetailPage({
         const nextCohort = upcomingCohorts[0];
         const startDate = new Date(nextCohort.startDate);
         setSelectedDate(startDate);
+        setNextCohortId(nextCohort.id);
         setSelectedTime(
           startDate.toLocaleTimeString([], {
             hour: "2-digit",
@@ -171,6 +195,7 @@ export default function ProgramDetailPage({
       } else {
         setSelectedDate(undefined);
         setSelectedTime("");
+        setNextCohortId(undefined);
         setHasFutureCohort(false);
       }
     }
@@ -238,7 +263,7 @@ export default function ProgramDetailPage({
     );
   }
 
-  const handleEnrollClick = async () => {
+  const handleCheckoutClick = async () => {
     if (!profile) {
       router.replace("/login");
       return;
@@ -249,43 +274,27 @@ export default function ProgramDetailPage({
       return;
     }
 
-    if (!selectedDate || !selectedTime) {
-      toast.error(t("noSchedule"));
-      return;
-    }
-
     try {
-      setEnrolling(true);
-      if (!profile) {
-        toast.error(t("completeProfile"));
-        router.replace("/dashboard/profile");
-        return;
-      }
-
-      const enrollmentResult = await enrollInProgram({
-        programSlug: program!.slug,
-        coachId: program!.coachId,
-        amountPaid: program!.price || 0,
-        time: selectedTime,
+      const baseUrl = window.location.href.split("?")[0];
+      const result = await initiateCheckout({
+        programId: program!.id,
+        cohortId: nextCohortId,
+        successUrl: `${baseUrl}?enrolled=true`,
+        cancelUrl: `${baseUrl}?canceled=true`,
       });
 
-      if (!enrollmentResult.success) {
-        throw new Error(
-          enrollmentResult.error || "Failed to enroll in program",
-        );
+      if (result?.success && (result.data as any)?.url) {
+        window.location.href = (result.data as any).url;
+      } else {
+        toast.error(result?.error || t("failedToInitiateCheckout"));
       }
-
-      setEnrollmentStep(3);
-      setIsEnrolled(true);
     } catch (error) {
-      console.error("Enrollment error:", error);
+      console.error("Checkout error:", error);
       toast.error(
         error instanceof Error
           ? error.message
           : "There was an error processing your enrollment. Please try again.",
       );
-    } finally {
-      setEnrolling(false);
     }
   };
 
@@ -384,7 +393,8 @@ export default function ProgramDetailPage({
                     </>
                   ) : (
                     <>
-                      <PlusCircle className="mr-2 h-5 w-5" /> {t("noUpcomingCohort")}
+                      <PlusCircle className="mr-2 h-5 w-5" />{" "}
+                      {t("noUpcomingCohort")}
                     </>
                   )}
                 </Button>
@@ -392,7 +402,8 @@ export default function ProgramDetailPage({
               {isEnrolled && (
                 <Button size="lg" variant="outline" asChild>
                   <Link href="/dashboard">
-                    <CheckCircle className="mr-2 h-5 w-5" /> {t("accessDashboard")}
+                    <CheckCircle className="mr-2 h-5 w-5" />{" "}
+                    {t("accessDashboard")}
                   </Link>
                 </Button>
               )}
@@ -433,17 +444,20 @@ export default function ProgramDetailPage({
                 {enrollmentStep > 0 || isEnrolled ? (
                   <EnrollmentForm
                     step={enrollmentStep}
-                    loading={enrolling}
+                    loading={isCheckingOut}
                     selectedDate={selectedDate}
                     selectedTime={selectedTime}
                     hasFutureCohort={hasFutureCohort}
-                    onEnroll={handleEnrollClick}
+                    price={program.price ?? 0}
+                    onEnroll={handleCheckoutClick}
                     onCancel={() => setEnrollmentStep(0)}
                   />
                 ) : (
                   <>
                     <h2 className="mb-4 font-headline text-lg font-bold text-center">
-                      {t("studentsEnrolled", { count: program.currentEnrollments || 0 })}
+                      {t("studentsEnrolled", {
+                        count: program.currentEnrollments || 0,
+                      })}
                     </h2>
                     <Card className="rounded-xl bg-secondary text-secondary-foreground min-h-48 flex flex-col justify-center">
                       <CardContent className="p-6 text-center">
@@ -471,11 +485,12 @@ export default function ProgramDetailPage({
               {enrollmentStep > 0 || isEnrolled ? (
                 <EnrollmentForm
                   step={enrollmentStep}
-                  loading={enrolling}
+                  loading={isCheckingOut}
                   selectedDate={selectedDate}
                   selectedTime={selectedTime}
                   hasFutureCohort={hasFutureCohort}
-                  onEnroll={handleEnrollClick}
+                  price={program.price ?? 0}
+                  onEnroll={handleCheckoutClick}
                   onCancel={() => setEnrollmentStep(0)}
                 />
               ) : (
@@ -540,13 +555,17 @@ export default function ProgramDetailPage({
                 {isStudent && (
                   <Button variant="outline" onClick={handleMessageClick}>
                     <MessageCircle className="mr-2 h-4 w-4" />
-                    {t("messageCoach", { name: program.coach?.user.fullName?.split(" ")[0] || "" })}
+                    {t("messageCoach", {
+                      name: program.coach?.user.fullName?.split(" ")[0] || "",
+                    })}
                   </Button>
                 )}
               </div>
             </div>
             <div className="md:col-span-1">
-              <h2 className="mb-4 font-headline text-xl font-bold">{t("reviews")}</h2>
+              <h2 className="mb-4 font-headline text-xl font-bold">
+                {t("reviews")}
+              </h2>
               {program?.reviews && program.reviews.length > 0 ? (
                 <Card className="rounded-xl border shadow-sm">
                   <CardContent className="p-6">
@@ -771,9 +790,7 @@ export default function ProgramDetailPage({
                                 placeholder={t("textareaPlaceholder")}
                                 rows={4}
                                 value={reviewText}
-                                onChange={(e) =>
-                                  setReviewText(e.target.value)
-                                }
+                                onChange={(e) => setReviewText(e.target.value)}
                                 required
                               />
                             </div>
@@ -802,10 +819,7 @@ export default function ProgramDetailPage({
                           <p className="text-muted-foreground mt-2">
                             {t("reviewSubmitted")}
                           </p>
-                          <Button
-                            onClick={resetReviewForm}
-                            className="mt-6"
-                          >
+                          <Button onClick={resetReviewForm} className="mt-6">
                             {t("close")}
                           </Button>
                         </div>
@@ -833,7 +847,9 @@ export default function ProgramDetailPage({
                 <AccordionTrigger className="text-lg font-semibold hover:no-underline text-left">
                   <div className="flex items-center gap-4">
                     <span>{mod.title}</span>
-                    <Badge variant="secondary">{t("week", { count: mod.week })}</Badge>
+                    <Badge variant="secondary">
+                      {t("week", { count: mod.week })}
+                    </Badge>
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="text-base text-muted-foreground pl-4 pb-4 font-normal">
@@ -855,6 +871,7 @@ function EnrollmentForm({
   selectedDate,
   selectedTime,
   hasFutureCohort,
+  price,
   onEnroll,
   onCancel,
 }: {
@@ -863,11 +880,13 @@ function EnrollmentForm({
   selectedDate: Date | undefined;
   selectedTime: string;
   hasFutureCohort: boolean;
+  price: number;
   onEnroll: () => void;
   onCancel: () => void;
 }) {
   const t = useTranslations("programDetails");
   const locale = useLocale();
+  const isFree = price === 0;
 
   if (step === 1) {
     return (
@@ -897,14 +916,34 @@ function EnrollmentForm({
             </div>
           ) : (
             <>
-              <div className="text-center my-6">
-                <p className="text-muted-foreground">{t("nextCohortStarts")}</p>
-                <p className="text-xl font-bold mt-1">
-                  {selectedDate?.toLocaleDateString(locale === "fr" ? "fr-FR" : "en-US")} at {selectedTime}
+              <div className="text-center my-6 space-y-1">
+                <p className="text-muted-foreground text-sm">
+                  {t("nextCohortStarts")}
+                </p>
+                <p className="text-base font-bold">
+                  {selectedDate?.toLocaleDateString(
+                    locale === "fr" ? "fr-FR" : "en-US",
+                  )}{" "}
+                  at {selectedTime}
+                </p>
+                <p className="text-2xl font-bold text-primary mt-3">
+                  {isFree ? t("free") : `$${price}`}
                 </p>
               </div>
               <Button className="w-full" onClick={onEnroll} disabled={loading}>
-                {loading ? t("submitting") : t("enrollNow")}
+                {loading ? (
+                  t("submitting")
+                ) : isFree ? (
+                  <>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    {t("joinForFree")}
+                  </>
+                ) : (
+                  <>
+                    <CreditCard className="mr-2 h-4 w-4" />
+                    {t("proceedToPayment")}
+                  </>
+                )}
               </Button>
             </>
           )}
@@ -913,15 +952,17 @@ function EnrollmentForm({
     );
   }
 
+  // step === 2 is kept for backwards compatibility but success is primarily
+  // handled by the ?enrolled=true return URL from Stripe
   if (step === 2) {
     return (
       <Card className="rounded-xl border-none bg-green-50 text-green-900 shadow-lg">
         <CardContent className="p-6 text-center">
           <CheckCircle className="h-12 w-12 mx-auto mb-4" />
-          <h3 className="font-headline text-xl font-bold">{t("enrollSuccessTitle")}</h3>
-          <p className="text-sm mt-2">
-            {t("enrollSuccessDesc")}
-          </p>
+          <h3 className="font-headline text-xl font-bold">
+            {t("enrollSuccessTitle")}
+          </h3>
+          <p className="text-sm mt-2">{t("enrollSuccessDesc")}</p>
           <div className="flex gap-2 mt-6">
             <Button
               variant="outline"
