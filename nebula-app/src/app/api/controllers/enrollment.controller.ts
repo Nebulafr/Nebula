@@ -25,7 +25,7 @@ export class EnrollmentController {
     const status = searchParams.get("status") as EnrollmentStatus | null;
 
     const enrollments = await enrollmentService.getStudentEnrollments(
-      user.studentId!,
+      user.student?.id!,
       status || undefined
     );
 
@@ -85,7 +85,7 @@ export class EnrollmentController {
     }
 
     const body = await request.json();
-    
+
     const enrollmentData = createEnrollmentSchema.parse(body);
 
     const enrollmentResult = await enrollmentService.enrollInProgram(

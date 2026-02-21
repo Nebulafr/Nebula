@@ -63,6 +63,7 @@
     "loginToBook": "Veuillez vous connecter pour réserver une séance.",
     "selectDateLogin": "Veuillez sélectionner une date et assurez-vous d'être connecté.",
     "loginToMessage": "Veuillez vous connecter pour envoyer un message.",
+    "notStudent": "Cette fonctionnalité est réservée aux étudiants.",
     "coachInfoNotAvailable": "Informations sur le coach non disponibles.",
     "startConvFailed": "Échec du démarrage de la conversation. Veuillez réessayer.",
     "backToCoaches": "Coachs",

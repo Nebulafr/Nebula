@@ -117,7 +117,7 @@ export default function CoachDetailPage() {
       const response = await initiateCheckout({
         coachId: params.coachId,
         scheduledTime,
-        duration: 60, // Default duration, could be made dynamic later
+        duration: 60,
         successUrl: window.location.href + "?success=true",
         cancelUrl: window.location.href + "?canceled=true",
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,

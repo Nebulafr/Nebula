@@ -67,6 +67,7 @@
     "loginToBook": "Please log in to book a session.",
     "selectDateLogin": "Please select a date and ensure you're logged in.",
     "loginToMessage": "Please log in to send a message.",
+    "notStudent": "This feature is only available for students.",
     "coachInfoNotAvailable": "Coach information not available.",
     "startConvFailed": "Failed to start conversation. Please try again.",
     "backToCoaches": "Coaches",
