@@ -58,6 +58,7 @@ export default function CoachDetailPage() {
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
+  const [selectedDuration, setSelectedDuration] = useState(60);
 
   const {
     data: coach,
@@ -117,7 +118,7 @@ export default function CoachDetailPage() {
       const response = await initiateCheckout({
         coachId: params.coachId,
         scheduledTime,
-        duration: 60,
+        duration: selectedDuration,
         successUrl: window.location.href + "?success=true",
         cancelUrl: window.location.href + "?canceled=true",
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -338,11 +339,10 @@ export default function CoachDetailPage() {
                       >
                         <Card className="p-6 flex items-center gap-4 hover:shadow-lg transition-shadow">
                           <div
-                            className={`flex h-10 w-10 items-center justify-center rounded-full ${
-                              program.category === "Career Prep"
-                                ? "bg-primary/10"
-                                : "bg-blue-500/10"
-                            }`}
+                            className={`flex h-10 w-10 items-center justify-center rounded-full ${program.category === "Career Prep"
+                              ? "bg-primary/10"
+                              : "bg-blue-500/10"
+                              }`}
                           >
                             {program.category === "Career Prep" ? (
                               <Briefcase className="h-5 w-5 text-primary" />
@@ -380,6 +380,9 @@ export default function CoachDetailPage() {
                   onTimeSelect={handleTimeSelect}
                   onMessageClick={handleMessageClick}
                   coachAvailability={coach?.availability}
+                  selectedDuration={selectedDuration}
+                  setSelectedDuration={setSelectedDuration}
+                  hourlyRate={coach?.hourlyRate || 0}
                   t={t}
                 />
               </div>
@@ -564,6 +567,9 @@ function EnrollmentForm({
   onTimeSelect,
   onMessageClick,
   coachAvailability,
+  selectedDuration,
+  setSelectedDuration,
+  hourlyRate,
   t,
 }: {
   step: number;
@@ -578,6 +584,9 @@ function EnrollmentForm({
   onTimeSelect: () => void;
   onMessageClick?: () => void;
   coachAvailability?: Record<string, any>;
+  selectedDuration: number;
+  setSelectedDuration: (duration: number) => void;
+  hourlyRate: number;
   t: any;
 }) {
   const { isStudent } = useAuth();
@@ -587,6 +596,8 @@ function EnrollmentForm({
     setSelectedDate(date);
     setSelectedTime(time);
   };
+
+  const calculatedPrice = Math.round((hourlyRate * selectedDuration) / 60);
 
   if (step === 0) {
     if (isEnrolled) {
@@ -664,6 +675,24 @@ function EnrollmentForm({
               <X className="h-4 w-4" />
             </Button>
           </div>
+
+          <div className="flex gap-2 mb-6">
+            <Button
+              variant={selectedDuration === 30 ? "default" : "outline"}
+              className="flex-1"
+              onClick={() => setSelectedDuration(30)}
+            >
+              30 Min
+            </Button>
+            <Button
+              variant={selectedDuration === 60 ? "default" : "outline"}
+              className="flex-1"
+              onClick={() => setSelectedDuration(60)}
+            >
+              60 Min
+            </Button>
+          </div>
+
           <WeeklyTimeSlotPicker
             selectedSlot={
               selectedDate && selectedTime
@@ -681,7 +710,7 @@ function EnrollmentForm({
             disabled={!selectedDate || !selectedTime || loading}
             onClick={onTimeSelect}
           >
-            {loading ? t("processing") : t("confirmBooking")}
+            {loading ? t("processing") : `${t("confirmBooking")} - $${calculatedPrice}`}
           </Button>
         </CardContent>
       </Card>
@@ -712,7 +741,7 @@ function EnrollmentForm({
                 })}
               </p>
               <p className="text-xs text-muted-foreground">
-                {t("time", { time: selectedTime })}
+                {t("time", { time: selectedTime })} ({selectedDuration} min)
               </p>
             </div>
           )}

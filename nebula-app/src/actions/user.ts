@@ -1,5 +1,5 @@
 import { apiGet, apiPut, apiPost } from "@/lib/utils";
-import { uploadAvatarToCloudinary } from "@/lib/cloudinary";
+import { uploadImage } from "@/lib/upload";
 import { ChangePasswordData, UpdateProfileData } from "@/lib/validations";
 
 export async function getUserProfile() {
@@ -17,7 +17,7 @@ export async function changePassword(data: ChangePasswordData) {
 export async function uploadUserAvatar(file: File) {
   try {
     // Upload to Cloudinary
-    const avatarUrl = await uploadAvatarToCloudinary(file);
+    const avatarUrl = await uploadImage(file, "nebula-avatars");
 
     // Update user profile with new avatar URL
     const response = await updateUserProfile({ avatarUrl } as any);

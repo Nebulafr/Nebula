@@ -145,7 +145,7 @@ export default function DashboardLayout({
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
-            <SidebarMenuItem>
+            {/* <SidebarMenuItem>
               <Link href="/dashboard/lucy">
                 <SidebarMenuButton
                   tooltip="Lucy"
@@ -158,7 +158,7 @@ export default function DashboardLayout({
                   </div>
                 </SidebarMenuButton>
               </Link>
-            </SidebarMenuItem>
+            </SidebarMenuItem> */}
             <SidebarMenuItem>
               <Link href="/programs">
                 <SidebarMenuButton

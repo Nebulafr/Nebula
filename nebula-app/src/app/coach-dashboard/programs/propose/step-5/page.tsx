@@ -10,7 +10,7 @@ import { Stepper } from '../components/stepper';
 import { useProposeProgramContext } from '../context/propose-program-context';
 import { useCreateProgram } from '@/hooks';
 import { useRouter } from 'next/navigation';
-import { uploadMultipleFilesToCloudinary } from '@/lib/cloudinary';
+import { uploadMultipleFiles } from '@/lib/upload';
 import { toast } from 'react-toastify';
 import { useTranslations } from 'next-intl';
 
@@ -45,7 +45,7 @@ export default function ProposeStep5Page() {
                     // Upload files if there are any
                     if (mod.materials && mod.materials.length > 0) {
                         try {
-                            materialMetadata = await uploadMultipleFilesToCloudinary(
+                            materialMetadata = await uploadMultipleFiles(
                                 mod.materials,
                                 `nebula-materials/${formData.title.replace(/\s+/g, '-').toLowerCase()}`
                             );
@@ -121,7 +121,7 @@ export default function ProposeStep5Page() {
             <Card className="w-full max-w-4xl shadow-lg relative overflow-hidden">
                 <CardContent className="p-8">
                     <Stepper currentStep={5} />
-                      <div className="text-center mt-12 py-12">
+                    <div className="text-center mt-12 py-12">
                         <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
                         <h1 className="text-2xl font-bold">{t("submitting")}</h1>
                         <p className="mt-2 text-muted-foreground">
@@ -130,7 +130,7 @@ export default function ProposeStep5Page() {
                         <p className="mt-1 text-sm text-muted-foreground">
                             {t("submittingHint")}
                         </p>
-                      </div>
+                    </div>
                 </CardContent>
             </Card>
         );
@@ -153,7 +153,7 @@ export default function ProposeStep5Page() {
                     <Card className="p-4 bg-muted border-none">
                         <div className="flex items-center gap-3">
                             <Clock className="h-5 w-5 text-muted-foreground" />
-                             <div>
+                            <div>
                                 <p className="font-semibold text-sm">{t("reviewTime")}</p>
                                 <p className="text-xs text-muted-foreground">{t("reviewTimeValue")}</p>
                             </div>
@@ -162,7 +162,7 @@ export default function ProposeStep5Page() {
                     <Card className="p-4 bg-muted border-none">
                         <div className="flex items-center gap-3">
                             <Mail className="h-5 w-5 text-muted-foreground" />
-                             <div>
+                            <div>
                                 <p className="font-semibold text-sm">{t("confirmation")}</p>
                                 <p className="text-xs text-muted-foreground">{t("confirmationValue")}</p>
                             </div>

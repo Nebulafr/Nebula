@@ -33,7 +33,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { EventType, INewEvent } from "@/types/event";
 import { UserSelect } from "@/components/ui/user-select";
-import { uploadImageToCloudinary } from "@/lib/cloudinary";
+import { uploadImage } from "@/lib/upload";
 import { useTranslations } from "next-intl";
 import moment from "moment";
 import { UserRole } from "@/enums";
@@ -127,7 +127,7 @@ export function CreateEventDialog({
     setUploading(true);
     try {
       const uploadPromises = Array.from(files).map((file) =>
-        uploadImageToCloudinary(file, "events")
+        uploadImage(file, "events")
       );
       const uploadedUrls = await Promise.all(uploadPromises);
       setNewEvent((prev) => ({
@@ -376,22 +376,22 @@ export function CreateEventDialog({
                   required
                 />
               </div>
-              {newEvent.accessType === "Premium" &&  <div className="space-y-2">
-                    <Label htmlFor="price">{t("pricePerGuest")}</Label>
-                    <Input
-                      id="price"
-                      type="number"
-                      placeholder="e.g., 25"
-                      required
-                      value={newEvent.price || ""}
-                      onChange={(e) =>
-                        setNewEvent((prev) => ({
-                          ...prev,
-                          price: parseInt(e.target.value) || 0,
-                        }))
-                      }
-                    />
-                  </div>}
+              {newEvent.accessType === "Premium" && <div className="space-y-2">
+                <Label htmlFor="price">{t("pricePerGuest")}</Label>
+                <Input
+                  id="price"
+                  type="number"
+                  placeholder="e.g., 25"
+                  required
+                  value={newEvent.price || ""}
+                  onChange={(e) =>
+                    setNewEvent((prev) => ({
+                      ...prev,
+                      price: parseInt(e.target.value) || 0,
+                    }))
+                  }
+                />
+              </div>}
               {eventType === "Social" && (
                 <>
                   <div className="space-y-2">

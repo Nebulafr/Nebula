@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { uploadImageFromClient } from "@/lib/cloudinary";
+import { uploadImage } from "@/lib/upload";
 
 interface ImageUploadProps {
   images: string[];
@@ -27,7 +27,7 @@ export function ImageUpload({
     setUploading(true);
     try {
       const uploadPromises = Array.from(files).map((file) =>
-        uploadImageFromClient(file, "nebula-events"),
+        uploadImage(file, "nebula-events"),
       );
 
       const uploadedUrls = await Promise.all(uploadPromises);
