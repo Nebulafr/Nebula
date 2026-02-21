@@ -110,7 +110,7 @@ export default function ProgramDetailPage({
   const t = useTranslations("programDetails");
   const locale = useLocale();
   const { slug } = use(params);
-  const { profile, isStudent } = useAuth();
+  const { profile, isStudent, isAuthenticated } = useAuth();
   const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -264,12 +264,12 @@ export default function ProgramDetailPage({
   }
 
   const handleCheckoutClick = async () => {
-    if (!profile) {
+    if (!isAuthenticated) {
       router.replace("/login");
       return;
     }
 
-    if (profile?.role !== UserRole.STUDENT) {
+    if (isAuthenticated && !isStudent) {
       toast.info(t("notStudent"));
       return;
     }
@@ -385,18 +385,12 @@ export default function ProgramDetailPage({
                   size="lg"
                   onClick={() => setEnrollmentStep(1)}
                   variant={enrollmentStep > 0 ? "outline" : "default"}
-                  disabled={!hasFutureCohort}
                 >
-                  {hasFutureCohort ? (
+                  {
                     <>
                       <PlusCircle className="mr-2 h-5 w-5" /> {t("enrollNow")}
                     </>
-                  ) : (
-                    <>
-                      <PlusCircle className="mr-2 h-5 w-5" />{" "}
-                      {t("noUpcomingCohort")}
-                    </>
-                  )}
+                  }
                 </Button>
               )}
               {isEnrolled && (

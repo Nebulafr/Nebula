@@ -49,7 +49,7 @@ export default function CoachDetailPage() {
   const params = useParams<{ coachId: string }>();
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { profile, isAuthenticated } = useAuth();
+  const { profile, isAuthenticated, isStudent } = useAuth();
   const [date, setDate] = useState<Date | undefined>();
   const [selectedTime, setSelectedTime] = useState("");
   const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
@@ -67,32 +67,32 @@ export default function CoachDetailPage() {
 
   const queryClient = useQueryClient();
 
-  const { mutateAsync: initiateCheckout, isPending: isCheckingOut } = useSessionCheckout();
+  const { mutateAsync: initiateCheckout, isPending: isCheckingOut } =
+    useSessionCheckout();
 
   useEffect(() => {
     if (searchParams.get("success") === "true") {
       setBookingStep(2);
-      // Clean up the URL
       const newUrl = window.location.pathname;
       window.history.replaceState({}, "", newUrl);
     } else if (searchParams.get("canceled") === "true") {
       toast.info(t("bookingCancelled") || "Booking cancelled");
-      // Clean up the URL
       const newUrl = window.location.pathname;
       window.history.replaceState({}, "", newUrl);
     }
   }, [searchParams, t]);
 
   const handleBookClick = () => {
-    if (profile?.role !== UserRole.STUDENT) {
-      toast.info(t("notStudent"));
-      return;
-    }
-
     if (!isAuthenticated) {
       router.replace("/login");
       return;
     }
+
+    if (isAuthenticated && !isStudent) {
+      toast.info(t("notStudent"));
+      return;
+    }
+
     setBookingStep(1);
   };
 
@@ -302,7 +302,9 @@ export default function CoachDetailPage() {
               {coach.pastCompanies && coach.pastCompanies.length > 0 && (
                 <div className="mt-8">
                   <h4 className="text-sm font-semibold text-muted-foreground">
-                    {t("workedAt", { name: coach.fullName?.split(" ")[0] || "Coach" })}
+                    {t("workedAt", {
+                      name: coach.fullName?.split(" ")[0] || "Coach",
+                    })}
                   </h4>
                   <div className="mt-4 flex flex-wrap items-center gap-3">
                     {coach.pastCompanies
@@ -336,10 +338,11 @@ export default function CoachDetailPage() {
                       >
                         <Card className="p-6 flex items-center gap-4 hover:shadow-lg transition-shadow">
                           <div
-                            className={`flex h-10 w-10 items-center justify-center rounded-full ${program.category === "Career Prep"
-                              ? "bg-primary/10"
-                              : "bg-blue-500/10"
-                              }`}
+                            className={`flex h-10 w-10 items-center justify-center rounded-full ${
+                              program.category === "Career Prep"
+                                ? "bg-primary/10"
+                                : "bg-blue-500/10"
+                            }`}
                           >
                             {program.category === "Career Prep" ? (
                               <Briefcase className="h-5 w-5 text-primary" />
@@ -387,7 +390,9 @@ export default function CoachDetailPage() {
         <section className="container py-20">
           <div className="flex items-center justify-between mb-8">
             <h2 className="mb-8 font-headline text-3xl font-bold">
-              {t("reviewsCount", { count: coach.totalReviews || coach.reviews?.length || 0 })}
+              {t("reviewsCount", {
+                count: coach.totalReviews || coach.reviews?.length || 0,
+              })}
             </h2>
             <Dialog
               open={isReviewDialogOpen}
@@ -453,7 +458,9 @@ export default function CoachDetailPage() {
                         </div>
                       </div>
                       <div className="grid gap-2">
-                        <Label htmlFor="review-text">{t("shareThoughts")}</Label>
+                        <Label htmlFor="review-text">
+                          {t("shareThoughts")}
+                        </Label>
                         <Textarea
                           id="review-text"
                           placeholder={t("textareaPlaceholder")}
@@ -584,7 +591,10 @@ function EnrollmentForm({
   if (step === 0) {
     if (isEnrolled) {
       return (
-        <Card key="enrolled-card" className="rounded-xl border shadow-lg notranslate">
+        <Card
+          key="enrolled-card"
+          className="rounded-xl border shadow-lg notranslate"
+        >
           <CardContent className="p-6 text-center">
             <CheckCircle className="h-12 w-12 mx-auto mb-4 text-green-500" />
             <h3 className="font-headline text-xl font-bold text-green-700">
@@ -604,15 +614,20 @@ function EnrollmentForm({
     }
 
     return (
-      <Card key={`step-${step}`} className="rounded-xl border shadow-lg notranslate">
+      <Card
+        key={`step-${step}`}
+        className="rounded-xl border shadow-lg notranslate"
+      >
         <CardContent className="p-6 text-center">
-          <h3 className="font-headline text-2xl font-bold">{t("bookSession")}</h3>
+          <h3 className="font-headline text-2xl font-bold">
+            {t("bookSession")}
+          </h3>
           <p className="text-muted-foreground mt-2 mb-6">{t("findTime")}</p>
-          {(
+          {
             <Button size="lg" className="w-full" onClick={onEnroll}>
               <PlusCircle className="mr-2 h-5 w-5" /> {t("bookNow")}
             </Button>
-          )}
+          }
           {
             <Button
               size="lg"
@@ -631,7 +646,10 @@ function EnrollmentForm({
   // Step 1: Weekly time slot picker (combined date and time selection)
   if (step === 1) {
     return (
-      <Card key={`step-${step}`} className="rounded-xl border shadow-lg w-[600px] notranslate">
+      <Card
+        key={`step-${step}`}
+        className="rounded-xl border shadow-lg w-[600px] notranslate"
+      >
         <CardContent className="p-4">
           <div className="flex justify-between items-center mb-4">
             <h3 className="font-headline text-lg font-bold">
@@ -673,16 +691,25 @@ function EnrollmentForm({
   // Step 2: Success state
   if (step === 2) {
     return (
-      <Card key={`step-${step}`} className="rounded-xl border-none bg-green-50 text-green-900 notranslate">
+      <Card
+        key={`step-${step}`}
+        className="rounded-xl border-none bg-green-50 text-green-900 notranslate"
+      >
         <CardContent className="p-6 text-center">
           <CheckCircle className="h-12 w-12 mx-auto mb-4" />
-          <h3 className="font-headline text-xl font-bold">{t("sessionBooked")}</h3>
+          <h3 className="font-headline text-xl font-bold">
+            {t("sessionBooked")}
+          </h3>
           <p className="text-sm mt-2">{t("sessionBookedDesc")}</p>
           {selectedDate && selectedTime && (
             <div className="mt-4 p-3 bg-white/50 rounded-lg">
               <p className="text-sm font-medium">{t("details")}</p>
               <p className="text-xs text-muted-foreground">
-                {t("date", { date: selectedDate.toLocaleDateString(locale === "fr" ? "fr-FR" : "en-US") })}
+                {t("date", {
+                  date: selectedDate.toLocaleDateString(
+                    locale === "fr" ? "fr-FR" : "en-US",
+                  ),
+                })}
               </p>
               <p className="text-xs text-muted-foreground">
                 {t("time", { time: selectedTime })}
