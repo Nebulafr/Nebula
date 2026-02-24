@@ -112,10 +112,10 @@ export class ProgramService {
         coCoaches:
           validCoCoachIds.length > 0
             ? {
-              create: validCoCoachIds.map((coachId) => ({
-                coachId,
-              })),
-            }
+                create: validCoCoachIds.map((coachId) => ({
+                  coachId,
+                })),
+              }
             : undefined,
       },
       include: {
@@ -697,17 +697,17 @@ export class ProgramService {
       const existingReview =
         targetType === "COACH"
           ? await prisma.coachReview.findFirst({
-            where: {
-              userId,
-              coachId: targetId,
-            },
-          })
+              where: {
+                userId,
+                coachId: targetId,
+              },
+            })
           : await prisma.programReview.findFirst({
-            where: {
-              userId,
-              programId: targetId,
-            },
-          });
+              where: {
+                userId,
+                programId: targetId,
+              },
+            });
 
       return !!existingReview;
     } catch (error) {
@@ -895,11 +895,11 @@ export class ProgramService {
     }
 
     // Prevent deletion if there are active enrollments
-    if (program.enrollments.length > 0) {
-      throw new BadRequestException(
-        `Cannot delete program with ${program.enrollments.length} active enrollment(s). Please cancel or complete all enrollments first.`,
-      );
-    }
+    // if (program.enrollments.length > 0) {
+    //   throw new BadRequestException(
+    //     `Cannot delete program with ${program.enrollments.length} active enrollment(s). Please cancel or complete all enrollments first.`,
+    //   );
+    // }
 
     await prisma.program.delete({
       where: { id: program.id },
@@ -1087,7 +1087,7 @@ export class ProgramService {
     ]);
 
     const transformedPrograms = programs.map((program) =>
-      this.transformProgramData(program)
+      this.transformProgramData(program),
     );
 
     return sendSuccess(
