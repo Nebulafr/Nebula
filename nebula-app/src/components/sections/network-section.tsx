@@ -18,6 +18,7 @@ export function NetworkSection() {
               alt={networkImage.description}
               width={500}
               height={500}
+              quality={85}
               className="rounded-lg"
               data-ai-hint={networkImage.imageHint}
             />

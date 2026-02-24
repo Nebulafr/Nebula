@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { uploadImage } from "@/lib/upload";
+import { uploadImage, fileToBase64 } from "@/lib/upload";
 
 interface ImageUploadProps {
   images: string[];
@@ -26,14 +26,11 @@ export function ImageUpload({
 
     setUploading(true);
     try {
-      const uploadPromises = Array.from(files).map((file) =>
-        uploadImage(file, "nebula-events"),
-      );
-
-      const uploadedUrls = await Promise.all(uploadPromises);
-      onImagesChange([...images, ...uploadedUrls]);
+      const base64Promises = Array.from(files).map((file) => fileToBase64(file));
+      const base64Images = await Promise.all(base64Promises);
+      onImagesChange([...images, ...base64Images]);
     } catch (error) {
-      console.error("Error uploading files:", error);
+      console.error("Error processing files:", error);
     } finally {
       setUploading(false);
     }

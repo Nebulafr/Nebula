@@ -40,15 +40,8 @@ import { format } from "date-fns";
 import { cn, apiGet, apiPatch, apiPost } from "@/lib/utils";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { handleAndToastError } from "@/lib/error-handler";
+import { MaterialLink } from "@/components/MaterialLink";
 
-const getFileIcon = (type: string) => {
-  if (type === "pdf") return <Book className="h-5 w-5 text-red-500" />;
-  if (["ppt", "pptx"].includes(type))
-    return <Presentation className="h-5 w-5 text-orange-500" />;
-  if (["doc", "docx"].includes(type))
-    return <StickyNote className="h-5 w-5 text-blue-500" />;
-  return <File className="h-5 w-5 text-muted-foreground" />;
-};
 
 const getStatusBadgeVariant = (status: string) => {
   if (status === "ACTIVE") return "default";
@@ -288,22 +281,22 @@ export default function ProgramDetailsPage({
         className={cn(
           "border-l-4",
           program.status === "ACTIVE" &&
-            "border-l-green-500 bg-green-50 dark:bg-green-950/20",
+          "border-l-green-500 bg-green-50 dark:bg-green-950/20",
           program.status === "PENDING_APPROVAL" &&
-            "border-l-yellow-500 bg-yellow-50 dark:bg-yellow-950/20",
+          "border-l-yellow-500 bg-yellow-50 dark:bg-yellow-950/20",
           program.status === "APPROVED" &&
-            "border-l-blue-500 bg-blue-50 dark:bg-blue-950/20",
+          "border-l-blue-500 bg-blue-50 dark:bg-blue-950/20",
           program.status === "SUBMITTED" &&
-            "border-l-purple-500 bg-purple-50 dark:bg-purple-950/20",
+          "border-l-purple-500 bg-purple-50 dark:bg-purple-950/20",
           program.status === "REJECTED" &&
-            "border-l-red-500 bg-red-50 dark:bg-red-950/20",
+          "border-l-red-500 bg-red-50 dark:bg-red-950/20",
           program.status === "INACTIVE" &&
-            "border-l-gray-500 bg-gray-50 dark:bg-gray-950/20",
+          "border-l-gray-500 bg-gray-50 dark:bg-gray-950/20",
         )}
       >
         <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
               <Badge variant={getStatusBadgeVariant(program.status)}>
                 {getStatusLabel(program.status)}
               </Badge>
@@ -311,7 +304,7 @@ export default function ProgramDetailsPage({
                 {getStatusMessage(program.status)}
               </p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-3">
               {/* PENDING_APPROVAL: Show date picker + approve/reject */}
               {program.status === "PENDING_APPROVAL" && (
                 <>
@@ -320,7 +313,7 @@ export default function ProgramDetailsPage({
                       <Button
                         variant="outline"
                         className={cn(
-                          "w-[240px] justify-start text-left font-normal",
+                          "w-fit min-w-[240px] justify-start text-left font-normal",
                           !startDate && "text-muted-foreground",
                         )}
                       >
@@ -377,7 +370,7 @@ export default function ProgramDetailsPage({
                     disabled={updateProgramStatusMutation.isPending}
                   >
                     {updateProgramStatusMutation.isPending &&
-                    updateProgramStatusMutation.variables?.action ===
+                      updateProgramStatusMutation.variables?.action ===
                       "reject" ? (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     ) : null}
@@ -388,7 +381,7 @@ export default function ProgramDetailsPage({
                     disabled={updateProgramStatusMutation.isPending}
                   >
                     {updateProgramStatusMutation.isPending &&
-                    updateProgramStatusMutation.variables?.action ===
+                      updateProgramStatusMutation.variables?.action ===
                       "approve" ? (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     ) : null}
@@ -405,7 +398,7 @@ export default function ProgramDetailsPage({
                   disabled={updateProgramStatusMutation.isPending}
                 >
                   {updateProgramStatusMutation.isPending &&
-                  updateProgramStatusMutation.variables?.action ===
+                    updateProgramStatusMutation.variables?.action ===
                     "activate" ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   ) : null}
@@ -421,7 +414,7 @@ export default function ProgramDetailsPage({
                   disabled={updateProgramStatusMutation.isPending}
                 >
                   {updateProgramStatusMutation.isPending &&
-                  updateProgramStatusMutation.variables?.action ===
+                    updateProgramStatusMutation.variables?.action ===
                     "deactivate" ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   ) : null}
@@ -436,7 +429,7 @@ export default function ProgramDetailsPage({
                   disabled={updateProgramStatusMutation.isPending}
                 >
                   {updateProgramStatusMutation.isPending &&
-                  updateProgramStatusMutation.variables?.action ===
+                    updateProgramStatusMutation.variables?.action ===
                     "activate" ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   ) : null}
@@ -452,68 +445,68 @@ export default function ProgramDetailsPage({
       {["APPROVED", "SUBMITTED", "ACTIVE", "INACTIVE"].includes(
         program.status,
       ) && (
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <CalendarIcon className="h-5 w-5" />
-              Program Cohorts
-            </CardTitle>
-            <Button size="sm" onClick={openCreateCohort}>
-              Add Cohort
-            </Button>
-          </CardHeader>
-          <CardContent>
-            {isLoadingCohorts ? (
-              <div className="flex items-center justify-center py-4">
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                <span className="text-sm text-muted-foreground">
-                  Loading cohorts...
-                </span>
-              </div>
-            ) : cohorts.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No cohorts found.</p>
-            ) : (
-              <div className="space-y-3">
-                {cohorts.map((cohort: any) => (
-                  <div
-                    key={cohort.id}
-                    className="flex items-center justify-between p-4 border rounded-lg"
-                  >
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <p className="font-medium">
-                          {cohort.name || "Unnamed Cohort"}
-                        </p>
-                        <Badge variant="outline" className="text-xs">
-                          {cohort.status}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <CalendarIcon className="h-3 w-3" />
-                          {format(new Date(cohort.startDate), "PPP 'at' p")}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Users className="h-3 w-3" />
-                          {cohort._count?.enrollments || 0} /{" "}
-                          {cohort.maxStudents} students
-                        </span>
-                      </div>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => openEditCohort(cohort)}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <CalendarIcon className="h-5 w-5" />
+                Program Cohorts
+              </CardTitle>
+              <Button size="sm" onClick={openCreateCohort}>
+                Add Cohort
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {isLoadingCohorts ? (
+                <div className="flex items-center justify-center py-4">
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  <span className="text-sm text-muted-foreground">
+                    Loading cohorts...
+                  </span>
+                </div>
+              ) : cohorts.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No cohorts found.</p>
+              ) : (
+                <div className="space-y-3">
+                  {cohorts.map((cohort: any) => (
+                    <div
+                      key={cohort.id}
+                      className="flex items-center justify-between p-4 border rounded-lg"
                     >
-                      Edit
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium">
+                            {cohort.name || "Unnamed Cohort"}
+                          </p>
+                          <Badge variant="outline" className="text-xs">
+                            {cohort.status}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <CalendarIcon className="h-3 w-3" />
+                            {format(new Date(cohort.startDate), "PPP 'at' p")}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Users className="h-3 w-3" />
+                            {cohort._count?.enrollments || 0} /{" "}
+                            {cohort.maxStudents} students
+                          </span>
+                        </div>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => openEditCohort(cohort)}
+                      >
+                        Edit
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
       <div className="space-y-8">
         <Card>
@@ -610,41 +603,13 @@ export default function ProgramDetailsPage({
                       <h5 className="font-medium text-xs text-muted-foreground">
                         Uploaded Materials:
                       </h5>
-                      {mod.materials.map((mat: any, idx: number) => {
-                        const isString = typeof mat === "string";
-                        const name = isString ? mat.split("/").pop() : (mat.fileName || mat.name);
-                        const link = isString ? mat : (mat.url || mat.link);
-                        let type = isString ? (mat.endsWith(".pdf") ? "pdf" : "doc") : (mat.fileType || mat.type || "");
-                        
-                        // Normalize type
-                        if (type.includes("pdf")) type = "pdf";
-                        else if (type.includes("video")) type = "video";
-                        else if (type.includes("word") || type.includes("officedocument") || type.includes("doc")) type = "doc";
-                        else type = "file";
-
-                        const sizeDisplay = !isString && mat.fileSize ? 
-                          (mat.fileSize > 1024 * 1024 ? `${(mat.fileSize / (1024 * 1024)).toFixed(2)} MB` : `${(mat.fileSize / 1024).toFixed(2)} KB`) 
-                          : null;
-
-                        return (
-                          <a
-                            key={idx}
-                            href={link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center justify-between gap-2 p-2 rounded-md bg-muted/50 hover:bg-muted transition-colors"
-                          >
-                            <div className="flex items-center gap-2">
-                              {getFileIcon(type)}
-                              <div className="flex flex-col">
-                                <span className="text-xs font-medium">{name}</span>
-                                {sizeDisplay && <span className="text-[10px] text-muted-foreground">{sizeDisplay}</span>}
-                              </div>
-                            </div>
-                            <Download className="h-3 w-3 text-muted-foreground" />
-                          </a>
-                        );
-                      })}
+                      {mod.materials.map((mat: any, idx: number) => (
+                        <MaterialLink
+                          key={idx}
+                          material={mat}
+                          showDownload={false}
+                        />
+                      ))}
                     </div>
                   )}
                 </div>
@@ -800,8 +765,8 @@ export default function ProgramDetailsPage({
             >
               {(updateCohortMutation.isPending ||
                 createCohortMutation.isPending) && (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              )}
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                )}
               {isCreatingCohort ? "Create Cohort" : "Save Changes"}
             </Button>
           </DialogFooter>

@@ -163,6 +163,7 @@ export default function ContactPage() {
                 src={contactImage.imageUrl}
                 alt={contactImage.description}
                 fill
+                quality={85}
                 className="object-cover"
                 data-ai-hint={contactImage.imageHint}
               />

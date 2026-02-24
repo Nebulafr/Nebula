@@ -27,6 +27,7 @@ export function TestimonialCard({
           src={avatar.imageUrl}
           alt={avatar.description}
           fill
+          quality={85}
           className="object-cover transition-transform duration-300 ease-in-out group-hover:scale-105"
           data-ai-hint={avatar.imageHint}
         />

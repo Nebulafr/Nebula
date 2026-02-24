@@ -150,6 +150,7 @@ export default function CoachSignupPage() {
               src={signupImage.imageUrl}
               alt={signupImage.description}
               fill
+              quality={85}
               className="object-cover"
               data-ai-hint={signupImage.imageHint}
             />

@@ -111,6 +111,7 @@ function CoachOnboardingStep5Content() {
             src={image.imageUrl}
             alt={image.description}
             fill
+            quality={85}
             className="object-cover scale-105 transition-transform duration-1000 hover:scale-110"
             data-ai-hint={image.imageHint}
             priority
@@ -195,9 +196,9 @@ function CoachOnboardingStep5Content() {
                     <ArrowLeft className="mr-2 h-5 w-5 transition-transform group-hover:-translate-x-1" /> {tCommon("back")}
                   </Link>
                 </Button>
-                <Button 
-                  size="lg" 
-                  type="submit" 
+                <Button
+                  size="lg"
+                  type="submit"
                   disabled={isLoading}
                   className="px-10 rounded-full h-14 text-lg font-semibold shadow-lg shadow-primary/20 transition-all active:scale-95 disabled:grayscale"
                 >

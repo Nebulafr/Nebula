@@ -413,6 +413,7 @@
             "confirmation": "Confirmation email",
             "confirmationValue": "A confirmation has been sent to you",
             "backToPrograms": "Back to Programs",
+            "program_proposed_success": "Program proposed successfully!",
             "uploadError": "Failed to upload materials for {title}"
           }
         }

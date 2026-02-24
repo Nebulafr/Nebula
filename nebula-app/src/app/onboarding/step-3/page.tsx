@@ -111,6 +111,7 @@ function OnboardingStep3Content() {
             src={image.imageUrl}
             alt={image.description}
             fill
+            quality={85}
             className="object-cover scale-105 transition-transform duration-1000 hover:scale-110"
             data-ai-hint={image.imageHint}
             priority
@@ -127,7 +128,7 @@ function OnboardingStep3Content() {
       <div className="flex h-full flex-col justify-center py-12 lg:col-span-2 relative overflow-hidden">
         <div className="absolute top-0 right-0 -z-10 h-64 w-64 rounded-full bg-primary/5 blur-3xl" />
         <div className="absolute bottom-0 left-0 -z-10 h-64 w-64 rounded-full bg-secondary/5 blur-3xl" />
-        
+
         <div className="mx-auto grid w-full max-w-md gap-8 px-6">
           <div className="space-y-2">
             <Progress value={100} className="h-1.5 bg-muted transition-all duration-500" />
@@ -151,11 +152,10 @@ function OnboardingStep3Content() {
             {availabilities.map((availability, idx) => (
               <Card
                 key={availability.title}
-                className={`group cursor-pointer rounded-2xl border-2 p-1 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] ${
-                  selectedAvailability === availability.title
+                className={`group cursor-pointer rounded-2xl border-2 p-1 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] ${selectedAvailability === availability.title
                     ? "border-primary bg-primary/5 shadow-xl shadow-primary/10"
                     : "border-transparent bg-card hover:border-primary/20 hover:shadow-md"
-                }`}
+                  }`}
                 onClick={() =>
                   setValue("availability", availability.title, {
                     shouldValidate: true,
@@ -178,11 +178,10 @@ function OnboardingStep3Content() {
                       {availability.description}
                     </p>
                   </div>
-                  <div className={`h-6 w-6 rounded-full border-2 transition-all duration-300 flex items-center justify-center ${
-                    selectedAvailability === availability.title
+                  <div className={`h-6 w-6 rounded-full border-2 transition-all duration-300 flex items-center justify-center ${selectedAvailability === availability.title
                       ? "border-primary bg-primary"
                       : "border-muted group-hover:border-primary/50"
-                  }`}>
+                    }`}>
                     {selectedAvailability === availability.title && (
                       <div className="h-2 w-2 rounded-full bg-white" />
                     )}

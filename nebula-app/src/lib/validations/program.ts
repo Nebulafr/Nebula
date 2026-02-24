@@ -8,10 +8,11 @@ export const moduleSchema = z.object({
   materials: z
     .array(
       z.object({
-        url: z.string().url("Material must be a valid URL"),
+        url: z.string().min(1, "Material URL or base64 data is required"),
         name: z.string().optional(),
         type: z.string().optional(),
         size: z.number().optional(),
+        position: z.number().optional(),
       })
     )
     .optional(),

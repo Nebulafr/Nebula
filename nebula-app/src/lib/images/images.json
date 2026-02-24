@@ -3,133 +3,133 @@
     {
       "id": "network",
       "description": "Abstract network of interconnected nodes representing a global academic network.",
-      "imageUrl": "https://images.unsplash.com/photo-1717501219074-943fc738e5a2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxuZXR3b3JrJTIwbm9kZXN8ZW58MHx8fHwxNzYxNjUwNTc4fDA&ixlib=rb-4.1.0&q=80&w=640",
+      "imageUrl": "https://images.unsplash.com/photo-1717501219074-943fc738e5a2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxuZXR3b3JrJTIwbm9kZXN8ZW58MHx8fHwxNzYxNjUwNTc4fDA&ixlib=rb-4.1.0&q=85&w=1280",
       "imageHint": "network nodes"
     },
     {
       "id": "program-1",
       "description": "A person in a professional setting being interviewed.",
-      "imageUrl": "https://images.unsplash.com/photo-1698047682091-782b1e5c6536?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxqb2IlMjBpbnRlcnZpZXd8ZW58MHx8fHwxNzYxNTc0Mzg0fDA&ixlib=rb-4.1.0&q=80&w=640",
+      "imageUrl": "https://images.unsplash.com/photo-1698047682091-782b1e5c6536?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxqb2IlMjBpbnRlcnZpZXd8ZW58MHx8fHwxNzYxNTc0Mzg0fDA&ixlib=rb-4.1.0&q=85&w=1280",
       "imageHint": "job interview"
     },
     {
       "id": "program-2",
       "description": "A winding path or a roadmap signifying a career journey.",
-      "imageUrl": "https://images.unsplash.com/photo-1455849318743-b2233052fcff?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxjYXJlZXIlMjBwYXRofGVufDB8fHx8fDE3NjE1NjgwMTQ3fDA&ixlib=rb-4.1.0&q=80&w=640",
+      "imageUrl": "https://images.unsplash.com/photo-1455849318743-b2233052fcff?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxjYXJlZXIlMjBwYXRofGVufDB8fHx8fDE3NjE1NjgwMTQ3fDA&ixlib=rb-4.1.0&q=85&w=1280",
       "imageHint": "career path"
     },
     {
       "id": "program-3",
       "description": "A group of people collaborating, one person leading the discussion.",
-      "imageUrl": "https://images.unsplash.com/photo-1618066380802-023c554dcb91?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHx0ZWFtJTIwbGVhZGVyc2hpcHxlbnwwfHx8fDE3NjE2NjM1MTl8MA&ixlib=rb-4.1.0&q=80&w=640",
+      "imageUrl": "https://images.unsplash.com/photo-1618066380802-023c554dcb91?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHx0ZWFtJTIwbGVhZGVyc2hpcHxlbnwwfHx8fDE3NjE2NjM1MTl8MA&ixlib=rb-4.1.0&q=85&w=1280",
       "imageHint": "team leadership"
     },
     {
       "id": "program-4",
       "description": "Two people shaking hands over a desk, symbolizing a successful negotiation.",
-      "imageUrl": "https://images.unsplash.com/photo-1758518729240-7162d07427b8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxuZWdvdGlhdGlvbiUyMGRlYWx8ZW58MHx8fHwxNzYxNjM4MTI2fDA&ixlib=rb-4.1.0&q=80&w=640",
+      "imageUrl": "https://images.unsplash.com/photo-1758518729240-7162d07427b8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxuZWdvdGlhdGlvbiUyMGRlYWx8ZW58MHx8fHwxNzYxNjM4MTI2fDA&ixlib=rb-4.1.0&q=85&w=1280",
       "imageHint": "negotiation deal"
     },
     {
       "id": "event-1",
       "description": "Portrait of Isabella Chen, a professional woman with dark hair.",
-      "imageUrl": "https://images.unsplash.com/photo-1573496358961-3c82861ab8f4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxwcm9mZXNzaW9uYWwlMjB3b21hbnxlbnwwfHx8fDE3NjE2MzQ2NjR8MA&ixlib=rb-4.1.0&q=80&w=640",
+      "imageUrl": "https://images.unsplash.com/photo-1573496358961-3c82861ab8f4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxwcm9mZXNzaW9uYWwlMjB3b21hbnxlbnwwfHx8fDE3NjE2MzQ2NjR8MA&ixlib=rb-4.1.0&q=85&w=1280",
       "imageHint": "professional woman"
     },
     {
       "id": "event-2",
       "description": "Portrait of William Harris, a professional man with short brown hair.",
-      "imageUrl": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxwcm9mZXNzaW9uYWwlMjBtYW58ZW58MHx8fHwxNzYxNTc5NTM4fDA&ixlib=rb-4.1.0&q=80&w=640",
+      "imageUrl": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxwcm9mZXNzaW9uYWwlMjBtYW58ZW58MHx8fHwxNzYxNTc5NTM4fDA&ixlib=rb-4.1.0&q=85&w=1280",
       "imageHint": "professional man"
     },
     {
       "id": "event-3",
       "description": "Portrait of Sophia Nguyen, a professional woman with reddish hair.",
-      "imageUrl": "https://images.unsplash.com/photo-1610655507808-a59293f4e332?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHx3b21hbiUyMHBvcnRyYWl0fGVufDB8fHx8fDE3NjE1OTk4Mzd8MA&ixlib=rb-4.1.0&q=80&w=640",
+      "imageUrl": "https://images.unsplash.com/photo-1610655507808-a59293f4e332?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHx3b21hbiUyMHBvcnRyYWl0fGVufDB8fHx8fDE3NjE1OTk4Mzd8MA&ixlib=rb-4.1.0&q=85&w=1280",
       "imageHint": "woman portrait"
     },
     {
       "id": "testimonial-1",
       "description": "Avatar for Sarah K.",
-      "imageUrl": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHx3b21hbiUyMHNtaWxpbmd8ZW58MHx8fHwxNzYxNTU1MjQwfDA&ixlibrb-4.1.0&q=80&w=640",
+      "imageUrl": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHx3b21hbiUyMHNtaWxpbmd8ZW58MHx8fHwxNzYxNTU1MjQwfDA&ixlibrb-4.1.0&q=85&w=1280",
       "imageHint": "woman smiling"
     },
     {
       "id": "testimonial-2",
       "description": "Avatar for David L.",
-      "imageUrl": "https://images.unsplash.com/photo-1725866546799-4cc16f6cba23?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxtYW4lMjBzbWlsaW5nfGVufDB8fHx8MTc2MTU4NTkzMXww&ixlib=rb-4.1.0&q=80&w=640",
+      "imageUrl": "https://images.unsplash.com/photo-1725866546799-4cc16f6cba23?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxtYW4lMjBzbWlsaW5nfGVufDB8fHx8MTc2MTU4NTkzMXww&ixlib=rb-4.1.0&q=85&w=1280",
       "imageHint": "man smiling"
     },
     {
       "id": "testimonial-3",
       "description": "Avatar for Emily R.",
-      "imageUrl": "https://images.unsplash.com/photo-1580489944761-15a19d654956?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHx3b21hbiUyMHNtaWxpbmd8ZW58MHx8fHwxNzYxNTU1MjQwfDA&ixlib=rb-4.1.0&q=80&w=640",
+      "imageUrl": "https://images.unsplash.com/photo-1580489944761-15a19d654956?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHx3b21hbiUyMHNtaWxpbmd8ZW58MHx8fHwxNzYxNTU1MjQwfDA&ixlib=rb-4.1.0&q=85&w=1280",
       "imageHint": "woman smiling"
     },
     {
       "id": "coach-hero",
       "description": "A man and a woman studying together, smiling.",
-      "imageUrl": "https://images.unsplash.com/photo-1543269865-cbf427effbad?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxzdHVkeWluZyUyMHRvZ2V0aGVyfGVufDB8fHx8MTc2MTg0ODExNXww&ixlib=rb-4.1.0&q=80&w=640",
+      "imageUrl": "https://images.unsplash.com/photo-1543269865-cbf427effbad?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxzdHVkeWluZyUyMHRvZ2V0aGVyfGVufDB8fHx8MTc2MTg0ODExNXww&ixlib=rb-4.1.0&q=85&w=1280",
       "imageHint": "studying together"
     },
     {
       "id": "benefit-income",
       "description": "Illustration of credit cards.",
-      "imageUrl": "https://images.unsplash.com/photo-1688149013444-da644d290749?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxjcmVkaXQlMjBjYXJkJTIwaWxsdXN0cmF0aW9ufGVufDB8fHx8MTc2MTY5NDg1MHww&ixlib=rb-4.1.0&q=80&w=640",
+      "imageUrl": "https://images.unsplash.com/photo-1688149013444-da644d290749?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxjcmVkaXQlMjBjYXJkJTIwaWxsdXN0cmF0aW9ufGVufDB8fHx8MTc2MTY5NDg1MHww&ixlib=rb-4.1.0&q=85&w=1280",
       "imageHint": "credit card illustration"
     },
     {
       "id": "benefit-schedule",
       "description": "Illustration of a calendar.",
-      "imageUrl": "https://images.unsplash.com/photo-1618751620143-4d854c70f726?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxjYWxlbmRhciUyMGlsbHVzdHJhdGlvbnxlbnwwfHx8fDE3NjE2OTQ4NTB8MA&ixlib=rb-4.1.0&q=80&w=640",
+      "imageUrl": "https://images.unsplash.com/photo-1618751620143-4d854c70f726?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxjYWxlbmRhciUyMGlsbHVzdHJhdGlvbnxlbnwwfHx8fDE3NjE2OTQ4NTB8MA&ixlib=rb-4.1.0&q=85&w=1280",
       "imageHint": "calendar illustration"
     },
     {
       "id": "benefit-impact",
       "description": "Illustration of a heart and balance scales.",
-      "imageUrl": "https://images.unsplash.com/photo-1715111965920-b6d4b4fc579f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxoZWFydCUyMGJhbGFuY2UlMjBpbGx1c3RyYXRpb258ZW58MHx8fHwxNzYxNjk0ODUwfDA&ixlib=rb-4.1.0&q=80&w=640",
+      "imageUrl": "https://images.unsplash.com/photo-1715111965920-b6d4b4fc579f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxoZWFydCUyMGJhbGFuY2UlMjBpbGx1c3RyYXRpb258ZW58MHx8fHwxNzYxNjk0ODUwfDA&ixlib=rb-4.1.0&q=85&w=1280",
       "imageHint": "heart balance illustration"
     },
     {
       "id": "coach-network",
       "description": "Illustration of a network of people.",
-      "imageUrl": "https://images.unsplash.com/photo-1626234736261-f50c9ff94bef?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxuZXR3b3JrJTIwcGVvcGxlJTIwaWxsdXN0cmF0aW9ufGVufDB8fHx8MTc2MTY5NDg1MHww&ixlib=rb-4.1.0&q=80&w=640",
+      "imageUrl": "https://images.unsplash.com/photo-1626234736261-f50c9ff94bef?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxuZXR3b3JrJTIwcGVvcGxlJTIwaWxsdXN0cmF0aW9ufGVufDB8fHx8MTc2MTY5NDg1MHww&ixlib=rb-4.1.0&q=85&w=1280",
       "imageHint": "network people illustration"
     },
     {
       "id": "about-hero",
       "description": "A diverse group of professionals in a modern office, collaborating and smiling.",
-      "imageUrl": "https://images.unsplash.com/photo-1522071820081-009f0129c71c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxkaXZlcnNlJTIwdGVhbSUyMGNvbGxhYm9yYXRpb258ZW58MHx8fHwxNzYyMjU1MzY3fDA&ixlib=rb-4.1.0&q=80&w=640",
+      "imageUrl": "https://images.unsplash.com/photo-1522071820081-009f0129c71c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxkaXZlcnNlJTIwdGVhbSUyMGNvbGxhYm9yYXRpb258ZW58MHx8fHwxNzYyMjU1MzY3fDA&ixlib=rb-4.1.0&q=85&w=1280",
       "imageHint": "diverse team collaboration"
     },
     {
       "id": "about-story",
       "description": "Two people at a whiteboard, brainstorming with sticky notes.",
-      "imageUrl": "https://images.unsplash.com/photo-1552664730-d307ca884978?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxicmFpbnN0b3JtaW5nJTIwd2hpdGVib2FyZHxlbnwwfHx8fDE3NjIyNTU0MjR8MA&ixlib=rb-4.1.0&q=80&w=640",
+      "imageUrl": "https://images.unsplash.com/photo-1552664730-d307ca884978?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxicmFpbnN0b3JtaW5nJTIwd2hpdGVib2FyZHxlbnwwfHx8fDE3NjIyNTU0MjR8MA&ixlib=rb-4.1.0&q=85&w=1280",
       "imageHint": "brainstorming whiteboard"
     },
     {
       "id": "social-hiking-1",
       "description": "A group of friends hiking up a sunlit mountain trail.",
-      "imageUrl": "https://images.unsplash.com/photo-1607015646132-ee3b6a524ade?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxmcmllbmRzJTIwaGlraW5nfGVufDB8fHx8MTc2MTgzMTg3M3ww&ixlib=rb-4.1.0&q=80&w=640",
+      "imageUrl": "https://images.unsplash.com/photo-1607015646132-ee3b6a524ade?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxmcmllbmRzJTIwaGlraW5nfGVufDB8fHx8MTc2MTgzMTg3M3ww&ixlib=rb-4.1.0&q=85&w=1280",
       "imageHint": "friends hiking"
     },
     {
       "id": "social-hiking-2",
       "description": "A close-up of hiking boots on a rocky path.",
-      "imageUrl": "https://images.unsplash.com/photo-1600100315760-ac46b65f6fdd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxoaWtpbmclMjBib290c3xlbnwwfHx8fDE3NjE5MDg4NzZ8MA&ixlib=rb-4.1.0&q=80&w=640",
+      "imageUrl": "https://images.unsplash.com/photo-1600100315760-ac46b65f6fdd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxoaWtpbmclMjBib290c3xlbnwwfHx8fDE3NjE5MDg4NzZ8MA&ixlib=rb-4.1.0&q=85&w=1280",
       "imageHint": "hiking boots"
     },
     {
       "id": "social-hiking-3",
       "description": "A panoramic view of mountains from a hiking trail.",
-      "imageUrl": "https://images.unsplash.com/photo-1516366353199-ed694fec414f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxtb3VudGFpbiUyMHZpZXd8ZW58MHx8fHwxNzYxODg5ODI3fDA&ixlib=rb-4.1.0&q=80&w=640",
+      "imageUrl": "https://images.unsplash.com/photo-1516366353199-ed694fec414f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxtb3VudGFpbiUyMHZpZXd8ZW58MHx8fHwxNzYxODg5ODI3fDA&ixlib=rb-4.1.0&q=85&w=1280",
       "imageHint": "mountain view"
     },
     {
       "id": "careers-hero",
       "description": "A diverse group of colleagues working together in a bright, modern office space.",
-      "imageUrl": "https://images.unsplash.com/photo-1573496799652-408c2ac9fe98?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxvZmZpY2UlMjB0ZWFtJTIwY29sbGFib3JhdGlvbnxlbnwwfHx8fDE3NjI0NDQyNzZ8MA&ixlib=rb-4.1.0&q=80&w=640",
+      "imageUrl": "https://images.unsplash.com/photo-1573496799652-408c2ac9fe98?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxvZmZpY2UlMjB0ZWFtJTIwY29sbGFib3JhdGlvbnxlbnwwfHx8fDE3NjI0NDQyNzZ8MA&ixlib=rb-4.1.0&q=85&w=1280",
       "imageHint": "office team collaboration"
     },
     {

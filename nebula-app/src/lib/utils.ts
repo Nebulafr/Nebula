@@ -60,10 +60,14 @@ export async function makeRequest<T = any>(
     timeout = 30000,
   } = options;
 
+  const isFormData = body instanceof FormData;
   const requestHeaders: Record<string, string> = {
-    "Content-Type": "application/json",
     ...headers,
   };
+
+  if (!isFormData && !requestHeaders["Content-Type"]) {
+    requestHeaders["Content-Type"] = "application/json";
+  }
 
   if (requireAuth) {
     const token = getAccessToken();
@@ -86,7 +90,7 @@ export async function makeRequest<T = any>(
   };
 
   if (body && !["GET", "DELETE"].includes(method)) {
-    config.body = JSON.stringify(body);
+    config.body = isFormData ? body : JSON.stringify(body);
   }
 
   try {

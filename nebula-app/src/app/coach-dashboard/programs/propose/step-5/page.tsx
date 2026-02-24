@@ -10,7 +10,7 @@ import { Stepper } from '../components/stepper';
 import { useProposeProgramContext } from '../context/propose-program-context';
 import { useCreateProgram } from '@/hooks';
 import { useRouter } from 'next/navigation';
-import { uploadMultipleFiles } from '@/lib/upload';
+import { uploadMultipleFiles, fileToBase64 } from '@/lib/upload';
 import { toast } from 'react-toastify';
 import { useTranslations } from 'next-intl';
 
@@ -23,44 +23,42 @@ export default function ProposeStep5Page() {
     const { formData, resetForm } = useProposeProgramContext();
     const createProgramMutation = useCreateProgram();
 
+    const hasSubmittedRef = React.useRef(false);
+
     useEffect(() => {
         setIsClient(true);
     }, []);
 
     useEffect(() => {
         // Submit the program when component mounts if not already submitting or complete
-        if (!isSubmitting && !submissionComplete && formData.title) {
+        // Use a ref to ensure we only trigger this once, even if component re-mounts
+        if (!isSubmitting && !submissionComplete && formData.title && !hasSubmittedRef.current) {
+            hasSubmittedRef.current = true;
             submitProgram();
         }
-    }, []);
+    }, [formData.title, isSubmitting, submissionComplete]);
 
     const submitProgram = async () => {
         setIsSubmitting(true);
         try {
-            // Upload materials for each module
-            const modulesWithMaterialUrls = await Promise.all(
+            // Process materials for each module
+            const modulesWithBase64Materials = await Promise.all(
                 formData.modules.map(async (mod) => {
-                    let materialMetadata: any[] = [];
-
-                    // Upload files if there are any
-                    if (mod.materials && mod.materials.length > 0) {
-                        try {
-                            materialMetadata = await uploadMultipleFiles(
-                                mod.materials,
-                                `nebula-materials/${formData.title.replace(/\s+/g, '-').toLowerCase()}`
-                            );
-                        } catch (error) {
-                            console.error(`Failed to upload materials for ${mod.title}:`, error);
-                            toast.error(t("uploadError", { title: mod.title }));
-                            // Continue with empty materials array
-                        }
-                    }
+                    const materialsWithBase64 = await Promise.all(
+                        (mod.materials || []).map(async (file: File) => {
+                            const base64 = await fileToBase64(file);
+                            return {
+                                url: base64, // The service will handle the upload
+                                name: file.name,
+                                type: file.type,
+                                size: file.size
+                            };
+                        })
+                    );
 
                     return {
-                        title: mod.title,
-                        week: mod.week,
-                        description: mod.description,
-                        materials: materialMetadata,
+                        ...mod,
+                        materials: materialsWithBase64,
                     };
                 })
             );
@@ -70,7 +68,7 @@ export default function ProposeStep5Page() {
                 category: formData.category,
                 description: formData.description,
                 objectives: formData.objectives,
-                modules: modulesWithMaterialUrls,
+                modules: modulesWithBase64Materials, // Use the modules with base64 materials
                 price: formData.price,
                 duration: `${formData.duration} weeks`,
                 difficultyLevel: formData.difficultyLevel,
@@ -83,6 +81,7 @@ export default function ProposeStep5Page() {
 
             await createProgramMutation.mutateAsync(programData);
             setSubmissionComplete(true);
+            toast.success(t('program_proposed_success')); // Added success toast
         } catch (error) {
             console.error('Failed to submit program:', error);
             // Redirect back to step 4 on error

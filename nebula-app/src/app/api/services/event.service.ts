@@ -13,6 +13,7 @@ import {
 import { sendSuccess } from "../utils/send-response";
 import { generateSlug } from "@/lib/utils";
 import { paymentService } from "./payment.service";
+import { uploadService } from "./upload.service";
 
 export class EventService {
   create = async (request: NextRequest, data: CreateEventData) => {
@@ -36,7 +37,22 @@ export class EventService {
     }
 
     const payload = createEventSchema.parse(data);
-    let { organizerId, ...eventData } = payload as any;
+    let { organizerId, images, ...eventData } = payload as any;
+
+    if (images && images.length > 0) {
+      images = await Promise.all(
+        images.map(async (image: string) => {
+          if (image.startsWith("data:")) {
+            const result = await uploadService.uploadFile(image, {
+              folder: `nebula-events/${data.slug}`,
+              resourceType: "image",
+            });
+            return result.url;
+          }
+          return image;
+        })
+      );
+    }
 
     // Robustness: If organizerId is a Coach.id, resolve it to User.id
     if (organizerId) {
@@ -52,6 +68,7 @@ export class EventService {
     const event = await prisma.event.create({
       data: {
         ...eventData,
+        images: images || [],
         organizerId: organizerId || user.id,
       },
       include: {
@@ -453,6 +470,21 @@ export class EventService {
 
     const eventData = data as any;
 
+    if (eventData.images && eventData.images.length > 0) {
+      eventData.images = await Promise.all(
+        eventData.images.map(async (image: string) => {
+          if (image.startsWith("data:")) {
+            const result = await uploadService.uploadFile(image, {
+              folder: `nebula-events/${existingEvent.slug}`,
+              resourceType: "image",
+            });
+            return result.url;
+          }
+          return image;
+        })
+      );
+    }
+
     const event = await prisma.$transaction(async (tx) => {
       await tx.event.update({
         where: { id },
@@ -548,7 +580,7 @@ export class EventService {
             gt: 0,
           }
         }
-        
+
       },
       select: { id: true },
     });

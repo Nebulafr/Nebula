@@ -53,6 +53,7 @@ export default function CoachOnboardingStep1() {
             src={image.imageUrl}
             alt={image.description}
             fill
+            quality={85}
             className="object-cover"
             data-ai-hint={image.imageHint}
           />
@@ -115,9 +116,8 @@ export default function CoachOnboardingStep1() {
                   <Input
                     id="linkedin"
                     placeholder={t("linkedinPlaceholder")}
-                    className={`pl-10 h-14 ${
-                      errors.linkedin ? "border-destructive" : ""
-                    }`}
+                    className={`pl-10 h-14 ${errors.linkedin ? "border-destructive" : ""
+                      }`}
                     {...register("linkedin")}
                   />
                 </div>

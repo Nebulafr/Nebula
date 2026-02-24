@@ -74,6 +74,7 @@ export default function OnboardingStep1() {
             src={image.imageUrl}
             alt={image.description}
             fill
+            quality={85}
             className="object-cover scale-105 transition-transform duration-1000 hover:scale-110"
             data-ai-hint={image.imageHint}
             priority
@@ -90,7 +91,7 @@ export default function OnboardingStep1() {
       <div className="flex h-full flex-col py-12 lg:col-span-2 relative overflow-hidden">
         <div className="absolute top-0 right-0 -z-10 h-64 w-64 rounded-full bg-primary/5 blur-3xl opacity-50" />
         <div className="absolute bottom-0 left-0 -z-10 h-64 w-64 rounded-full bg-secondary/5 blur-3xl opacity-50" />
-        
+
         <div className="mx-auto flex w-full max-w-md flex-col h-full gap-8 px-6">
           <div className="space-y-2">
             <Progress value={33} className="h-1.5 bg-muted transition-all duration-500" />
@@ -116,20 +117,18 @@ export default function OnboardingStep1() {
               {categories.map((category: any, idx: number) => (
                 <Card
                   key={category.id}
-                  className={`group cursor-pointer rounded-2xl border-2 p-1 transition-all duration-300 hover:scale-[1.01] active:scale-[0.99] ${
-                    selectedCategoryId === category.id
+                  className={`group cursor-pointer rounded-2xl border-2 p-1 transition-all duration-300 hover:scale-[1.01] active:scale-[0.99] ${selectedCategoryId === category.id
                       ? "border-primary bg-primary/5 shadow-xl shadow-primary/10"
                       : "border-transparent bg-card hover:border-primary/20 hover:shadow-md"
-                  }`}
+                    }`}
                   onClick={() =>
                     setValue("interestedCategoryId", category.id, { shouldValidate: true })
                   }
                 >
                   <CardContent className="flex items-center gap-5 p-5">
                     <div
-                      className={`flex h-14 w-14 items-center justify-center rounded-2xl transition-transform duration-500 group-hover:rotate-6 ${
-                        categoryColors[category.name] || "bg-gray-500/10"
-                      } shadow-inner backdrop-blur-sm`}
+                      className={`flex h-14 w-14 items-center justify-center rounded-2xl transition-transform duration-500 group-hover:rotate-6 ${categoryColors[category.name] || "bg-gray-500/10"
+                        } shadow-inner backdrop-blur-sm`}
                     >
                       <Image
                         src={
@@ -150,11 +149,10 @@ export default function OnboardingStep1() {
                         {t("explore", { category: category.name.toLowerCase() })}
                       </p>
                     </div>
-                    <div className={`h-6 w-6 rounded-full border-2 transition-all duration-300 flex items-center justify-center ${
-                      selectedCategoryId === category.id
+                    <div className={`h-6 w-6 rounded-full border-2 transition-all duration-300 flex items-center justify-center ${selectedCategoryId === category.id
                         ? "border-primary bg-primary"
                         : "border-muted group-hover:border-primary/50"
-                    }`}>
+                      }`}>
                       {selectedCategoryId === category.id && (
                         <div className="h-2 w-2 rounded-full bg-white" />
                       )}

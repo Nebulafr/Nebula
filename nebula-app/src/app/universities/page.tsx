@@ -142,6 +142,7 @@ export default function UniversitiesPage() {
                   src={problemImage.imageUrl}
                   alt={problemImage.description}
                   fill
+                  quality={85}
                   className="object-cover"
                   data-ai-hint={problemImage.imageHint}
                 />
@@ -274,6 +275,7 @@ export default function UniversitiesPage() {
                   src={videoImage.imageUrl}
                   alt={videoImage.description}
                   fill
+                  quality={85}
                   className="object-cover"
                   data-ai-hint={videoImage.imageHint}
                 />

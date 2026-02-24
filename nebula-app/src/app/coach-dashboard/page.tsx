@@ -56,12 +56,10 @@ function CoachDashboardContent() {
   const { data: todaySessionsData, isLoading: isLoadingSessions } =
     useCoachSessions("upcoming");
   const { data: statsData } = useCoachStats();
-  const { mutate: cancelSession, isPending: isCancelling } =
-    useCancelSession();
+  const { mutate: cancelSession, isPending: isCancelling } = useCancelSession();
   const { mutate: approveSession, isPending: isApproving } =
     useApproveSession();
-  const { mutate: rejectSession, isPending: isRejecting } =
-    useRejectSession();
+  const { mutate: rejectSession, isPending: isRejecting } = useRejectSession();
 
   const handleApprove = (sessionId: string) => {
     approveSession(sessionId, {
@@ -92,7 +90,7 @@ function CoachDashboardContent() {
             toast.success(t("sessionCancelled"));
           }
         },
-      }
+      },
     );
   };
 
@@ -116,9 +114,7 @@ function CoachDashboardContent() {
           if (result.success) {
             // Google Calendar connected successfully
           } else {
-            toast.error(
-              result?.message || t("failedToSaveCalendar")
-            );
+            toast.error(result?.message || t("failedToSaveCalendar"));
           }
         } catch (error) {
           toast.error(t("failedToSaveCalendar"));
@@ -229,17 +225,19 @@ function CoachDashboardContent() {
             <CardContent>
               <Table>
                 <TableHeader>
-                   <TableRow>
+                  <TableRow>
                     <TableHead>{t("student")}</TableHead>
                     <TableHead>{t("time")}</TableHead>
                     <TableHead>{t("status")}</TableHead>
-                    <TableHead className="text-right">{t("payouts.actions")}</TableHead>
+                    <TableHead className="text-right">
+                      {t("payouts.actions")}
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {isLoadingSessions ? (
                     <TableRow>
-                      <TableCell colSpan={3} className="text-center py-8">
+                      <TableCell colSpan={4} className="text-center py-8">
                         <div className="flex items-center justify-center gap-2">
                           <Loader2 className="h-4 w-4 animate-spin" />
                         </div>
@@ -257,7 +255,7 @@ function CoachDashboardContent() {
                                     src={
                                       session.students[0]?.avatarUrl ||
                                       getDefaultAvatar(
-                                        session.students[0]?.fullName
+                                        session.students[0]?.fullName,
                                       )
                                     }
                                   />
@@ -267,7 +265,8 @@ function CoachDashboardContent() {
                                   </AvatarFallback>
                                 </Avatar>
                                 <span className="font-medium">
-                                   {session.students[0]?.fullName || t("student")}
+                                  {session.students[0]?.fullName ||
+                                    t("student")}
                                 </span>
                               </>
                             }
@@ -279,10 +278,10 @@ function CoachDashboardContent() {
                             {
                               hour: "2-digit",
                               minute: "2-digit",
-                            }
+                            },
                           )}
                         </TableCell>
-                         <TableCell>
+                        <TableCell>
                           <Badge
                             variant={
                               session.status === "SCHEDULED"
@@ -291,10 +290,12 @@ function CoachDashboardContent() {
                             }
                             className={cn(
                               session.status === "CANCELLED" &&
-                                "bg-red-50 text-red-700 border-red-200"
+                                "bg-red-50 text-red-700 border-red-200",
                             )}
                           >
-                            {td(`coach.schedule.sessionItem.status.${session.status}`)}
+                            {td(
+                              `coach.schedule.sessionItem.status.${session.status}`,
+                            )}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right">
@@ -334,7 +335,10 @@ function CoachDashboardContent() {
                               <>
                                 {session.meetLink ? (
                                   <Button variant="outline" size="sm" asChild>
-                                    <Link href={session.meetLink} target="_blank">
+                                    <Link
+                                      href={session.meetLink}
+                                      target="_blank"
+                                    >
                                       {t("joinCall")}
                                     </Link>
                                   </Button>
@@ -362,7 +366,9 @@ function CoachDashboardContent() {
                                   <AlertDialogContent>
                                     <AlertDialogHeader>
                                       <AlertDialogTitle>
-                                        {t("schedule.sessionItem.actions.cancel")}
+                                        {t(
+                                          "schedule.sessionItem.actions.cancel",
+                                        )}
                                       </AlertDialogTitle>
                                       <AlertDialogDescription>
                                         Are you sure you want to cancel this
@@ -379,7 +385,9 @@ function CoachDashboardContent() {
                                         onClick={() => handleCancel(session.id)}
                                         className="bg-red-600 hover:bg-red-700"
                                       >
-                                        {t("schedule.sessionItem.actions.cancel")}
+                                        {t(
+                                          "schedule.sessionItem.actions.cancel",
+                                        )}
                                       </AlertDialogAction>
                                     </AlertDialogFooter>
                                   </AlertDialogContent>
@@ -393,8 +401,8 @@ function CoachDashboardContent() {
                   ) : (
                     <TableRow>
                       <TableCell
-                        colSpan={3}
-                        className="text-center py-8 text-muted-foreground"
+                        colSpan={4}
+                        className="text-center py-8 text-muted-foreground w-full"
                       >
                         {t("noSessionsToday")}
                       </TableCell>
@@ -407,7 +415,9 @@ function CoachDashboardContent() {
           <Card className="col-span-4 lg:col-span-3">
             <CardHeader>
               <CardTitle>{t("recentPayouts")}</CardTitle>
-              <CardDescription>{t("payoutCount", { count: 3 })}</CardDescription>
+              <CardDescription>
+                {t("payoutCount", { count: 3 })}
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-8">
@@ -467,7 +477,9 @@ function CoachDashboardContent() {
                 </div>
               </div>
               <Button asChild className="mt-6 w-full">
-                <Link href="/coach-dashboard/payouts">{t("viewAllPayouts")}</Link>
+                <Link href="/coach-dashboard/payouts">
+                  {t("viewAllPayouts")}
+                </Link>
               </Button>
             </CardContent>
           </Card>

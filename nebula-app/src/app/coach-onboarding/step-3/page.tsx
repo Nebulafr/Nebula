@@ -73,6 +73,7 @@ function CoachOnboardingStep3Content() {
             src={image.imageUrl}
             alt={image.description}
             fill
+            quality={85}
             className="object-cover scale-105 transition-transform duration-1000 hover:scale-110"
             data-ai-hint={image.imageHint}
             priority
@@ -119,13 +120,12 @@ function CoachOnboardingStep3Content() {
                     {t("label")}
                   </Label>
                   <span
-                    className={`text-xs font-mono font-medium px-2 py-0.5 rounded-full ${
-                      charCount < 50
+                    className={`text-xs font-mono font-medium px-2 py-0.5 rounded-full ${charCount < 50
                         ? "bg-muted text-muted-foreground"
                         : charCount > 1000
-                        ? "bg-destructive/10 text-destructive"
-                        : "bg-green-500/10 text-green-600"
-                    }`}
+                          ? "bg-destructive/10 text-destructive"
+                          : "bg-green-500/10 text-green-600"
+                      }`}
                   >
                     {t("charCount", { count: charCount })}
                   </span>
@@ -135,16 +135,15 @@ function CoachOnboardingStep3Content() {
                     id="motivation"
                     placeholder={t("placeholder")}
                     rows={8}
-                    className={`resize-none rounded-2xl border-2 p-5 text-base transition-all duration-300 focus:ring-4 focus:ring-primary/10 ${
-                      errors.motivation 
-                        ? "border-destructive focus:border-destructive" 
+                    className={`resize-none rounded-2xl border-2 p-5 text-base transition-all duration-300 focus:ring-4 focus:ring-primary/10 ${errors.motivation
+                        ? "border-destructive focus:border-destructive"
                         : "border-muted-foreground/10 focus:border-primary"
-                    } bg-card/50 backdrop-blur-sm`}
+                      } bg-card/50 backdrop-blur-sm`}
                     {...register("motivation")}
                   />
                   <div className="absolute bottom-4 right-4 text-muted-foreground/20 group-focus-within:text-primary/20 pointer-events-none transition-colors">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+                      <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
                     </svg>
                   </div>
                 </div>

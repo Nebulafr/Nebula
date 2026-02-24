@@ -10,12 +10,24 @@ export interface UploadResult {
 
 export class UploadService {
     async uploadFile(
-        buffer: Buffer,
+        file: Buffer | string,
         options: {
             folder?: string;
             resourceType?: "auto" | "image" | "video" | "raw";
         }
     ): Promise<UploadResult> {
+        let buffer: Buffer;
+
+        if (typeof file === "string") {
+            // Convert base64 to Buffer
+            const base64Content = file.includes(",")
+                ? file.split(",")[1]
+                : file;
+            buffer = Buffer.from(base64Content, "base64");
+        } else {
+            buffer = file;
+        }
+
         const { folder = "nebula-uploads", resourceType = "auto" } = options;
 
         if (resourceType === "image") {

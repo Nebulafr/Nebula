@@ -109,6 +109,7 @@ export default function BecomeACoachPage() {
               alt={heroImage.description}
               width={1200}
               height={300}
+              quality={85}
               className="w-full rounded-[30px] object-cover"
               data-ai-hint={heroImage.imageHint}
             />
@@ -196,6 +197,7 @@ export default function BecomeACoachPage() {
                           benefit.image.id === "benefit-schedule" ? 200 : 150
                         }
                         height={150}
+                        quality={85}
                         className="object-contain"
                         data-ai-hint={benefit.image.imageHint}
                       />

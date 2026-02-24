@@ -21,6 +21,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { MaterialLink } from "@/components/MaterialLink";
 import { Separator } from "@/components/ui/separator";
 import {
   Accordion,
@@ -50,82 +51,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "react-toastify";
 
-function getMaterialIcon(type: string) {
-  switch (type.toLowerCase()) {
-    case "pdf":
-      return <BookOpen className="h-4 w-4 text-red-500" />;
-    case "video":
-      return <Video className="h-4 w-4 text-blue-500" />;
-    case "doc":
-    case "docx":
-      return <FileText className="h-4 w-4 text-indigo-500" />;
-    default:
-      return <File className="h-4 w-4 text-muted-foreground" />;
-  }
-}
-
-function MaterialItem({ mat, idx }: { mat: any; idx: number }) {
-  const isString = typeof mat === "string";
-  const name = isString ? mat.split("/").pop() : (mat.fileName || mat.name);
-  const link = isString ? mat : (mat.url || mat.link);
-  let type = isString ? (mat.endsWith(".pdf") ? "pdf" : "doc") : (mat.fileType || mat.type || "");
-  
-  // Normalize type
-  if (type.includes("pdf")) type = "pdf";
-  else if (type.includes("video")) type = "video";
-  else if (type.includes("word") || type.includes("officedocument") || type.includes("doc")) type = "doc";
-  else type = "file";
-
-  const isPdf = type.toLowerCase() === "pdf";
-
-  const sizeDisplay = !isString && mat.fileSize ? 
-    (mat.fileSize > 1024 * 1024 ? `${(mat.fileSize / (1024 * 1024)).toFixed(2)} MB` : `${(mat.fileSize / 1024).toFixed(2)} KB`) 
-    : null;
-
-  return (
-    <div
-      key={idx}
-      className="group flex items-center justify-between rounded-md border bg-background/50 p-2 transition-colors hover:bg-muted"
-    >
-      <a
-        href={link}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex items-center gap-2 text-sm font-medium hover:underline"
-      >
-        {getMaterialIcon(type)}
-        <div className="flex flex-col">
-          <span className="truncate max-w-[200px] sm:max-w-[400px]">{name}</span>
-          {sizeDisplay && <span className="text-[10px] text-muted-foreground">{sizeDisplay}</span>}
-        </div>
-      </a>
-      <div className="flex items-center gap-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 text-muted-foreground hover:text-foreground"
-          asChild
-        >
-          <a href={link} target="_blank" rel="noopener noreferrer">
-            <ArrowRight className="h-4 w-4" />
-          </a>
-        </Button>
-        {isPdf && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 text-primary hover:bg-primary/10"
-            asChild
-          >
-            <a href={link} download={name || "material.pdf"}>
-              <Download className="h-4 w-4" />
-            </a>
-          </Button>
-        )}
-      </div>
-    </div>
-  );
-}
 
 function SessionCard({
   session,
@@ -209,7 +134,7 @@ function SessionCard({
                 }
                 className={cn(
                   session.status === "CANCELLED" &&
-                    "bg-red-50 text-red-700 border-red-200"
+                  "bg-red-50 text-red-700 border-red-200"
                 )}
               >
                 {session.status?.charAt(0) +
@@ -415,7 +340,7 @@ function UpcomingProgramCard({ program }: { program: any }) {
                               <span
                                 className={cn(
                                   module.status === "Completed" &&
-                                    "text-muted-foreground line-through",
+                                  "text-muted-foreground line-through",
                                 )}
                               >
                                 {module.title}
@@ -434,10 +359,9 @@ function UpcomingProgramCard({ program }: { program: any }) {
                                 <div className="space-y-2">
                                   {module.materials.map(
                                     (mat: any, idx: number) => (
-                                      <MaterialItem
+                                      <MaterialLink
                                         key={idx}
-                                        mat={mat}
-                                        idx={idx}
+                                        material={mat}
                                       />
                                     ),
                                   )}

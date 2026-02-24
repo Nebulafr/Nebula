@@ -33,7 +33,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { EventType, INewEvent } from "@/types/event";
 import { UserSelect } from "@/components/ui/user-select";
-import { uploadImage } from "@/lib/upload";
+import { fileToBase64, uploadImage } from "@/lib/upload";
 import { useTranslations } from "next-intl";
 import moment from "moment";
 import { UserRole } from "@/enums";
@@ -126,16 +126,14 @@ export function CreateEventDialog({
 
     setUploading(true);
     try {
-      const uploadPromises = Array.from(files).map((file) =>
-        uploadImage(file, "events")
-      );
-      const uploadedUrls = await Promise.all(uploadPromises);
+      const base64Promises = Array.from(files).map((file) => fileToBase64(file));
+      const base64Images = await Promise.all(base64Promises);
       setNewEvent((prev) => ({
         ...prev,
-        images: [...prev.images, ...uploadedUrls],
+        images: [...prev.images, ...base64Images],
       }));
     } catch (error) {
-      console.error("Error uploading files:", error);
+      console.error("Error processing files:", error);
     } finally {
       setUploading(false);
     }

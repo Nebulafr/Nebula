@@ -10,6 +10,7 @@ import { sendSuccess } from "../utils/send-response";
 import { generateSlug } from "@/lib/utils";
 import { extractUserFromRequest } from "../utils/extract-user";
 import { emailService } from "./email.service";
+import { uploadService } from "./upload.service";
 
 export class ProgramService {
   async createProgram(request: NextRequest) {
@@ -94,28 +95,45 @@ export class ProgramService {
         prerequisites: prerequisites || [],
         targetAudience: targetAudience || [],
         modules: {
-          create:
-            modules?.map((module: any, index: number) => ({
-              title: module.title,
-              week: module.week || index + 1,
-              description: module.description,
-              materials: {
-                create:
-                  module.materials?.map((mat: any) => ({
+          create: await Promise.all(
+            modules?.map(async (module: any, index: number) => {
+              const materials = await Promise.all(
+                (module.materials || []).map(async (mat: any, matIndex: number) => {
+                  let url = mat.url;
+                  // If it's a base64 string, upload it
+                  if (url && url.startsWith("data:")) {
+                    const result = await uploadService.uploadFile(url, {
+                      folder: `nebula-materials/${slug}`,
+                    });
+                    url = result.url;
+                  }
+                  return {
                     fileName: mat.name || "document",
-                    url: mat.url,
+                    url,
                     mimeType: mat.type || "application/pdf",
-                  })) || [],
-              },
-            })) || [],
+                    position: matIndex,
+                  };
+                })
+              );
+
+              return {
+                title: module.title,
+                week: module.week || index + 1,
+                description: module.description,
+                materials: {
+                  create: materials,
+                },
+              };
+            }) || []
+          ),
         },
         coCoaches:
           validCoCoachIds.length > 0
             ? {
-                create: validCoCoachIds.map((coachId) => ({
-                  coachId,
-                })),
-              }
+              create: validCoCoachIds.map((coachId) => ({
+                coachId,
+              })),
+            }
             : undefined,
       },
       include: {
@@ -615,6 +633,24 @@ export class ProgramService {
 
         // Create new modules with materials
         for (const [index, mod] of modules.entries()) {
+          const materials = await Promise.all(
+            (mod.materials || []).map(async (mat: any, matIndex: number) => {
+              let url = mat.url;
+              if (url && url.startsWith("data:")) {
+                const result = await uploadService.uploadFile(url, {
+                  folder: `nebula-materials/${program.slug}`,
+                });
+                url = result.url;
+              }
+              return {
+                fileName: mat.name || "document",
+                url,
+                mimeType: mat.type || "application/pdf",
+                position: matIndex,
+              };
+            })
+          );
+
           await tx.module.create({
             data: {
               programId: program.id,
@@ -622,12 +658,7 @@ export class ProgramService {
               week: mod.week || index + 1,
               description: mod.description,
               materials: {
-                create:
-                  mod.materials?.map((mat: any) => ({
-                    fileName: mat.name || "document",
-                    url: mat.url,
-                    mimeType: mat.type || "application/pdf",
-                  })) || [],
+                create: materials,
               },
             },
           });
@@ -697,17 +728,17 @@ export class ProgramService {
       const existingReview =
         targetType === "COACH"
           ? await prisma.coachReview.findFirst({
-              where: {
-                userId,
-                coachId: targetId,
-              },
-            })
+            where: {
+              userId,
+              coachId: targetId,
+            },
+          })
           : await prisma.programReview.findFirst({
-              where: {
-                userId,
-                programId: targetId,
-              },
-            });
+            where: {
+              userId,
+              programId: targetId,
+            },
+          });
 
       return !!existingReview;
     } catch (error) {

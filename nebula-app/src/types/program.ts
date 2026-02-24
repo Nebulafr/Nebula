@@ -58,6 +58,7 @@ export type ProgramWithRelations = Program & {
       fileName: string;
       url: string;
       mimeType: string;
+      position: number;
     }>;
   }[];
   reviews: Array<{

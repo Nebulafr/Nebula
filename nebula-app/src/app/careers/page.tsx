@@ -63,9 +63,9 @@ export default function CareersPage() {
               src={heroImage.imageUrl}
               alt={heroImage.description}
               fill
+              quality={85}
               className="object-cover"
               data-ai-hint={heroImage.imageHint}
-              unoptimized
             />
           )}
           <div className="absolute inset-0 bg-black/50" />
@@ -140,9 +140,9 @@ export default function CareersPage() {
                   src={lifeAtNebulaImage.imageUrl}
                   alt={lifeAtNebulaImage.description}
                   fill
+                  quality={85}
                   className="object-cover"
                   data-ai-hint={lifeAtNebulaImage.imageHint}
-                  unoptimized
                 />
               </div>
             )}

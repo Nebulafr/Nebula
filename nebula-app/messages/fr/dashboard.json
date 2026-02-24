@@ -413,6 +413,7 @@
             "confirmation": "E-mail de confirmation",
             "confirmationValue": "Une confirmation vous a été envoyée",
             "backToPrograms": "Retour aux programmes",
+            "program_proposed_success": "Programme proposé avec succès !",
             "uploadError": "Échec du téléchargement des documents pour {title}"
           }
         }

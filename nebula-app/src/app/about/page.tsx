@@ -38,6 +38,7 @@ export default function AboutPage() {
               src={heroImage.imageUrl}
               alt={heroImage.description}
               fill
+              quality={85}
               className="object-cover"
               data-ai-hint={heroImage.imageHint}
               unoptimized
@@ -88,6 +89,7 @@ export default function AboutPage() {
                   src={storyImage.imageUrl}
                   alt={storyImage.description}
                   fill
+                  quality={85}
                   className="object-cover"
                   data-ai-hint={storyImage.imageHint}
                 />

@@ -73,6 +73,7 @@ function OnboardingStep2Content() {
             src={image.imageUrl}
             alt={image.description}
             fill
+            quality={85}
             className="object-cover scale-105 transition-transform duration-1000 hover:scale-110"
             data-ai-hint={image.imageHint}
             priority
@@ -113,11 +114,10 @@ function OnboardingStep2Content() {
             {skillLevels.map((level) => (
               <Card
                 key={level.value}
-                className={`group cursor-pointer rounded-2xl border-2 p-1 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] ${
-                  selectedLevel === level.value
+                className={`group cursor-pointer rounded-2xl border-2 p-1 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] ${selectedLevel === level.value
                     ? "border-primary bg-primary/5 shadow-xl shadow-primary/10"
                     : "border-transparent bg-card hover:border-primary/20 hover:shadow-md"
-                }`}
+                  }`}
                 onClick={() =>
                   setValue("skillLevel", level.value, { shouldValidate: true })
                 }
@@ -138,11 +138,10 @@ function OnboardingStep2Content() {
                       {t(level.descriptionKey as any)}
                     </p>
                   </div>
-                  <div className={`h-6 w-6 rounded-full border-2 transition-all duration-300 flex items-center justify-center ${
-                    selectedLevel === level.value
+                  <div className={`h-6 w-6 rounded-full border-2 transition-all duration-300 flex items-center justify-center ${selectedLevel === level.value
                       ? "border-primary bg-primary"
                       : "border-muted group-hover:border-primary/50"
-                  }`}>
+                    }`}>
                     {selectedLevel === level.value && (
                       <div className="h-2 w-2 rounded-full bg-white" />
                     )}

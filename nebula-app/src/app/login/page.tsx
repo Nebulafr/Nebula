@@ -133,6 +133,7 @@ export default function LoginPage() {
               src={loginImage.imageUrl}
               alt={loginImage.description}
               fill
+              quality={85}
               className="object-cover"
               data-ai-hint={loginImage.imageHint}
             />

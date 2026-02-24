@@ -78,6 +78,7 @@ function CoachOnboardingStep4Content() {
             src={image.imageUrl}
             alt={image.description}
             fill
+            quality={85}
             className="object-cover"
             data-ai-hint={image.imageHint}
           />
@@ -106,13 +107,12 @@ function CoachOnboardingStep4Content() {
                 <div className="flex justify-between">
                   <Label htmlFor="style">{t("label")}</Label>
                   <span
-                    className={`text-xs ${
-                      charCount < 50
+                    className={`text-xs ${charCount < 50
                         ? "text-muted-foreground"
                         : charCount > 1000
-                        ? "text-destructive"
-                        : "text-green-600"
-                    }`}
+                          ? "text-destructive"
+                          : "text-green-600"
+                      }`}
                   >
                     {t("charCount", { count: charCount })}
                   </span>

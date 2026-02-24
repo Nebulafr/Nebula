@@ -107,6 +107,7 @@ function CoachOnboardingStep2Content() {
             src={image.imageUrl}
             alt={image.description}
             fill
+            quality={85}
             className="object-cover"
             data-ai-hint={image.imageHint}
           />
