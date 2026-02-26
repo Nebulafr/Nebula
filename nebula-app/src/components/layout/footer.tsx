@@ -3,7 +3,6 @@ import Link from "next/link";
 import { logos } from "@/lib/images/logos";
 import { useTranslations } from "next-intl";
 
-
 export function Footer() {
   const t = useTranslations("footer");
   const tc = useTranslations("common");
@@ -19,14 +18,17 @@ export function Footer() {
       { title: tc("termsOfService"), href: "/terms-of-service" },
     ],
     [t("sections.connect")]: [
-      { title: "LinkedIn", href: "#" },
+      {
+        title: "LinkedIn",
+        href: "http://linkedin.com/company/discover-nebula",
+      },
       { title: "Facebook", href: "#" },
-      { title: "Instagram", href: "#" },
+      { title: "Instagram", href: "https://www.instagram.com/nebulaengage" },
     ],
   };
 
   return (
-    <footer 
+    <footer
       className="border-t bg-secondary text-secondary-foreground"
       suppressHydrationWarning
     >
@@ -42,7 +44,9 @@ export function Footer() {
                   className="object-cover"
                 />
               </div>
-              <span className="font-headline text-2xl font-bold notranslate">Nebula</span>
+              <span className="font-headline text-2xl font-bold notranslate">
+                Nebula
+              </span>
             </Link>
             <p className="mt-4 text-xs text-secondary-foreground/70">
               {t("description")}
@@ -102,9 +106,7 @@ export function Footer() {
           </div>
         </div>
         <div className="mt-8 border-t border-secondary-foreground/20 pt-8 text-center text-xs text-secondary-foreground/60 notranslate">
-          <p>
-            {t("copyright", { year: new Date().getFullYear() })}
-          </p>
+          <p>{t("copyright", { year: new Date().getFullYear() })}</p>
         </div>
       </div>
     </footer>
