@@ -1,4 +1,3 @@
-import { apiPost } from "./utils";
 
 export interface UploadResult {
     url: string;

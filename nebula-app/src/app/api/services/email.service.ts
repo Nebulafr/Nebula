@@ -1,4 +1,3 @@
-import nodemailer from "nodemailer";
 import { emailTemplates, EmailTemplateType } from "@/lib/email-templates";
 
 interface SendEmailOptions {
@@ -35,19 +34,6 @@ interface SessionBookingEmailData {
 }
 
 export class EmailService {
-  private createTransporter() {
-    return nodemailer.createTransport({
-      // host: process.env.SMTP_HOST,
-      // port: parseInt(process.env.SMTP_PORT || "587"),
-      // secure: process.env.SMTP_SECURE === "true",
-      service: "gmail",
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASSWORD,
-      },
-    });
-  }
-
   async sendEmail(
     options: SendEmailOptions & { replyTo?: string },
   ): Promise<{
@@ -55,23 +41,58 @@ export class EmailService {
     error?: string;
   }> {
     try {
-      const transporter = this.createTransporter();
+      const apiKey = process.env.ZEPTOMAIL_API_KEY || "akjkjd";
+      const fromAddress = process.env.ZEPTOMAIL_FROM_ADDRESS || "noreply@nebulaengage.com";
 
-      await transporter.sendMail({
-        from: `"From Nebula"`,
-        to: Array.isArray(options.to) ? options.to.join(", ") : options.to,
-        replyTo: options.replyTo,
+      const recipients = Array.isArray(options.to)
+        ? options.to.map((email) => ({
+          email_address: { address: email.trim() },
+        }))
+        : [{ email_address: { address: options.to.trim() } }];
+
+      const payload: any = {
+        from: { address: fromAddress, name: "Nebula" },
+        to: recipients,
         subject: options.subject,
-        html: options.html,
-        text: options.text,
+        htmlbody: options.html,
+      };
+
+      if (options.text) {
+        payload.textbody = options.text;
+      }
+
+      if (options.replyTo) {
+        payload.reply_to = [
+          {
+            address: options.replyTo,
+            name: "Reply To",
+          },
+        ];
+      }
+
+      const response = await fetch("https://api.zeptomail.com/v1.1/email", {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          Authorization: apiKey,
+        },
+        body: JSON.stringify(payload),
       });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          `ZeptoMail API error: ${response.status} ${JSON.stringify(errorData)}`,
+        );
+      }
 
       return { success: true };
     } catch (error: any) {
       console.error("Email sending failed:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : "Failed to send welcome email",
+        error: error instanceof Error ? error.message : "Failed to send email",
       };
     }
   }
@@ -650,11 +671,7 @@ export class EmailService {
   }
 
   validateConfiguration(): boolean {
-    const requiredEnvVars = [
-      "SMTP_USER",
-      "SMTP_PASSWORD",
-      // "CONTACT_EMAIL" // Optional, falls back to SMTP_USER
-    ];
+    const requiredEnvVars = ["ZEPTOMAIL_API_KEY", "ZEPTOMAIL_FROM_ADDRESS"];
 
     return requiredEnvVars.every((varName) => !!process.env[varName]);
   }
