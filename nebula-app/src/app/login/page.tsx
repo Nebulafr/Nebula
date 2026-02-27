@@ -10,7 +10,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { PlaceHolderImages } from "@/lib/images/placeholder-images";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
@@ -22,7 +21,6 @@ import { useTranslations } from "next-intl";
 import { signinSchema } from "@/lib/validations";
 import { z } from "zod";
 import { toast } from "react-toastify";
-import { cn } from "@/lib/utils";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -65,8 +63,6 @@ function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
 
 export default function LoginPage() {
   const loginImage = PlaceHolderImages.find((img) => img.id === "coach-hero");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const { signIn, signInWithGoogle } = useAuth();
@@ -87,7 +83,7 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const response = await signIn({
+      await signIn({
         email: values.email,
         password: values.password,
       });
@@ -110,7 +106,7 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const response = await signInWithGoogle(UserRole.STUDENT);
+      await signInWithGoogle(UserRole.STUDENT);
     } catch (error) {
       if (
         error instanceof Error &&

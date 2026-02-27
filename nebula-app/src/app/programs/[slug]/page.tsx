@@ -29,7 +29,7 @@ import { toast } from "react-toastify";
 import { Header } from "@/components/layout/header";
 import { useAuth } from "@/hooks/use-auth";
 import { useProgramBySlug } from "@/hooks";
-import { useTranslations, useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import {
   Dialog,
   DialogContent,
@@ -44,7 +44,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { reviewProgram } from "@/actions/reviews";
 import { useQueryClient } from "@tanstack/react-query";
 import { PROGRAM_BY_SLUG_QUERY_KEY } from "@/hooks/use-programs-queries";
-import { UserRole } from "../../../../generated/prisma/edge";
 import { useProgramCheckout } from "@/hooks/use-checkout-queries";
 
 type Cohort = {
@@ -108,7 +107,6 @@ export default function ProgramDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const t = useTranslations("programDetails");
-  const locale = useLocale();
   const { slug } = use(params);
   const { profile, isStudent, isAuthenticated } = useAuth();
   const queryClient = useQueryClient();
@@ -157,7 +155,7 @@ export default function ProgramDetailPage({
           const response = await getEnrollments();
           if (response && response.success) {
             const isStudentEnrolled = response.data!.enrollments.some(
-              (en: any) => en.programId === program.id,
+              (en: { programId: string }) => en.programId === program.id,
             );
             console.log("Enrollment check:", {
               programId: program.id,
@@ -283,8 +281,9 @@ export default function ProgramDetailPage({
         cancelUrl: `${baseUrl}?canceled=true`,
       });
 
-      if (result?.success && (result.data as any)?.url) {
-        window.location.href = (result.data as any).url;
+      const checkoutData = result?.data as { url: string } | undefined;
+      if (result?.success && checkoutData?.url) {
+        window.location.href = checkoutData.url;
       } else {
         toast.error(result?.error || t("failedToInitiateCheckout"));
       }
@@ -341,7 +340,7 @@ export default function ProgramDetailPage({
       } else {
         toast.error(response.error || "Failed to submit review.");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error submitting review:", error);
       toast.error("Failed to submit review. Please try again.");
     } finally {

@@ -2,14 +2,18 @@ import { sendError } from "./send-response";
 import { ZodError } from "zod";
 import HttpException from "./http-exception";
 
+ 
 export default function catchError(fn: Function) {
+   
   return async function (req: Request, context?: any) {
     try {
       return await fn(req, context);
+     
     } catch (err: any) {
       console.error("API Error:", { err });
 
       if (err instanceof HttpException) {
+         
         return sendError(err.message, err.statusCode, (err as any)?.code);
       }
 

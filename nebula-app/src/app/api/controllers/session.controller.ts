@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { type AuthenticatedRequest } from "@/types";
 import {
   bookSessionSchema,
   rescheduleSessionSchema,
@@ -8,13 +9,14 @@ import {
   BadRequestException,
   UnauthorizedException,
 } from "../utils/http-exception";
+import { SessionFilter } from "../services/types/coach-dashboard.types";
 
 export class SessionController {
   async bookSession(
     request: NextRequest,
     context: { params: Promise<{ coachId: string }> },
   ) {
-    const user = (request as any).user;
+    const user = (request as unknown as AuthenticatedRequest).user;
 
     if (!user) {
       throw new UnauthorizedException("Authentication required");
@@ -27,7 +29,7 @@ export class SessionController {
     let body;
     try {
       body = await request.json();
-    } catch (error) {
+    } catch {
       throw new BadRequestException("Invalid JSON body");
     }
 
@@ -49,7 +51,7 @@ export class SessionController {
   }
 
   async getCoachSessions(request: NextRequest) {
-    const user = (request as any).user;
+    const user = (request as unknown as AuthenticatedRequest).user;
 
     if (!user) {
       throw new UnauthorizedException("Authentication required");
@@ -62,11 +64,11 @@ export class SessionController {
     const { searchParams } = new URL(request.url);
     const filter = searchParams.get("filter") || "upcoming";
 
-    return await sessionService.getCoachSessions(user.id, filter as any);
+    return await sessionService.getCoachSessions(user.id, filter as SessionFilter);
   }
 
   async getStudentSessions(request: NextRequest) {
-    const user = (request as any).user;
+    const user = (request as unknown as AuthenticatedRequest).user;
 
     if (!user) {
       throw new UnauthorizedException("Authentication required");
@@ -79,14 +81,14 @@ export class SessionController {
     const { searchParams } = new URL(request.url);
     const filter = searchParams.get("filter") || "upcoming";
 
-    return await sessionService.getStudentSessions(user.id, filter as any);
+    return await sessionService.getStudentSessions(user.id, filter as SessionFilter);
   }
 
   async updateSession(
     request: NextRequest,
     context: { params: Promise<{ sessionId: string }> },
   ) {
-    const user = (request as any).user;
+    const user = (request as unknown as AuthenticatedRequest).user;
 
     if (!user) {
       throw new UnauthorizedException("Authentication required");
@@ -95,7 +97,7 @@ export class SessionController {
     let body;
     try {
       body = await request.json();
-    } catch (error) {
+    } catch {
       throw new BadRequestException("Invalid JSON body");
     }
 
@@ -113,7 +115,7 @@ export class SessionController {
     request: NextRequest,
     context: { params: Promise<{ sessionId: string }> },
   ) {
-    const user = (request as any).user;
+    const user = (request as unknown as AuthenticatedRequest).user;
 
     if (!user) {
       throw new UnauthorizedException("Authentication required");
@@ -122,7 +124,7 @@ export class SessionController {
     let body;
     try {
       body = await request.json();
-    } catch (error) {
+    } catch {
       body = {};
     }
 
@@ -140,7 +142,7 @@ export class SessionController {
     request: NextRequest,
     context: { params: Promise<{ sessionId: string }> },
   ) {
-    const user = (request as any).user;
+    const user = (request as unknown as AuthenticatedRequest).user;
 
     if (!user) {
       throw new UnauthorizedException("Authentication required");
@@ -149,7 +151,7 @@ export class SessionController {
     let body;
     try {
       body = await request.json();
-    } catch (error) {
+    } catch {
       throw new BadRequestException("Invalid JSON body");
     }
 
@@ -171,7 +173,7 @@ export class SessionController {
     request: NextRequest,
     context: { params: Promise<{ sessionId: string }> },
   ) {
-    const user = (request as any).user;
+    const user = (request as unknown as AuthenticatedRequest).user;
 
     if (!user) {
       throw new UnauthorizedException("Authentication required");
@@ -190,7 +192,7 @@ export class SessionController {
     request: NextRequest,
     context: { params: Promise<{ sessionId: string }> },
   ) {
-    const user = (request as any).user;
+    const user = (request as unknown as AuthenticatedRequest).user;
 
     if (!user) {
       throw new UnauthorizedException("Authentication required");

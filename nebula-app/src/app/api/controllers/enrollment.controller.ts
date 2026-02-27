@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { type AuthenticatedRequest } from "@/types";
 import { EnrollmentStatus } from "@/generated/prisma";
 import { enrollmentService } from "@/app/api/services/enrollment.service";
 import {
@@ -11,7 +12,7 @@ import { createEnrollmentSchema, enrollmentProgressSchema } from "@/lib/validati
 
 export class EnrollmentController {
   async getStudentEnrollments(request: NextRequest) {
-    const user = (request as any).user;
+    const user = (request as unknown as AuthenticatedRequest).user;
 
     if (!user) {
       throw new UnauthorizedException("Authentication required");
@@ -25,7 +26,7 @@ export class EnrollmentController {
     const status = searchParams.get("status") as EnrollmentStatus | null;
 
     const enrollments = await enrollmentService.getStudentEnrollments(
-      user.student?.id!,
+      user.student!.id,
       status || undefined
     );
 
@@ -39,7 +40,7 @@ export class EnrollmentController {
     request: NextRequest,
     context: { params: Promise<{ enrollmentId: string }> }
   ) {
-    const user = (request as any).user;
+    const user = (request as unknown as AuthenticatedRequest).user;
 
     if (!user) {
       throw new UnauthorizedException("Authentication required");
@@ -52,7 +53,7 @@ export class EnrollmentController {
     let body;
     try {
       body = await request.json();
-    } catch (error) {
+    } catch {
       throw new BadRequestException("Invalid JSON body");
     }
 
@@ -63,7 +64,7 @@ export class EnrollmentController {
 
     const updatedEnrollment = await enrollmentService.updateEnrollmentProgress(
       enrollmentId,
-      user?.student?.id!,
+      user.student!.id,
       progress
     );
 
@@ -74,7 +75,7 @@ export class EnrollmentController {
   }
 
   async enrollInProgram(request: NextRequest, slug: string) {
-    const user = (request as any).user;
+    const user = (request as unknown as AuthenticatedRequest).user;
 
     if (!user) {
       throw new UnauthorizedException("Authentication required");
@@ -89,7 +90,7 @@ export class EnrollmentController {
     const enrollmentData = createEnrollmentSchema.parse(body);
 
     const enrollmentResult = await enrollmentService.enrollInProgram(
-      user?.student?.id!,
+      user.student!.id,
       slug,
       enrollmentData
     );

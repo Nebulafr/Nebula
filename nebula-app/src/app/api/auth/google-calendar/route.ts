@@ -45,6 +45,7 @@ export async function GET(request: NextRequest) {
 
     // Parse state to get eventType and step
     const state = searchParams.get("state");
+     
     const stateData = state ? JSON.parse(state) : {};
 
     // Redirect back to admin events page with access token and form state

@@ -11,11 +11,20 @@ import { generateSlug } from "@/lib/utils";
 import { extractUserFromRequest } from "../utils/extract-user";
 import { emailService } from "./email.service";
 import { uploadService } from "./upload.service";
+import { Program, Prisma, ProgramReview, User } from "@/generated/prisma";
+import { AuthenticatedRequest } from "@/types";
+type ProgramReviewWithUser = ProgramReview & { user?: User };
+type ProgramWithRelations = Program & {
+  modules?: any[];
+  category?: any;
+  coach?: any;
+};
 
 export class ProgramService {
   async createProgram(request: NextRequest) {
     const body = await request.json();
-    const user = (request as any).user;
+    const user = (request as unknown as AuthenticatedRequest)
+      .user;
 
     if (user.role !== "COACH") {
       throw new UnauthorizedException("Coach access required");
@@ -37,7 +46,7 @@ export class ProgramService {
       coCoachIds: coCoachUserIds,
     } = createProgramSchema.parse(body);
 
-    const coachId = user.coach.id;
+    const coachId = user!.coach!.id;
 
     const slug = generateSlug(title);
 
@@ -96,24 +105,24 @@ export class ProgramService {
         targetAudience: targetAudience || [],
         modules: {
           create: await Promise.all(
-            modules?.map(async (module: any, index: number) => {
+            modules?.map(async (module, index) => {
               const materials = await Promise.all(
-                (module.materials || []).map(async (mat: any, matIndex: number) => {
+                (module.materials || []).map(async (mat, matIndex) => {
                   let url = mat.url;
                   // If it's a base64 string, upload it
                   if (url && url.startsWith("data:")) {
                     const result = await uploadService.uploadFile(url, {
-                      folder: `nebula-materials/${slug}`,
+                      folder: `nebula-materials`,
                     });
                     url = result.url;
                   }
                   return {
                     fileName: mat.name || "document",
-                    url,
+                    url: url as string,
                     mimeType: mat.type || "application/pdf",
                     position: matIndex,
                   };
-                })
+                }),
               );
 
               return {
@@ -124,7 +133,7 @@ export class ProgramService {
                   create: materials,
                 },
               };
-            }) || []
+            }) || [],
           ),
         },
         coCoaches:
@@ -168,9 +177,9 @@ export class ProgramService {
     // Send APPLICATION_RECEIVED email to the coach
     try {
       await emailService.sendProgramProposalEmail(
-        program.coach.user.email,
+        program!.coach!.user!.email,
         "APPLICATION_RECEIVED",
-        program.coach.user.fullName || "Coach",
+        program!.coach!.user!.fullName || "Coach",
       );
     } catch (error) {
       console.error("Failed to send application received email:", error);
@@ -209,8 +218,12 @@ export class ProgramService {
       prerequisites: program.prerequisites,
       attendees:
         program.enrollments?.map(
-          (e: any) =>
-            e.student?.user?.avatarUrl || e.student?.avatarUrl || null,
+          (e: {
+            student?: {
+              user?: { avatarUrl?: string | null };
+              avatarUrl?: string | null;
+            };
+          }) => e.student?.user?.avatarUrl || e.student?.avatarUrl || null,
         ) || [],
       createdAt: program.createdAt.toISOString(),
       updatedAt: program.updatedAt.toISOString(),
@@ -227,7 +240,7 @@ export class ProgramService {
     const category = searchParams.get("category") || undefined;
     const search = searchParams.get("search") || undefined;
 
-    const whereClause: any = {};
+    const whereClause: Prisma.ProgramWhereInput = {};
 
     if (coachId) {
       whereClause.coachId = coachId;
@@ -486,7 +499,7 @@ export class ProgramService {
       reviews: program.reviews.map((review) => ({
         ...review,
         content: review.comment,
-        reviewer: (review as any).user,
+        reviewer: (review as ProgramReviewWithUser).user,
       })),
       hasUserReviewed,
     };
@@ -537,7 +550,8 @@ export class ProgramService {
 
   async updateById(request: NextRequest, id: string) {
     const body = await request.json();
-    const user = (request as any).user;
+    const user = (request as unknown as AuthenticatedRequest)
+      .user;
 
     if (user.role !== "COACH") {
       throw new UnauthorizedException("Coach access required");
@@ -552,7 +566,7 @@ export class ProgramService {
       throw new NotFoundException("Program not found");
     }
 
-    if (program.coachId !== user.coach.id) {
+    if (program.coachId !== user!.coach!.id) {
       throw new UnauthorizedException(
         "You are not authorized to update this program",
       );
@@ -634,21 +648,26 @@ export class ProgramService {
         // Create new modules with materials
         for (const [index, mod] of modules.entries()) {
           const materials = await Promise.all(
-            (mod.materials || []).map(async (mat: any, matIndex: number) => {
-              let url = mat.url;
-              if (url && url.startsWith("data:")) {
-                const result = await uploadService.uploadFile(url, {
-                  folder: `nebula-materials/${program.slug}`,
-                });
-                url = result.url;
-              }
-              return {
-                fileName: mat.name || "document",
-                url,
-                mimeType: mat.type || "application/pdf",
-                position: matIndex,
-              };
-            })
+            (mod.materials || []).map(
+              async (
+                mat: { url?: string; name?: string; type?: string },
+                matIndex: number,
+              ) => {
+                let url = mat.url;
+                if (url && url.startsWith("data:")) {
+                  const result = await uploadService.uploadFile(url, {
+                    folder: `nebula-materials`,
+                  });
+                  url = result.url;
+                }
+                return {
+                  fileName: mat.name || "document",
+                  url,
+                  mimeType: mat.type || "application/pdf",
+                  position: matIndex,
+                };
+              },
+            ),
           );
 
           await tx.module.create({
@@ -749,7 +768,8 @@ export class ProgramService {
 
   async updateProgram(request: NextRequest, slug: string) {
     const body = await request.json();
-    const user = (request as any).user;
+    const user = (request as unknown as AuthenticatedRequest)
+      .user;
 
     if (user.role !== "COACH") {
       throw new UnauthorizedException("Coach access required");
@@ -763,7 +783,7 @@ export class ProgramService {
       throw new NotFoundException("Program not found");
     }
 
-    if (program.coachId !== user.coach.id) {
+    if (program.coachId !== user!.coach!.id) {
       throw new UnauthorizedException(
         "You are not authorized to update this program",
       );
@@ -895,20 +915,14 @@ export class ProgramService {
 
     const program = await prisma.program.findUnique({
       where: { id },
-      include: {
-        enrollments: {
-          where: {
-            status: { in: ["ACTIVE", "PAUSED"] },
-          },
-        },
-      },
     });
 
     return await this.performDeletion(request, program);
   }
 
   private async performDeletion(request: NextRequest, program: any) {
-    const user = (request as any).user;
+    const user = (request as unknown as AuthenticatedRequest)
+      .user;
 
     if (!program) {
       throw new NotFoundException("Program not found");
@@ -916,7 +930,7 @@ export class ProgramService {
 
     // Role-based security
     if (user.role === "COACH") {
-      if (program.coachId !== user.coach.id) {
+      if (program.coachId !== user!.coach!.id) {
         throw new UnauthorizedException(
           "You are not authorized to delete this program",
         );
@@ -924,13 +938,6 @@ export class ProgramService {
     } else if (user.role !== "ADMIN") {
       throw new UnauthorizedException("Unauthorized access");
     }
-
-    // Prevent deletion if there are active enrollments
-    // if (program.enrollments.length > 0) {
-    //   throw new BadRequestException(
-    //     `Cannot delete program with ${program.enrollments.length} active enrollment(s). Please cancel or complete all enrollments first.`,
-    //   );
-    // }
 
     await prisma.program.delete({
       where: { id: program.id },
@@ -940,7 +947,8 @@ export class ProgramService {
   }
 
   async getRecommendedPrograms(request: NextRequest) {
-    const user = (request as any).user;
+    const user = (request as unknown as AuthenticatedRequest)
+      .user;
 
     if (!user.student) {
       throw new BadRequestException("User is not a student");
@@ -994,7 +1002,7 @@ export class ProgramService {
       },
     };
 
-    let programs: any[] = [];
+    let programs: ProgramWithRelations[] = [];
 
     if (interestedCategoryId) {
       programs = await prisma.program.findMany({
@@ -1151,7 +1159,8 @@ export class ProgramService {
   }
 
   async createCohort(request: NextRequest, programId: string) {
-    const user = (request as any).user;
+    const user = (request as unknown as AuthenticatedRequest)
+      .user;
     if (user.role !== "COACH") {
       throw new UnauthorizedException("Coach access required");
     }
@@ -1160,7 +1169,7 @@ export class ProgramService {
       where: { id: programId },
     });
 
-    if (!program || program.coachId !== user.coach.id) {
+    if (!program || program.coachId !== user!.coach!.id) {
       throw new UnauthorizedException(
         "Unauthorized to manage cohorts for this program",
       );
@@ -1184,7 +1193,8 @@ export class ProgramService {
   }
 
   async updateCohort(request: NextRequest, cohortId: string) {
-    const user = (request as any).user;
+    const user = (request as unknown as AuthenticatedRequest)
+      .user;
     if (user.role !== "COACH") {
       throw new UnauthorizedException("Coach access required");
     }
@@ -1194,7 +1204,7 @@ export class ProgramService {
       include: { program: true },
     });
 
-    if (!cohort || cohort.program.coachId !== user.coach.id) {
+    if (!cohort || cohort.program.coachId !== user!.coach!.id) {
       throw new UnauthorizedException("Unauthorized to update this cohort");
     }
 
@@ -1219,7 +1229,8 @@ export class ProgramService {
   }
 
   async deleteCohort(request: NextRequest, cohortId: string) {
-    const user = (request as any).user;
+    const user = (request as unknown as AuthenticatedRequest)
+      .user;
     if (user.role !== "COACH") {
       throw new UnauthorizedException("Coach access required");
     }
@@ -1232,7 +1243,7 @@ export class ProgramService {
       },
     });
 
-    if (!cohort || cohort.program.coachId !== user.coach.id) {
+    if (!cohort || cohort.program.coachId !== user!.coach!.id) {
       throw new UnauthorizedException("Unauthorized to delete this cohort");
     }
 
@@ -1250,7 +1261,8 @@ export class ProgramService {
   }
 
   async submitProgram(request: NextRequest, programId: string) {
-    const user = (request as any).user;
+    const user = (request as unknown as AuthenticatedRequest)
+      .user;
 
     if (user.role !== "COACH") {
       throw new UnauthorizedException("Coach access required");
@@ -1269,7 +1281,7 @@ export class ProgramService {
       throw new NotFoundException("Program not found");
     }
 
-    if (program.coachId !== user.coach.id) {
+    if (program.coachId !== user!.coach!.id) {
       throw new UnauthorizedException(
         "You are not authorized to submit this program",
       );

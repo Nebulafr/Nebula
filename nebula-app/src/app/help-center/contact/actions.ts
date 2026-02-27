@@ -17,6 +17,7 @@ export async function submitContactForm(data: ContactFormData) {
     }
 
     return { success: true };
+   
   } catch (error: any) {
     console.error("Contact form submission error:", error);
     return {

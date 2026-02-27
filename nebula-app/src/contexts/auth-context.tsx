@@ -1,9 +1,10 @@
+
 "use client";
 import { createContext, useEffect, useState, useCallback } from "react";
 import { storeAuthData, clearAuthData } from "@/lib/auth-storage";
 import { makeRequest, publicRoutes } from "@/lib/utils";
 import { UserRole } from "@/generated/prisma";
-import { UserProfile, AuthState } from "@/hooks/use-user";
+import { UserProfile, AuthState, AuthResponse, ApiResponse } from "@/types";
 import { SignupData, SigninData } from "@/lib/validations";
 import { getUserProfile } from "@/actions/user";
 import {
@@ -12,14 +13,10 @@ import {
   requestPasswordReset,
   completePasswordReset,
 } from "@/actions/auth";
-import { signInWithGoogle } from "@/firebase/auth";
-import { ApiResponse } from "@/types";
+import { signInWithGoogle as firebaseGoogleSignIn } from "@/firebase/auth";
 import { useRouter, usePathname } from "next/navigation";
 
-interface AuthResponse {
-  accessToken: string;
-  user: any;
-}
+
 
 export interface AuthContextValue {
   profile: UserProfile | null;
@@ -30,9 +27,9 @@ export interface AuthContextValue {
   isStudent: boolean;
   isAdmin: boolean;
   refreshUser: () => Promise<void>;
-  signUp: (data: SignupData) => Promise<ApiResponse<AuthResponse>>;
-  signIn: (data: SigninData) => Promise<ApiResponse<AuthResponse>>;
-  signInWithGoogle: (role?: UserRole) => Promise<ApiResponse<AuthResponse>>;
+  signUp: (data: SignupData) => Promise<AuthResponse>;
+  signIn: (data: SigninData) => Promise<AuthResponse>;
+  signInWithGoogle: (role?: UserRole) => Promise<AuthResponse>;
   signOut: () => Promise<void>;
   requestPasswordReset: (email: string) => Promise<ApiResponse<any>>;
   completePasswordReset: (
@@ -84,8 +81,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const refreshUser = useCallback(async () => {
     try {
-      const response = await getUserProfile();
-      const userData = response.data?.user;
+      const data = await getUserProfile();
+      const userData = data.user;
 
       if (userData) {
         updateUserState(userData);
@@ -99,19 +96,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const handleAuthAction = useCallback(
     async <T extends AuthResponse>(
-      action: () => Promise<ApiResponse<T>>,
-    ): Promise<ApiResponse<T>> => {
+      action: () => Promise<T>,
+    ): Promise<T> => {
       try {
         const result = await action();
         console.log("Auth result:", { result });
 
-        if (!result.success) {
-          throw result;
-        }
-
-        if (result.data && (result.data as AuthResponse).accessToken) {
-          storeAuthData(result.data as AuthResponse);
-          updateUserState((result.data as AuthResponse).user);
+        if (result && result.accessToken) {
+          storeAuthData(result);
+          updateUserState(result.user);
         }
         return result;
       } catch (error) {
@@ -146,7 +139,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const googleSignIn = useCallback(
     (role: UserRole = UserRole.STUDENT) =>
-      handleAuthAction(() => signInWithGoogle(role)),
+      handleAuthAction(() => firebaseGoogleSignIn(role)),
     [handleAuthAction],
   );
 

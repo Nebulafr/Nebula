@@ -27,7 +27,7 @@ export class CategoryService {
     name: string,
     excludeId?: string
   ): Promise<string> {
-    let baseSlug = generateSlug(name);
+    const baseSlug = generateSlug(name);
     let slug = baseSlug;
     let counter = 1;
 

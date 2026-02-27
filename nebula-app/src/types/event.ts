@@ -5,7 +5,7 @@ export enum EventType {
 
 export enum EventStatus {
   DRAFT = "DRAFT",
-  PENDING = "PENDING", 
+  PENDING = "PENDING",
   UPCOMING = "UPCOMING",
   LIVE = "LIVE",
   COMPLETED = "COMPLETED",
@@ -28,6 +28,10 @@ export interface Event {
     id: string;
     fullName: string;
     avatarUrl?: string;
+    coach?: {
+      rating: number;
+      totalReviews: number;
+    };
   };
   isPublic: boolean;
   maxAttendees?: number;
@@ -45,6 +49,7 @@ export interface Event {
   additionalInfo?: string;
   lumaEventLink: string;
   accessType?: string;
+  price?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -84,14 +89,28 @@ export interface CreateEventData {
   organizerId?: string;
 }
 
-export interface UpdateEventData extends Partial<CreateEventData> {}
+export type UpdateEventData = Partial<CreateEventData>;
 
 export interface EventsResponse {
-  events: Event[];
-  pagination: {
-    total: number;
-    limit: number;
-    offset: number;
-    hasMore: boolean;
+  success: boolean;
+  data: {
+    events: Event[];
+    pagination?: {
+      total?: number;
+      limit?: number;
+      offset?: number;
+      hasMore?: boolean;
+    };
   };
+  error?: string;
+  message?: string;
+}
+
+export interface EventResponse {
+  success: boolean;
+  data: {
+    event: Event;
+  };
+  error?: string;
+  message?: string;
 }

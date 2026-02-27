@@ -1,7 +1,5 @@
 "use client";
 import { useState } from "react";
-import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Loader2, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -12,6 +10,16 @@ import { ProgramWithRelations } from "@/types/program";
 import { Input } from "@/components/ui/input";
 import { useTranslations } from "next-intl";
 import { ProgramCard } from "@/components/cards/program-card";
+
+interface Category {
+  name: string;
+  slug: string;
+}
+
+interface ProgramGroup {
+  group: string;
+  items: ProgramWithRelations[];
+}
 
 
 
@@ -64,7 +72,7 @@ export default function ProgramsPage() {
               )}
               {t("all")}
             </Button>
-            {categories.map((category: any) => (
+            {categories.map((category: Category) => (
               <Button
                 key={category.slug}
                 variant="outline"
@@ -86,7 +94,7 @@ export default function ProgramsPage() {
 
         <section className="container pb-20">
           {filteredGroups.length > 0 ? (
-            filteredGroups.map((group: any) => (
+            filteredGroups.map((group: ProgramGroup) => (
               <div key={group!.group}>
                 <div className="mb-16">
                   <h2 className="font-headline text-3xl font-bold text-left mb-8">
@@ -95,7 +103,7 @@ export default function ProgramsPage() {
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     {group!.items.map(
                       (program: ProgramWithRelations, index: number) => (
-                        <ProgramCard key={index} program={program as any} />
+                        <ProgramCard key={index} program={program} />
                       ),
                     )}
                   </div>

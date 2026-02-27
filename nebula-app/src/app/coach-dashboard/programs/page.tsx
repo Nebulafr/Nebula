@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -18,8 +19,7 @@ export default function CoachProgramsPage() {
   });
   const submitProgramMutation = useSubmitProgram();
 
-  const programs = programsResponse?.data?.programs || [];
-
+  const programs = programsResponse?.programs || [];
   const handleAction = (action: string, program: any) => {
     if (action === "submit") {
       submitProgramMutation.mutate(program.id);

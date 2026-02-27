@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { Prisma, SessionStatus } from "@/generated/prisma";
+import { Prisma } from "@/generated/prisma";
 import { sendSuccess } from "../utils/send-response";
 import { NotFoundException } from "../utils/http-exception";
 import {
@@ -137,8 +137,8 @@ export class CoachDashboardService {
     const studentsChange =
       lastMonthActiveStudents > 0
         ? ((activeStudents - lastMonthActiveStudents) /
-            lastMonthActiveStudents) *
-          100
+          lastMonthActiveStudents) *
+        100
         : 0;
 
     const sessionsChange =
@@ -191,7 +191,7 @@ export class CoachDashboardService {
       59
     );
 
-    let whereClause: Prisma.SessionWhereInput = {
+    const whereClause: Prisma.SessionWhereInput = {
       coachId: coach.id,
     };
 
@@ -377,7 +377,7 @@ export class CoachDashboardService {
       throw new NotFoundException("Coach profile not found");
     }
 
-    let whereClause: Prisma.ProgramWhereInput = {
+    const whereClause: Prisma.ProgramWhereInput = {
       coachId: coach.id,
     };
 
@@ -529,6 +529,7 @@ export class CoachDashboardService {
               },
             },
             select: {
+              attended: true,
               session: {
                 select: {
                   scheduledTime: true,
@@ -542,17 +543,17 @@ export class CoachDashboardService {
             createdAt: "desc",
           },
         ],
-      }) as Promise<any[]>,
+      }),
       prisma.student.count({ where: whereClause }),
     ]);
 
-    const formattedStudents: FormattedStudent[] = (students as any[]).map((student) => {
+    const formattedStudents: FormattedStudent[] = students.map((student) => {
       const enrollment = student.enrollments[0];
       const sessionAttendances = student.sessions;
 
       const totalSessions = sessionAttendances.length;
       const attendedSessions = sessionAttendances.filter(
-        (a: any) => a.attended
+        (a) => a.attended
       ).length;
 
 

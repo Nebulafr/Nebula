@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@/generated/prisma";
 import {
   CoachQueryData,
   CoachUpdateData,
@@ -8,6 +9,24 @@ import {
 import { NotFoundException } from "../utils/http-exception";
 import { sendSuccess } from "../utils/send-response";
 import { extractUserFromRequest } from "../utils/extract-user";
+
+type CoachWithUserAndSpecialties = Prisma.CoachGetPayload<{
+  include: {
+    user: {
+      select: {
+        fullName: true;
+        email: true;
+        avatarUrl: true;
+        role: true;
+      };
+    };
+    specialties: {
+      include: {
+        category: true;
+      };
+    };
+  };
+}>;
 
 export class CoachService {
   async findByUserId(userId: string) {
@@ -23,108 +42,28 @@ export class CoachService {
     });
   }
   async getCoaches(params: CoachQueryData) {
-    const transformedCoaches = await this.fetchTransformedCoaches(params);
+    const { page = 1, limit = 16 } = params;
+
+    const { coaches, totalCount } = await this.fetchTransformedCoaches(params);
+    const totalPages = Math.ceil(totalCount / limit);
 
     return sendSuccess(
       {
-        coaches: transformedCoaches,
+        coaches,
+        pagination: {
+          totalCount,
+          totalPages,
+          currentPage: page,
+          limit,
+        },
       },
       "Coaches retrieved successfully",
     );
   }
 
-  async getGroupedCoaches(params: CoachQueryData) {
-    const { category, search, limit = 50 } = params;
 
-    const coachWhere: any = {
-      isActive: true,
-    };
-
-    if (category && category !== "All") {
-      coachWhere.specialties = {
-        some: {
-          category: {
-            name: {
-              equals: category,
-              mode: "insensitive",
-            },
-          },
-        },
-      };
-    }
-
-    if (search) {
-      coachWhere.OR = [
-        { user: { fullName: { contains: search, mode: "insensitive" } } },
-        { title: { contains: search, mode: "insensitive" } },
-        { bio: { contains: search, mode: "insensitive" } },
-        {
-          specialties: {
-            some: {
-              category: {
-                name: { contains: search, mode: "insensitive" },
-              },
-            },
-          },
-        },
-      ];
-    }
-
-    const categories = await prisma.category.findMany({
-      where: { isActive: true },
-      include: {
-        coachCategories: {
-          where: {
-            coach: coachWhere,
-          },
-          include: {
-            coach: {
-              include: {
-                user: {
-                  select: {
-                    fullName: true,
-                    email: true,
-                    avatarUrl: true,
-                    role: true,
-                  },
-                },
-                specialties: {
-                  include: {
-                    category: true,
-                  },
-                },
-              },
-            },
-          },
-          take: limit,
-        },
-      },
-      orderBy: { name: "asc" },
-    });
-
-    const formattedGroups = categories
-      .map((cat) => {
-        const coaches = cat.coachCategories
-          .map((cc) => cc.coach)
-          .map((coach) => this.transformCoach(coach));
-
-        return {
-          group: cat.name,
-          items: coaches,
-        };
-      })
-      .filter((group) => group.items.length > 0);
-
-    return sendSuccess(
-      {
-        groupedCoaches: formattedGroups,
-      },
-      "Grouped coaches retrieved successfully",
-    );
-  }
-
-  private transformCoach(coach: any) {
-    const coachSpecialties = coach.specialties.map((s: any) => s.category.name);
+  private transformCoach(coach: CoachWithUserAndSpecialties) {
+    const coachSpecialties = coach.specialties.map((s: { category: { name: string } }) => s.category.name);
     return {
       id: coach.id,
       userId: coach.userId,
@@ -156,9 +95,9 @@ export class CoachService {
   }
 
   private async fetchTransformedCoaches(params: CoachQueryData) {
-    const { category, search, limit = 50 } = params;
+    const { category, search, minPrice, maxPrice, company, school, limit = 16, page = 1 } = params;
 
-    const whereClause: any = {
+    const whereClause: Prisma.CoachWhereInput = {
       isActive: true,
     };
 
@@ -172,6 +111,24 @@ export class CoachService {
             },
           },
         },
+      };
+    }
+
+    if (minPrice !== undefined || maxPrice !== undefined) {
+      whereClause.hourlyRate = {};
+      if (minPrice !== undefined) whereClause.hourlyRate.gte = minPrice;
+      if (maxPrice !== undefined) whereClause.hourlyRate.lte = maxPrice;
+    }
+
+    if (company) {
+      whereClause.pastCompanies = {
+        has: company,
+      };
+    }
+
+    if (school) {
+      whereClause.qualifications = {
+        has: school,
       };
     }
 
@@ -192,30 +149,39 @@ export class CoachService {
       ];
     }
 
-    const coaches = await prisma.coach.findMany({
-      where: whereClause,
-      orderBy: {
-        rating: "desc",
-      },
-      take: limit,
-      include: {
-        user: {
-          select: {
-            fullName: true,
-            email: true,
-            avatarUrl: true,
-            role: true,
-          },
-        },
-        specialties: {
-          include: {
-            category: true,
-          },
-        },
-      },
-    });
+    const skip = (page - 1) * limit;
 
-    return coaches.map((coach) => this.transformCoach(coach));
+    const [coaches, totalCount] = await Promise.all([
+      prisma.coach.findMany({
+        where: whereClause,
+        orderBy: {
+          rating: "desc",
+        },
+        skip,
+        take: limit,
+        include: {
+          user: {
+            select: {
+              fullName: true,
+              email: true,
+              avatarUrl: true,
+              role: true,
+            },
+          },
+          specialties: {
+            include: {
+              category: true,
+            },
+          },
+        },
+      }),
+      prisma.coach.count({ where: whereClause }),
+    ]);
+
+    return {
+      coaches: coaches.map((coach) => this.transformCoach(coach)),
+      totalCount,
+    };
   }
 
   async createCoach(userId: string, data: CreateCoachData) {
@@ -231,7 +197,7 @@ export class CoachService {
       });
 
       // Fetch or verify categories for specialties
-      let specialtiesData: any[] = [];
+      let specialtiesData: { categoryId: string }[] = [];
       if (data.specialties && data.specialties.length > 0) {
         const matchedCategories = await tx.category.findMany({
           where: {
@@ -277,7 +243,7 @@ export class CoachService {
       });
 
       // Fetch or verify categories for specialties
-      let specialtiesListData: any[] = [];
+      let specialtiesListData: { categoryId: string }[] = [];
       if (data.specialties && data.specialties.length > 0) {
         const matchedCategories = await tx.category.findMany({
           where: {
@@ -389,6 +355,11 @@ export class CoachService {
             fullName: true,
             email: true,
             avatarUrl: true,
+          },
+        },
+        specialties: {
+          include: {
+            category: true,
           },
         },
       },
@@ -515,17 +486,17 @@ export class CoachService {
       const existingReview =
         targetType === "COACH"
           ? await prisma.coachReview.findFirst({
-              where: {
-                userId,
-                coachId: targetId,
-              },
-            })
+            where: {
+              userId,
+              coachId: targetId,
+            },
+          })
           : await prisma.programReview.findFirst({
-              where: {
-                userId,
-                programId: targetId,
-              },
-            });
+            where: {
+              userId,
+              programId: targetId,
+            },
+          });
 
       return !!existingReview;
     } catch (error) {
@@ -649,7 +620,7 @@ export class CoachService {
       title: coach.title,
       bio: coach.bio,
       style: coach.style,
-      specialties: coach.specialties.map((s: any) => s.category.name),
+      specialties: coach.specialties.map((s: { category: { name: string } }) => s.category.name),
       pastCompanies: coach.pastCompanies,
       linkedinUrl: coach.linkedinUrl,
       availability: coach.availability,
@@ -719,7 +690,7 @@ export class CoachService {
     return sendSuccess({ availability }, "Availability fetched successfully");
   }
 
-  async updateAvailability(userId: string, availability: any) {
+  async updateAvailability(userId: string, availability: Record<string, unknown>) {
     const coach = await prisma.coach.findUnique({
       where: { userId },
       select: { id: true },

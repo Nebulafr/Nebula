@@ -1,43 +1,44 @@
 import { NextRequest } from "next/server";
+import { type AuthenticatedRequest } from "@/types";
 import { coachDashboardService } from "../services/coach-dashboard.service";
 
 import { SessionFilter } from "../services/types/coach-dashboard.types";
 
 export class CoachDashboardController {
   async getStats(req: NextRequest) {
-    const user = (req as any).user;
+    const user = (req as unknown as AuthenticatedRequest).user;
     return await coachDashboardService.getStats(user.id);
   }
 
   async getSessions(req: NextRequest) {
-    const user = (req as any).user;
+    const user = (req as unknown as AuthenticatedRequest).user;
     const { searchParams } = new URL(req.url);
     const filter = (searchParams.get("filter") || "upcoming") as SessionFilter;
     return await coachDashboardService.getSessions(user.id, filter);
   }
 
   async createSession(req: NextRequest) {
-    const user = (req as any).user;
+    const user = (req as unknown as AuthenticatedRequest).user;
     const body = await req.json();
     return await coachDashboardService.createSession(user.id, body);
   }
 
   async getPrograms(req: NextRequest) {
-    const user = (req as any).user;
+    const user = (req as unknown as AuthenticatedRequest).user;
     const { searchParams } = new URL(req.url);
     const status = searchParams.get("status") || "all";
     return await coachDashboardService.getPrograms(user.id, status);
   }
 
   async getPayouts(req: NextRequest) {
-    const user = (req as any).user;
+    const user = (req as unknown as AuthenticatedRequest).user;
     const { searchParams } = new URL(req.url);
     const limit = parseInt(searchParams.get("limit") || "5");
     return await coachDashboardService.getRecentPayouts(user.id, limit);
   }
 
   async getStudents(req: NextRequest) {
-    const user = (req as any).user;
+    const user = (req as unknown as AuthenticatedRequest).user;
     const { searchParams } = new URL(req.url);
 
     const search = searchParams.get("search") || undefined;

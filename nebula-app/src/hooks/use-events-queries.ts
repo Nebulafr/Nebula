@@ -12,6 +12,7 @@ import {
 } from "@/actions/events";
 import { handleAndToastError } from "@/lib/error-handler";
 import { ADMIN_EVENTS_QUERY_KEY } from "./use-admin-queries";
+import { CreateEventData, UpdateEventData, EventsResponse, EventResponse } from "@/types/event";
 
 export const EVENTS_QUERY_KEY = "events";
 export const PUBLIC_EVENTS_QUERY_KEY = "public-events";
@@ -27,9 +28,13 @@ export function useEvents(params?: {
   limit?: number;
   offset?: number;
 }) {
-  return useQuery({
+  return useQuery<EventsResponse["data"]>({
     queryKey: [EVENTS_QUERY_KEY, params],
-    queryFn: () => getEvents(params),
+    queryFn: async () => {
+      const response = await getEvents(params);
+      if (response.success && response.data) return response.data;
+      throw new Error(response.message || "Failed to fetch events");
+    },
     staleTime: 2 * 60 * 1000, // 2 minutes
   });
 }
@@ -42,26 +47,38 @@ export function usePublicEvents(params?: {
   limit?: number;
   offset?: number;
 }) {
-  return useQuery({
+  return useQuery<EventsResponse["data"]>({
     queryKey: [PUBLIC_EVENTS_QUERY_KEY, params],
-    queryFn: () => getPublicEvents(params),
+    queryFn: async () => {
+      const response = await getPublicEvents(params);
+      if (response.success && response.data) return response.data;
+      throw new Error(response.message || "Failed to fetch public events");
+    },
     staleTime: 3 * 60 * 1000, // 3 minutes
   });
 }
 
 export function useEventById(id: string) {
-  return useQuery({
+  return useQuery<EventResponse["data"]>({
     queryKey: [EVENT_BY_ID_QUERY_KEY, id],
-    queryFn: () => getEventById(id),
+    queryFn: async () => {
+      const response = await getEventById(id);
+      if (response.success && response.data) return response.data;
+      throw new Error(response.message || "Failed to fetch event");
+    },
     enabled: !!id,
     staleTime: 2 * 60 * 1000, // 2 minutes
   });
 }
 
 export function useEventBySlug(slug: string) {
-  return useQuery({
+  return useQuery<EventResponse["data"]>({
     queryKey: [EVENT_BY_SLUG_QUERY_KEY, slug],
-    queryFn: () => getEventBySlug(slug),
+    queryFn: async () => {
+      const response = await getEventBySlug(slug);
+      if (response.success && response.data) return response.data;
+      throw new Error(response.message || "Failed to fetch event");
+    },
     enabled: !!slug,
     staleTime: 2 * 60 * 1000, // 2 minutes
   });
@@ -71,13 +88,13 @@ export function useCreateEvent() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (eventData: any) => createEvent(eventData),
+    mutationFn: (eventData: CreateEventData) => createEvent(eventData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [EVENTS_QUERY_KEY] });
       queryClient.invalidateQueries({ queryKey: [PUBLIC_EVENTS_QUERY_KEY] });
       queryClient.invalidateQueries({ queryKey: [ADMIN_EVENTS_QUERY_KEY] });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       handleAndToastError(error, "Failed to create event.");
     },
   });
@@ -87,7 +104,7 @@ export function useUpdateEvent() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, updateData }: { id: string; updateData: any }) =>
+    mutationFn: ({ id, updateData }: { id: string; updateData: UpdateEventData }) =>
       updateEvent(id, updateData),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: [EVENTS_QUERY_KEY] });
@@ -98,7 +115,7 @@ export function useUpdateEvent() {
       queryClient.invalidateQueries({ queryKey: [EVENT_BY_SLUG_QUERY_KEY] });
       queryClient.invalidateQueries({ queryKey: [ADMIN_EVENTS_QUERY_KEY] });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       handleAndToastError(error, "Failed to update event.");
     },
   });
@@ -116,7 +133,7 @@ export function useDeleteEvent() {
       queryClient.invalidateQueries({ queryKey: [EVENT_BY_SLUG_QUERY_KEY] });
       queryClient.invalidateQueries({ queryKey: [ADMIN_EVENTS_QUERY_KEY] });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       handleAndToastError(error, "Failed to delete event.");
     },
   });
@@ -134,7 +151,7 @@ export function useRegisterForEvent() {
       queryClient.invalidateQueries({ queryKey: [EVENT_BY_SLUG_QUERY_KEY] });
       queryClient.invalidateQueries({ queryKey: [EVENTS_QUERY_KEY] });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       handleAndToastError(error, "Failed to register for event.");
     },
   });
@@ -152,7 +169,7 @@ export function useUnregisterFromEvent() {
       queryClient.invalidateQueries({ queryKey: [EVENT_BY_SLUG_QUERY_KEY] });
       queryClient.invalidateQueries({ queryKey: [EVENTS_QUERY_KEY] });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       handleAndToastError(error, "Failed to unregister from event.");
     },
   });

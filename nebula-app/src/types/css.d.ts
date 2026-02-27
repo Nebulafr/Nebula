@@ -4,6 +4,6 @@ declare module "*.css" {
 }
 
 declare module "react-toastify/dist/ReactToastify.css" {
-  const content: any;
+  const content: Record<string, unknown>;
   export default content;
 }

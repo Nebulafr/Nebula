@@ -1,3 +1,4 @@
+ 
 "use client";
 
 import { useEffect, useState, useRef } from "react";
@@ -64,7 +65,6 @@ export default function CoachSettingsPage() {
       });
     }
   }, [profile]);
-
   const handleFormDataChange = (data: Partial<ProfileFormData>) => {
     setFormData((prev) => ({ ...prev, ...data }));
   };

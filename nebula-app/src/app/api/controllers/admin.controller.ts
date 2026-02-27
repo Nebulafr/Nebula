@@ -6,6 +6,7 @@ import {
 } from "@/lib/validations";
 import { BadRequestException } from "../utils/http-exception";
 import { reviewService } from "../services/review.service";
+import { ReviewTargetType } from "@/generated/prisma";
 
 export class AdminController {
   async getPrograms(request: NextRequest) {
@@ -144,7 +145,7 @@ export class AdminController {
     const { searchParams } = new URL(request.url);
     const targetType = searchParams.get("targetType");
 
-    return await reviewService.deleteReview(id, targetType as any);
+    return await reviewService.deleteReview(id, targetType as ReviewTargetType);
   }
 }
 

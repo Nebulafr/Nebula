@@ -1,13 +1,13 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LucideIcon } from "lucide-react";
+import React from "react";
 
 interface StatsCardProps {
   title: string;
   value: string | number;
   subtitle?: string;
-  icon?: LucideIcon;
+  icon?: React.ElementType;
   trend?: {
     value: number;
     label: string;
@@ -15,12 +15,12 @@ interface StatsCardProps {
   };
 }
 
-export function StatsCard({ 
-  title, 
-  value, 
-  subtitle, 
+export function StatsCard({
+  title,
+  value,
+  subtitle,
   icon: Icon,
-  trend 
+  trend
 }: StatsCardProps) {
   return (
     <Card>

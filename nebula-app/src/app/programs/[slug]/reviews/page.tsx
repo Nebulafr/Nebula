@@ -2,13 +2,14 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, Star, Loader2 } from "lucide-react";
+import { ArrowLeft, Star, Loader2, PlusCircle, CheckCircle } from "lucide-react";
 import Link from "next/link";
 import { Footer } from "@/components/layout/footer";
 import { useParams } from "next/navigation";
 import { Header } from "@/components/layout/header";
 import { useProgramReviews, useProgramBySlug } from "@/hooks";
 import { useTranslations, useLocale } from "next-intl";
+import { Review } from "@/types";
 import { useAuth } from "@/hooks/use-auth";
 import { useState, useEffect } from "react";
 import { getEnrollments } from "@/actions/enrollment";
@@ -23,7 +24,6 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { PlusCircle, CheckCircle, X } from "lucide-react";
 import { toast } from "react-toastify";
 import { reviewProgram } from "@/actions/reviews";
 import { useQueryClient } from "@tanstack/react-query";
@@ -45,7 +45,7 @@ export default function ProgramReviewsPage() {
   const targetEntity = reviewsResponse?.data?.targetEntity;
   const queryClient = useQueryClient();
 
-  const { profile, isStudent } = useAuth();
+  const { profile } = useAuth();
   const { data: programResponse } = useProgramBySlug(params.slug);
   const program = programResponse?.data?.program;
 
@@ -64,7 +64,7 @@ export default function ProgramReviewsPage() {
           const response = await getEnrollments();
           if (response && response.success) {
             const isStudentEnrolled = response.data!.enrollments.some(
-              (en: any) => en.programId === program.id,
+              (en: { programId: string }) => en.programId === program.id,
             );
             setIsEnrolled(isStudentEnrolled);
           }
@@ -112,7 +112,7 @@ export default function ProgramReviewsPage() {
       } else {
         toast.error(response.error || "Failed to submit review.");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error submitting review:", error);
       toast.error("Failed to submit review. Please try again.");
     } finally {
@@ -184,7 +184,7 @@ export default function ProgramReviewsPage() {
                   <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
                   <span className="font-semibold">{targetEntity.rating}</span>
                   <span className="text-muted-foreground">
-                    ({t("reviewsCount", { count: targetEntity.totalReviews })})
+                    ({t("reviewsCount", { count: targetEntity.totalReviews || 0 })})
                   </span>
                 </div>
 
@@ -322,7 +322,7 @@ export default function ProgramReviewsPage() {
               )}
               {reviews.length > 0 && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {reviews.map((review: any) => (
+                  {reviews.map((review: Review) => (
                     <Card key={review.id} className="rounded-xl border shadow-sm">
                       <CardContent className="p-6">
                         <div className="flex items-center gap-1 mb-4">

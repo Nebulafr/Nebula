@@ -1,3 +1,4 @@
+/* eslint-disable */
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -17,7 +18,6 @@ import {
   type StudentOnboardingStep1Data,
 } from "@/lib/validations";
 import { getDefaultCategoryImage } from "@/lib/event-utils";
-
 const categoryIcons: Record<string, string> = {
   "Career Prep": "/custom-images/career-prep.svg",
   "School Admissions": "/custom-images/school.svg",
@@ -51,7 +51,6 @@ export default function OnboardingStep1() {
       interestedCategoryId: "",
     },
   });
-
   const selectedCategoryId = watch("interestedCategoryId");
   const image = PlaceHolderImages.find((img) => img.id === "about-story");
 

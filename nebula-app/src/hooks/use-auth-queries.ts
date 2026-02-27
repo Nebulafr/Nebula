@@ -10,7 +10,6 @@ import { signInWithGoogle } from "@/firebase/auth";
 import { SignupData, SigninData } from "@/lib/validations";
 import { UserRole } from "@/generated/prisma";
 import { storeAuthData, clearAuthData } from "@/lib/auth-storage";
-import { toast } from "react-toastify";
 import { handleAndToastError } from "@/lib/error-handler";
 
 export const USER_PROFILE_QUERY_KEY = "user-profile";
@@ -30,11 +29,12 @@ export function useSignUp() {
   return useMutation({
     mutationFn: (data: SignupData) => signUpWithEmail(data),
     onSuccess: (result) => {
-      if (result.data) {
-        storeAuthData(result.data);
-        queryClient.setQueryData([USER_PROFILE_QUERY_KEY], result);
+      if (result) {
+        storeAuthData(result);
+        queryClient.setQueryData([USER_PROFILE_QUERY_KEY], result.user);
       }
     },
+
     onError: (error: any) => {
       clearAuthData();
       queryClient.removeQueries({ queryKey: [USER_PROFILE_QUERY_KEY] });
@@ -49,11 +49,12 @@ export function useSignIn() {
   return useMutation({
     mutationFn: (data: SigninData) => signInWithEmail(data),
     onSuccess: (result) => {
-      if (result.data) {
-        storeAuthData(result.data);
-        queryClient.setQueryData([USER_PROFILE_QUERY_KEY], result);
+      if (result) {
+        storeAuthData(result);
+        queryClient.setQueryData([USER_PROFILE_QUERY_KEY], result.user);
       }
     },
+
     onError: (error: any) => {
       clearAuthData();
       queryClient.removeQueries({ queryKey: [USER_PROFILE_QUERY_KEY] });
@@ -68,11 +69,12 @@ export function useGoogleSignIn() {
   return useMutation({
     mutationFn: (role: UserRole = UserRole.STUDENT) => signInWithGoogle(role),
     onSuccess: (result) => {
-      if (result.data) {
-        storeAuthData(result.data);
-        queryClient.setQueryData([USER_PROFILE_QUERY_KEY], result);
+      if (result) {
+        storeAuthData(result);
+        queryClient.setQueryData([USER_PROFILE_QUERY_KEY], result.user);
       }
     },
+
     onError: (error: any) => {
       clearAuthData();
       queryClient.removeQueries({ queryKey: [USER_PROFILE_QUERY_KEY] });
@@ -84,7 +86,8 @@ export function useGoogleSignIn() {
 export function useRequestPasswordReset() {
   return useMutation({
     mutationFn: (email: string) => requestPasswordReset(email),
-    onSuccess: () => {},
+    onSuccess: () => { },
+
     onError: (error: any) => {
       handleAndToastError(error, "Failed to send reset email");
     },
@@ -93,9 +96,11 @@ export function useRequestPasswordReset() {
 
 export function useCompletePasswordReset() {
   return useMutation({
+
     mutationFn: ({ token, data }: { token: string; data: any }) =>
       completePasswordReset(token, data),
-    onSuccess: () => {},
+    onSuccess: () => { },
+
     onError: (error: any) => {
       handleAndToastError(error, "Failed to reset password");
     },

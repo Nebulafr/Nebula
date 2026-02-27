@@ -37,7 +37,17 @@ export class UploadService {
         }
     }
 
-    async uploadAvatar(buffer: Buffer, userId: string): Promise<UploadResult> {
+    async uploadAvatar(file: Buffer | string, userId: string): Promise<UploadResult> {
+        let buffer: Buffer | string = file;
+
+        if (typeof file === "string" && file.startsWith("data:")) {
+            // It's already a base64 string with prefix, Cloudinary handles this
+            buffer = file;
+        } else if (typeof file === "string") {
+            // Pure base64, convert to Buffer
+            buffer = Buffer.from(file, "base64");
+        }
+
         return await cloudinaryServer.uploadAvatar(buffer, userId);
     }
 }

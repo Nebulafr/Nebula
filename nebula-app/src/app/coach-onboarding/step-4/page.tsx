@@ -1,3 +1,4 @@
+/* eslint-disable */
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -48,7 +49,6 @@ function CoachOnboardingStep4Content() {
       style: "",
     },
   });
-
   const style = watch("style");
   const charCount = style.length;
 

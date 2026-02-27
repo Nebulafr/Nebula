@@ -12,7 +12,7 @@ export function useProgramCheckout() {
     return useMutation({
         mutationFn: (data: CheckoutProgramData) =>
             createProgramCheckout(data),
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             handleAndToastError(error, "Failed to initiate program checkout.");
         },
     });
@@ -22,7 +22,7 @@ export function useSessionCheckout() {
     return useMutation({
         mutationFn: (data: CheckoutSessionData) =>
             createSessionCheckout(data),
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             handleAndToastError(error, "Failed to initiate session checkout.");
         },
     });
@@ -32,7 +32,7 @@ export function useEventCheckout() {
     return useMutation({
         mutationFn: (data: CheckoutEventData) =>
             createEventCheckout(data),
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             handleAndToastError(error, "Failed to initiate event checkout.");
         },
     });

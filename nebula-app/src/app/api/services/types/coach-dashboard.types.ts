@@ -1,3 +1,4 @@
+ 
 import { Category, Module, Program, SessionStatus } from "@/generated/prisma";
 
 export type SessionFilter = "today" | "upcoming" | "past" | "all";

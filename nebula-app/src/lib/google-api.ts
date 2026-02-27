@@ -105,20 +105,21 @@ export async function createCalendarEvent(
     const credentials = auth.credentials;
     const newAccessToken = credentials.access_token !== accessToken ? credentials.access_token : undefined;
 
-    return { 
-      meetLink, 
+    return {
+      meetLink,
       eventId,
       newAccessToken: newAccessToken as string | undefined
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error creating Google Calendar event:", error);
-    
+
+    const err = error as { code?: number };
     // If it's an auth error and we have a refresh token, try to get new credentials
-    if (error.code === 401 && refreshToken) {
+    if (err.code === 401 && refreshToken) {
       try {
         console.log("Access token expired, attempting to refresh...");
         await auth.refreshAccessToken();
-        
+
         // Retry the calendar event creation with new credentials
         const retryResponse = await calendar.events.insert({
           calendarId: "primary",
@@ -137,8 +138,8 @@ export async function createCalendarEvent(
         }
 
         const newCredentials = auth.credentials;
-        return { 
-          meetLink: retryMeetLink, 
+        return {
+          meetLink: retryMeetLink,
           eventId: retryEventId,
           newAccessToken: newCredentials.access_token as string
         };
@@ -147,7 +148,7 @@ export async function createCalendarEvent(
         throw new Error("Google Calendar access token expired and refresh failed. Please reconnect your calendar.");
       }
     }
-    
+
     throw new Error("Failed to create Google Calendar event.");
   }
 }
@@ -194,11 +195,12 @@ export async function updateCalendarEvent(
     const newAccessToken = credentials.access_token !== accessToken ? credentials.access_token : undefined;
 
     return { newAccessToken: newAccessToken as string | undefined };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error updating Google Calendar event:", error);
-    if (error.code === 401 && refreshToken) {
+    const err = error as { code?: number };
+    if (err.code === 401 && refreshToken) {
       await auth.refreshAccessToken();
-      const retryResponse = await calendar.events.patch({
+      await calendar.events.patch({
         calendarId: "primary",
         eventId: eventId,
         requestBody: {
@@ -247,9 +249,10 @@ export async function deleteCalendarEvent(
     const newAccessToken = credentials.access_token !== accessToken ? credentials.access_token : undefined;
 
     return { newAccessToken: newAccessToken as string | undefined };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error deleting Google Calendar event:", error);
-    if (error.code === 401 && refreshToken) {
+    const err = error as { code?: number };
+    if (err.code === 401 && refreshToken) {
       await auth.refreshAccessToken();
       await calendar.events.delete({
         calendarId: "primary",

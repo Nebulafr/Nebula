@@ -1,5 +1,5 @@
+ 
 "use client";
-
 import { useState } from "react";
 import { EarningsChart } from "./components/earnings-chart";
 import { AccountBalance } from "./components/account-balance";

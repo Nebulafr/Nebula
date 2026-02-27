@@ -2,7 +2,17 @@
  * Normalizes material data from various potential formats (string URL, object with different field names)
  * and calculates display properties like type-based icons and formatted file sizes.
  */
-export function normalizeMaterial(mat: any) {
+export interface Material {
+    fileName?: string;
+    name?: string;
+    url?: string;
+    link?: string;
+    fileType?: string;
+    type?: string;
+    fileSize?: number;
+}
+
+export function normalizeMaterial(mat: string | Material) {
     const isString = typeof mat === "string";
     const name = isString ? mat.split("/").pop()! : (mat.fileName || mat.name || "document");
     const link = isString ? mat : (mat.url || mat.link || "#");
@@ -27,7 +37,7 @@ export function normalizeMaterial(mat: any) {
  * Helper to get the correct icon for a material type
  */
 import React from 'react';
-import { Book, Presentation, StickyNote, File, Video, FileText, BookOpen } from "lucide-react";
+import { Book, Presentation, StickyNote, File, Video } from "lucide-react";
 
 export const getMaterialIcon = (type: string, size: number = 5) => {
     const className = `h-${size} w-${size}`;

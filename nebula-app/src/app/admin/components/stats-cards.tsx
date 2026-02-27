@@ -1,3 +1,4 @@
+ 
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,7 +12,6 @@ interface StatCardProps {
   icon: React.ReactNode;
   changeType?: 'positive' | 'negative' | 'neutral';
 }
-
 function StatCard({ title, value, change, icon, changeType = 'positive' }: StatCardProps) {
   const changeColor = changeType === 'positive' ? 'text-green-600' : 
                      changeType === 'negative' ? 'text-red-600' : 

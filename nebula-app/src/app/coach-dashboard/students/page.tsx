@@ -9,7 +9,7 @@ import { StudentsFilters } from "./components/students-filters";
 import { StudentsStatsCards } from "./components/students-stats";
 import { useTranslations } from "next-intl";
 import { useCoachStudents } from "@/hooks/use-coach-queries";
-import { formatDistanceToNow } from "date-fns";
+import moment from "moment";
 
 export default function StudentsPage() {
   const t = useTranslations("dashboard.coach.students");
@@ -28,7 +28,7 @@ export default function StudentsPage() {
       avatar: s.avatar || undefined,
       program: s.program,
       lastSession: s.lastSession
-        ? formatDistanceToNow(new Date(s.lastSession), { addSuffix: true })
+        ? moment(new Date(s.lastSession)).fromNow()
         : undefined,
     }));
   }, [studentsData]);

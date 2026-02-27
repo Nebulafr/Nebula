@@ -8,6 +8,7 @@ import jwt from "jsonwebtoken";
 function verifyJWT(token: string): { userId: string } | null {
   try {
     const secret = process.env.ACCESS_TOKEN_SECRET || "ACCESS_TOKEN_SECRET";
+     
     const decoded = jwt.verify(token, secret) as any;
 
     if (decoded.type === "access" && decoded.userId) {
@@ -15,12 +16,15 @@ function verifyJWT(token: string): { userId: string } | null {
     }
 
     return null;
+   
   } catch (error) {
     return null;
   }
 }
 
+ 
 export function isAuthenticated(fn: Function) {
+   
   return async (req: NextRequest, context?: any) => {
     const authHeader = req.headers.get("Authorization");
     let token: string | undefined;
@@ -64,6 +68,7 @@ export function isAuthenticated(fn: Function) {
       );
     }
 
+     
     (req as any)["user"] = {
       id: user.id,
       email: user.email,
@@ -77,8 +82,11 @@ export function isAuthenticated(fn: Function) {
   };
 }
 
+ 
 export function requireAdmin(fn: Function) {
+   
   return isAuthenticated(async (req: NextRequest, context?: any) => {
+     
     const user = (req as any)["user"];
 
     if (user.role !== UserRole.ADMIN) {
@@ -93,8 +101,11 @@ export function requireAdmin(fn: Function) {
   });
 }
 
+ 
 export function requireCoach(fn: Function) {
+   
   return isAuthenticated(async (req: NextRequest, context?: any) => {
+     
     const user = (req as any)["user"];
 
     if (user.role !== UserRole.COACH) {
@@ -109,8 +120,11 @@ export function requireCoach(fn: Function) {
   });
 }
 
+ 
 export function requireStudent(fn: Function) {
+   
   return isAuthenticated(async (req: NextRequest, context?: any) => {
+     
     const user = (req as any)["user"];
 
     if (user.role !== UserRole.STUDENT) {

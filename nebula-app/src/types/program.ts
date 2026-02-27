@@ -1,4 +1,5 @@
 import { Program } from "@/generated/prisma";
+import { ApiResponse } from "./index";
 
 export type AdminProgram = Program & {
   coach: {
@@ -14,14 +15,15 @@ export type AdminProgram = Program & {
   };
 };
 
-export interface AdminProgramsResponse {
-  success: boolean;
-  data?: {
-    programs: AdminProgram[];
+export type AdminProgramsResponse = ApiResponse<{
+  programs: AdminProgram[];
+  pagination?: {
+    total: number;
+    totalPages: number;
+    page: number;
+    limit: number;
   };
-  error?: string;
-  message?: string;
-}
+}>;
 
 export interface ProgramActionResponse {
   success: boolean;
@@ -43,6 +45,7 @@ export type ProgramWithRelations = Program & {
     pastCompanies?: string[];
     rating?: number;
     user: {
+      email: string;
       id: string;
       fullName?: string;
       avatarUrl?: string;
@@ -92,4 +95,18 @@ export type ProgramWithRelations = Program & {
       enrollments: number;
     };
   }>;
+  coCoaches?: Array<{
+    id: string;
+    coach: {
+      user: {
+        id: string;
+        fullName?: string | null;
+        avatarUrl?: string | null;
+      }
+    }
+  }>;
 };
+
+export type ProgramResponse = ApiResponse<{
+  program: ProgramWithRelations;
+}>;

@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { type AuthenticatedRequest } from "@/types";
 import { messagingService } from "../services/messaging.service";
 import {
   conversationCreateSchema,
@@ -74,7 +75,7 @@ export class MessagingController {
       throw new BadRequestException("Conversation ID is required");
     }
 
-    const user = (request as any).user;
+    const user = (request as unknown as AuthenticatedRequest).user;
     let userId = user?.id;
 
     if (!userId) {
@@ -82,7 +83,7 @@ export class MessagingController {
         const body = await request.json();
         const payload = markMessageReadSchema.parse(body);
         userId = payload.userId;
-      } catch (e) {
+      } catch {
         throw new BadRequestException("User identification required");
       }
     }

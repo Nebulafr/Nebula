@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiGet, apiPatch } from "@/lib/utils";
 import { EnrollmentStatus } from "@/generated/prisma";
 import { handleAndToastError } from "@/lib/error-handler";
+import { EnrollmentsResponse } from "@/types";
 
 export const ENROLLMENTS_QUERY_KEY = "student-enrollments";
 
@@ -11,7 +12,7 @@ interface EnrollmentFilters {
 
 // Get student enrollments
 export function useStudentEnrollments(filters?: EnrollmentFilters) {
-  return useQuery({
+  return useQuery<EnrollmentsResponse["data"]>({
     queryKey: [ENROLLMENTS_QUERY_KEY, filters],
     queryFn: async () => {
       const params = new URLSearchParams();
@@ -19,10 +20,11 @@ export function useStudentEnrollments(filters?: EnrollmentFilters) {
         params.set("status", filters.status);
       }
 
-      const endpoint = `/students/enrollments${
-        params.toString() ? `?${params.toString()}` : ""
-      }`;
-      return apiGet(endpoint);
+      const endpoint = `/students/enrollments${params.toString() ? `?${params.toString()}` : ""
+        }`;
+      const response = await apiGet<EnrollmentsResponse["data"]>(endpoint);
+      if (response.success && response.data) return response.data;
+      throw new Error(response.message || "Failed to fetch enrollments");
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes

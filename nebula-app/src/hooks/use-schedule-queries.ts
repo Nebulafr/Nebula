@@ -12,6 +12,7 @@ import {
   saveCoachAvailability,
   DayAvailability,
 } from "@/actions/session";
+import { CoachSessionsResponse, CoachStatsResponse, CoachAvailabilityResponse } from "@/types/coach";
 import { handleAndToastError } from "@/lib/error-handler";
 
 export const COACH_SESSIONS_QUERY_KEY = "coach-sessions";
@@ -22,17 +23,25 @@ export const COACH_AVAILABILITY_QUERY_KEY = "coach-availability";
 export function useCoachSessions(
   filter: "today" | "upcoming" | "past" | "all" = "upcoming"
 ) {
-  return useQuery({
+  return useQuery<CoachSessionsResponse["data"]>({
     queryKey: [COACH_SESSIONS_QUERY_KEY, filter],
-    queryFn: () => getCoachSessions(filter),
+    queryFn: async () => {
+      const response = await getCoachSessions(filter);
+      if (response.success && response.data) return response.data;
+      throw new Error(response.message || "Failed to fetch sessions");
+    },
     staleTime: 1 * 60 * 1000, // 1 minute
   });
 }
 
 export function useCoachStats() {
-  return useQuery({
+  return useQuery<CoachStatsResponse["data"]>({
     queryKey: [COACH_STATS_QUERY_KEY],
-    queryFn: () => getCoachStats(),
+    queryFn: async () => {
+      const response = await getCoachStats();
+      if (response.success && response.data) return response.data;
+      throw new Error(response.message || "Failed to fetch coach stats");
+    },
     staleTime: 2 * 60 * 1000, // 2 minutes
   });
 }
@@ -54,7 +63,7 @@ export function useCreateCoachSession() {
       queryClient.invalidateQueries({ queryKey: [COACH_SESSIONS_QUERY_KEY] });
       queryClient.invalidateQueries({ queryKey: [COACH_STATS_QUERY_KEY] });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       handleAndToastError(error, "Failed to create session.");
     },
   });
@@ -82,7 +91,7 @@ export function useUpdateCoachSession() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [COACH_SESSIONS_QUERY_KEY] });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       handleAndToastError(error, "Failed to update session.");
     },
   });
@@ -103,7 +112,7 @@ export function useCancelCoachSession() {
       queryClient.invalidateQueries({ queryKey: [COACH_SESSIONS_QUERY_KEY] });
       queryClient.invalidateQueries({ queryKey: [COACH_STATS_QUERY_KEY] });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       handleAndToastError(error, "Failed to cancel session.");
     },
   });
@@ -127,7 +136,7 @@ export function useRescheduleCoachSession() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [COACH_SESSIONS_QUERY_KEY] });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       handleAndToastError(error, "Failed to reschedule session.");
     },
   });
@@ -135,9 +144,13 @@ export function useRescheduleCoachSession() {
 
 // Availability queries
 export function useCoachAvailability() {
-  return useQuery({
+  return useQuery<CoachAvailabilityResponse["data"]>({
     queryKey: [COACH_AVAILABILITY_QUERY_KEY],
-    queryFn: () => getCoachAvailability(),
+    queryFn: async () => {
+      const response = await getCoachAvailability();
+      if (response.success && response.data) return response.data;
+      throw new Error(response.message || "Failed to fetch availability");
+    },
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }
@@ -154,7 +167,7 @@ export function useSaveCoachAvailability() {
         queryKey: [COACH_AVAILABILITY_QUERY_KEY],
       });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       handleAndToastError(error, "Failed to update availability.");
     },
   });
@@ -169,7 +182,7 @@ export function useApproveCoachSession() {
       queryClient.invalidateQueries({ queryKey: [COACH_SESSIONS_QUERY_KEY] });
       queryClient.invalidateQueries({ queryKey: [COACH_STATS_QUERY_KEY] });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       handleAndToastError(error, "Failed to approve session.");
     },
   });
@@ -184,7 +197,7 @@ export function useRejectCoachSession() {
       queryClient.invalidateQueries({ queryKey: [COACH_SESSIONS_QUERY_KEY] });
       queryClient.invalidateQueries({ queryKey: [COACH_STATS_QUERY_KEY] });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       handleAndToastError(error, "Failed to reject session.");
     },
   });

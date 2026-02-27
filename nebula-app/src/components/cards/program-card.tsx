@@ -23,7 +23,7 @@ export interface ProgramCardData {
     id: string;
     title?: string;
     user: {
-      fullName: string;
+      fullName?: string;
       avatarUrl?: string;
     };
   };
@@ -79,16 +79,16 @@ export function ProgramCard({ program }: ProgramCardProps) {
                     <AvatarImage
                       src={
                         program.coach.user.avatarUrl ||
-                        getUserAvatar(program.coach.user.fullName)
+                        getUserAvatar(program.coach.user.fullName || "")
                       }
                     />
                     <AvatarFallback>
-                      {getInitials(program.coach.user.fullName)}
+                      {getInitials(program.coach.user.fullName || "")}
                     </AvatarFallback>
                   </Avatar>
                   <div>
                     <p className="font-headline font-semibold text-foreground">
-                      {program.coach.user.fullName}
+                      {program.coach.user.fullName || "Coach"}
                     </p>
                     <p className="text-xs text-muted-foreground">
                       {program.coach.title}

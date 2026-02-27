@@ -1,9 +1,10 @@
+
 "use client";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { UserSelect } from "@/components/ui/user-select";
+import { UserSelect, UserSelectValue } from "@/components/ui/user-select";
 
 interface EventBasicDetailsProps {
   newEvent: any;
@@ -68,8 +69,8 @@ export function EventBasicDetails({
         <div className="col-span-3">
           <UserSelect
             value={newEvent.organizerId}
-            onChange={(value) =>
-              setNewEvent({ ...newEvent, organizerId: value || "" })
+            onChange={(value: UserSelectValue | null) =>
+              setNewEvent({ ...newEvent, organizerId: value?.id || "" })
             }
             placeholder="Select event organizer"
           />

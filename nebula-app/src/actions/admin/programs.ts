@@ -31,6 +31,7 @@ export async function getAdminPrograms(filters?: {
       data: response.data,
       message: response.message,
     };
+   
   } catch (error: any) {
     console.error("Error fetching admin programs:", error);
     return {
@@ -57,6 +58,7 @@ export async function updateProgramStatus(
       success: true,
       message: response.message,
     };
+   
   } catch (error: any) {
     console.error("Error updating program status:", error);
     return {

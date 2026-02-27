@@ -24,6 +24,7 @@ export * from "./use-checkout-queries";
 
 // Admin hooks
 export * from "./use-admin-queries";
+export * from "./use-cohort-queries";
 
 // Legacy hook re-exports (maintain backward compatibility)
 export * from "./use-auth";

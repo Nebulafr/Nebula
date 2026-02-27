@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { type AuthenticatedRequest } from "@/types";
 import { authService } from "../services/auth.service";
 import {
   googleAuthSchema,
@@ -18,7 +19,7 @@ export class AuthController {
     let body;
     try {
       body = await request.json();
-    } catch (error) {
+    } catch {
       throw new BadRequestException("Invalid JSON body");
     }
 
@@ -31,7 +32,7 @@ export class AuthController {
     let body;
     try {
       body = await request.json();
-    } catch (error) {
+    } catch {
       throw new BadRequestException("Invalid JSON body");
     }
 
@@ -44,7 +45,7 @@ export class AuthController {
     let body;
     try {
       body = await request.json();
-    } catch (error) {
+    } catch {
       throw new BadRequestException("Invalid JSON body");
     }
 
@@ -54,7 +55,7 @@ export class AuthController {
   }
 
   async getProfile(request: NextRequest) {
-    const user = (request as any).user;
+    const user = (request as unknown as AuthenticatedRequest).user;
 
     if (!user) {
       throw new UnauthorizedException("Authentication required");
@@ -64,7 +65,7 @@ export class AuthController {
   }
 
   async updateProfile(request: NextRequest) {
-    const user = (request as any).user;
+    const user = (request as unknown as AuthenticatedRequest).user;
 
     if (!user) {
       throw new UnauthorizedException("Authentication required");
@@ -73,7 +74,7 @@ export class AuthController {
     let body;
     try {
       body = await request.json();
-    } catch (error) {
+    } catch {
       throw new BadRequestException("Invalid JSON body");
     }
 
@@ -81,7 +82,7 @@ export class AuthController {
   }
 
   async changePassword(request: NextRequest) {
-    const user = (request as any).user;
+    const user = (request as unknown as AuthenticatedRequest).user;
 
     if (!user) {
       throw new UnauthorizedException("Authentication required");
@@ -90,7 +91,7 @@ export class AuthController {
     let body;
     try {
       body = await request.json();
-    } catch (error) {
+    } catch {
       throw new BadRequestException("Invalid JSON body");
     }
 
@@ -114,7 +115,7 @@ export class AuthController {
     let body;
     try {
       body = await request.json();
-    } catch (error) {
+    } catch {
       throw new BadRequestException("Invalid JSON body");
     }
 
@@ -134,7 +135,7 @@ export class AuthController {
     let body;
     try {
       body = await request.json();
-    } catch (error) {
+    } catch {
       throw new BadRequestException("Invalid JSON body");
     }
 

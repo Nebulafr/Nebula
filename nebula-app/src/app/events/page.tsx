@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -27,7 +28,7 @@ export default function EventsPage() {
     accessType:
       activePriceFilter === "All" ? undefined : activePriceFilter,
   });
-  const events = eventsResponse?.data?.events || [];
+  const events = eventsResponse?.events || [];
 
   const handleTypeFilterClick = (filterName: string) => {
     setActiveTypeFilter((prevFilter) =>

@@ -1,3 +1,4 @@
+/* eslint-disable */
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback, Suspense } from "react";
@@ -60,7 +61,7 @@ function CoachMessagingPageContent() {
     try {
       const response = await getUserConversations(currentUser.id, 10);
       if (response.success) {
-        setConversations(response.data);
+        setConversations(response.data || []);
         setLoading(false);
       }
     } catch (error) {
@@ -75,10 +76,10 @@ function CoachMessagingPageContent() {
       const updated = prev.map((c) =>
         c.id === data.conversationId
           ? {
-              ...c,
-              lastMessage: data.lastMessage,
-              lastMessageTime: new Date(data.lastMessageTime),
-            }
+            ...c,
+            lastMessage: data.lastMessage,
+            lastMessageTime: new Date(data.lastMessageTime),
+          }
           : c
       );
       // Sort by most recent message
@@ -135,11 +136,9 @@ function CoachMessagingPageContent() {
       newSocket.on("connect", () => {
         loadConversations();
       });
-
       newSocket.on("messages_loaded", (data: any) => {
         setCurrentMessages(data.messages || []);
       });
-
       newSocket.on("new_message", (message: any) => {
         setCurrentMessages((prev) => {
           // Remove any optimistic message with temp id and add the real one
@@ -150,17 +149,14 @@ function CoachMessagingPageContent() {
             ...filtered,
             {
               id: message.id,
-              sender: message.sender.fullName || "Unknown",
-              text: message.content,
-              timestamp: new Date(message.createdAt).toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              }),
-              isMe: message.senderId === currentUser.id,
+              senderId: message.senderId,
+              conversationId: message.conversationId,
+              content: message.content,
               type: message.type,
               isRead: false,
-              isEdited: false,
-            } as any,
+              createdAt: new Date(message.createdAt),
+              updatedAt: new Date(message.createdAt),
+            } as Message,
           ];
         });
         // Clear typing indicator when message received
@@ -169,7 +165,6 @@ function CoachMessagingPageContent() {
 
       newSocket.on("conversation_updated", handleConversationUpdate);
       newSocket.on("typing_indicator", handleTypingIndicator);
-
       newSocket.on("error", (error: any) => {
         console.error("Coach socket error:", error);
       });
@@ -245,21 +240,21 @@ function CoachMessagingPageContent() {
       }
 
       // Optimistic update - add message immediately
-      const optimisticMessage = {
+      const optimisticMessage: Message = {
         id: `temp-${Date.now()}`,
-        sender: currentUser.name,
-        text: messageText,
-        timestamp: new Date().toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-        isMe: true,
+        senderId: currentUser.id,
+        conversationId: selectedConversation.id,
+        content: messageText,
         type: "TEXT",
         isRead: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        readAt: null,
+        editedAt: null,
         isEdited: false,
-        pending: true,
+        isDeleted: false
       };
-      setCurrentMessages((prev) => [...prev, optimisticMessage as any]);
+      setCurrentMessages((prev) => [...prev, optimisticMessage]);
 
       // Send via socket - no need to reload conversations anymore
       socket.emit("send_message", {

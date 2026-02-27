@@ -13,6 +13,7 @@ const nextConfig: NextConfig = {
   },
   images: {
     minimumCacheTTL: 60 * 60 * 24 * 7, // Cache images for 7 days
+    qualities: [75, 85],
     remotePatterns: [
       {
         protocol: "https",
@@ -75,5 +76,6 @@ const nextConfig: NextConfig = {
     ],
   },
 };
+
 
 export default withNextIntl(nextConfig as any);

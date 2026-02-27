@@ -1,18 +1,9 @@
 "use client";
 
 import { useAuth } from "./use-auth";
-import { Coach, Student, User } from "@/generated/prisma";
+import { Coach, Student } from "@/generated/prisma";
+import { UserProfile, AuthState } from "@/types";
 
-export type AuthState =
-  | "LOADING"
-  | "UNAUTHENTICATED"
-  | "AUTHENTICATED_NO_PROFILE"
-  | "AUTHENTICATED_WITH_PROFILE";
-
-export interface UserProfile extends User {
-  coach: (Coach & { specialties: string[] }) | null;
-  student: Student | null;
-}
 export interface UseUserReturn {
   profile: UserProfile | null;
   coachProfile: Coach | null;

@@ -7,8 +7,8 @@ import {
   updateCoachProfile,
   getSuggestedCoaches,
 } from "@/actions/coaches";
+import { CoachesResponse, CoachDetailResponse } from "@/types/coach";
 import { CoachUpdateData, CreateCoachData } from "@/lib/validations";
-import { toast } from "react-toastify";
 import { handleAndToastError } from "@/lib/error-handler";
 
 export const COACHES_QUERY_KEY = "coaches";
@@ -19,12 +19,20 @@ export const SUGGESTED_COACHES_QUERY_KEY = "suggested-coaches";
 export function useCoaches(filters?: {
   category?: string;
   search?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  company?: string;
+  school?: string;
   limit?: number;
-  grouped?: boolean;
+  page?: number;
 }) {
-  return useQuery({
+  return useQuery<CoachesResponse["data"]>({
     queryKey: [COACHES_QUERY_KEY, filters],
-    queryFn: () => getCoaches(filters),
+    queryFn: async () => {
+      const response = await getCoaches(filters);
+      if (response.success && response.data) return response.data;
+      throw new Error(response.message || "Failed to fetch coaches");
+    },
     staleTime: 3 * 60 * 1000, // 3 minutes
   });
 }
@@ -56,6 +64,7 @@ export function useCreateCoach() {
       queryClient.invalidateQueries({ queryKey: [COACHES_QUERY_KEY] });
       queryClient.invalidateQueries({ queryKey: ["user-profile"] });
     },
+
     onError: (error: any) => {
       handleAndToastError(error, "Failed to create coach profile.");
     },
@@ -73,6 +82,7 @@ export function useUpdateCoachProfile() {
       queryClient.invalidateQueries({ queryKey: [COACH_BY_ID_QUERY_KEY] });
       queryClient.invalidateQueries({ queryKey: ["user-profile"] });
     },
+
     onError: (error: any) => {
       handleAndToastError(error, "Failed to update profile.");
     },
@@ -80,9 +90,13 @@ export function useUpdateCoachProfile() {
 }
 
 export function useSuggestedCoaches(limit?: number) {
-  return useQuery({
+  return useQuery<CoachesResponse["data"]>({
     queryKey: [SUGGESTED_COACHES_QUERY_KEY, limit],
-    queryFn: () => getSuggestedCoaches(limit),
+    queryFn: async () => {
+      const response = await getSuggestedCoaches(limit);
+      if (response.success && response.data) return response.data;
+      throw new Error(response.message || "Failed to fetch suggested coaches");
+    },
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }

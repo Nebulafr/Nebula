@@ -13,6 +13,7 @@ export async function getAdminCategories(): Promise<CategoriesResponse> {
       data: response.data,
       message: response.message,
     };
+   
   } catch (error: any) {
     console.error("Error fetching admin categories:", error);
     return {
@@ -37,6 +38,7 @@ export async function createCategory(
       data: response.data,
       message: response.message,
     };
+   
   } catch (error: any) {
     console.error("Error creating category:", error);
     return {
@@ -66,6 +68,7 @@ export async function updateCategory(
       data: response.data,
       message: response.message,
     };
+   
   } catch (error: any) {
     console.error("Error updating category:", error);
     return {
@@ -92,6 +95,7 @@ export async function deleteCategory(
       success: true,
       message: response.message,
     };
+   
   } catch (error: any) {
     console.error("Error deleting category:", error);
     return {

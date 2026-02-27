@@ -1,6 +1,6 @@
 "use client";
 
-import { UserProfile } from "@/hooks/use-user";
+import { UserProfile } from "@/types";
 import { useTranslations } from "next-intl";
 
 interface DashboardHeaderProps {
@@ -14,7 +14,7 @@ export function DashboardHeader({
 }: DashboardHeaderProps) {
   const t = useTranslations("dashboard");
   const tc = useTranslations("dashboard.coach");
-  
+
   if (loading) {
     return (
       <div className="flex items-center justify-between space-y-2">

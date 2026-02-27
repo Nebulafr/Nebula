@@ -14,6 +14,7 @@ import HttpException, {
 import { RESPONSE_CODE } from "@/types";
 import { sendSuccess } from "../utils/send-response";
 import { emailService } from "./email.service";
+import { uploadService } from "./upload.service";
 import crypto from "crypto";
 
 export class AuthService {
@@ -61,6 +62,16 @@ export class AuthService {
         verificationToken,
         verificationTokenExpires,
       },
+      select: {
+        id: true,
+        email: true,
+        fullName: true,
+        role: true,
+        status: true,
+        emailVerified: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
 
     // Send verification email
@@ -73,10 +84,9 @@ export class AuthService {
       verificationUrl,
     );
 
-    const { hashedPassword: _, verificationToken: __, ...userWithoutPassword } = user;
 
     return sendSuccess(
-      { user: userWithoutPassword },
+      { user },
       "Account created. Please check your email to verify your account.",
       201,
     );
@@ -109,7 +119,9 @@ export class AuthService {
     }
 
     const accessToken = this.generateAccessToken(user.id);
-    const { hashedPassword: _, verificationToken: __, ...userWithoutPassword } = user;
+    const { hashedPassword, verificationToken, ...userWithoutPassword } = user;
+    void hashedPassword;
+    void verificationToken;
     return sendSuccess({ accessToken, user: userWithoutPassword }, "Signed in successfully");
   }
 
@@ -147,7 +159,9 @@ export class AuthService {
       },
     });
 
-    const { hashedPassword: _, verificationToken: __, ...userWithoutPassword } = updatedUser;
+    const { hashedPassword, verificationToken, ...userWithoutPassword } = updatedUser;
+    void hashedPassword;
+    void verificationToken;
 
     return sendSuccess(
       { user: userWithoutPassword },
@@ -162,7 +176,9 @@ export class AuthService {
 
     if (user) {
       const accessToken = this.generateAccessToken(user.id);
-      const { hashedPassword: _, verificationToken: __, ...userWithoutPassword } = user;
+      const { hashedPassword, verificationToken, ...userWithoutPassword } = user;
+      void hashedPassword;
+      void verificationToken;
       return sendSuccess({ accessToken, user: userWithoutPassword }, "Signed in successfully");
     }
 
@@ -178,7 +194,9 @@ export class AuthService {
       });
 
       const accessToken = this.generateAccessToken(user.id);
-      const { hashedPassword: _, verificationToken: __, ...userWithoutPassword } = user;
+      const { hashedPassword, verificationToken, ...userWithoutPassword } = user;
+      void hashedPassword;
+      void verificationToken;
       return sendSuccess(
         { accessToken, user: userWithoutPassword },
         "Account linked and signed in successfully",
@@ -201,7 +219,8 @@ export class AuthService {
     });
 
     const accessToken = this.generateAccessToken(user.id);
-    const { hashedPassword: _, verificationToken: __, ...userWithoutPassword } = user;
+
+    const { hashedPassword, verificationToken, ...userWithoutPassword } = user;
     return sendSuccess(
       { accessToken, user: userWithoutPassword },
       "Account created successfully",
@@ -216,14 +235,15 @@ export class AuthService {
       throw new NotFoundException("User profile not found in database");
     }
 
-    // Transform specialties to string array if coach exists
-    if (user.coach && (user.coach as any).specialties) {
-      (user.coach as any).specialties = (user.coach as any).specialties.map(
-        (s: any) => s.category.name
-      );
-    }
+    const transformedUser = {
+      ...user,
+      coach: user.coach ? {
+        ...user.coach,
+        specialties: user.coach.specialties.map(s => s.category.name),
+      } : null,
+    };
 
-    return sendSuccess({ user }, "Profile fetched successfully");
+    return sendSuccess({ user: transformedUser }, "Profile fetched successfully");
   }
 
   async findUserByEmail(email: string) {
@@ -264,16 +284,22 @@ export class AuthService {
     });
   }
 
-  async updateProfile(userId: string, data: any) {
+  async updateProfile(userId: string, data: Record<string, unknown>) {
     try {
       // Only allow updating specific fields for security
       const allowedFields = ["fullName", "avatarUrl"];
-      const updateData: any = {};
+      const updateData: Record<string, string> = {} as Record<string, string>;
 
       for (const field of allowedFields) {
         if (data[field] !== undefined) {
-          updateData[field] = data[field];
+          updateData[field] = data[field] as string;
         }
+      }
+
+      // Handle avatar upload if avatarUrl is a base64 string
+      if (updateData.avatarUrl && updateData.avatarUrl.startsWith("data:")) {
+        const uploadResult = await uploadService.uploadAvatar(updateData.avatarUrl, userId);
+        updateData.avatarUrl = uploadResult.url;
       }
 
       if (Object.keys(updateData).length === 0) {
@@ -297,7 +323,7 @@ export class AuthService {
       });
 
       return sendSuccess({ user: updatedUser }, "Profile updated successfully");
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -354,7 +380,7 @@ export class AuthService {
       });
 
       return sendSuccess(null, "Password changed successfully");
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -396,7 +422,7 @@ export class AuthService {
     );
   }
 
-  async resetPassword(token: string, data: any) {
+  async resetPassword(token: string, data: { newPassword: string }) {
     const user = await prisma.user.findUnique({
       where: { resetToken: token },
     });

@@ -1,3 +1,4 @@
+
 "use client";
 import React from "react";
 import Image from "next/image";
@@ -61,19 +62,19 @@ export default function Home() {
       name: "Sarah K.",
       role: t("testimonials.sarah.role"),
       testimonial: t("testimonials.sarah.content"),
-      avatar: PlaceHolderImages.find((img) => img.id === "testimonial-1"),
+      avatar: PlaceHolderImages.find((img) => img.id === "testimonial-1") || null,
     },
     {
       name: "David L.",
       role: t("testimonials.david.role"),
       testimonial: t("testimonials.david.content"),
-      avatar: PlaceHolderImages.find((img) => img.id === "testimonial-2"),
+      avatar: PlaceHolderImages.find((img) => img.id === "testimonial-2") || null,
     },
     {
       name: "Emily R.",
       role: t("testimonials.emily.role"),
       testimonial: t("testimonials.emily.content"),
-      avatar: PlaceHolderImages.find((img) => img.id === "testimonial-3"),
+      avatar: PlaceHolderImages.find((img) => img.id === "testimonial-3") || null,
     },
   ];
 

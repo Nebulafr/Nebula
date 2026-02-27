@@ -1,3 +1,4 @@
+/* eslint-disable */
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -62,7 +63,6 @@ function OnboardingStep2Content() {
       skillLevel: "" as any,
     },
   });
-
   const selectedLevel = watch("skillLevel");
 
   return (

@@ -40,6 +40,7 @@ export const publicRoutes = [
 ];
 
 interface RequestOptions {
+   
   body?: any;
   headers?: Record<string, string>;
   requireAuth?: boolean;
@@ -47,6 +48,7 @@ interface RequestOptions {
   timeout?: number;
 }
 
+ 
 export async function makeRequest<T = any>(
   endpoint: string,
   method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH",
@@ -112,6 +114,7 @@ export async function makeRequest<T = any>(
       }
     }
 
+     
     let result: any;
     try {
       result = await response.json();
@@ -138,25 +141,27 @@ export async function makeRequest<T = any>(
       message: result.message || "Success",
       code: result.code,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (throwOnError) throw error;
+
+    const err = error instanceof Error ? error : new Error(String(error));
 
     // Provide more specific error messages
     let errorMessage = "Failed to connect to server";
     let errorType = "Network error";
 
-    if (error.name === "AbortError") {
+    if (err.name === "AbortError") {
       errorMessage = "Request timed out. Please try again.";
       errorType = "Timeout";
-    } else if (error.message === "Failed to fetch") {
+    } else if (err.message === "Failed to fetch") {
       errorMessage =
         "Unable to reach the server. Please check your connection.";
       errorType = "Connection error";
-    } else if (error.message) {
-      errorMessage = error.message;
+    } else if (err.message) {
+      errorMessage = err.message;
     }
 
-    console.error(`API Error [${method} ${endpoint}]:`, errorType, error);
+    console.error(`API Error [${method} ${endpoint}]:`, errorType, err);
 
     return {
       success: false,
@@ -166,28 +171,28 @@ export async function makeRequest<T = any>(
   }
 }
 
-export const apiGet = <T = any>(endpoint: string, options?: RequestOptions) =>
+export const apiGet = <T = unknown>(endpoint: string, options?: RequestOptions) =>
   makeRequest<T>(endpoint, "GET", options);
 
-export const apiPost = <T = any>(
+export const apiPost = <T = unknown>(
   endpoint: string,
-  body?: any,
+  body?: unknown,
   options?: RequestOptions,
 ) => makeRequest<T>(endpoint, "POST", { ...options, body });
 
-export const apiPut = <T = any>(
+export const apiPut = <T = unknown>(
   endpoint: string,
-  body?: any,
+  body?: unknown,
   options?: RequestOptions,
 ) => makeRequest<T>(endpoint, "PUT", { ...options, body });
 
-export const apiPatch = <T = any>(
+export const apiPatch = <T = unknown>(
   endpoint: string,
-  body?: any,
+  body?: unknown,
   options?: RequestOptions,
 ) => makeRequest<T>(endpoint, "PATCH", { ...options, body });
 
-export const apiDelete = <T = any>(
+export const apiDelete = <T = unknown>(
   endpoint: string,
   options?: RequestOptions,
 ) => makeRequest<T>(endpoint, "DELETE", options);

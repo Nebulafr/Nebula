@@ -1,5 +1,6 @@
 import { apiGet, apiPost } from "@/lib/utils";
 import moment from "moment";
+import { EnrollmentsResponse } from "@/types";
 
 export async function enrollInProgram({
   programSlug,
@@ -24,7 +25,7 @@ export async function enrollInProgram({
   return apiPost(`/programs/slug/${programSlug}/enroll`, enrollmentData);
 }
 
-export async function getEnrollments(status?: string) {
+export async function getEnrollments(status?: string): Promise<EnrollmentsResponse> {
   const query = status ? `?status=${status}` : "";
-  return apiGet(`/students/enrollments${query}`);
+  return apiGet<EnrollmentsResponse["data"]>(`/students/enrollments${query}`) as Promise<EnrollmentsResponse>;
 }

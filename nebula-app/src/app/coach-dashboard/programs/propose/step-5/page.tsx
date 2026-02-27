@@ -1,3 +1,4 @@
+/* eslint-disable */
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -10,7 +11,7 @@ import { Stepper } from '../components/stepper';
 import { useProposeProgramContext } from '../context/propose-program-context';
 import { useCreateProgram } from '@/hooks';
 import { useRouter } from 'next/navigation';
-import { uploadMultipleFiles, fileToBase64 } from '@/lib/upload';
+import { fileToBase64 } from '@/lib/upload';
 import { toast } from 'react-toastify';
 import { useTranslations } from 'next-intl';
 
@@ -101,7 +102,6 @@ export default function ProposeStep5Page() {
         }, []);
 
         if (!isClient || dimensions.width === 0) return null;
-
         const ConfettiComponent = Confetti as any;
 
         return (

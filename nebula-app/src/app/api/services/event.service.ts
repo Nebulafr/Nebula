@@ -5,6 +5,7 @@ import {
   UpdateEventData,
 } from "@/lib/validations";
 import { prisma } from "@/lib/prisma";
+import { Event, User, Prisma } from "@/generated/prisma";
 import {
   UnauthorizedException,
   NotFoundException,
@@ -14,17 +15,18 @@ import { sendSuccess } from "../utils/send-response";
 import { generateSlug } from "@/lib/utils";
 import { paymentService } from "./payment.service";
 import { uploadService } from "./upload.service";
+import { AuthenticatedRequest } from "@/types";
 
 export class EventService {
   create = async (request: NextRequest, data: CreateEventData) => {
-    const user = (request as any).user;
+    const user = (request as unknown as AuthenticatedRequest).user;
 
     if (user.role !== "ADMIN") {
       throw new UnauthorizedException("Admin access required");
     }
 
     if (!data.slug) {
-      let baseSlug = generateSlug(data.title);
+      const baseSlug = generateSlug(data.title);
       let finalSlug = baseSlug;
       let counter = 1;
 
@@ -37,20 +39,26 @@ export class EventService {
     }
 
     const payload = createEventSchema.parse(data);
-    let { organizerId, images, ...eventData } = payload as any;
+    const {
+      organizerId: initialOrganizerId,
+      images: initialImages,
+      ...eventData
+    } = payload;
+    let images = initialImages as string[];
+    let organizerId = initialOrganizerId;
 
     if (images && images.length > 0) {
       images = await Promise.all(
         images.map(async (image: string) => {
           if (image.startsWith("data:")) {
             const result = await uploadService.uploadFile(image, {
-              folder: `nebula-events/${data.slug}`,
+              folder: `nebula-events`,
               resourceType: "image",
             });
             return result.url;
           }
           return image;
-        })
+        }),
       );
     }
 
@@ -67,7 +75,7 @@ export class EventService {
 
     const event = await prisma.event.create({
       data: {
-        ...eventData,
+        ...(eventData as any),
         images: images || [],
         organizerId: organizerId || user.id,
       },
@@ -132,7 +140,7 @@ export class EventService {
     const offset = offsetParam ? parseInt(offsetParam) : 0;
     const isPublicParam = searchParams.get("isPublic");
 
-    const whereClause: any = {};
+    const whereClause: Prisma.EventWhereInput = {};
 
     if (isPublicParam !== null) {
       whereClause.isPublic = isPublicParam === "true";
@@ -211,42 +219,44 @@ export class EventService {
       prisma.event.count({ where: whereClause }),
     ]);
 
-    const transformedEvents = events.map((event: any) => ({
-      id: event.id,
-      title: event.title,
-      description: event.description,
-      eventType: event.eventType,
-      date: event.date.toISOString(),
-      location: event.location,
-      images: event.images || [],
-      slug: event.slug,
-      organizer: event!.organizer
-        ? {
-          id: event!.organizer.id,
-          fullName: event.organizer.fullName,
-          avatarUrl: event.organizer.avatarUrl,
-        }
-        : null,
-      isPublic: event.isPublic,
-      maxAttendees: event.maxAttendees,
-      attendees: event._count!.attendees,
-      attendeesList: event!.attendees.map((attendee: any) => ({
-        id: attendee.student.user.id,
-        fullName: attendee.student.user.fullName,
-        avatarUrl: attendee.student.user.avatarUrl,
-        status: attendee.status,
-        registeredAt: attendee.registeredAt.toISOString(),
-      })),
-      status: event.status,
-      tags: event.tags,
-      whatToBring: event.whatToBring,
-      additionalInfo: event.additionalInfo,
-      lumaEventLink: event.lumaEventLink,
-      accessType: event.accessType,
-      price: (event as any).price || 0,
-      createdAt: event.createdAt.toISOString(),
-      updatedAt: event.updatedAt.toISOString(),
-    }));
+    const transformedEvents = events.map(
+      (event: Event & Record<string, unknown>) => ({
+        id: event.id,
+        title: event.title,
+        description: event.description,
+        eventType: event.eventType,
+        date: event.date.toISOString(),
+        location: event.location,
+        images: event.images || [],
+        slug: event.slug,
+        organizer: (event as any)!.organizer
+          ? {
+            id: (event as any)!.organizer.id,
+            fullName: (event as any).organizer.fullName,
+            avatarUrl: (event as any).organizer.avatarUrl,
+          }
+          : null,
+        isPublic: event.isPublic,
+        maxAttendees: event.maxAttendees,
+        attendees: (event as any)._count!.attendees,
+        attendeesList: (event as any)!.attendees.map((attendee: any) => ({
+          id: attendee.student.user.id,
+          fullName: attendee.student.user.fullName,
+          avatarUrl: attendee.student.user.avatarUrl,
+          status: attendee.status,
+          registeredAt: attendee.registeredAt.toISOString(),
+        })),
+        status: event.status,
+        tags: event.tags,
+        whatToBring: event.whatToBring,
+        additionalInfo: event.additionalInfo,
+        lumaEventLink: event.lumaEventLink,
+        accessType: event.accessType,
+        price: (event as any).price || 0,
+        createdAt: event.createdAt.toISOString(),
+        updatedAt: event.updatedAt.toISOString(),
+      }),
+    );
 
     return sendSuccess({
       events: transformedEvents,
@@ -321,9 +331,9 @@ export class EventService {
       slug: event.slug,
       organizer: (event as any).organizer
         ? {
-          id: (event as any).organizer.id,
-          fullName: (event as any).organizer.fullName,
-          avatarUrl: (event as any).organizer.avatarUrl,
+          id: (event as any).organizer!.id,
+          fullName: (event as any).organizer!.fullName,
+          avatarUrl: (event as any).organizer!.avatarUrl,
         }
         : null,
       isPublic: event.isPublic,
@@ -342,7 +352,7 @@ export class EventService {
       additionalInfo: event.additionalInfo,
       lumaEventLink: event.lumaEventLink,
       accessType: event.accessType,
-      price: (event as any).price || 0,
+      price: (event as Event).price || 0,
       createdAt: event.createdAt.toISOString(),
       updatedAt: event.updatedAt.toISOString(),
     };
@@ -420,9 +430,9 @@ export class EventService {
       slug: event.slug,
       organizer: (event as any).organizer
         ? {
-          id: (event as any).organizer.id,
-          fullName: (event as any).organizer.fullName,
-          avatarUrl: (event as any).organizer.avatarUrl,
+          id: (event as any).organizer!.id,
+          fullName: (event as any).organizer!.fullName,
+          avatarUrl: (event as any).organizer!.avatarUrl,
         }
         : null,
       isPublic: event.isPublic,
@@ -441,7 +451,7 @@ export class EventService {
       additionalInfo: event.additionalInfo,
       lumaEventLink: event.lumaEventLink,
       accessType: event.accessType,
-      price: (event as any).price || 0,
+      price: (event as Event).price || 0,
       createdAt: event.createdAt.toISOString(),
       updatedAt: event.updatedAt.toISOString(),
     };
@@ -449,12 +459,8 @@ export class EventService {
     return sendSuccess({ event: transformedEvent });
   };
 
-  update = async (
-    request: NextRequest,
-    id: string,
-    data: UpdateEventData,
-  ) => {
-    const user = (request as any).user;
+  update = async (request: NextRequest, id: string, data: UpdateEventData) => {
+    const user = (request as unknown as AuthenticatedRequest).user;
 
     if (user.role !== "ADMIN") {
       throw new UnauthorizedException("Admin access required");
@@ -468,20 +474,20 @@ export class EventService {
       throw new NotFoundException("Event not found");
     }
 
-    const eventData = data as any;
+    const eventData = data as Record<string, any>;
 
     if (eventData.images && eventData.images.length > 0) {
       eventData.images = await Promise.all(
         eventData.images.map(async (image: string) => {
           if (image.startsWith("data:")) {
             const result = await uploadService.uploadFile(image, {
-              folder: `nebula-events/${existingEvent.slug}`,
+              folder: `nebula-events`,
               resourceType: "image",
             });
             return result.url;
           }
           return image;
-        })
+        }),
       );
     }
 
@@ -526,14 +532,14 @@ export class EventService {
       slug: event!.slug,
       organizer: (event as any)!.organizer
         ? {
-          id: (event as any)!.organizer.id,
-          fullName: (event as any)!.organizer.fullName,
-          avatarUrl: (event as any)!.organizer.avatarUrl,
+          id: (event as any)!.organizer!.id,
+          fullName: (event as any)!.organizer!.fullName,
+          avatarUrl: (event as any)!.organizer!.avatarUrl,
         }
         : null,
       isPublic: event!.isPublic,
       maxAttendees: event!.maxAttendees,
-      attendees: (event as any)!._count.attendees,
+      attendees: (event as any)._count?.attendees || 0,
       status: event!.status,
       tags: event!.tags,
       whatToBring: event!.whatToBring,
@@ -552,14 +558,18 @@ export class EventService {
   };
 
   remove = async (request: NextRequest, id: string) => {
-    const user = (request as any).user;
+    const user = (request as unknown as AuthenticatedRequest).user;
 
     const existingEvent = await prisma.event.findUnique({
       where: { id },
     });
 
     if (!existingEvent) {
-      return sendSuccess({ event: null }, "Event already deleted or not found", 200);
+      return sendSuccess(
+        { event: null },
+        "Event already deleted or not found",
+        200,
+      );
     }
 
     if (user.role !== "ADMIN" && existingEvent.organizerId !== user.id) {
@@ -578,9 +588,8 @@ export class EventService {
         event: {
           price: {
             gt: 0,
-          }
-        }
-
+          },
+        },
       },
       select: { id: true },
     });

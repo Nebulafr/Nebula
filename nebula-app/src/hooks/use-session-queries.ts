@@ -1,22 +1,32 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiGet, apiPost } from "@/lib/utils";
+import { CoachDashboardStats, CoachSessionsResponse } from "@/types/coach";
+import { StudentSessionsResponse } from "@/types";
 import { handleAndToastError } from "@/lib/error-handler";
 import { format } from "date-fns";
 
 export function useCoachSessions(
   filter: "today" | "upcoming" | "past" | "all" = "upcoming"
 ) {
-  return useQuery({
+  return useQuery<CoachSessionsResponse["data"]>({
     queryKey: ["coach-sessions", filter],
-    queryFn: () => apiGet(`/coaches/sessions?filter=${filter}`),
+    queryFn: async () => {
+      const response = await apiGet<CoachSessionsResponse["data"]>(`/coaches/sessions?filter=${filter}`);
+      if (response.success && response.data) return response.data;
+      throw new Error(response.message || "Failed to fetch sessions");
+    },
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }
 
 export function useCoachStats() {
-  return useQuery({
+  return useQuery<CoachDashboardStats>({
     queryKey: ["coach-stats"],
-    queryFn: () => apiGet("/coaches/stats"),
+    queryFn: async () => {
+      const response = await apiGet<CoachDashboardStats>("/coaches/stats");
+      if (response.success && response.data) return response.data;
+      throw new Error(response.message || "Failed to fetch coach stats");
+    },
     staleTime: 10 * 60 * 1000, // 10 minutes
   });
 }
@@ -24,9 +34,13 @@ export function useCoachStats() {
 export function useStudentSessions(
   filter: "today" | "upcoming" | "past" | "all" = "upcoming"
 ) {
-  return useQuery({
+  return useQuery<StudentSessionsResponse["data"]>({
     queryKey: ["student-sessions", filter],
-    queryFn: () => apiGet(`/students/sessions?filter=${filter}`),
+    queryFn: async () => {
+      const response = await apiGet<StudentSessionsResponse["data"]>(`/students/sessions?filter=${filter}`);
+      if (response.success && response.data) return response.data;
+      throw new Error(response.message || "Failed to fetch student sessions");
+    },
     staleTime: 5 * 60 * 1000, // 5 minutes
     enabled: true, // Always enabled, will be filtered client-side
   });

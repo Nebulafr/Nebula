@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -26,10 +27,8 @@ export default function CoachReviewsPage() {
 
   const reviews = reviewsResponse?.data?.reviews || [];
   const targetEntity = reviewsResponse?.data?.targetEntity;
-  // const ratingDistribution = reviewsResponse?.data?.ratingDistribution;
-  // const pagination = reviewsResponse?.data?.pagination;
 
-  const coachName = targetEntity?.fullName || "Coach";
+  const coachName = targetEntity?.name || "Coach";
 
   if (error) {
     return (
@@ -87,7 +86,7 @@ export default function CoachReviewsPage() {
                   <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
                   <span className="font-semibold">{targetEntity.rating}</span>
                   <span className="text-muted-foreground">
-                    ({t("reviewsCount", { count: targetEntity.totalReviews })})
+                    ({t("reviewsCount", { count: targetEntity.totalReviews || 0 })})
                   </span>
                 </div>
               </div>

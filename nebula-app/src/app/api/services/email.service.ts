@@ -71,7 +71,7 @@ export class EmailService {
       console.error("Email sending failed:", error);
       return {
         success: false,
-        error: error.message || "Failed to send email",
+        error: error instanceof Error ? error.message : "Failed to send welcome email",
       };
     }
   }
@@ -298,7 +298,7 @@ export class EmailService {
     } catch (error: any) {
       return {
         success: false,
-        error: error.message || "Failed to send session booking emails",
+        error: error instanceof Error ? error.message : "Failed to send session booking emails",
       };
     }
   }

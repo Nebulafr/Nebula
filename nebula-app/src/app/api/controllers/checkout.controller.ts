@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { checkoutService } from "../services/checkout.service";
 import { checkoutProgramSchema, checkoutSessionSchema, checkoutEventSchema } from "@/lib/validations/checkout";
 import { BadRequestException, UnauthorizedException } from "../utils/http-exception";
@@ -8,11 +8,15 @@ export class CheckoutController {
         let body;
         try {
             body = await request.json();
-        } catch (error) {
+        } catch {
             throw new BadRequestException("Invalid JSON body");
         }
 
-        const user = (request as any).user;
+        const user = (request as unknown as {
+            user: {
+                email: string; id: string
+            }
+        }).user;
         if (!user) {
             throw new UnauthorizedException("Authentication required");
         }
@@ -25,11 +29,15 @@ export class CheckoutController {
         let body;
         try {
             body = await request.json();
-        } catch (error) {
+        } catch {
             throw new BadRequestException("Invalid JSON body");
         }
 
-        const user = (request as any).user;
+        const user = (request as unknown as {
+            user: {
+                email: string; id: string
+            }
+        }).user;
         if (!user) {
             throw new UnauthorizedException("Authentication required");
         }
@@ -42,11 +50,11 @@ export class CheckoutController {
         let body;
         try {
             body = await request.json();
-        } catch (error) {
+        } catch {
             throw new BadRequestException("Invalid JSON body");
         }
 
-        const user = (request as any).user;
+        const user = (request as unknown as { user: { id: string, email: string } }).user;
         if (!user) {
             throw new UnauthorizedException("Authentication required");
         }

@@ -7,24 +7,26 @@ import { Badge } from "@/components/ui/badge";
 import { ChevronLeft, ChevronRight, Calendar } from "lucide-react";
 import { cn, getStartOfWeek } from "@/lib/utils";
 import { useTranslations, useLocale } from "next-intl";
+import { Session } from "./appointment-item";
 
+// DEPRECATED: Use Session from appointment-item instead
 export interface ScheduleSession {
   id: string;
-  title: string;
+  title: string | null;
   scheduledTime: string;
   duration: number;
   status: string;
   students: Array<{
     id: string;
-    fullName: string;
-    avatarUrl?: string;
+    fullName: string | null;
+    avatarUrl?: string | null;
   }>;
 }
 
 interface ScheduleCalendarProps {
   selectedDate: Date | undefined;
   onDateSelect: (date: Date | undefined) => void;
-  sessions: ScheduleSession[];
+  sessions: Session[];
   loading?: boolean;
 }
 
@@ -52,7 +54,7 @@ export function ScheduleCalendar({
   }, [currentWeekStart]);
 
   const sessionsByDate = useMemo(() => {
-    const map: Record<string, ScheduleSession[]> = {};
+    const map: Record<string, Session[]> = {};
     sessions.forEach((session) => {
       const dateKey = new Date(session.scheduledTime).toDateString();
       if (!map[dateKey]) map[dateKey] = [];
@@ -183,13 +185,13 @@ export function ScheduleCalendar({
                       className={cn(
                         "text-xs p-1 rounded truncate",
                         session.status === "SCHEDULED" &&
-                          "bg-blue-100 text-blue-700",
+                        "bg-blue-100 text-blue-700",
                         session.status === "IN_PROGRESS" &&
-                          "bg-green-100 text-green-700",
+                        "bg-green-100 text-green-700",
                         session.status === "COMPLETED" &&
-                          "bg-gray-100 text-gray-700",
+                        "bg-gray-100 text-gray-700",
                         session.status === "CANCELLED" &&
-                          "bg-red-100 text-red-700"
+                        "bg-red-100 text-red-700"
                       )}
                     >
                       {new Date(session.scheduledTime).toLocaleTimeString(

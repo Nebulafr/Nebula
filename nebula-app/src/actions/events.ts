@@ -1,6 +1,7 @@
 import { apiDelete, apiGet, apiPost, apiPut } from "@/lib/utils";
+import { EventsResponse, EventResponse, CreateEventData, UpdateEventData } from "@/types/event";
 
-export async function createEvent(eventData: any) {
+export async function createEvent(eventData: CreateEventData) {
   return apiPost("/events", eventData, { throwOnError: true });
 }
 
@@ -12,7 +13,7 @@ export async function getEvents(params?: {
   isPublic?: boolean;
   limit?: number;
   offset?: number;
-}) {
+}): Promise<EventsResponse> {
   const searchParams = new URLSearchParams();
 
   if (params?.search) searchParams.set("search", params.search);
@@ -24,7 +25,7 @@ export async function getEvents(params?: {
   if (params?.offset) searchParams.set("offset", params.offset.toString());
 
   const query = searchParams.toString() ? `?${searchParams}` : "";
-  return apiGet(`/events${query}`, { requireAuth: false });
+  return apiGet<EventsResponse["data"]>(`/events${query}`, { requireAuth: false }) as Promise<EventsResponse>;
 }
 
 export async function getPublicEvents(params?: {
@@ -33,22 +34,22 @@ export async function getPublicEvents(params?: {
   accessType?: string;
   limit?: number;
   offset?: number;
-}) {
+}): Promise<EventsResponse> {
   return getEvents({
     ...params,
     status: "UPCOMING",
   });
 }
 
-export async function getEventById(id: string) {
-  return apiGet(`/events/${id}`, { requireAuth: false });
+export async function getEventById(id: string): Promise<EventResponse> {
+  return apiGet<EventResponse["data"]>(`/events/${id}`, { requireAuth: false }) as Promise<EventResponse>;
 }
 
-export async function getEventBySlug(slug: string) {
-  return apiGet(`/events/slug/${slug}`, { requireAuth: false });
+export async function getEventBySlug(slug: string): Promise<EventResponse> {
+  return apiGet<EventResponse["data"]>(`/events/slug/${slug}`, { requireAuth: false }) as Promise<EventResponse>;
 }
 
-export async function updateEvent(id: string, updateData: any) {
+export async function updateEvent(id: string, updateData: UpdateEventData) {
   return apiPut(`/events/${id}`, updateData, { throwOnError: true });
 }
 

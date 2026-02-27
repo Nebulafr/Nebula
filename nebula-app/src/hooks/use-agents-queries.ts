@@ -6,6 +6,7 @@ import { AgentInput } from "@/lib/validations";
 export function useSendAgentMessage() {
     return useMutation({
         mutationFn: (data: AgentInput) => sendAgentMessage(data),
+         
         onError: (error: any) => {
             handleAndToastError(error, "Failed to send message to agent.");
         },

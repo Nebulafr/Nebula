@@ -49,7 +49,7 @@ export function CancelSessionDialog({
           <DialogHeader>
             <DialogTitle>{t("title")}</DialogTitle>
             <DialogDescription>
-              {t("description", { title: session.title })}
+              {t("description", { title: session.title || "" })}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">

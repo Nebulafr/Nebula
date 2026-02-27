@@ -1,3 +1,4 @@
+
 "use client";
 import { useState, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -123,7 +124,6 @@ export default function CoachDetailPage() {
         cancelUrl: window.location.href + "?canceled=true",
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       });
-
       if (response && response.success && (response.data as any)?.url) {
         window.location.href = (response.data as any).url;
       } else {
@@ -242,7 +242,7 @@ export default function CoachDetailPage() {
     );
   }
 
-  if (coachError || (!loading && !coach)) {
+  if (coachError || !coach) {
     return (
       <div className="flex min-h-screen flex-col bg-background">
         <Header />
@@ -328,7 +328,7 @@ export default function CoachDetailPage() {
                     {t("programsBy", { name: coach.fullName })}
                   </h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    {coach.programs.map((program: any) => (
+                    {coach.programs.map((program) => (
                       <Link
                         href={
                           program.slug.startsWith("/")
@@ -379,7 +379,7 @@ export default function CoachDetailPage() {
                   onCancel={handleCancelBooking}
                   onTimeSelect={handleTimeSelect}
                   onMessageClick={handleMessageClick}
-                  coachAvailability={coach?.availability}
+                  coachAvailability={coach?.availability as any}
                   selectedDuration={selectedDuration}
                   setSelectedDuration={setSelectedDuration}
                   hourlyRate={coach?.hourlyRate || 0}
@@ -513,7 +513,7 @@ export default function CoachDetailPage() {
           </div>
           {coach.reviews && coach.reviews.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {coach.reviews.slice(0, 4).map((review: any, i: number) => (
+              {coach.reviews.slice(0, 4).map((review, i: number) => (
                 <Card
                   key={review.id || i}
                   className="rounded-xl border shadow-sm"

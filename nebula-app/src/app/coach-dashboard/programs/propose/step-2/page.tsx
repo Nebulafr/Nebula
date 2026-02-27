@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState } from "react";
@@ -30,9 +31,8 @@ import {
 import { ExperienceLevel, UserRole } from "@/generated/prisma";
 import { Badge } from "@/components/ui/badge";
 import { useCategories } from "@/hooks";
-import { UserSelect } from "@/components/ui/user-select";
+import { UserSelect, UserSelectValue } from "@/components/ui/user-select";
 import { useTranslations } from "next-intl";
-
 const DIFFICULTY_OPTIONS = (t: any) => [
   { value: ExperienceLevel.BEGINNER, label: t("difficultyBeginner") },
   { value: ExperienceLevel.INTERMEDIATE, label: t("difficultyIntermediate") },
@@ -85,8 +85,7 @@ export default function ProposeStep2Page() {
       setNewPrerequisite("");
     }
   };
-
-  const handleSelectCoCoach = (user: any) => {
+  const handleSelectCoCoach = (user: UserSelectValue) => {
     if (user) {
       addCoCoach({
         id: user.coachId || user.id,

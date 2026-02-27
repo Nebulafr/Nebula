@@ -1,3 +1,4 @@
+ 
 "use client";
 
 import React, { useState } from "react";
@@ -68,7 +69,6 @@ export default function UserManagementPage() {
   }) => {
     return await createUserMutation.mutateAsync(userData);
   };
-
   const handleUserAction = (user: any, action: string) => {
     console.log(`User ${action}:`, user);
     // TODO: Implement user action logic

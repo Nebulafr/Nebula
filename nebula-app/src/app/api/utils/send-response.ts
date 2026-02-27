@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+ 
 export function sendSuccess<T = any>(
   data: T,
   message: string = "Success",

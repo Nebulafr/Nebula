@@ -1,13 +1,9 @@
 "use client";
-import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Star } from "lucide-react";
 import { usePopularPrograms } from "@/hooks";
 import { useTranslations } from "next-intl";
-import { truncateText } from "@/lib/utils";
 import { ProgramCard } from "@/components/cards/program-card";
+import { ProgramWithRelations } from "@/types/program";
 
 export function PopularProgramsSection() {
   const t = useTranslations("programs.popular");
@@ -68,7 +64,7 @@ export function PopularProgramsSection() {
               </Card>
             ))
           ) : programs.length > 0 ? (
-            programs.map((program: any) => (
+            programs.map((program: ProgramWithRelations) => (
               <ProgramCard key={program.id} program={program} />
             ))
           ) : (

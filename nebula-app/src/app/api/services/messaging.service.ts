@@ -1,8 +1,7 @@
 import { prisma } from "@/lib/prisma";
-import { MessageType, ConversationType } from "@/generated/prisma";
+import { MessageType, ConversationType, Prisma } from "@/generated/prisma";
 import { sendSuccess } from "../utils/send-response";
 import {
-  NotFoundException,
   UnauthorizedException,
 } from "../utils/http-exception";
 
@@ -315,7 +314,7 @@ export class MessagingService {
   private async verifyParticipant(
     conversationId: string,
     userId: string,
-    tx?: any
+    tx?: Prisma.TransactionClient
   ) {
     const prismaClient = tx || prisma;
     return await prismaClient.conversationParticipant.findFirst({

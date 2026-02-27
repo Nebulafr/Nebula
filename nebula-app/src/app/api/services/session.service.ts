@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { PaymentStatus, SessionStatus } from "@/generated/prisma";
+import { PaymentStatus, SessionStatus, Coach, User, Student, Session, Prisma } from "@/generated/prisma";
 import { createCalendarEvent } from "@/lib/google-api";
 import { emailService } from "./email.service";
 import { paymentService } from "./payment.service";
@@ -331,7 +331,7 @@ export class SessionService {
         }
 
         const calendarResult = await this.createGoogleCalendarEvent(
-          session.coach,
+          session.coach as any,
           studentUser,
           sessionDateTime,
           sessionEndTime,
@@ -480,7 +480,7 @@ export class SessionService {
       });
 
       return sendSuccess(
-        { session: this.transformSession(updatedSession) },
+        { session: this.transformSession(updatedSession as any) },
         "Session rejected and refunded successfully",
       );
     }
@@ -497,7 +497,7 @@ export class SessionService {
     // TODO: Add specialized rejection email
 
     return sendSuccess(
-      { session: this.transformSession(updatedSession) },
+      { session: this.transformSession(updatedSession as any) },
       "Session rejected successfully",
     );
   }
@@ -559,7 +559,7 @@ export class SessionService {
     sessionEndDate: Date,
     duration: number,
     excludeSessionId?: string,
-    tx?: any,
+    tx?: Prisma.TransactionClient,
   ) {
     const prismaClient = tx || prisma;
     const conflictingSessions = await prismaClient.session.findMany({
@@ -601,7 +601,7 @@ export class SessionService {
     sessionEndDate: Date,
     duration: number,
     excludeSessionId?: string,
-    tx?: any,
+    tx?: Prisma.TransactionClient,
   ) {
     const prismaClient = tx || prisma;
     const conflictingSessions = await prismaClient.session.findMany({
@@ -646,6 +646,7 @@ export class SessionService {
     student: any,
     sessionDateTime: moment.Moment,
     sessionEndTime: moment.Moment,
+     
     duration: number,
   ) {
     const eventTitle = `Coaching Session with ${student.user?.fullName || "Student"}`;
@@ -662,8 +663,8 @@ export class SessionService {
       startTimeISO,
       endTimeISO,
       attendees,
-      coach.googleCalendarAccessToken,
-      coach.googleCalendarRefreshToken,
+      coach.googleCalendarAccessToken!,
+      coach.googleCalendarRefreshToken!,
     );
 
     // If we got a new access token, update it in the database
@@ -727,7 +728,7 @@ export class SessionService {
       throw new NotFoundException("Coach profile not found");
     }
 
-    const whereClause: any = {
+    const whereClause: Prisma.SessionWhereInput = {
       coachId: coach.id,
     };
 
@@ -795,7 +796,7 @@ export class SessionService {
     });
 
     return sendSuccess(
-      { sessions: this.transformSessions(sessions) },
+      { sessions: this.transformSessions(sessions as any) },
       "Sessions retrieved successfully",
     );
   }
@@ -812,7 +813,7 @@ export class SessionService {
       throw new NotFoundException("Student profile not found");
     }
 
-    const whereClause: any = {
+    const whereClause: Prisma.SessionWhereInput = {
       attendance: {
         some: {
           studentId: student.id,
@@ -885,14 +886,14 @@ export class SessionService {
     });
 
     return sendSuccess(
-      { sessions: this.transformSessions(sessions) },
+      { sessions: this.transformSessions(sessions as any) },
       "Sessions retrieved successfully",
     );
   }
 
   async updateSession(
     sessionId: string,
-    updateData: any,
+    updateData: Record<string, unknown>,
     userId: string,
     userRole: string,
   ) {
@@ -970,7 +971,7 @@ export class SessionService {
     });
 
     return sendSuccess(
-      { session: this.transformSession(updatedSession) },
+      { session: this.transformSession(updatedSession as any) },
       "Session updated successfully",
     );
   }
@@ -1113,8 +1114,8 @@ export class SessionService {
     const { deleteCalendarEvent } = await import("@/lib/google-api");
     const result = await deleteCalendarEvent(
       eventId,
-      coach.googleCalendarAccessToken,
-      coach.googleCalendarRefreshToken,
+      coach.googleCalendarAccessToken!,
+      coach.googleCalendarRefreshToken!,
     );
 
     if (result.newAccessToken) {
@@ -1202,7 +1203,7 @@ export class SessionService {
     const sessionEndDate = sessionEndTime.toDate();
 
     // Check for availability
-    await this.verifyCoachAvailability(coach, sessionDateTime, session.duration);
+    await this.verifyCoachAvailability(coach as any, sessionDateTime, session.duration);
 
     // Check for conflicts
     await this.checkForConflictingSessions(
@@ -1264,7 +1265,7 @@ export class SessionService {
     if (session.googleEventId && coach.googleCalendarAccessToken) {
       try {
         await this.updateGoogleCalendarEvent(
-          coach,
+          coach as any,
           session.googleEventId,
           sessionDateTime,
           sessionEndTime,
@@ -1295,7 +1296,7 @@ export class SessionService {
     }
 
     return sendSuccess(
-      { session: this.transformSession(updatedSession) },
+      { session: this.transformSession(updatedSession as any) },
       "Session rescheduled successfully",
     );
   }
@@ -1311,8 +1312,8 @@ export class SessionService {
       eventId,
       startTime.toISOString(),
       endTime.toISOString(),
-      coach.googleCalendarAccessToken,
-      coach.googleCalendarRefreshToken,
+      coach.googleCalendarAccessToken!,
+      coach.googleCalendarRefreshToken!,
     );
 
     if (result.newAccessToken) {

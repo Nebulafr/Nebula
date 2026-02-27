@@ -1,10 +1,9 @@
+
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowRight, Star, Users, UserCheck } from "lucide-react";
+import { ArrowRight, UserCheck } from "lucide-react";
 import {
   Carousel,
   CarouselContent,
@@ -13,7 +12,7 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import Link from "next/link";
-import { UserProfile } from "@/hooks/use-user";
+import { UserProfile } from "@/types";
 import { CoachWithRelations } from "@/types/coach";
 import { useTranslations } from "next-intl";
 import { CoachCard } from "@/components/cards/coach-card";

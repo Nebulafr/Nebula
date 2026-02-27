@@ -88,7 +88,7 @@ export const updateEventSchema = z.object({
     .string()
     .max(500, "Location must be less than 500 characters")
     .optional(),
-  images: z.array(z.string().min(1, "Image URL or base64 data is required")).optional(),
+  images: z.array(z.string().min(1, "Image URL or base64 data is required")).optional().default([]),
   slug: z
     .string()
     .min(1, "Slug is required")

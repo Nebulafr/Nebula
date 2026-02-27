@@ -1,12 +1,15 @@
 import { prisma } from "@/lib/prisma";
-import { EnrollmentStatus } from "@/generated/prisma";
+import { EnrollmentStatus, Prisma } from "@/generated/prisma";
 import moment from "moment";
-import { NotFoundException, BadRequestException } from "../utils/http-exception";
+import {
+  NotFoundException,
+  BadRequestException,
+} from "../utils/http-exception";
 
 export const enrollmentService = {
   async getStudentEnrollments(studentId: string, status?: EnrollmentStatus) {
     try {
-      const whereClause: any = {
+      const whereClause: Prisma.EnrollmentWhereInput = {
         studentId,
       };
 
@@ -60,7 +63,7 @@ export const enrollmentService = {
 
       return enrollments.map((enrollment) => {
         const totalModules = enrollment.program.modules.length;
-        
+
         return {
           id: enrollment.id,
           status: enrollment.status,
@@ -72,8 +75,8 @@ export const enrollmentService = {
             id: enrollment.coach.id,
             fullName: enrollment.coach.user.fullName,
             avatarUrl: enrollment.coach.user.avatarUrl,
-            name: enrollment.coach.user.fullName, 
-            avatar: enrollment.coach.user.avatarUrl,  
+            name: enrollment.coach.user.fullName,
+            avatar: enrollment.coach.user.avatarUrl,
           },
           program: {
             id: enrollment.program.id,
@@ -85,7 +88,7 @@ export const enrollmentService = {
             modules: enrollment.program.modules.map((module, index) => {
               const moduleThreshold = ((index + 1) / totalModules) * 100;
               const isCompleted = enrollment.progress >= moduleThreshold;
-              
+
               return {
                 id: module.id,
                 title: module.title,
@@ -108,17 +111,16 @@ export const enrollmentService = {
           }),
         };
       });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error fetching student enrollments:", error);
       throw error;
     }
   },
 
- 
   async updateEnrollmentProgress(
     enrollmentId: string,
     studentId: string,
-    progress: number
+    progress: number,
   ) {
     try {
       const enrollment = await prisma.enrollment.findFirst({
@@ -145,14 +147,23 @@ export const enrollmentService = {
       });
 
       return updatedEnrollment;
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error updating enrollment progress:", error);
       throw error;
     }
   },
 
-  async enrollInProgram(studentId: string, slug: string, enrollmentData: any) {
-    const { coachId, time, date } = enrollmentData;
+  async enrollInProgram(
+    studentId: string,
+    slug: string,
+    enrollmentData: {
+      coachId: string;
+      time?: string;
+      date?: string;
+      [key: string]: unknown;
+    },
+  ) {
+    const { coachId, date } = enrollmentData;
 
     return await prisma.$transaction(async (tx) => {
       const program = await tx.program.findUnique({
@@ -207,7 +218,7 @@ export const enrollmentService = {
 
       if (existingEnrollment) {
         throw new BadRequestException(
-          "You are already enrolled in this program"
+          "You are already enrolled in this program",
         );
       }
 
@@ -216,7 +227,7 @@ export const enrollmentService = {
         (program.currentEnrollments || 0) >= program.maxStudents
       ) {
         throw new BadRequestException(
-          "This program has reached its maximum enrollment capacity"
+          "This program has reached its maximum enrollment capacity",
         );
       }
 
@@ -226,9 +237,7 @@ export const enrollmentService = {
           coachId: coachId,
           studentId: studentId,
           cohortId: cohortId,
-          enrollmentDate: new Date(
-            date || moment().format("YYYY-MM-DD")
-          ),
+          enrollmentDate: new Date(date || moment().format("YYYY-MM-DD")),
           status: "ACTIVE",
         },
       });

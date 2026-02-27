@@ -31,12 +31,14 @@ export function useCreateCategory() {
   const queryClient = useQueryClient();
 
   return useMutation({
+     
     mutationFn: (categoryData: any) => createCategory(categoryData),
     onSuccess: () => {
       // Invalidate both categories queries
       queryClient.invalidateQueries({ queryKey: [CATEGORIES_QUERY_KEY] });
       queryClient.invalidateQueries({ queryKey: [ADMIN_CATEGORIES_QUERY_KEY] });
     },
+     
     onError: (error: any) => {
       handleAndToastError(error, "Failed to create category.");
     },
@@ -52,6 +54,7 @@ export function useUpdateCategory() {
       updateData,
     }: {
       categoryId: string;
+       
       updateData: any;
     }) => updateCategory(categoryId, updateData),
     onSuccess: () => {
@@ -59,6 +62,7 @@ export function useUpdateCategory() {
       queryClient.invalidateQueries({ queryKey: [CATEGORIES_QUERY_KEY] });
       queryClient.invalidateQueries({ queryKey: [ADMIN_CATEGORIES_QUERY_KEY] });
     },
+     
     onError: (error: any) => {
       handleAndToastError(error, "Failed to update category.");
     },
@@ -75,6 +79,7 @@ export function useDeleteCategory() {
       queryClient.invalidateQueries({ queryKey: [CATEGORIES_QUERY_KEY] });
       queryClient.invalidateQueries({ queryKey: [ADMIN_CATEGORIES_QUERY_KEY] });
     },
+     
     onError: (error: any) => {
       handleAndToastError(error, "Failed to delete category.");
     },

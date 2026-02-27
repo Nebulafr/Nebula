@@ -1,4 +1,5 @@
 import { apiGet, apiPost } from "@/lib/utils";
+import { ReviewsResponse } from "@/types";
 
 export async function reviewCoach({
   coachId,
@@ -53,16 +54,16 @@ export async function getCoachReviews({
   page?: number;
   limit?: number;
   sortBy?: "recent" | "rating" | "oldest";
-}) {
+}): Promise<ReviewsResponse> {
   const params = new URLSearchParams({
     page: page.toString(),
     limit: limit.toString(),
     sortBy,
   });
 
-  return apiGet(`/coaches/${coachId}/reviews?${params}`, {
+  return apiGet<ReviewsResponse["data"]>(`/coaches/${coachId}/reviews?${params}`, {
     requireAuth: false,
-  });
+  }) as Promise<ReviewsResponse>;
 }
 
 export async function getProgramReviews({
@@ -75,14 +76,14 @@ export async function getProgramReviews({
   page?: number;
   limit?: number;
   sortBy?: "recent" | "rating" | "oldest";
-}) {
+}): Promise<ReviewsResponse> {
   const params = new URLSearchParams({
     page: page.toString(),
     limit: limit.toString(),
     sortBy,
   });
 
-  return apiGet(`/programs/slug/${programSlug}/reviews?${params}`, {
+  return apiGet<ReviewsResponse["data"]>(`/programs/slug/${programSlug}/reviews?${params}`, {
     requireAuth: false,
-  });
+  }) as Promise<ReviewsResponse>;
 }

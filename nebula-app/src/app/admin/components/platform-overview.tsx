@@ -1,3 +1,4 @@
+ 
 "use client";
 
 import {
@@ -16,10 +17,9 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table";
-import { formatDistanceToNow } from "date-fns";
-import { enUS, fr } from "date-fns/locale";
-import { useTranslations, useLocale } from "next-intl";
+import moment from "moment";
 
+import { useTranslations, useLocale } from "next-intl";
 interface PlatformActivity {
   type: string;
   action?: string;
@@ -53,9 +53,6 @@ function ActivityIcon({ type }: { type: string }) {
 
 export function PlatformOverview({ activities, loading = false }: PlatformOverviewProps) {
   const t = useTranslations("dashboard.admin");
-  const locale = useLocale();
-  const dateLocale = locale === "fr" ? fr : enUS;
-
   if (loading) {
     return (
       <Card className="col-span-4 lg:col-span-3">
@@ -114,10 +111,7 @@ export function PlatformOverview({ activities, loading = false }: PlatformOvervi
                       if (!dateStr) return "-";
                       const date = new Date(dateStr);
                       if (isNaN(date.getTime())) return "-";
-                      return formatDistanceToNow(date, {
-                        addSuffix: true,
-                        locale: dateLocale,
-                      });
+                      return moment(date).fromNow();
                     })()}
                   </TableCell>
                 </TableRow>

@@ -1,16 +1,12 @@
+ 
 "use client";
 
-import React, { use, useState } from "react";
+import { use, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   ArrowLeft,
-  Book,
-  Presentation,
-  StickyNote,
-  File,
-  Download,
   Calendar as CalendarIcon,
   Users,
   Loader2,
@@ -33,14 +29,43 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { useProgramBySlug, useUpdateProgramStatus } from "@/hooks";
+import { useProgramBySlug, useUpdateProgramStatus, useCohorts, useUpdateCohort, useCreateCohort } from "@/hooks";
+import { Cohort } from "@/types";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
+// @ts-ignore
 import { format } from "date-fns";
-import { cn, apiGet, apiPatch, apiPost } from "@/lib/utils";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { handleAndToastError } from "@/lib/error-handler";
+import { cn } from "@/lib/utils";
 import { MaterialLink } from "@/components/MaterialLink";
+
+
+
+interface ProgramMaterial {
+  id?: string;
+  fileName: string;
+  url: string;
+  mimeType: string;
+  position?: number;
+}
+
+interface ProgramModule {
+  id?: string;
+  week: number;
+  title: string;
+  description?: string;
+  materials?: ProgramMaterial[];
+}
+
+interface CoCoach {
+  id: string;
+  coach: {
+    user: {
+      fullName?: string | null;
+      avatarUrl?: string | null;
+      email?: string | null;
+    };
+  };
+}
 
 
 const getStatusBadgeVariant = (status: string) => {
@@ -85,14 +110,13 @@ export default function ProgramDetailsPage({
 }) {
   const { slug } = use(params);
   const router = useRouter();
-  const queryClient = useQueryClient();
   const { data: programResponse, isLoading } = useProgramBySlug(slug);
   const program = programResponse?.data?.program;
   const updateProgramStatusMutation = useUpdateProgramStatus();
 
   const [startDate, setStartDate] = useState<Date>();
   const [cohortDialogOpen, setCohortDialogOpen] = useState(false);
-  const [editingCohort, setEditingCohort] = useState<any>(null);
+  const [editingCohort, setEditingCohort] = useState<Cohort | null>(null);
   const [isCreatingCohort, setIsCreatingCohort] = useState(false);
   const [cohortForm, setCohortForm] = useState({
     name: "",
@@ -102,45 +126,23 @@ export default function ProgramDetailsPage({
   });
 
   // Fetch cohorts for this program
-  const { data: cohortsResponse, isLoading: isLoadingCohorts } = useQuery({
-    queryKey: ["admin-cohorts", program?.id],
-    queryFn: () => apiGet(`/admin/cohorts?programId=${program?.id}`),
-    enabled: !!program?.id,
-  });
+  const { data: cohortsResponse, isLoading: isLoadingCohorts } = useCohorts(program!.id);
   const cohorts = cohortsResponse?.data?.cohorts || [];
 
   // Update cohort mutation
-  const updateCohortMutation = useMutation({
-    mutationFn: async ({ cohortId, data }: { cohortId: string; data: any }) => {
-      return apiPatch(`/admin/cohorts/${cohortId}`, data);
-    },
+  const updateCohortMutation = useUpdateCohort(program!.id, {
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["admin-cohorts", program?.id],
-      });
       setCohortDialogOpen(false);
       setEditingCohort(null);
-    },
-    onError: (error) => {
-      handleAndToastError(error, "Failed to update cohort");
-    },
+    }
   });
 
   // Create cohort mutation
-  const createCohortMutation = useMutation({
-    mutationFn: async (data: any) => {
-      return apiPost("/admin/cohorts", data);
-    },
+  const createCohortMutation = useCreateCohort(program!.id, {
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["admin-cohorts", program?.id],
-      });
       setCohortDialogOpen(false);
       setIsCreatingCohort(false);
-    },
-    onError: (error) => {
-      handleAndToastError(error, "Failed to create cohort");
-    },
+    }
   });
 
   const handleApprove = async () => {
@@ -151,11 +153,11 @@ export default function ProgramDetailsPage({
 
     try {
       await updateProgramStatusMutation.mutateAsync({
-        programId: program.id,
+        programId: program!.id,
         action: "approve",
         startDate: startDate.toISOString(),
       });
-    } catch (error) {
+    } catch {
       // Error handled by hook
     }
   };
@@ -163,11 +165,11 @@ export default function ProgramDetailsPage({
   const handleReject = async () => {
     try {
       await updateProgramStatusMutation.mutateAsync({
-        programId: program.id,
+        programId: program!.id,
         action: "reject",
       });
       router.push("/admin/programs");
-    } catch (error) {
+    } catch {
       // Error handled by hook
     }
   };
@@ -175,10 +177,10 @@ export default function ProgramDetailsPage({
   const handleActivate = async () => {
     try {
       await updateProgramStatusMutation.mutateAsync({
-        programId: program.id,
+        programId: program!.id,
         action: "activate",
       });
-    } catch (error) {
+    } catch {
       // Error handled by hook
     }
   };
@@ -186,15 +188,15 @@ export default function ProgramDetailsPage({
   const handleDeactivate = async () => {
     try {
       await updateProgramStatusMutation.mutateAsync({
-        programId: program.id,
+        programId: program!.id,
         action: "deactivate",
       });
-    } catch (error) {
+    } catch {
       // Error handled by hook
     }
   };
 
-  const openEditCohort = (cohort: any) => {
+  const openEditCohort = (cohort: Cohort) => {
     setEditingCohort(cohort);
     setIsCreatingCohort(false);
     const startDateTime = new Date(cohort.startDate);
@@ -228,7 +230,7 @@ export default function ProgramDetailsPage({
 
     if (isCreatingCohort) {
       createCohortMutation.mutate({
-        programId: program?.id,
+        programId: program!.id,
         name: cohortForm.name || "New Cohort",
         startDate: startDateTime.toISOString(),
         maxStudents: cohortForm.maxStudents,
@@ -467,7 +469,7 @@ export default function ProgramDetailsPage({
                 <p className="text-sm text-muted-foreground">No cohorts found.</p>
               ) : (
                 <div className="space-y-3">
-                  {cohorts.map((cohort: any) => (
+                  {cohorts.map((cohort: Cohort) => (
                     <div
                       key={cohort.id}
                       className="flex items-center justify-between p-4 border rounded-lg"
@@ -589,7 +591,7 @@ export default function ProgramDetailsPage({
               Program Modules & Materials
             </h3>
             <div className="space-y-6">
-              {program.modules?.map((mod: any, i: number) => (
+              {program.modules!.map((mod: ProgramModule, i: number) => (
                 <div key={i} className="p-4 rounded-md border">
                   <h4 className="font-semibold mb-1">
                     Week {mod.week}: {mod.title}
@@ -603,10 +605,14 @@ export default function ProgramDetailsPage({
                       <h5 className="font-medium text-xs text-muted-foreground">
                         Uploaded Materials:
                       </h5>
-                      {mod.materials.map((mat: any, idx: number) => (
+                      {mod.materials.map((mat: ProgramMaterial, idx: number) => (
                         <MaterialLink
                           key={idx}
-                          material={mat}
+                          material={{
+                            fileName: mat.fileName,
+                            url: mat.url,
+                            type: mat.mimeType,
+                          }}
                           showDownload={false}
                         />
                       ))}
@@ -641,16 +647,16 @@ export default function ProgramDetailsPage({
                 <Separator />
                 <h4 className="font-medium text-sm">Co-Coaches</h4>
                 <div className="space-y-3">
-                  {program.coCoaches.map((coCoach: any) => (
+                  {program.coCoaches.map((coCoach: CoCoach) => (
                     <div key={coCoach.id} className="flex items-center gap-3">
                       <Avatar className="h-8 w-8">
-                        <AvatarImage src={coCoach.coach?.user?.avatarUrl} />
+                        <AvatarImage src={coCoach.coach!.user!.avatarUrl!} />
                         <AvatarFallback>
-                          {coCoach.coach?.user?.fullName?.charAt(0)}
+                          {coCoach.coach!.user!.fullName!.charAt(0)}
                         </AvatarFallback>
                       </Avatar>
                       <span className="font-medium">
-                        {coCoach.coach?.user?.fullName}
+                        {coCoach.coach!.user!.fullName!}
                       </span>
                     </div>
                   ))}

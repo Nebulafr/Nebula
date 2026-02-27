@@ -1,5 +1,6 @@
 import { apiGet, apiPost, apiPut, apiDelete, apiPatch } from "@/lib/utils";
-import { format } from "date-fns";
+import { CoachSessionsResponse, CoachStatsResponse, CoachAvailabilityResponse, CoachStudentsResponse } from '@/types/coach';
+
 
 export async function bookCoachSession({
   coachId,
@@ -14,7 +15,7 @@ export async function bookCoachSession({
 }) {
   const sessionData = {
     coachId,
-    date: format(date, "yyyy-MM-dd"),
+    date: date.toISOString().split("T")[0],
     startTime: time,
     duration,
   };
@@ -25,15 +26,15 @@ export async function bookCoachSession({
 // Coach dashboard session actions
 export async function getCoachSessions(
   filter: "today" | "upcoming" | "past" | "all" = "upcoming"
-) {
+): Promise<CoachSessionsResponse> {
   return apiGet(`/coaches/sessions?filter=${filter}`);
 }
 
-export async function getCoachStats() {
+export async function getCoachStats(): Promise<CoachStatsResponse> {
   return apiGet("/coaches/stats");
 }
 
-export async function getCoachStudents() {
+export async function getCoachStudents(): Promise<CoachStudentsResponse> {
   return apiGet("/coaches/students");
 }
 
@@ -87,7 +88,7 @@ export async function rejectCoachSession(sessionId: string) {
 }
 
 // Coach availability actions
-export async function getCoachAvailability() {
+export async function getCoachAvailability(): Promise<CoachAvailabilityResponse> {
   return apiGet("/coaches/availability");
 }
 

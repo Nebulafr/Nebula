@@ -1,23 +1,31 @@
+
 "use client";
 
 import React from "react";
 import ReactSelect, { SingleValue, Props as SelectProps } from "react-select";
-import { useAdminUsers, useAuth } from "@/hooks";
+import { useAdminUsers, AdminUser } from "@/hooks";
 import { UserRole } from "@/enums";
 import { CoCoach } from "@/app/coach-dashboard/programs/propose/context/propose-program-context";
 
 // Type assertion for react-select to fix TypeScript compatibility
-const Select = ReactSelect as React.ComponentType<SelectProps<any, false>>;
+const Select = ReactSelect as React.ComponentType<SelectProps<Record<string, unknown>, false>>;
 
 export interface UserSelectOption {
-  value: string;
+  value: UserSelectValue;
   label: string;
+  avatar?: string;
+}
 
+export interface UserSelectValue {
+  id: string;
+  coachId?: string;
+  name: string;
+  avatar?: string;
 }
 
 interface UserSelectProps {
-  value?: string | CoCoach;
-  onChange: (userId: string | CoCoach | null) => void;
+  value?: string | UserSelectValue;
+  onChange: (value: UserSelectValue | null) => void;
   placeholder?: string;
   className?: string;
   role?: UserRole;
@@ -30,12 +38,11 @@ export function UserSelect({
   role,
 }: UserSelectProps) {
   const { data: usersResponse, isLoading: loading } = useAdminUsers({ limit: 100, role });
-  const { profile } = useAuth();
-  const users = usersResponse?.users || [];
 
   const options = React.useMemo(() => {
+    const users = (usersResponse?.users as AdminUser[]) || [];
     return users
-      .map((user: any) => ({
+      .map((user: AdminUser) => ({
         value: {
           id: user.id,
           coachId: user.coach?.id,
@@ -45,16 +52,15 @@ export function UserSelect({
         label: `${user.fullName || user.email} (${user.role.toLowerCase()})`,
         avatar: user.avatarUrl,
       }));
-  }, [users]);
+  }, [usersResponse]);
 
   const selectedOption = value
     ? options.find(
-        (option: any) =>
-          option.value.id === (typeof value === "string" ? value : value.id)
-      ) || null
+      (option: UserSelectOption) =>
+        option.value.id === (typeof value === "string" ? value : value.id)
+    ) || null
     : null;
-
-  const handleChange = (option: SingleValue<UserSelectOption>) => {
+  const handleChange = (option: any) => {
     onChange(option ? option.value : null);
   };
 

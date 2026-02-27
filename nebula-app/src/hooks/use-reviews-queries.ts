@@ -66,6 +66,7 @@ export function useReviewCoach() {
         queryKey: ["coach-by-id", variables.coachId],
       });
     },
+     
     onError: (error: any) => {
       handleAndToastError(error, "Failed to submit review.");
     },
@@ -87,6 +88,7 @@ export function useReviewProgram() {
         queryKey: ["program-by-slug"],
       });
     },
+     
     onError: (error: any) => {
       handleAndToastError(error, "Failed to submit review.");
     },

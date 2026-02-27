@@ -1,3 +1,4 @@
+ 
 "use client";
 
 import { Suspense, useState, useEffect } from "react";
@@ -51,7 +52,6 @@ function ResetPasswordForm() {
       router.push("/forgot-password");
     }
   }, [token, router]);
-
   const onSubmit = async (values: any) => {
     if (!token) return;
     setLoading(true);

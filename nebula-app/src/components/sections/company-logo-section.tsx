@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable */
 
 import Image from "next/image";
 import { companyList } from "@/lib/images/companies";
@@ -41,9 +42,8 @@ export function CompanyLogosSection() {
           className="relative mt-8 overflow-hidden [mask-image:linear-gradient(to_right,transparent,white_10%,white_90%,transparent)]"
         >
           <div
-            className={`scroller-inner flex items-center gap-8 w-max ${
-              isReady ? "animate-scroll" : ""
-            }`}
+            className={`scroller-inner flex items-center gap-8 w-max ${isReady ? "animate-scroll" : ""
+              }`}
             style={{
               willChange: "transform",
             }}

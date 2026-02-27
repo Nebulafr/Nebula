@@ -1,6 +1,9 @@
 import { NextRequest } from "next/server";
+import { type AuthenticatedRequest } from "@/types";
 import { reviewService } from "../services/review.service";
 import { targetReviewSchema, reviewQuerySchema } from "@/lib/validations";
+import { ReviewTargetType } from "@/generated/prisma";
+import type { CreateReviewBySlugData } from "../services/review.service";
 
 export class ReviewController {
   async createReview(
@@ -9,7 +12,7 @@ export class ReviewController {
     targetId: string,
   ) {
     const body = await request.json();
-    const user = (request as any).user;
+    const user = (request as unknown as AuthenticatedRequest).user;
 
     const payload = targetReviewSchema.parse({
       ...body,
@@ -29,7 +32,7 @@ export class ReviewController {
     slug: string,
   ) {
     const body = await request.json();
-    const user = (request as any).user;
+    const user = (request as unknown as AuthenticatedRequest).user;
 
     const payload = targetReviewSchema.parse({
       ...body,
@@ -40,7 +43,7 @@ export class ReviewController {
       reviewerId: user.id,
       slug,
       ...payload,
-    } as any);
+    } as unknown as CreateReviewBySlugData);
   }
 
   async getReviews(request: NextRequest, targetType: string, targetId: string) {
@@ -52,7 +55,7 @@ export class ReviewController {
       sortBy: searchParams.get("sortBy") || "recent",
     };
 
-    let validatedParams = reviewQuerySchema.parse(queryParams);
+    const validatedParams = reviewQuerySchema.parse(queryParams);
 
     const sortOptions = {
       sortBy: validatedParams.sortBy as "recent" | "rating" | "oldest",
@@ -61,7 +64,7 @@ export class ReviewController {
     };
 
     return await reviewService.getReviews(
-      targetType as any,
+      targetType as ReviewTargetType,
       targetId,
       sortOptions,
     );
@@ -80,7 +83,7 @@ export class ReviewController {
       sortBy: searchParams.get("sortBy") || "recent",
     };
 
-    let validatedParams = reviewQuerySchema.parse(queryParams);
+    const validatedParams = reviewQuerySchema.parse(queryParams);
 
     const sortOptions = {
       sortBy: validatedParams.sortBy as "recent" | "rating" | "oldest",
@@ -89,7 +92,7 @@ export class ReviewController {
     };
 
     return await reviewService.getReviewsBySlug(
-      targetType as any,
+      targetType as ReviewTargetType,
       slug,
       sortOptions,
     );

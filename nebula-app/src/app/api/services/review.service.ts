@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { ReviewTargetType } from "@/generated/prisma";
+import { ReviewTargetType, CoachReview, ProgramReview, Prisma } from "@/generated/prisma";
 import { sendSuccess } from "../utils/send-response";
 import {
   NotFoundException,
@@ -68,7 +68,6 @@ export class ReviewService {
       targetType,
       targetId,
       rating,
-      title,
       content,
       sessionId,
     } = data;
@@ -90,19 +89,16 @@ export class ReviewService {
       throw new BadRequestException("Only students can create reviews");
     }
 
-    let targetEntity;
-    let revieweeId: string | undefined;
-
     switch (targetType) {
       case "COACH":
-        targetEntity = await this.validateCoachReview(
+        await this.validateCoachReview(
           targetId,
           reviewerId,
           sessionId
         );
         break;
       case "PROGRAM":
-        targetEntity = await this.validateProgramReview(targetId, reviewerId);
+        await this.validateProgramReview(targetId, reviewerId);
         break;
       default:
         throw new BadRequestException("Invalid target type");
@@ -112,11 +108,11 @@ export class ReviewService {
     const existingReview =
       targetType === "COACH"
         ? await prisma.coachReview.findFirst({
-            where: { userId: reviewerId, coachId: targetId },
-          })
+          where: { userId: reviewerId, coachId: targetId },
+        })
         : await prisma.programReview.findFirst({
-            where: { userId: reviewerId, programId: targetId },
-          });
+          where: { userId: reviewerId, programId: targetId },
+        });
 
     if (existingReview) {
       throw new BadRequestException(
@@ -208,7 +204,7 @@ export class ReviewService {
       throw new NotFoundException("Review not found");
     }
 
-    const targetId = resolvedTargetType === "COACH" ? (review as any).coachId : (review as any).programId;
+    const targetId = resolvedTargetType === "COACH" ? (review as CoachReview).coachId : (review as ProgramReview).programId;
 
     await prisma.$transaction(async (tx) => {
       // Delete the review
@@ -222,15 +218,15 @@ export class ReviewService {
       const result =
         resolvedTargetType === "COACH"
           ? await tx.coachReview.aggregate({
-              where: { coachId: targetId },
-              _avg: { rating: true },
-              _count: { id: true },
-            })
+            where: { coachId: targetId },
+            _avg: { rating: true },
+            _count: { id: true },
+          })
           : await tx.programReview.aggregate({
-              where: { programId: targetId },
-              _avg: { rating: true },
-              _count: { id: true },
-            });
+            where: { programId: targetId },
+            _avg: { rating: true },
+            _count: { id: true },
+          });
 
       const newAvgRating = result._avg.rating || 0;
       const newTotalReviews = result._count.id || 0;
@@ -291,12 +287,12 @@ export class ReviewService {
     const { sortBy, page, limit } = sortOptions;
 
     // Build where clause
-    const whereClause: any = {
+    const whereClause: Record<string, string> = {
       [targetType === "COACH" ? "coachId" : "programId"]: targetId,
     };
 
     // Build order by clause
-    let orderBy: any = { createdAt: "desc" };
+    let orderBy: Record<string, "asc" | "desc"> = { createdAt: "desc" };
     switch (sortBy) {
       case "rating":
         orderBy = { rating: "desc" };
@@ -312,43 +308,43 @@ export class ReviewService {
     const [reviews, totalCount] =
       targetType === "COACH"
         ? await Promise.all([
-            prisma.coachReview.findMany({
-              where: whereClause,
-              orderBy,
-              take: limit,
-              skip: offset,
-              include: {
-                user: {
-                  select: {
-                    id: true,
-                    fullName: true,
-                    avatarUrl: true,
-                    role: true,
-                  },
+          prisma.coachReview.findMany({
+            where: whereClause,
+            orderBy,
+            take: limit,
+            skip: offset,
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  fullName: true,
+                  avatarUrl: true,
+                  role: true,
                 },
               },
-            }),
-            prisma.coachReview.count({ where: whereClause }),
-          ])
+            },
+          }),
+          prisma.coachReview.count({ where: whereClause }),
+        ])
         : await Promise.all([
-            prisma.programReview.findMany({
-              where: whereClause,
-              orderBy,
-              take: limit,
-              skip: offset,
-              include: {
-                user: {
-                  select: {
-                    id: true,
-                    fullName: true,
-                    avatarUrl: true,
-                    role: true,
-                  },
+          prisma.programReview.findMany({
+            where: whereClause,
+            orderBy,
+            take: limit,
+            skip: offset,
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  fullName: true,
+                  avatarUrl: true,
+                  role: true,
                 },
               },
-            }),
-            prisma.programReview.count({ where: whereClause }),
-          ]);
+            },
+          }),
+          prisma.programReview.count({ where: whereClause }),
+        ]);
 
     // Get rating distribution
     const ratingDistribution = await this.getRatingDistribution(
@@ -365,13 +361,13 @@ export class ReviewService {
       {
         reviews: reviews.map((review) => ({
           id: review.id,
-          reviewerId: (review as any).userId,
+          reviewerId: "userId" in review ? review.userId : "",
           targetType: targetType,
           rating: review.rating,
           content: review.comment,
           createdAt: review.createdAt,
           updatedAt: review.updatedAt,
-          reviewer: (review as any).user,
+          reviewer: "user" in review ? review.user : undefined,
         })),
         targetEntity,
         ratingDistribution,
@@ -462,7 +458,7 @@ export class ReviewService {
   }
 
   private async updateTargetRating(
-    tx: any,
+    tx: Prisma.TransactionClient,
     targetType: ReviewTargetType,
     targetId: string,
     newRating: number
@@ -507,13 +503,13 @@ export class ReviewService {
     const reviews =
       targetType === "COACH"
         ? await prisma.coachReview.findMany({
-            where: { coachId: targetId },
-            select: { rating: true },
-          })
+          where: { coachId: targetId },
+          select: { rating: true },
+        })
         : await prisma.programReview.findMany({
-            where: { programId: targetId },
-            select: { rating: true },
-          });
+          where: { programId: targetId },
+          select: { rating: true },
+        });
 
     const distribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
     reviews.forEach((review) => {

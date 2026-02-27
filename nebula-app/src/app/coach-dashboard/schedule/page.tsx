@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo } from "react";
@@ -34,12 +35,12 @@ export default function SchedulePage() {
   const { data: statsData, isLoading: statsLoading } = useCoachStats();
 
   const sessions: Session[] = useMemo(() => {
-    if (!sessionsData?.data?.sessions) return [];
-    return sessionsData.data.sessions;
+    if (!sessionsData?.sessions) return [];
+    return sessionsData.sessions;
   }, [sessionsData]);
 
   const stats = useMemo(() => {
-    return statsData?.data || {};
+    return statsData || {};
   }, [statsData]);
 
   // Filter sessions for selected date

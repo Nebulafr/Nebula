@@ -1,3 +1,4 @@
+
 "use client";
 import Link from "next/link";
 import Image from "next/image";
@@ -38,7 +39,7 @@ export default function WebinarPage() {
     error: queryError,
   } = useEventBySlug(slug);
 
-  const event = eventResponse?.data?.event || null;
+  const event = eventResponse?.event || null;
   const error = queryError ? t("webinarNotFound") : null;
 
   const handleEventCheckout = async () => {
@@ -61,7 +62,6 @@ export default function WebinarPage() {
         successUrl: window.location.href + "?success=true",
         cancelUrl: window.location.href + "?canceled=true",
       });
-
       if (response.success && (response.data as any)?.url) {
         window.location.href = (response.data as any).url;
       } else {
@@ -251,12 +251,12 @@ export default function WebinarPage() {
                 </div>
               </Card>
 
-              {event.price > 0 && (
+              {(event.price || 0) > 0 && (
                 <div className="mb-4 text-2xl font-bold">
                   {new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-US", {
                     style: "currency",
                     currency: "USD",
-                  }).format(event.price)}
+                  }).format(event.price || 0)}
                 </div>
               )}
 

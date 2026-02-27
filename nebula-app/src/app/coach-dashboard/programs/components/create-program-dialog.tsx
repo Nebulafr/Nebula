@@ -1,3 +1,4 @@
+ 
 "use client";
 
 import { useState } from "react";
@@ -214,7 +215,6 @@ export function CreateProgramDialog({
       }
     }
   };
-
   const handleInputChange = (field: keyof ProgramFormData, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {

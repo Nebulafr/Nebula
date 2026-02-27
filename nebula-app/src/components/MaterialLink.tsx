@@ -3,18 +3,18 @@
 import React from "react";
 import { Download, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { normalizeMaterial, getMaterialIcon } from "@/lib/material-utils";
+import { normalizeMaterial, getMaterialIcon, Material } from "@/lib/material-utils";
 import { Button } from "@/components/ui/button";
 
 interface MaterialItemProps {
-    material: any;
+    material: Material;
     index?: number;
     className?: string;
     showDownload?: boolean;
 }
 
-export function MaterialLink({ material, index, className, showDownload = true }: MaterialItemProps) {
-    const { name, link, type, sizeDisplay } = normalizeMaterial(material);
+export function MaterialLink({ material, className, showDownload = true }: Omit<MaterialItemProps, 'index'>) {
+    const { type, sizeDisplay } = normalizeMaterial(material);
     const isPdf = type === "pdf";
 
     return (

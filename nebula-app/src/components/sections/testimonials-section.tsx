@@ -1,7 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { useTranslations } from "next-intl";
 import { TestimonialCard } from "@/components/cards/testimonial-card";
 
@@ -12,7 +10,11 @@ export function TestimonialsSection({
     name: string;
     role: string;
     testimonial: string;
-    avatar: any;
+    avatar: {
+      imageUrl: string;
+      description: string;
+      imageHint?: string;
+    } | null;
   }[];
 }) {
   const t = useTranslations("home.testimonials");

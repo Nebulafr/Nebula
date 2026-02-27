@@ -1,3 +1,4 @@
+ 
 "use client";
 
 import React, { useState } from "react";
@@ -98,7 +99,6 @@ export default function AdminProgramsPage() {
     setIsAddingCategory(false);
     setPage(1); // Reset page on category change
   };
-
   const handleDeleteCategory = async (category: any) => {
     if (!category?.id) return;
     try {
@@ -137,7 +137,6 @@ export default function AdminProgramsPage() {
   const isActionPending = (programId: string, action: string) => {
     return actionInProgress === `${programId}-${action}`;
   };
-
   const handleViewDetails = (program: any) => {
     router.push(`/admin/programs/${program.slug}`);
   };

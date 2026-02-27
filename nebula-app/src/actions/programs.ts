@@ -1,5 +1,7 @@
 import { apiDelete, apiGet, apiPost, apiPut } from "@/lib/utils";
 import { CreateProgramData } from "@/lib/validations";
+import { ProgramsResponse, GroupedProgramsResponse, ProgramResponse } from "@/types";
+import { AdminProgramsResponse } from "@/types/program";
 
 export async function createProgram(programData: CreateProgramData) {
   return apiPost("/programs", programData, { throwOnError: true });
@@ -10,7 +12,7 @@ export async function getPrograms(params?: {
   category?: string;
   search?: string;
   limit?: number;
-}) {
+}): Promise<ProgramsResponse> {
   const searchParams = new URLSearchParams();
 
   if (params?.coachId) searchParams.set("coachId", params.coachId);
@@ -19,7 +21,7 @@ export async function getPrograms(params?: {
   if (params?.limit) searchParams.set("limit", params.limit.toString());
 
   const query = searchParams.toString() ? `?${searchParams}` : "";
-  return apiGet(`/programs${query}`, { requireAuth: false });
+  return apiGet<ProgramsResponse["data"]>(`/programs${query}`, { requireAuth: false }) as Promise<ProgramsResponse>;
 }
 
 export async function getGroupedPrograms(params?: {
@@ -27,7 +29,7 @@ export async function getGroupedPrograms(params?: {
   search?: string;
   limit?: number;
   page?: number;
-}) {
+}): Promise<GroupedProgramsResponse> {
   const searchParams = new URLSearchParams();
 
   if (params?.category) searchParams.set("category", params.category);
@@ -36,28 +38,28 @@ export async function getGroupedPrograms(params?: {
   if (params?.page) searchParams.set("page", params.page.toString());
 
   const query = searchParams.toString() ? `?${searchParams}` : "";
-  return apiGet(`/programs/grouped${query}`, { requireAuth: false });
+  return apiGet<GroupedProgramsResponse["data"]>(`/programs/grouped${query}`, { requireAuth: false }) as Promise<GroupedProgramsResponse>;
 }
 
-export async function getRecommendedPrograms() {
-  return apiGet("/programs/recommended", { requireAuth: true });
+export async function getRecommendedPrograms(): Promise<ProgramsResponse> {
+  return apiGet<ProgramsResponse["data"]>("/programs/recommended", { requireAuth: true }) as Promise<ProgramsResponse>;
 }
 
-export async function getPopularPrograms(params?: { limit?: number }) {
+export async function getPopularPrograms(params?: { limit?: number }): Promise<ProgramsResponse> {
   const searchParams = new URLSearchParams();
 
   if (params?.limit) searchParams.set("limit", params.limit.toString());
 
   const query = searchParams.toString() ? `?${searchParams}` : "";
-  return apiGet(`/programs/popular${query}`, { requireAuth: false });
+  return apiGet<ProgramsResponse["data"]>(`/programs/popular${query}`, { requireAuth: false }) as Promise<ProgramsResponse>;
 }
 
-export async function getProgramBySlug(slug: string) {
-  return apiGet(`/programs/slug/${slug}`, { requireAuth: false });
+export async function getProgramBySlug(slug: string): Promise<ProgramResponse> {
+  return apiGet<ProgramResponse["data"]>(`/programs/slug/${slug}`, { requireAuth: false }) as Promise<ProgramResponse>;
 }
 
-export async function getProgramById(programId: string) {
-  return apiGet(`/programs/id/${programId}`);
+export async function getProgramById(programId: string): Promise<ProgramResponse> {
+  return apiGet<ProgramResponse["data"]>(`/programs/id/${programId}`) as Promise<ProgramResponse>;
 }
 
 export async function updateProgram(
@@ -79,7 +81,7 @@ export async function getAdminPrograms(filters?: {
   search?: string;
   page?: number;
   limit?: number;
-}) {
+}): Promise<AdminProgramsResponse> {
   const params = new URLSearchParams();
 
   if (filters?.status && filters.status !== "all") {
@@ -98,10 +100,9 @@ export async function getAdminPrograms(filters?: {
     params.set("limit", filters.limit.toString());
   }
 
-  const url = `/admin/programs${
-    params.toString() ? `?${params.toString()}` : ""
-  }`;
-  return apiGet(url);
+  const url = `/admin/programs${params.toString() ? `?${params.toString()}` : ""
+    }`;
+  return apiGet<AdminProgramsResponse["data"]>(url) as Promise<AdminProgramsResponse>;
 }
 
 export async function updateProgramStatus(

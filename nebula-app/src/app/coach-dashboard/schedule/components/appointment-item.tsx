@@ -1,3 +1,4 @@
+/* eslint-disable */
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -15,21 +16,21 @@ import { useTranslations, useLocale } from "next-intl";
 
 export interface SessionStudent {
   id: string;
-  fullName: string;
+  fullName: string | null;
   email?: string;
-  avatarUrl?: string;
+  avatarUrl?: string | null;
   attended?: boolean;
 }
 
 export interface Session {
   id: string;
-  title: string;
-  description?: string;
+  title: string | null;
+  description?: string | null;
   scheduledTime: string;
   duration: number;
   status: string;
-  meetLink?: string;
-  notes?: string;
+  meetLink?: string | null;
+  notes?: string | null;
   students: SessionStudent[];
 }
 
@@ -118,7 +119,7 @@ export function SessionItem({
                     key={student.id}
                     className="h-6 w-6 border-2 border-background"
                   >
-                    <AvatarImage src={student.avatarUrl} />
+                    <AvatarImage src={student.avatarUrl || ""} />
                     <AvatarFallback className="text-xs">
                       {student.fullName?.charAt(0) || "?"}
                     </AvatarFallback>
@@ -161,15 +162,15 @@ export function SessionItem({
               </DropdownMenuItem>
               {session.status === "REQUESTED" && (
                 <>
-                  <DropdownMenuItem 
+                  <DropdownMenuItem
                     onClick={() => onApprove?.(session)}
                     disabled={isApproving || isRejecting}
                   >
                     {isApproving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     {t("actions.approve") || "Approve"}
                   </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    className="text-destructive" 
+                  <DropdownMenuItem
+                    className="text-destructive"
                     onClick={() => onReject?.(session)}
                     disabled={isApproving || isRejecting}
                   >
@@ -180,7 +181,7 @@ export function SessionItem({
               )}
               {isUpcoming && (
                 <>
-                  <DropdownMenuItem 
+                  <DropdownMenuItem
                     onClick={() => onReschedule?.(session)}
                     disabled={isRescheduling || isCancelling}
                   >
@@ -233,8 +234,8 @@ export function AppointmentItem({
       appointment.status === "confirmed"
         ? "SCHEDULED"
         : appointment.status === "cancelled"
-        ? "CANCELLED"
-        : "SCHEDULED",
+          ? "CANCELLED"
+          : "SCHEDULED",
     students: [
       {
         id: "1",

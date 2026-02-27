@@ -122,6 +122,7 @@ export interface ChatHeaderInfo {
   lastSeen?: string;
 }
 
+ 
 export function formatChatHeader(conversation: any): ChatHeaderInfo {
   return {
     displayName: formatUserName(conversation.name),
@@ -173,7 +174,6 @@ export function getMessageInputPlaceholder(
   userRole: string,
   recipientRole: string
 ): string {
-  const userRoleFormatted = formatUserRole(userRole).toLowerCase();
   const recipientRoleFormatted = formatUserRole(recipientRole).toLowerCase();
 
   return `Type a message to your ${recipientRoleFormatted}...`;

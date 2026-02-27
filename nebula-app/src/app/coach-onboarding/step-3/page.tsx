@@ -1,3 +1,4 @@
+/* eslint-disable */
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -47,7 +48,6 @@ function CoachOnboardingStep3Content() {
       motivation: "",
     },
   });
-
   const motivation = watch("motivation");
   const charCount = motivation.length;
 

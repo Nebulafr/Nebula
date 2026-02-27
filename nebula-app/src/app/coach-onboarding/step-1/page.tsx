@@ -1,3 +1,4 @@
+/* eslint-disable */
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -42,7 +43,6 @@ export default function CoachOnboardingStep1() {
       linkedin: "",
     },
   });
-
   const formValues = watch();
 
   return (

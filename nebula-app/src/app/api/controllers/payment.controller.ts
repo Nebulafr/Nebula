@@ -1,3 +1,4 @@
+import { type AuthenticatedRequest } from "@/types";
 import { NextRequest, NextResponse } from "next/server";
 import { paymentService } from "../services/payment.service";
 import { BadRequestException, UnauthorizedException } from "../utils/http-exception";
@@ -13,11 +14,11 @@ export class PaymentController {
         let body;
         try {
             body = await request.json();
-        } catch (error) {
+        } catch {
             throw new BadRequestException("Invalid JSON body");
         }
 
-        const user = (request as any).user;
+        const user = (request as unknown as AuthenticatedRequest).user;
         if (!user) {
             throw new UnauthorizedException("Authentication required");
         }

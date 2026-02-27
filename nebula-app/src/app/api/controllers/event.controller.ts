@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { type AuthenticatedRequest } from "@/types";
 import { eventService } from "../services/event.service";
 import { createEventSchema, updateEventSchema } from "@/lib/validations";
 import { BadRequestException } from "../utils/http-exception";
@@ -50,7 +51,7 @@ class EventController {
   }
 
   async registerForEvent(request: NextRequest, eventId: string) {
-    const user = (request as any).user;
+    const user = (request as unknown as AuthenticatedRequest).user;
     if (!user) {
       throw new BadRequestException("Authentication required");
     }
@@ -58,7 +59,7 @@ class EventController {
   }
 
   async unregisterFromEvent(request: NextRequest, eventId: string) {
-    const user = (request as any).user;
+    const user = (request as unknown as AuthenticatedRequest).user;
     if (!user) {
       throw new BadRequestException("Authentication required");
     }

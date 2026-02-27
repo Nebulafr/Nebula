@@ -1,3 +1,4 @@
+ 
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -68,7 +69,6 @@ export default function AdminEventsContent() {
   const createEventMutation = useCreateEvent();
   const updateEventMutation = useUpdateEvent();
   const deleteEventMutation = useDeleteEvent();
-
   const handleCreateEventAction = async (data: any) => {
     setActiveActionId("create");
     try {
@@ -77,7 +77,6 @@ export default function AdminEventsContent() {
       setActiveActionId(null);
     }
   };
-
   const handleUpdateEventAction = async (id: string, data: any) => {
     setActiveActionId(id);
     try {
@@ -166,7 +165,6 @@ export default function AdminEventsContent() {
       status: newStatus as any,
     });
   };
-
   const handleViewDetails = (event: any) => {
     setSelectedEvent(event);
     setDialogEventType(event.eventType);

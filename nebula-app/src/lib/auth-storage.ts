@@ -36,12 +36,14 @@ export function isAuthenticated(): boolean {
 
 export function storeAuthData(authResponse: {
   accessToken: string;
+   
   user: any;
 }): void {
   storeAccessToken(authResponse.accessToken);
   cookies.set(USER_DATA_KEY, JSON.stringify(authResponse.user), cookieOptions);
 }
 
+ 
 export function getStoredUserData(): any | null {
   const userData = cookies.get(USER_DATA_KEY);
   return userData

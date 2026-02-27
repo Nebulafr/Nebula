@@ -1,4 +1,4 @@
-import { createAgent, createMiddleware } from "langchain";
+import { createAgent } from "langchain";
 import { ChatOpenAI } from "@langchain/openai";
 import { z } from "zod";
 import { UserRole } from "@/enums";

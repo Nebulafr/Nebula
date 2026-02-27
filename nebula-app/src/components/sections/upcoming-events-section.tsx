@@ -16,8 +16,8 @@ export function UpcomingEventsSection() {
     error,
   } = usePublicEvents({ limit: 3, eventType: "WEBINAR", status: "UPCOMING" });
 
-  const events = eventsResponse?.data?.events || [];
- 
+  const events = eventsResponse?.events || [];
+
 
   if (error) {
     return (

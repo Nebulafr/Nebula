@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { type AuthenticatedRequest } from "@/types";
 import { coachService } from "../services/coach.service";
 import {
   coachQuerySchema,
@@ -13,36 +14,36 @@ import {
 export class CoachController {
   async getAll(request: NextRequest) {
     const { searchParams } = new URL(request.url);
-    const grouped = searchParams.get("grouped") === "true";
 
     const queryParams = {
       category: searchParams.get("category") || undefined,
       search: searchParams.get("search") || undefined,
+      minPrice: searchParams.get("minPrice") || undefined,
+      maxPrice: searchParams.get("maxPrice") || undefined,
+      company: searchParams.get("company") || undefined,
+      school: searchParams.get("school") || undefined,
       limit: searchParams.get("limit") || undefined,
+      page: searchParams.get("page") || undefined,
     };
 
     const payload = coachQuerySchema.parse(queryParams);
-
-    if (grouped) {
-      return await coachService.getGroupedCoaches(payload);
-    }
 
     return await coachService.getCoaches(payload);
   }
 
   async getProfile(request: NextRequest) {
-    const user = (request as any).user;
+    const user = (request as unknown as AuthenticatedRequest).user;
 
     return await coachService.getProfile(user.id);
   }
 
   async createCoach(request: NextRequest) {
-    const user = (request as any).user;
+    const user = (request as unknown as AuthenticatedRequest).user;
 
     let body;
     try {
       body = await request.json();
-    } catch (error) {
+    } catch {
       throw new BadRequestException("Invalid JSON body");
     }
 
@@ -52,12 +53,12 @@ export class CoachController {
   }
 
   async updateCoach(request: NextRequest) {
-    const user = (request as any).user;
+    const user = (request as unknown as AuthenticatedRequest).user;
 
     let body;
     try {
       body = await request.json();
-    } catch (error) {
+    } catch {
       throw new BadRequestException("Invalid JSON body");
     }
 
@@ -75,7 +76,7 @@ export class CoachController {
   }
 
   async getSuggestedCoaches(request: NextRequest) {
-    const user = (request as any).user;
+    const user = (request as unknown as AuthenticatedRequest).user;
 
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get("limit") || "4");
@@ -84,7 +85,7 @@ export class CoachController {
   }
 
   async connectGoogleCalendar(request: NextRequest) {
-    const user = (request as any).user;
+    const user = (request as unknown as AuthenticatedRequest).user;
 
     if (!user) {
       throw new UnauthorizedException("Authentication required");
@@ -106,12 +107,12 @@ export class CoachController {
   }
 
   async getAvailability(request: NextRequest) {
-    const user = (request as any).user;
+    const user = (request as unknown as AuthenticatedRequest).user;
     return await coachService.getAvailability(user.id);
   }
 
   async updateAvailability(request: NextRequest) {
-    const user = (request as any).user;
+    const user = (request as unknown as AuthenticatedRequest).user;
     const body = await request.json();
     return await coachService.updateAvailability(user.id, body.availability);
   }

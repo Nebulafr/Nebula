@@ -29,14 +29,14 @@ export default function DashboardPage() {
     useSuggestedCoaches(4);
 
   const upcomingEvents =
-    eventsResponse?.data?.events?.filter((event: Event) => {
+    eventsResponse?.events?.filter((event: Event) => {
       const eventDate = new Date(event.date);
       const now = new Date();
       return eventDate > now && event.status === "UPCOMING";
     }) || [];
 
-  const programs = programsResponse?.data?.programs || [];
-  const coaches = coachesResponse?.data?.coaches || [];
+  const programs = programsResponse?.programs || [];
+  const coaches = coachesResponse?.coaches || [];
 
   return (
     <StudentRoute>
@@ -45,12 +45,12 @@ export default function DashboardPage() {
           <DashboardHeader user={profile} />
           <div className="space-y-12 md:space-y-16">
             <SuggestedCoaches
-              coaches={coaches}
+              coaches={coaches as any}
               user={profile!}
               loading={isCoachesLoading}
             />
             <RecommendedPrograms
-              programs={programs}
+              programs={programs as any}
               loading={isProgramsLoading}
             />
             <ContactCard />

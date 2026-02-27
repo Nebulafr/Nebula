@@ -1,12 +1,13 @@
 import { apiPost } from "@/lib/utils";
+import { CheckoutResponse } from "@/types";
 
 export async function createProgramCheckout(data: {
     programId: string;
     cohortId?: string;
     successUrl: string;
     cancelUrl: string;
-}) {
-    return apiPost("/checkout/program", data);
+}): Promise<CheckoutResponse> {
+    return apiPost<CheckoutResponse["data"]>("/checkout/program", data) as Promise<CheckoutResponse>;
 }
 
 export async function createSessionCheckout(data: {
@@ -15,14 +16,14 @@ export async function createSessionCheckout(data: {
     duration: number;
     successUrl: string;
     cancelUrl: string;
-}) {
-    return apiPost("/checkout/session", data);
+}): Promise<CheckoutResponse> {
+    return apiPost<CheckoutResponse["data"]>("/checkout/session", data) as Promise<CheckoutResponse>;
 }
 
 export async function createEventCheckout(data: {
     eventId: string;
     successUrl: string;
     cancelUrl: string;
-}) {
-    return apiPost("/checkout/event", data);
+}): Promise<CheckoutResponse> {
+    return apiPost<CheckoutResponse["data"]>("/checkout/event", data) as Promise<CheckoutResponse>;
 }

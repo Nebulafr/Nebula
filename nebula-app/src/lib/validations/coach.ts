@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { ExperienceLevel } from "@/generated/prisma";
 
 export const createCoachSchema = z.object({
   fullName: z.string().min(1, "Full name is required").max(100),
@@ -45,9 +44,23 @@ export const updateCoachProfileSchema = z.object({
 export const coachQuerySchema = z.object({
   category: z.string().optional(),
   search: z.string().optional(),
+  minPrice: z
+    .string()
+    .transform((val) => parseInt(val))
+    .optional(),
+  maxPrice: z
+    .string()
+    .transform((val) => parseInt(val))
+    .optional(),
+  company: z.string().optional(),
+  school: z.string().optional(),
   limit: z
     .string()
-    .transform((val) => parseInt(val) || 50)
+    .transform((val) => parseInt(val) || 16)
+    .optional(),
+  page: z
+    .string()
+    .transform((val) => parseInt(val) || 1)
     .optional(),
 });
 

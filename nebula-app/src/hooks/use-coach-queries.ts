@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { getCoachById } from "@/actions/coaches";
 import { getCoachStudents } from "@/actions/session";
+import { CoachStudent } from "@/types/coach";
 
 export function useCoachById(coachId: string) {
   return useQuery({
@@ -20,19 +21,6 @@ export function useCoachById(coachId: string) {
   });
 }
 
-export interface CoachStudent {
-  id: string;
-  name: string;
-  email: string;
-  avatar: string | null;
-  program: string;
-  status: string;
-  totalSessions: number;
-  attendedSessions: number;
-  attendanceRate: number;
-  lastSession: string | null;
-  joinedDate: string;
-}
 
 export function useCoachStudents() {
   return useQuery({

@@ -1,19 +1,15 @@
 "use client";
-import { useState } from "react";
+import { } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import {
   ArrowLeft,
-  CheckCircle,
   Clock,
-  CreditCard,
   MapPin,
   Sparkles,
   Star,
@@ -25,12 +21,9 @@ import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
 import { useEventBySlug, useEventCheckout, useAuth } from "@/hooks";
 import { useTranslations, useLocale } from "next-intl";
-import { Event } from "@/types/event";
 import {
   getDefaultAvatar,
   getDefaultBanner,
-  getEventGradientBackground,
-  getAccessTypeText,
 } from "@/lib/event-utils";
 import { toast } from "react-toastify";
 import { CheckoutStatusModal } from "@/components/checkout/checkout-status-modal";
@@ -51,7 +44,7 @@ export default function SocialEventPage() {
     error: queryError,
   } = useEventBySlug(slug);
 
-  const event = eventResponse?.data?.event || null;
+  const event = eventResponse?.event || null;
   const error = queryError ? t("eventNotFound") : null;
 
   const handleEventCheckout = async () => {
@@ -75,8 +68,8 @@ export default function SocialEventPage() {
         cancelUrl: window.location.href + "?canceled=true",
       });
 
-      if (response.success && (response.data as any)?.url) {
-        window.location.href = (response.data as any).url;
+      if (response.success && response.data?.url) {
+        window.location.href = response.data.url;
       }
     } catch (error) {
       console.error("Checkout error:", error);
@@ -354,7 +347,7 @@ export default function SocialEventPage() {
                           <div>
                             <p className="font-semibold">{t("tags")}</p>
                             <div className="flex flex-wrap gap-1 mt-1">
-                              {event.tags.map((tag: any, index: number) => (
+                              {event.tags.map((tag: string, index: number) => (
                                 <Badge
                                   key={index}
                                   variant="secondary"

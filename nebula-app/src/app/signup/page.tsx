@@ -10,7 +10,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { PlaceHolderImages } from "@/lib/images/placeholder-images";
 import { ArrowLeft, Eye, EyeOff, Mail } from "lucide-react";
 import Image from "next/image";
@@ -22,7 +21,6 @@ import { useAuthActions } from "@/hooks/use-auth";
 import { useTranslations } from "next-intl";
 import { signupSchema } from "@/lib/validations";
 import { z } from "zod";
-import { cn } from "@/lib/utils";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -102,18 +100,16 @@ export default function SignupPage() {
     setLoading(true);
 
     try {
-      const response = await signUp({
+      await signUp({
         email: values.email,
         password: values.password,
         fullName: values.fullName,
         role: UserRole.STUDENT,
       });
 
-      if (response.success) {
-        setIsSignedUp(true);
-        toast.success(response.message || "Please check your email to verify your account");
-      }
-    } catch (error: any) {
+      setIsSignedUp(true);
+      toast.success("Please check your email to verify your account");
+    } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message.toLowerCase() : "";
       if (errorMessage.includes("exists") || errorMessage.includes("already")) {
         toast.error(t("emailExists"));
@@ -131,9 +127,9 @@ export default function SignupPage() {
     setLoading(true);
 
     try {
-      const response = await signInWithGoogle(UserRole.STUDENT);
-    } catch (error: any) {
-      if (error?.message !== "Redirecting to Google sign-in...") {
+      await signInWithGoogle(UserRole.STUDENT);
+    } catch (error: unknown) {
+      if (error instanceof Error && error.message !== "Redirecting to Google sign-in...") {
         toast.error(t("googleSignupFailed"));
       }
     } finally {

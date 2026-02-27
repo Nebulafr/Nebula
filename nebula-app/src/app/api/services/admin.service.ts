@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/prisma";
-import { ProgramService } from "./program.service";
 import {
   AdminEventQueryData,
   AdminProgramQueryData,
@@ -10,12 +9,10 @@ import {
 import {
   Prisma,
   ProgramStatus,
-  User,
   UserRole,
   UserStatus,
 } from "@/generated/prisma";
 import { sendSuccess } from "../utils/send-response";
-import { EmailService } from "./email.service";
 import {
   NotFoundException,
   BadRequestException,
@@ -26,7 +23,7 @@ export class AdminService {
     const { status, category, search, page = 1, limit = 10 } = params;
     const skip = (page - 1) * limit;
 
-    const whereClause: any = {};
+    const whereClause: Prisma.ProgramWhereInput = {};
 
     if (status && status !== "all") {
       if (status === "active") {
@@ -230,10 +227,10 @@ export class AdminService {
           updatedProgram,
           emailData: emailTemplate
             ? {
-              email: program.coach.user.email,
-              template: emailTemplate,
-              fullName: program.coach.user.fullName || "Coach",
-            }
+                email: program.coach.user.email,
+                template: emailTemplate,
+                fullName: program.coach.user.fullName || "Coach",
+              }
             : null,
           action,
         };
@@ -347,22 +344,24 @@ export class AdminService {
   }
 
   async getReviews(params?: AdminReviewQueryData) {
-    const {
-      search,
-      targetType,
-      status,
-      rating,
-      page = 1,
-      limit = 10,
-    } = params || {};
+    const { search, targetType, rating, page = 1, limit = 10 } = params || {};
     const skip = (page - 1) * limit;
 
     // Build common where clauses
     const ratingFilter =
       rating && rating !== "all" ? parseInt(rating) : undefined;
 
-    const programWhere: any = {};
-    const coachWhere: any = {};
+    const programWhere: Prisma.ProgramReviewWhereInput = {};
+    const coachWhere: Prisma.CoachReviewWhereInput = {};
+    const searchFilter:
+      | Prisma.CoachReviewWhereInput
+      | Prisma.ProgramReviewWhereInput = {
+      OR: [
+        { comment: { contains: search, mode: "insensitive" } },
+        { user: { fullName: { contains: search, mode: "insensitive" } } },
+        { user: { email: { contains: search, mode: "insensitive" } } },
+      ],
+    };
 
     if (ratingFilter) {
       programWhere.rating = ratingFilter;
@@ -370,18 +369,11 @@ export class AdminService {
     }
 
     if (search) {
-      const searchFilter = {
-        OR: [
-          { comment: { contains: search, mode: "insensitive" } },
-          { user: { fullName: { contains: search, mode: "insensitive" } } },
-          { user: { email: { contains: search, mode: "insensitive" } } },
-        ],
-      };
       Object.assign(programWhere, searchFilter);
       Object.assign(coachWhere, searchFilter);
     }
 
-    let reviews: any[] = [];
+    let reviews: unknown[] = [];
     let totalCount = 0;
 
     if (targetType === "COACH") {
@@ -398,7 +390,7 @@ export class AdminService {
         }),
         prisma.coachReview.count({ where: coachWhere }),
       ]);
-      reviews = reviews.map((r) => ({ ...r, targetType: "COACH" }));
+      reviews = reviews.map((r: any) => ({ ...r, targetType: "COACH" }));
     } else if (targetType === "PROGRAM") {
       [reviews, totalCount] = await Promise.all([
         prisma.programReview.findMany({
@@ -413,12 +405,8 @@ export class AdminService {
         }),
         prisma.programReview.count({ where: programWhere }),
       ]);
-      reviews = reviews.map((r) => ({ ...r, targetType: "PROGRAM" }));
+      reviews = reviews.map((r: any) => ({ ...r, targetType: "PROGRAM" }));
     } else {
-      // Combined view - this is tricky with pagination and separate tables
-      // For now, let's fetch from both and combine, then sort.
-      // Note: This won't be perfectly efficient for very large datasets,
-      // but for an admin dashboard with limit/skip it's usually acceptable.
       const [pReviews, pCount, cReviews, cCount] = await Promise.all([
         prisma.programReview.findMany({
           where: programWhere,
@@ -447,7 +435,7 @@ export class AdminService {
 
     return sendSuccess(
       {
-        reviews: reviews.map((r) => ({
+        reviews: reviews.map((r: any) => ({
           id: r.id,
           rating: r.rating,
           content: r.comment,
@@ -473,7 +461,6 @@ export class AdminService {
   }
 
   async getDashboardStats() {
-    // Get total revenue (sum of all paid enrollments)
     const enrollments = await prisma.enrollment.findMany({
       where: {
         paymentStatus: "PAID",
@@ -492,10 +479,8 @@ export class AdminService {
       0,
     );
 
-    // Get total users count
     const totalUsers = await prisma.user.count();
 
-    // Get users from last month for comparison
     const lastMonth = new Date();
     lastMonth.setMonth(lastMonth.getMonth() - 1);
 
@@ -537,7 +522,7 @@ export class AdminService {
     const signupGrowthPercent =
       newSignupsLastMonth > 0
         ? ((newSignupsThisMonth - newSignupsLastMonth) / newSignupsLastMonth) *
-        100
+          100
         : 0;
 
     // Get active coaches count
@@ -590,23 +575,27 @@ export class AdminService {
         stats: {
           revenue: {
             value: `$${totalRevenue.toLocaleString()}`,
-            change: `${revenueGrowthPercent >= 0 ? "+" : ""
-              }${revenueGrowthPercent.toFixed(1)}% from last month`,
+            change: `${
+              revenueGrowthPercent >= 0 ? "+" : ""
+            }${revenueGrowthPercent.toFixed(1)}% from last month`,
           },
           users: {
             value: totalUsers.toLocaleString(),
-            change: `${userGrowth >= 0 ? "+" : ""
-              }${userGrowth} from last month`,
+            change: `${
+              userGrowth >= 0 ? "+" : ""
+            }${userGrowth} from last month`,
           },
           signups: {
             value: `+${newSignupsThisMonth}`,
-            change: `${signupGrowthPercent >= 0 ? "+" : ""
-              }${signupGrowthPercent.toFixed(1)}% from last month`,
+            change: `${
+              signupGrowthPercent >= 0 ? "+" : ""
+            }${signupGrowthPercent.toFixed(1)}% from last month`,
           },
           coaches: {
             value: activeCoaches.toString(),
-            change: `${coachGrowth >= 0 ? "+" : ""
-              }${coachGrowth} since last month`,
+            change: `${
+              coachGrowth >= 0 ? "+" : ""
+            }${coachGrowth} since last month`,
           },
         },
       },
@@ -701,8 +690,9 @@ export class AdminService {
     recentCoaches.forEach((coach) => {
       activities.push({
         type: "New Coach",
-        description: `${coach.user.fullName || "A new coach"
-          } has been approved as a new coach.`,
+        description: `${
+          coach.user.fullName || "A new coach"
+        } has been approved as a new coach.`,
         time: getRelativeTime(coach.createdAt),
         timestamp: coach.createdAt,
       });
@@ -720,8 +710,9 @@ export class AdminService {
     recentStudents.forEach((student) => {
       activities.push({
         type: "New Student",
-        description: `${student.user.fullName || student.user.email
-          } signed up as a new student.`,
+        description: `${
+          student.user.fullName || student.user.email
+        } signed up as a new student.`,
         time: getRelativeTime(student.createdAt),
         timestamp: student.createdAt,
       });
@@ -731,7 +722,11 @@ export class AdminService {
     const sortedActivities = activities
       .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
       .slice(0, limit)
-      .map(({ timestamp, ...activity }) => activity);
+      .map((activity) => {
+        const { timestamp, ...rest } = activity;
+        void timestamp;
+        return rest;
+      });
 
     return sendSuccess(
       { activities: sortedActivities },
@@ -743,7 +738,7 @@ export class AdminService {
     const { search, eventType, status, page = 1, limit = 10 } = params || {};
     const skip = (page - 1) * limit;
 
-    const whereClause: any = {};
+    const whereClause: Prisma.EventWhereInput = {};
 
     if (eventType && eventType !== "all") {
       whereClause.eventType = eventType;
@@ -818,7 +813,12 @@ export class AdminService {
 
   async updateCohort(
     cohortId: string,
-    data: any,
+    data: {
+      name?: string;
+      startDate?: string | Date;
+      endDate?: string | Date;
+      maxStudents?: number;
+    },
   ) {
     const cohort = await prisma.cohort.findUnique({
       where: { id: cohortId },

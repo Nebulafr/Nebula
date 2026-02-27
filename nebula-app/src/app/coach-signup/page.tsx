@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -102,17 +103,15 @@ export default function CoachSignupPage() {
     setLoading(true);
 
     try {
-      const response = await signUp({
+      await signUp({
         email: values.email,
         password: values.password,
         fullName: values.fullName,
         role: UserRole.COACH,
       });
 
-      if (response.success) {
-        setIsSignedUp(true);
-        toast.success(response.message || "Please check your email to verify your account");
-      }
+      setIsSignedUp(true);
+      toast.success("Please check your email to verify your account");
     } catch (error: any) {
       const errorMessage = error instanceof Error ? error.message.toLowerCase() : "";
       if (errorMessage.includes("exists") || errorMessage.includes("already")) {

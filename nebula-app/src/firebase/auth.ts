@@ -5,9 +5,10 @@ import {
   GoogleAuthProvider,
 } from "firebase/auth";
 import { auth } from "./client";
-import { toast } from "react-toastify";
+
 import { UserRole } from "@/generated/prisma";
-import { makeRequest } from "@/lib/utils";
+import { makeRequest, apiPost } from "@/lib/utils";
+import { AuthResponse } from "@/types";
 
 export async function signInWithGoogle(role: UserRole = UserRole.STUDENT) {
   try {
@@ -38,24 +39,14 @@ export async function signInWithGoogle(role: UserRole = UserRole.STUDENT) {
         avatarUrl: user.photoURL || undefined,
       };
 
-      const response = await makeRequest("/auth/google", "POST", {
-        body: payload,
+      const response = await apiPost<AuthResponse>("/auth/google", payload, {
         requireAuth: false,
+        throwOnError: true,
       });
 
       console.log("Firebase auth response:", { response });
+      return response.data!;
 
-      if (!response.success) {
-        throw new Error(response.message || "Authentication failed");
-      }
-
-      console.log("Firebase auth response:", { response });
-
-      if (!response.success) {
-        throw new Error(response.message || "Authentication failed");
-      }
-
-      return response;
     } catch (popupError: any) {
       if (
         popupError.code === "auth/popup-blocked" ||
@@ -73,6 +64,7 @@ export async function signInWithGoogle(role: UserRole = UserRole.STUDENT) {
 
       throw popupError;
     }
+
   } catch (error: any) {
     if (
       error.code === "auth/popup-closed-by-user" ||
@@ -92,6 +84,7 @@ export async function signInWithGoogle(role: UserRole = UserRole.STUDENT) {
 
 export async function handleGoogleRedirectResult(): Promise<{
   accessToken: string;
+
   user: any;
 } | null> {
   try {
@@ -115,18 +108,15 @@ export async function handleGoogleRedirectResult(): Promise<{
         avatarUrl: user.photoURL || undefined,
       };
 
-      const response = await makeRequest("/auth/google", "POST", {
-        body: payload,
+      const response = await apiPost<AuthResponse>("/auth/google", payload, {
         requireAuth: false,
+        throwOnError: true,
       });
 
-      if (!response.success) {
-        throw new Error(response.message || "Authentication failed");
-      }
-
-      return response.data;
+      return response.data!;
     }
     return null;
+
   } catch (error: any) {
     console.error("Error handling Google redirect result:", error);
     if (error instanceof Error) {

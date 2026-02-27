@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -9,7 +10,7 @@ import {
 import {
   Table,
   TableHeader,
-  TableRow,   
+  TableRow,
   TableHead,
   TableBody,
   TableCell,
@@ -17,7 +18,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button"; // Kept as it's used later
-import { format } from "date-fns"; // Added format
+import { format } from "date-fns/format"; // Added format
 import { enUS, fr } from "date-fns/locale"; // Added date-fns locales
 import { useTranslations, useLocale } from "next-intl"; // Added next-intl hooks
 import Link from "next/link";
@@ -37,7 +38,6 @@ interface RecentSignupsProps {
   loading?: boolean;
   onUserAction?: (user: RecentSignup, action: string) => void;
 }
-
 export function RecentSignups({ signups, loading, onUserAction }: RecentSignupsProps) {
   const t = useTranslations("dashboard.admin");
   const locale = useLocale();
@@ -133,10 +133,10 @@ export function RecentSignups({ signups, loading, onUserAction }: RecentSignupsP
                           {user.role.toLowerCase() === "coach"
                             ? t("coach")
                             : user.role.toLowerCase() === "student"
-                            ? t("student")
-                            : user.role.toLowerCase() === "admin"
-                            ? t("admin")
-                            : user.role}
+                              ? t("student")
+                              : user.role.toLowerCase() === "admin"
+                                ? t("admin")
+                                : user.role}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right text-xs text-muted-foreground whitespace-nowrap">
