@@ -28,7 +28,7 @@ export function HeroSection() {
 
   const stats = [
     {
-      value: "50+",
+      value: "30+",
       label: (
         <>
           {t("stats.coaches")}{" "}
@@ -36,8 +36,8 @@ export function HeroSection() {
         </>
       ),
     },
-    { value: "200+", label: t("stats.companies") },
-    { value: "5k+", label: t("stats.users") },
+    { value: "10+", label: t("stats.companies") },
+    { value: "500+", label: t("stats.users") },
   ];
 
   const categories = [
@@ -53,7 +53,7 @@ export function HeroSection() {
 
   return (
     <section className="container py-20 text-center md:py-32">
-      <h1 
+      <h1
         className="font-headline text-5xl font-bold tracking-tighter md:text-7xl whitespace-pre-line"
       >
         {t("heading")}
@@ -86,7 +86,7 @@ export function HeroSection() {
             <p className="font-headline text-5xl font-medium">
               {stat.value}
             </p>
-            <p 
+            <p
               className="mt-2 text-sm uppercase tracking-wider text-muted-foreground"
             >
               {stat.label}
