@@ -1,65 +1,82 @@
-
 "use client";
+
 import { useState, useEffect } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import {
-  ArrowRight,
-  ChevronRight,
-  MessageCircle,
-  PlusCircle,
-  Star,
-  X,
-  CheckCircle,
-  Briefcase,
-  GraduationCap,
-} from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import Link from "next/link";
-import { useLocale, useTranslations } from "next-intl";
-import { WeeklyTimeSlotPicker } from "@/components/ui/weekly-time-slot-picker";
-import { cn } from "@/lib/utils";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Footer } from "@/components/layout/footer";
-import { toast } from "react-toastify";
-import { useAuth } from "@/hooks/use-auth";
 import { Header } from "@/components/layout/header";
-import { useSessionCheckout } from "@/hooks/use-checkout-queries";
+import { useAuth } from "@/hooks/use-auth";
 import { useCoachById } from "@/hooks/use-coach-queries";
+import { useSessionCheckout } from "@/hooks/use-checkout-queries";
 import { useQueryClient } from "@tanstack/react-query";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { VisuallyHidden } from "@/components/ui/visually-hidden";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { reviewCoach } from "@/actions/reviews";
 import { createConversation } from "@/actions/messaging";
-import { UserRole } from "@/enums";
+import { toast } from "react-toastify";
+import { useTranslations } from "next-intl";
+
+import { CoachHeader } from "./components/CoachHeader";
+import { ExperienceLogos } from "./components/ExperienceLogos";
+import { ProgramsSection } from "./components/ProgramsSection";
+import { ScheduleOverview } from "./components/ScheduleOverview";
+import { ResumeSection } from "./components/ResumeSection";
+import { SpecialitiesSection } from "./components/SpecialitiesSection";
+import { ReviewsSection } from "./components/ReviewsSection";
+import { BookingSidebar } from "./components/BookingSidebar";
+import { BookingModal } from "./components/BookingModal";
+import { Button } from "@/components/ui/button";
+
+const getExperienceList = (coach: any) => {
+  if (!coach.experience) return [];
+  try {
+    const trimmedExp = coach.experience.trim();
+    if (trimmedExp.startsWith("[")) {
+      return JSON.parse(trimmedExp);
+    }
+  } catch (e) {
+    console.error("Failed to parse experience JSON", e);
+  }
+
+  // Default to a single list item if not JSON or parsing fails
+  return [
+    {
+      role: coach.title,
+      company: coach.pastCompanies?.[0] || "Previous Company",
+      duration: "Past",
+      description: coach.experience,
+    },
+  ];
+};
+
+const getAvailabilityData = (coach: any) => {
+  if (!coach.availability) return {};
+  try {
+    return typeof coach.availability === "string"
+      ? JSON.parse(coach.availability)
+      : coach.availability;
+  } catch (e) {
+    console.error("Failed to parse availability", e);
+    return {};
+  }
+};
 
 export default function CoachDetailPage() {
   const t = useTranslations("coachDetails");
-  const [bookingStep, setBookingStep] = useState(0);
-  const params = useParams<{ coachId: string }>();
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const { profile, isAuthenticated, isStudent } = useAuth();
-  const [date, setDate] = useState<Date | undefined>();
-  const [selectedTime, setSelectedTime] = useState("");
   const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
-  const [selectedDuration, setSelectedDuration] = useState(60);
+  const [duration, setDuration] = useState("60");
+  const [weekOffset, setWeekOffset] = useState(0);
+
+  const params = useParams<{ coachId: string }>();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const { profile, isAuthenticated, isStudent } = useAuth();
+  const queryClient = useQueryClient();
 
   const {
     data: coach,
@@ -67,14 +84,12 @@ export default function CoachDetailPage() {
     error: coachError,
   } = useCoachById(params.coachId);
 
-  const queryClient = useQueryClient();
-
   const { mutateAsync: initiateCheckout, isPending: isCheckingOut } =
     useSessionCheckout();
 
   useEffect(() => {
     if (searchParams.get("success") === "true") {
-      setBookingStep(2);
+      toast.success(t("sessionBooked") || "Session booked successfully!");
       const newUrl = window.location.pathname;
       window.history.replaceState({}, "", newUrl);
     } else if (searchParams.get("canceled") === "true") {
@@ -84,108 +99,11 @@ export default function CoachDetailPage() {
     }
   }, [searchParams, t]);
 
-  const handleBookClick = () => {
-    if (!isAuthenticated) {
-      router.replace("/login");
-      return;
-    }
-
-    if (isAuthenticated && !isStudent) {
-      toast.info(t("notStudent"));
-      return;
-    }
-
-    setBookingStep(1);
-  };
-
-  const handleCancelBooking = () => {
-    setBookingStep(0);
-    setDate(undefined);
-    setSelectedTime("");
-  };
-
-  const handleTimeSelect = async () => {
-    if (!date || !isAuthenticated) {
-      toast.error(t("selectDateLogin"));
-      return;
-    }
-
-    const [hours, minutes] = selectedTime.split(":").map(Number);
-    const sessionDate = new Date(date);
-    sessionDate.setHours(hours, minutes, 0, 0);
-    const scheduledTime = sessionDate.toISOString();
-
-    try {
-      const response = await initiateCheckout({
-        coachId: params.coachId,
-        scheduledTime,
-        duration: selectedDuration,
-        successUrl: window.location.href + "?success=true",
-        cancelUrl: window.location.href + "?canceled=true",
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      });
-      if (response && response.success && (response.data as any)?.url) {
-        window.location.href = (response.data as any).url;
-      } else {
-        toast.error(response.error || t("failedToInitiateCheckout"));
-      }
-    } catch (error) {
-      console.error("Checkout error:", error);
-    }
-  };
-
-  const handleMessageClick = async () => {
-    if (!isAuthenticated) {
-      router.replace("/login");
-      return;
-    }
-
-    if (!coach) {
-      toast.error(t("coachInfoNotAvailable"));
-      return;
-    }
-
-    try {
-      const conversationResult = await createConversation({
-        participants: [profile && profile.id, coach.userId],
-        type: "DIRECT",
-      });
-
-      if (conversationResult.success && conversationResult.data) {
-        router.push(
-          `/dashboard/messaging?conversationId=${conversationResult.data.id}`,
-        );
-      } else {
-        throw new Error(
-          conversationResult.error || "Failed to create conversation",
-        );
-      }
-    } catch (error: any) {
-      console.error("Error creating conversation:", error);
-      toast.error(t("startConvFailed"));
-    }
-  };
-
   const handleReviewSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!coach) {
-      toast.error(t("coachInfoNotAvailable"));
-      return;
-    }
-
-    if (rating === 0) {
-      toast.error(t("selectRating"));
-      return;
-    }
-
-    if (!reviewText.trim()) {
-      toast.error(t("writeReview"));
-      return;
-    }
+    if (!coach) return;
 
     setIsSubmittingReview(true);
-
     try {
       const response = await reviewCoach({
         coachId: coach.id,
@@ -195,15 +113,11 @@ export default function CoachDetailPage() {
 
       if (response.success) {
         setReviewSubmitted(true);
-
-        // Invalidate coach cache to refetch updated data
         queryClient.invalidateQueries({ queryKey: ["coach", params.coachId] });
-
-        setIsReviewDialogOpen(false);
       } else {
         toast.error(response.error || "Failed to submit review.");
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error submitting review:", error);
       toast.error("Failed to submit review. Please try again.");
     } finally {
@@ -219,6 +133,77 @@ export default function CoachDetailPage() {
       setHoverRating(0);
       setReviewText("");
     }, 300);
+  };
+
+  const handleMessageClick = async () => {
+    if (!isAuthenticated) {
+      router.replace("/login");
+      return;
+    }
+
+    if (!coach) {
+      toast.error(t("coachInfoNotAvailable") || "Coach info not available");
+      return;
+    }
+
+    try {
+      const conversationResult = await createConversation({
+        participants: [profile && profile.id, coach.userId],
+        type: "DIRECT",
+      });
+
+      if (conversationResult.success && conversationResult.data) {
+        router.push(
+          `/dashboard/messaging?conversationId=${conversationResult.data.id}`
+        );
+      } else {
+        throw new Error(
+          conversationResult.error || "Failed to create conversation"
+        );
+      }
+    } catch (error: any) {
+      console.error("Error creating conversation:", error);
+      toast.error(t("startConvFailed") || "Failed to start conversation");
+    }
+  };
+
+  const handleBookingConfirm = async (selectedSlot: {
+    date: Date;
+    time: string;
+  }) => {
+    if (!isAuthenticated) {
+      router.replace("/login");
+      return;
+    }
+
+    if (isAuthenticated && !isStudent) {
+      toast.info(t("notStudent") || "Only students can book sessions");
+      return;
+    }
+
+    const [hours, minutes] = selectedSlot.time.split(":").map(Number);
+    const sessionDate = new Date(selectedSlot.date);
+    sessionDate.setHours(hours, minutes, 0, 0);
+    const scheduledTime = sessionDate.toISOString();
+
+    try {
+      const response = await initiateCheckout({
+        coachId: params.coachId,
+        scheduledTime,
+        duration: parseInt(duration),
+        successUrl: window.location.href + "?success=true",
+        cancelUrl: window.location.href + "?canceled=true",
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      });
+      if (response && response.success && (response.data as any)?.url) {
+        window.location.href = (response.data as any).url;
+      } else {
+        toast.error(response.error || "Failed to initiate checkout");
+      }
+    } catch (error) {
+      console.error("Checkout error:", error);
+      toast.error("An error occurred during checkout.");
+    }
   };
 
   if (loading) {
@@ -238,6 +223,7 @@ export default function CoachDetailPage() {
             </div>
           </div>
         </main>
+        <Footer />
       </div>
     );
   }
@@ -248,18 +234,28 @@ export default function CoachDetailPage() {
         <Header />
         <main className="flex-1">
           <div className="container py-12 md:py-20 text-center">
-            <h1 className="text-4xl font-bold mb-4">{t("coachNotFound")}</h1>
+            <h1 className="text-4xl font-bold mb-4">
+              {t("coachNotFound") || "Coach Not Found"}
+            </h1>
             <p className="text-muted-foreground mb-8">
-              {t("coachNotFoundDesc")}
+              {t("coachNotFoundDesc") ||
+                "Sorry, we couldn't find the coach you're looking for."}
             </p>
             <Button asChild>
-              <Link href="/coaches">{t("browseAll")}</Link>
+              <Link href="/coaches">
+                {t("browseAll") || "Browse All Coaches"}
+              </Link>
             </Button>
           </div>
         </main>
+        <Footer />
       </div>
     );
   }
+
+  // Parse data using helper functions
+  const experienceList = getExperienceList(coach);
+  const availabilityData = getAvailabilityData(coach);
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -270,497 +266,69 @@ export default function CoachDetailPage() {
             <div className="md:col-span-2">
               <div className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
                 <Link href="/coaches" className="hover:text-primary">
-                  {t("backToCoaches")}
+                  {t("backToCoaches") || "Coaches"}
                 </Link>
                 <ChevronRight className="h-4 w-4" />
                 <span>{coach.fullName}</span>
               </div>
-              <div className="flex items-center gap-6">
-                <Avatar className="h-24 w-24">
-                  <AvatarImage src={coach.avatarUrl!} />
-                  <AvatarFallback>{coach.fullName?.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <div>
-                  <h1 className="font-headline text-4xl font-bold tracking-tighter text-primary md:text-5xl">
-                    {coach.fullName}
-                  </h1>
-                  <p className="mt-1 text-lg text-foreground/70">
-                    {coach.title}
-                  </p>
-                </div>
-                <Badge
-                  variant="outline"
-                  className="flex items-center gap-1 border-yellow-400 bg-yellow-50/50 text-yellow-700 ml-auto px-2 py-0.5 text-[10px]"
-                >
-                  <Star className="h-3 w-3 fill-current text-yellow-500" />
-                  <span className="font-semibold">{coach.rating}</span>
-                </Badge>
-              </div>
-              <p className="mt-6 text-base text-muted-foreground">
-                {coach.bio}
-              </p>
 
-              {coach.pastCompanies && coach.pastCompanies.length > 0 && (
-                <div className="mt-8">
-                  <h4 className="text-sm font-semibold text-muted-foreground">
-                    {t("workedAt", {
-                      name: coach.fullName?.split(" ")[0] || "Coach",
-                    })}
-                  </h4>
-                  <div className="mt-4 flex flex-wrap items-center gap-3">
-                    {coach.pastCompanies
-                      .slice(0, 3)
-                      .map((company: string, index: number) => (
-                        <div
-                          key={company || index}
-                          className="flex items-center justify-center px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors text-sm font-medium text-gray-800 border border-gray-200"
-                        >
-                          {company || "Company"}
-                        </div>
-                      ))}
-                  </div>
-                </div>
-              )}
+              <CoachHeader coach={coach} />
+              <ExperienceLogos coach={coach} />
+              <ProgramsSection coach={coach} />
 
-              {coach.programs && coach.programs.length > 0 && (
-                <div className="my-12">
-                  <h2 className="mb-6 font-headline text-2xl font-bold">
-                    {t("programsBy", { name: coach.fullName })}
-                  </h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    {coach.programs.map((program) => (
-                      <Link
-                        href={
-                          program.slug.startsWith("/")
-                            ? program.slug
-                            : `/programs/${program.slug}`
-                        }
-                        key={program.id || program.title}
-                      >
-                        <Card className="p-6 flex items-center gap-4 hover:shadow-lg transition-shadow">
-                          <div
-                            className={`flex h-10 w-10 items-center justify-center rounded-full ${program.category === "Career Prep"
-                              ? "bg-primary/10"
-                              : "bg-blue-500/10"
-                              }`}
-                          >
-                            {program.category === "Career Prep" ? (
-                              <Briefcase className="h-5 w-5 text-primary" />
-                            ) : (
-                              <GraduationCap className="h-5 w-5 text-blue-500" />
-                            )}
-                          </div>
-                          <div>
-                            <h3 className="font-headline font-semibold">
-                              {program.title}
-                            </h3>
-                            <p className="text-sm text-muted-foreground">
-                              {program.category}
-                            </p>
-                          </div>
-                        </Card>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              )}
+              <ScheduleOverview
+                availabilityData={availabilityData}
+                weekOffset={weekOffset}
+                setWeekOffset={setWeekOffset}
+                duration={duration}
+                setDuration={setDuration}
+                openBookingModal={() => setIsBookingModalOpen(true)}
+              />
+
+              <ResumeSection experienceList={experienceList} />
+              <SpecialitiesSection coach={coach} />
+
+              <ReviewsSection
+                coach={coach}
+                isReviewDialogOpen={isReviewDialogOpen}
+                setIsReviewDialogOpen={setIsReviewDialogOpen}
+                reviewSubmitted={reviewSubmitted}
+                isSubmittingReview={isSubmittingReview}
+                rating={rating}
+                setRating={setRating}
+                hoverRating={hoverRating}
+                setHoverRating={setHoverRating}
+                reviewText={reviewText}
+                setReviewText={setReviewText}
+                handleReviewSubmit={handleReviewSubmit}
+                resetReviewForm={resetReviewForm}
+                isStudent={isStudent}
+              />
             </div>
 
-            <div className={cn("md:col-span-1 relative pt-10")}>
+            <div className="md:col-span-1 relative pt-10">
               <div className="sticky top-24">
-                <EnrollmentForm
-                  step={bookingStep}
-                  loading={isCheckingOut}
-                  selectedDate={date}
-                  setSelectedDate={setDate}
-                  selectedTime={selectedTime}
-                  setSelectedTime={setSelectedTime}
-                  onEnroll={handleBookClick}
-                  onCancel={handleCancelBooking}
-                  onTimeSelect={handleTimeSelect}
+                <BookingSidebar
                   onMessageClick={handleMessageClick}
-                  coachAvailability={coach?.availability as any}
-                  selectedDuration={selectedDuration}
-                  setSelectedDuration={setSelectedDuration}
-                  hourlyRate={coach?.hourlyRate || 0}
-                  t={t}
+                  openBookingModal={() => setIsBookingModalOpen(true)}
                 />
               </div>
             </div>
           </div>
         </section>
 
-        <section className="container py-20">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="mb-8 font-headline text-3xl font-bold">
-              {t("reviewsCount", {
-                count: coach.totalReviews || coach.reviews?.length || 0,
-              })}
-            </h2>
-            <Dialog
-              open={isReviewDialogOpen}
-              onOpenChange={setIsReviewDialogOpen}
-            >
-              <DialogTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="rounded-full"
-                  disabled={
-                    coach.hasUserReviewed || profile?.role !== "STUDENT"
-                  }
-                  title={
-                    coach.hasUserReviewed
-                      ? "You have already reviewed this coach"
-                      : "Add a review"
-                  }
-                >
-                  <PlusCircle className="h-5 w-5" />
-                </Button>
-              </DialogTrigger>
-              <DialogContent
-                className="sm:max-w-[625px]"
-                onInteractOutside={(e) => {
-                  if (reviewSubmitted) {
-                    e.preventDefault();
-                  }
-                }}
-              >
-                {!reviewSubmitted ? (
-                  <>
-                    <DialogHeader>
-                      <DialogTitle>{t("shareReview")}</DialogTitle>
-                      <DialogDescription>
-                        {t("shareReviewDesc", { name: coach.fullName! })}
-                      </DialogDescription>
-                    </DialogHeader>
-                    <form
-                      onSubmit={handleReviewSubmit}
-                      className="grid gap-6 py-4"
-                    >
-                      <div className="grid gap-2">
-                        <Label>{t("yourRating")}</Label>
-                        <div className="flex items-center gap-1">
-                          {[...Array(5)].map((_, i) => {
-                            const starValue = i + 1;
-                            return (
-                              <Star
-                                key={i}
-                                className={cn(
-                                  "h-6 w-6 cursor-pointer",
-                                  starValue <= (hoverRating || rating)
-                                    ? "text-yellow-400 fill-yellow-400"
-                                    : "text-gray-300",
-                                )}
-                                onClick={() => setRating(starValue)}
-                                onMouseEnter={() => setHoverRating(starValue)}
-                                onMouseLeave={() => setHoverRating(0)}
-                              />
-                            );
-                          })}
-                        </div>
-                      </div>
-                      <div className="grid gap-2">
-                        <Label htmlFor="review-text">
-                          {t("shareThoughts")}
-                        </Label>
-                        <Textarea
-                          id="review-text"
-                          placeholder={t("textareaPlaceholder")}
-                          rows={4}
-                          value={reviewText}
-                          onChange={(e) => setReviewText(e.target.value)}
-                          required
-                        />
-                      </div>
-                      <DialogFooter>
-                        <Button
-                          type="submit"
-                          disabled={
-                            rating === 0 ||
-                            !reviewText.trim() ||
-                            isSubmittingReview
-                          }
-                        >
-                          {isSubmittingReview
-                            ? t("submitting")
-                            : t("submitReview")}
-                        </Button>
-                      </DialogFooter>
-                    </form>
-                  </>
-                ) : (
-                  <>
-                    <DialogHeader>
-                      <VisuallyHidden>
-                        <DialogTitle>{t("thankYou")}</DialogTitle>
-                      </VisuallyHidden>
-                    </DialogHeader>
-                    <div className="text-center py-8">
-                      <CheckCircle className="h-16 w-16 mx-auto mb-4 text-green-500" />
-                      <h3 className="text-xl font-semibold">{t("thankYou")}</h3>
-                      <p className="text-muted-foreground mt-2">
-                        {t("reviewSubmitted")}
-                      </p>
-                      <Button onClick={resetReviewForm} className="mt-6">
-                        {t("close")}
-                      </Button>
-                    </div>
-                  </>
-                )}
-              </DialogContent>
-            </Dialog>
-          </div>
-          {coach.reviews && coach.reviews.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {coach.reviews.slice(0, 4).map((review, i: number) => (
-                <Card
-                  key={review.id || i}
-                  className="rounded-xl border shadow-sm"
-                >
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-1 mb-4">
-                      {[...Array(review.rating)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className="h-5 w-5 fill-yellow-400 text-yellow-400"
-                        />
-                      ))}
-                    </div>
-                    <p className="font-serif text-base text-muted-foreground">
-                      &quot;{review.content}&quot;
-                    </p>
-                    <p className="mt-4 text-sm font-semibold">
-                      {review.reviewer?.fullName || "Anonymous"}{" "}
-                    </p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">No reviews yet.</p>
-            </div>
-          )}
-          <Button variant="link" className="mt-6 px-0" asChild>
-            <Link href={`/coaches/${params.coachId}/reviews`}>
-              View all reviews <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </Button>
-        </section>
+        <BookingModal
+          isOpen={isBookingModalOpen}
+          onClose={() => setIsBookingModalOpen(false)}
+          coach={coach}
+          duration={duration}
+          setDuration={setDuration}
+          onConfirm={handleBookingConfirm}
+          isCheckingOut={isCheckingOut}
+          availabilityData={availabilityData}
+        />
       </main>
       <Footer />
     </div>
   );
-}
-
-function EnrollmentForm({
-  step,
-  loading = false,
-  isEnrolled = false,
-  selectedDate,
-  selectedTime,
-  onEnroll,
-  onCancel,
-  setSelectedDate,
-  setSelectedTime,
-  onTimeSelect,
-  onMessageClick,
-  coachAvailability,
-  selectedDuration,
-  setSelectedDuration,
-  hourlyRate,
-  t,
-}: {
-  step: number;
-  loading?: boolean;
-  isEnrolled?: boolean;
-  selectedDate?: Date;
-  selectedTime?: string;
-  onEnroll: () => void;
-  onCancel: () => void;
-  setSelectedDate: (date: Date | undefined) => void;
-  setSelectedTime: (time: string) => void;
-  onTimeSelect: () => void;
-  onMessageClick?: () => void;
-  coachAvailability?: Record<string, any>;
-  selectedDuration: number;
-  setSelectedDuration: (duration: number) => void;
-  hourlyRate: number;
-  t: any;
-}) {
-  const { isStudent } = useAuth();
-  const locale = useLocale();
-
-  const handleSlotSelect = (date: Date, time: string) => {
-    setSelectedDate(date);
-    setSelectedTime(time);
-  };
-
-  const calculatedPrice = Math.round((hourlyRate * selectedDuration) / 60);
-
-  if (step === 0) {
-    if (isEnrolled) {
-      return (
-        <Card
-          key="enrolled-card"
-          className="rounded-xl border shadow-lg notranslate"
-        >
-          <CardContent className="p-6 text-center">
-            <CheckCircle className="h-12 w-12 mx-auto mb-4 text-green-500" />
-            <h3 className="font-headline text-xl font-bold text-green-700">
-              {t("alreadyEnrolled")}
-            </h3>
-            <p className="text-muted-foreground mt-2 mb-6">
-              {t("alreadyEnrolledDesc")}
-            </p>
-            <div className="space-y-2">
-              <Button size="lg" className="w-full" asChild>
-                <Link href="/dashboard">{t("goToDashboard")}</Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      );
-    }
-
-    return (
-      <Card
-        key={`step-${step}`}
-        className="rounded-xl border shadow-lg notranslate"
-      >
-        <CardContent className="p-6 text-center">
-          <h3 className="font-headline text-2xl font-bold">
-            {t("bookSession")}
-          </h3>
-          <p className="text-muted-foreground mt-2 mb-6">{t("findTime")}</p>
-          {
-            <Button size="lg" className="w-full" onClick={onEnroll}>
-              <PlusCircle className="mr-2 h-5 w-5" /> {t("bookNow")}
-            </Button>
-          }
-          {
-            <Button
-              size="lg"
-              variant="outline"
-              className="w-full mt-2"
-              onClick={onMessageClick}
-            >
-              <MessageCircle className="mr-2 h-5 w-5" /> {t("message")}
-            </Button>
-          }
-        </CardContent>
-      </Card>
-    );
-  }
-
-  // Step 1: Weekly time slot picker (combined date and time selection)
-  if (step === 1) {
-    return (
-      <Card
-        key={`step-${step}`}
-        className="rounded-xl border shadow-lg w-[600px] notranslate"
-      >
-        <CardContent className="p-4">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="font-headline text-lg font-bold">
-              {t("selectTimeSlot")}
-            </h3>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onCancel}
-              className="-mr-2 -mt-2"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-
-          <div className="flex gap-2 mb-6">
-            <Button
-              variant={selectedDuration === 30 ? "default" : "outline"}
-              className="flex-1"
-              onClick={() => setSelectedDuration(30)}
-            >
-              30 Min
-            </Button>
-            <Button
-              variant={selectedDuration === 60 ? "default" : "outline"}
-              className="flex-1"
-              onClick={() => setSelectedDuration(60)}
-            >
-              60 Min
-            </Button>
-          </div>
-
-          <WeeklyTimeSlotPicker
-            selectedSlot={
-              selectedDate && selectedTime
-                ? { date: selectedDate, time: selectedTime }
-                : null
-            }
-            onSlotSelect={handleSlotSelect}
-            coachAvailability={coachAvailability}
-            startHour={9}
-            endHour={18}
-            slotIntervalMinutes={30}
-          />
-          <Button
-            className="w-full mt-4"
-            disabled={!selectedDate || !selectedTime || loading}
-            onClick={onTimeSelect}
-          >
-            {loading ? t("processing") : `${t("confirmBooking")} - $${calculatedPrice}`}
-          </Button>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  // Step 2: Success state
-  if (step === 2) {
-    return (
-      <Card
-        key={`step-${step}`}
-        className="rounded-xl border-none bg-green-50 text-green-900 notranslate"
-      >
-        <CardContent className="p-6 text-center">
-          <CheckCircle className="h-12 w-12 mx-auto mb-4" />
-          <h3 className="font-headline text-xl font-bold">
-            {t("sessionBooked")}
-          </h3>
-          <p className="text-sm mt-2">{t("sessionBookedDesc")}</p>
-          {selectedDate && selectedTime && (
-            <div className="mt-4 p-3 bg-white/50 rounded-lg">
-              <p className="text-sm font-medium">{t("details")}</p>
-              <p className="text-xs text-muted-foreground">
-                {t("date", {
-                  date: selectedDate.toLocaleDateString(
-                    locale === "fr" ? "fr-FR" : "en-US",
-                  ),
-                })}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {t("time", { time: selectedTime })} ({selectedDuration} min)
-              </p>
-            </div>
-          )}
-          <div className="flex gap-2 mt-6">
-            <Button
-              variant="outline"
-              className="w-full bg-transparent border-green-700 text-green-700 hover:bg-green-100 hover:text-green-800"
-              onClick={onCancel}
-            >
-              {t("close")}
-            </Button>
-            <Button className="w-full bg-green-700 hover:bg-green-800" asChild>
-              <Link href="/dashboard">{t("goToDashboard")}</Link>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  return null;
 }
