@@ -3,6 +3,10 @@
 import { Button } from "@/components/ui/button";
 import { Info, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "react-toastify";
+import { useTranslations, useLocale } from "next-intl";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 
 interface ScheduleOverviewProps {
     availabilityData: any;
@@ -21,50 +25,38 @@ export function ScheduleOverview({
     setDuration,
     openBookingModal,
 }: ScheduleOverviewProps) {
+    const t = useTranslations("coachDetails");
+    const activeLocale = useLocale();
+
     return (
         <div className="my-16">
-            <h2 className="font-headline text-3xl font-bold mb-8">Schedule</h2>
-
-            <div className="flex items-start gap-4 p-4 mb-8 rounded-lg bg-primary/5 border border-primary/10">
-                <Info className="h-5 w-5 text-primary mt-0.5" />
-                <p className="text-sm text-foreground/80 leading-relaxed">
-                    Choose the time for your first lesson. The timings are displayed in
-                    your local timezone.
+            <div className="my-20">
+                <h2 className="font-headline text-3xl font-bold mb-8">
+                    {t("schedule")}
+                </h2>
+                <p className="text-muted-foreground mb-8">
+                    {t("scheduleInfo")}
                 </p>
             </div>
 
-            <div className="bg-muted/30 p-1 rounded-xl flex mb-8 max-w-sm">
-                <button
-                    className={cn(
-                        "flex-1 py-3 text-sm font-semibold transition-all rounded-lg",
-                        duration === "30"
-                            ? "bg-background shadow-sm text-primary"
-                            : "text-muted-foreground hover:text-foreground"
-                    )}
-                    onClick={() => setDuration("30")}
-                >
-                    30 min
-                </button>
-                <button
-                    className={cn(
-                        "flex-1 py-3 text-sm font-semibold transition-all rounded-lg",
-                        duration === "60"
-                            ? "bg-background shadow-sm text-primary"
-                            : "text-muted-foreground hover:text-foreground"
-                    )}
-                    onClick={() => setDuration("60")}
-                >
-                    60 min
-                </button>
-            </div>
+            <Select value={duration} onValueChange={setDuration}>
+                <SelectTrigger className="w-[180px] mb-8">
+                    <SelectValue placeholder="Select duration" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="30">30 {t("min")}</SelectItem>
+                    <SelectItem value="60">60 {t("min")}</SelectItem>
+                    <SelectItem value="90">90 {t("min")}</SelectItem>
+                </SelectContent>
+            </Select>
 
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-6">
                     <div className="flex items-center border rounded-lg overflow-hidden bg-background">
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="h-9 w-9 rounded-none border-r hover:bg-muted"
+                            className="h-10 w-10 rounded-none border-r hover:bg-muted"
                             onClick={() => setWeekOffset((prev) => prev - 1)}
                         >
                             <ChevronLeft className="h-4 w-4" />
@@ -72,13 +64,13 @@ export function ScheduleOverview({
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="h-9 w-9 rounded-none hover:bg-muted"
+                            className="h-10 w-10 rounded-none hover:bg-muted"
                             onClick={() => setWeekOffset((prev) => prev + 1)}
                         >
                             <ChevronRight className="h-4 w-4" />
                         </Button>
                     </div>
-                    <span className="font-bold text-base">
+                    <span className="font-bold text-lg">
                         {(() => {
                             const start = new Date();
                             start.setDate(start.getDate() + weekOffset * 7);
@@ -86,53 +78,69 @@ export function ScheduleOverview({
                             end.setDate(end.getDate() + 6);
 
                             const formatShort = (d: Date) =>
-                                d.toLocaleDateString("en-US", {
-                                    month: "short",
+                                d.toLocaleDateString(activeLocale, {
+                                    month: "long",
                                     day: "numeric",
                                 });
                             const formatYear = (d: Date) => d.getFullYear();
 
-                            if (start.getFullYear() !== end.getFullYear()) {
-                                return `${formatShort(start)}, ${start.getFullYear()} – ${formatShort(
-                                    end
-                                )}, ${end.getFullYear()}`;
+                            // Localization for specific range format in the image: "5–11 mars 2026"
+                            const startDay = start.getDate();
+                            const endDay = end.getDate();
+                            const month = end.toLocaleDateString("fr-FR", { month: "long" });
+                            const year = formatYear(end);
+
+                            if (start.getMonth() !== end.getMonth()) {
+                                return `${startDay} ${start.toLocaleDateString("fr-FR", { month: "short" })} – ${endDay} ${month} ${year} `;
                             }
-                            return `${formatShort(start)} – ${start.getMonth() === end.getMonth()
-                                    ? end.getDate()
-                                    : formatShort(end)
-                                }, ${formatYear(end)}`;
+                            return `${startDay}–${endDay} ${month} ${year} `;
                         })()}
                     </span>
                 </div>
                 <div className="flex flex-col items-end">
-                    <div className="flex items-center gap-6 text-sm text-foreground/70 border rounded-lg px-4 py-2 bg-background select-none cursor-default min-w-[220px] justify-between">
+                    <div className="flex items-center gap-6 text-sm text-foreground border rounded-lg px-4 py-2 bg-background select-none cursor-default min-w-[240px] justify-between h-14">
                         <div className="flex flex-col">
-                            <span className="font-medium">
+                            <span className="font-medium text-base">
                                 {Intl.DateTimeFormat().resolvedOptions().timeZone}
                             </span>
-                            <span className="text-[10px] text-muted-foreground">
+                            <span className="text-xs text-muted-foreground uppercase">
                                 GMT {new Date().getTimezoneOffset() / -60 >= 0 ? "+" : ""}
-                                {new Date().getTimezoneOffset() / -60}:00
+                                {Math.abs(new Date().getTimezoneOffset() / -60)}:00
                             </span>
                         </div>
-                        <ChevronRight className="h-4 w-4 rotate-90 text-muted-foreground" />
+                        <ChevronRight className="h-5 w-5 rotate-90 text-foreground" />
                     </div>
                 </div>
             </div>
 
-            <div className="relative mt-12 mb-8">
-                <div className="absolute -top-4 left-[14.28%] right-0 h-1 bg-primary rounded-full" />
-
-                <div className="grid grid-cols-7 border-t pt-6">
+            <div className="relative mt-8 mb-8">
+                <div className="grid grid-cols-7 gap-1 mb-6">
                     {Array.from({ length: 7 }, (_, i) => {
                         const d = new Date();
                         d.setDate(d.getDate() + weekOffset * 7 + i);
-                        const dayName = d.toLocaleDateString("en-US", { weekday: "short" });
+                        const isPast = d < new Date(new Date().setHours(0, 0, 0, 0));
+                        return (
+                            <div
+                                key={i}
+                                className={cn(
+                                    "h-1.5 rounded-full",
+                                    isPast ? "bg-muted" : "bg-primary"
+                                )}
+                            />
+                        );
+                    })}
+                </div>
+
+                <div className="grid grid-cols-7">
+                    {Array.from({ length: 7 }, (_, i) => {
+                        const d = new Date();
+                        d.setDate(d.getDate() + weekOffset * 7 + i);
+                        const dayName = d.toLocaleDateString("fr-FR", { weekday: "short" }).replace(/\.$/, "");
+                        const formattedDayName = dayName.charAt(0).toUpperCase() + dayName.slice(1);
+                        const dayNum = d.getDate();
                         const dayFullName = d.toLocaleDateString("en-US", {
                             weekday: "long",
                         }).toLowerCase();
-                        const dayNum = d.getDate();
-                        const isToday = i === 0 && weekOffset === 0;
 
                         const dayAvail = availabilityData?.[dayFullName];
                         let slotsForDay: string[] = [];
@@ -148,51 +156,48 @@ export function ScheduleOverview({
                                     .toString()
                                     .padStart(2, "0");
                                 const m = (t % 60).toString().padStart(2, "0");
-                                slotsForDay.push(`${h}:${m}`);
+                                slotsForDay.push(`${h}:${m} `);
                             }
                         }
 
                         return (
                             <div key={i} className="flex flex-col items-center">
                                 <div className="text-center mb-8">
-                                    <span className="text-xs text-muted-foreground block mb-1 font-medium">
-                                        {dayName}
+                                    <span className="text-sm text-foreground/70 block mb-1 font-medium">
+                                        {formattedDayName}.
                                     </span>
-                                    <span
-                                        className={cn(
-                                            "text-lg font-bold",
-                                            isToday && "text-primary"
-                                        )}
-                                    >
+                                    <span className="text-lg font-medium text-foreground">
                                         {dayNum}
                                     </span>
                                 </div>
-                                <div className="flex flex-col gap-5 w-full items-center">
-                                    {slotsForDay.slice(0, 7).map((time, idx) => (
+                                <div className="flex flex-col gap-6 w-full items-center">
+                                    {slotsForDay.slice(0, 6).map((time, idx) => (
                                         <button
                                             key={idx}
-                                            className="text-sm font-bold text-foreground hover:text-primary underline decoration-foreground/30 hover:decoration-primary transition-all underline-offset-4"
+                                            className="text-base font-bold text-foreground hover:text-primary underline decoration-foreground hover:decoration-primary transition-all underline-offset-[6px] decoration-1"
                                             onClick={openBookingModal}
                                         >
                                             {time}
                                         </button>
                                     ))}
-                                    {slotsForDay.length > 7 && (
-                                        <button
-                                            className="text-[10px] font-bold text-muted-foreground hover:text-primary transition-colors mt-1 uppercase"
-                                            onClick={openBookingModal}
-                                        >
-                                            + more
-                                        </button>
-                                    )}
                                     {slotsForDay.length === 0 && (
-                                        <span className="h-2 w-2 rounded-full bg-muted/30 mt-2" />
+                                        <div className="h-2 w-2 rounded-full bg-transparent mt-2" />
                                     )}
                                 </div>
                             </div>
                         );
                     })}
                 </div>
+            </div>
+
+            <div className="flex justify-center mt-12">
+                <Button
+                    variant="outline"
+                    className="rounded-xl px-12 py-6 text-base font-bold border-muted-foreground/30 hover:bg-muted/5 transition-all h-auto"
+                    onClick={openBookingModal}
+                >
+                    {t("viewAllSchedule")}
+                </Button>
             </div>
         </div>
     );

@@ -1,4 +1,27 @@
 {
+  "coaches": {
+    "title": "Expert Coaches",
+    "description": "Unlock your potential with 1-on-1 guidance from professionals who have been in your shoes.",
+    "searchPlaceholder": "Search by name, company, or role...",
+    "speciality": "Speciality",
+    "allSpecialities": "All specialties",
+    "pricePerHour": "Price per hour",
+    "anyPrice": "Any price",
+    "companyBackground": "Company background",
+    "anyCompany": "Any company",
+    "academicBackground": "Academic background",
+    "anySchool": "Any school",
+    "clearFilters": "Clear all filters",
+    "resultsCount": "{count, plural, =0 {No coaches found} one {# coach available} other {# coaches available}}",
+    "loading": "Finding the best coaches for you...",
+    "noCoachesFoundMatching": "No coaches found matching \"{search}\"",
+    "noCoachesFound": "No coaches found matching your criteria.",
+    "adjustFilters": "Try adjusting your filters or search terms.",
+    "all": "All",
+    "studentsCount": "{count}+ students",
+    "viewProfile": "View Profile",
+    "noCoachesAvailable": "No coaches available at the moment"
+  },
   "programDetails": {
     "browseAll": "Browse all programs",
     "programInfoNotAvailable": "Program information not available.",
@@ -114,7 +137,16 @@
     "reviewsFor": "Reviews for {name}",
     "reviewsSummary": "See what others have to say about coaching with {name}.",
     "browseCoaches": "Browse Coaches",
-    "verified": "Verified"
+    "verified": "Verified",
+    "resume": "Resume",
+    "workExperience": "Work experience",
+    "at": "at",
+    "specialities": "Specialities",
+    "schedule": "Schedule",
+    "scheduleInfo": "Choose the time for your first lesson. The timings are displayed in your local timezone.",
+    "min": "min",
+    "viewAllSchedule": "View all schedule",
+    "today": "Today"
   },
   "reviewsPage": {
     "loading": "Loading reviews...",

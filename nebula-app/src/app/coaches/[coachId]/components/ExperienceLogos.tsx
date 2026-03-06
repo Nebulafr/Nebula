@@ -1,16 +1,19 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 interface ExperienceLogosProps {
     coach: any;
 }
 
 export function ExperienceLogos({ coach }: ExperienceLogosProps) {
+    const t = useTranslations("coachDetails");
     if (!coach.pastCompanies || coach.pastCompanies.length === 0) return null;
 
     return (
         <div className="mt-8">
             <h4 className="text-sm font-semibold text-muted-foreground">
-                {coach.fullName.split(" ")[0]} has worked at:
+                {t("workedAt", { name: coach.fullName.split(" ")[0] })}
             </h4>
             <div className="mt-4 flex flex-wrap items-center gap-4">
                 {coach.pastCompanies.map((company: string, idx: number) => (

@@ -18,6 +18,7 @@ import {
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 interface ReviewsSectionProps {
     coach: any;
@@ -53,12 +54,13 @@ export function ReviewsSection({
     isStudent,
 }: ReviewsSectionProps) {
     const params = useParams<{ coachId: string }>();
+    const t = useTranslations("coachDetails");
 
     return (
         <section className="mt-20">
             <div className="flex items-center justify-between mb-8">
                 <h2 className="font-headline text-2xl font-bold">
-                    Reviews ({coach.totalReviews || 0})
+                    {t("reviewsCount", { count: coach.totalReviews || 0 })}
                 </h2>
                 <Dialog open={isReviewDialogOpen} onOpenChange={setIsReviewDialogOpen}>
                     <DialogTrigger asChild>
@@ -75,14 +77,14 @@ export function ReviewsSection({
                         {!reviewSubmitted ? (
                             <>
                                 <DialogHeader>
-                                    <DialogTitle>Share your review</DialogTitle>
+                                    <DialogTitle>{t("shareReview")}</DialogTitle>
                                     <DialogDescription>
-                                        Let others know about your experience with {coach.fullName}.
+                                        {t("shareReviewDesc", { name: coach.fullName })}
                                     </DialogDescription>
                                 </DialogHeader>
                                 <form onSubmit={handleReviewSubmit} className="grid gap-6 py-4">
                                     <div className="grid gap-2">
-                                        <Label>Your Rating</Label>
+                                        <Label>{t("yourRating")}</Label>
                                         <div className="flex items-center gap-1">
                                             {[...Array(5)].map((_, i) => {
                                                 const starValue = i + 1;
@@ -104,10 +106,10 @@ export function ReviewsSection({
                                         </div>
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label htmlFor="review-text">Share your thoughts</Label>
+                                        <Label htmlFor="review-text">{t("shareThoughts")}</Label>
                                         <Textarea
                                             id="review-text"
-                                            placeholder="What did you like or dislike? What should other students know?"
+                                            placeholder={t("textareaPlaceholder")}
                                             rows={4}
                                             value={reviewText}
                                             onChange={(e) => setReviewText(e.target.value)}
@@ -121,7 +123,7 @@ export function ReviewsSection({
                                                 rating === 0 || !reviewText.trim() || isSubmittingReview
                                             }
                                         >
-                                            {isSubmittingReview ? "Submitting..." : "Submit Review"}
+                                            {isSubmittingReview ? t("submitting") : t("submitReview")}
                                         </Button>
                                     </DialogFooter>
                                 </form>
@@ -129,12 +131,12 @@ export function ReviewsSection({
                         ) : (
                             <div className="text-center py-8">
                                 <CheckCircle className="h-16 w-16 mx-auto mb-4 text-green-500" />
-                                <h3 className="text-xl font-semibold">Thank You!</h3>
+                                <h3 className="text-xl font-semibold">{t("thankYou")}</h3>
                                 <p className="text-muted-foreground mt-2">
-                                    Your review has been submitted successfully.
+                                    {t("reviewSubmitted")}
                                 </p>
                                 <Button onClick={resetReviewForm} className="mt-6">
-                                    Close
+                                    {t("close")}
                                 </Button>
                             </div>
                         )}
@@ -158,7 +160,7 @@ export function ReviewsSection({
                                     &quot;{review.content}&quot;
                                 </p>
                                 <p className="mt-4 text-sm font-semibold">
-                                    {review.reviewer?.fullName || "Anonymous"}
+                                    {review.reviewer?.fullName || t("anonymous")}
                                 </p>
                             </CardContent>
                         </Card>
@@ -166,7 +168,7 @@ export function ReviewsSection({
             </div>
             <Button variant="link" className="mt-6 px-0" asChild>
                 <Link href={`/coaches/${params.coachId}/reviews`}>
-                    View all reviews <ArrowRight className="ml-2 h-4 w-4" />
+                    {t("viewAllReviews")} <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
             </Button>
         </section>

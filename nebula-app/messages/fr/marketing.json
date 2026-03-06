@@ -103,16 +103,6 @@
     "unknownCoach": "Coach inconnu",
     "coachFallback": "Coach"
   },
-  "coaches": {
-    "title": "Trouvez le coach idéal pour vos objectifs",
-    "description": "Connectez-vous avec des professionnels expérimentés qui pourront vous guider vers vos objectifs de carrière. Parcourez les coachs par spécialité et trouvez celui qui vous correspond.",
-    "searchPlaceholder": "Rechercher par nom ou spécialité",
-    "all": "Tous",
-    "studentsCount": "{count}+ étudiants",
-    "viewProfile": "Voir le profil",
-    "noCoachesFound": "Aucun coach trouvé correspondant à \"{search}\"",
-    "noCoachesAvailable": "Aucun coach disponible pour le moment"
-  },
   "events": {
     "title": "Événements",
     "webinar": "Webinaire",

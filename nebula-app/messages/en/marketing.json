@@ -103,16 +103,6 @@
     "unknownCoach": "Unknown Coach",
     "coachFallback": "Coach"
   },
-  "coaches": {
-    "title": "Find the perfect coach for your goals",
-    "description": "Connect with experienced professionals who can guide you towards your career objectives. Browse coaches by specialty and find the perfect match.",
-    "searchPlaceholder": "Search by name or specialty",
-    "all": "All",
-    "studentsCount": "{count}+ students",
-    "viewProfile": "View Profile",
-    "noCoachesFound": "No coaches found matching \"{search}\"",
-    "noCoachesAvailable": "No coaches available at the moment"
-  },
   "events": {
     "title": "Events",
     "webinar": "Webinar",

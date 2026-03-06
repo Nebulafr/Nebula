@@ -4,19 +4,21 @@ import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { Briefcase, GraduationCap } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 interface ProgramsSectionProps {
     coach: any;
 }
 
 export function ProgramsSection({ coach }: ProgramsSectionProps) {
+    const t = useTranslations("coachDetails");
     if (!coach.programs || coach.programs.length === 0) return null;
 
     return (
         <div className="my-16">
             <div className="mb-6">
                 <h2 className="font-headline text-2xl font-bold">
-                    Programs by {coach.fullName}
+                    {t("programsBy", { name: coach.fullName })}
                 </h2>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">

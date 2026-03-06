@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { useTranslations, useLocale } from "next-intl";
 
 interface BookingModalProps {
     isOpen: boolean;
@@ -38,6 +39,8 @@ export function BookingModal({
         time: string;
     } | null>(null);
     const [weekOffset, setWeekOffset] = useState(0);
+    const t = useTranslations("coachDetails");
+    const activeLocale = useLocale();
 
     // Generate slots for the UI based on 30min intervals
     const rawTimeSlots = Array.from({ length: 24 }, (_, i) => {
@@ -51,7 +54,7 @@ export function BookingModal({
         // To match screenshot "Mar 2-8", let's assume it starts from the first day of the displayed week
         d.setDate(d.getDate() + weekOffset * 7 + i);
         return {
-            name: d.toLocaleDateString("en-US", { weekday: "short" }),
+            name: d.toLocaleDateString(activeLocale, { weekday: "short" }),
             fullName: d
                 .toLocaleDateString("en-US", { weekday: "long" })
                 .toLowerCase(),
@@ -84,7 +87,7 @@ export function BookingModal({
         const start = weekDays[0].fullDate;
         const end = weekDays[6].fullDate;
 
-        const formatMonth = (d: Date) => d.toLocaleDateString("en-US", { month: "short" });
+        const formatMonth = (d: Date) => d.toLocaleDateString(activeLocale, { month: "short" });
         const formatDay = (d: Date) => d.getDate();
         const formatYear = (d: Date) => d.getFullYear();
 
@@ -97,16 +100,10 @@ export function BookingModal({
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="sm:max-w-[700px] p-8 overflow-hidden gap-0 rounded-3xl">
-                <button
-                    onClick={onClose}
-                    className="absolute right-6 top-6 rounded-full p-2 hover:bg-muted transition-colors"
-                >
-                    <X className="h-5 w-5 text-muted-foreground" />
-                </button>
 
                 <DialogHeader className="mb-8">
                     <DialogTitle className="text-2xl font-bold text-left">
-                        Select a time slot
+                        {t("selectTimeSlot")}
                     </DialogTitle>
                 </DialogHeader>
 
@@ -121,7 +118,7 @@ export function BookingModal({
                         )}
                         onClick={() => setDuration("30")}
                     >
-                        30 Min
+                        30 {t("min")}
                     </button>
                     <button
                         className={cn(
@@ -132,7 +129,7 @@ export function BookingModal({
                         )}
                         onClick={() => setDuration("60")}
                     >
-                        60 Min
+                        60 {t("min")}
                     </button>
                 </div>
 
@@ -149,7 +146,7 @@ export function BookingModal({
                                 setSelectedSlot(null);
                             }}
                         >
-                            Today
+                            {t("today")}
                         </Button>
                         <div className="flex border rounded-lg overflow-hidden">
                             <button
@@ -239,7 +236,7 @@ export function BookingModal({
                     onClick={() => selectedSlot && onConfirm(selectedSlot)}
                     disabled={!selectedSlot || isCheckingOut}
                 >
-                    {isCheckingOut ? "Processing..." : `Confirm Booking - $${calculatedPrice}`}
+                    {isCheckingOut ? t("processing") : `${t("confirmBooking")} - €${calculatedPrice}`}
                 </Button>
             </DialogContent>
         </Dialog>

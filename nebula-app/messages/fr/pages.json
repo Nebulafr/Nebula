@@ -1,4 +1,27 @@
 {
+  "coaches": {
+    "title": "Coachs Experts",
+    "description": "Libérez votre potentiel grâce à un accompagnement personnalisé par des professionnels qui sont passés par là.",
+    "searchPlaceholder": "Rechercher par nom, entreprise ou rôle...",
+    "speciality": "Spécialité",
+    "allSpecialities": "Toutes les spécialités",
+    "pricePerHour": "Prix par heure",
+    "anyPrice": "Tous les prix",
+    "companyBackground": "Parcours entreprise",
+    "anyCompany": "Toutes les entreprises",
+    "academicBackground": "Parcours académique",
+    "anySchool": "Toutes les écoles",
+    "clearFilters": "Effacer tous les filtres",
+    "resultsCount": "{count, plural, =0 {Aucun coach trouvé} one {# coach disponible} other {# coachs disponibles}}",
+    "loading": "Recherche des meilleurs coachs pour vous...",
+    "noCoachesFoundMatching": "Aucun coach trouvé correspondant à \"{search}\"",
+    "noCoachesFound": "Aucun coach trouvé correspondant à vos critères.",
+    "adjustFilters": "Essayez d'ajuster vos filtres ou vos termes de recherche.",
+    "all": "Tous",
+    "studentsCount": "{count}+ étudiants",
+    "viewProfile": "Voir le profil",
+    "noCoachesAvailable": "Aucun coach disponible pour le moment"
+  },
   "programDetails": {
     "browseAll": "Parcourir tous les programmes",
     "failedSubmitting": "Échec de l'envoi de l'avis. Veuillez réessayer.",
@@ -110,7 +133,16 @@
     "reviewsFor": "Avis pour {name}",
     "reviewsSummary": "Découvrez ce que les autres disent du coaching avec {name}.",
     "browseCoaches": "Parcourir les coachs",
-    "verified": "Vérifié"
+    "verified": "Vérifié",
+    "resume": "CV",
+    "workExperience": "Expérience professionnelle",
+    "at": "chez",
+    "specialities": "Spécialités",
+    "schedule": "Agenda",
+    "scheduleInfo": "Choisissez l'heure de votre premier cours. Les horaires sont affichés dans votre fuseau horaire local.",
+    "min": "min",
+    "viewAllSchedule": "Voir tout l'agenda",
+    "today": "Aujourd'hui"
   },
   "reviewsPage": {
     "loading": "Chargement des avis...",
@@ -123,7 +155,7 @@
     "inConversation": "EN CONVERSATION AVEC LES MEILLEURES ÉCOLES",
     "problem": {
       "title": "Le Problème",
-      "p1": "Les universités excellent dans la transmission de connaissances théoriques, mais les étudiants ont souvent du mal à combler le fossé entre le monde académique et les exigences pratiques du marché du travail.",
+      "p1": "Les universités excel dans la transmission de connaissances théoriques, mais les étudiants ont souvent du mal à combler le fossé entre le monde académique et les exigences pratiques du marché du travail.",
       "p2": "Ils manquent d'exposition aux défis réels des entreprises et aux compétences spécifiques en entretien nécessaires pour décrocher des rôles compétitifs."
     },
     "solution": {
@@ -260,7 +292,7 @@
     "sections": {
       "acceptance": {
         "title": "1. Acceptation des conditions",
-        "p1": "En accédant à nos Services ou en les utilisant, vous acceptez d'être lié par ces Conditions et par notre Politique de confidentialité. Si vous n'acceptez pas ces Conditions, vous ne pouvez pas utiliser nos Services. Nous pouvons modifier ces Conditions à tout moment, et une telle modification prendra effet dès sa publication sur cette page."
+        "p1": "En accédant à nos Services ou en les utilisant, vous acceptez d'être lié par ces Conditions et par notre Politique de confidentialité. Si vous n'acceptez pas ces Conditions, vous ne pouvez pas utiliser nos Services. Nous pouvons modifier ces Conditions à tout moment, et une telle modification prendera effet dès sa publication sur cette page."
       },
       "accounts": {
         "title": "2. Comptes d'utilisateurs",
@@ -300,7 +332,7 @@
     "mission": "Notre mission",
     "missionDesc": "Démocratiser l'accès à un coaching de carrière de classe mondiale et permettre aux individus de réaliser leurs rêves professionnels, quels que soient leur origine ou leur situation géographique.",
     "aboutUs": "À propos de nous",
-    "aboutUsDesc": "Nous ne sommes pas une plateforme d'IA. Au fond, nous défendons les interactions centrées sur l'humain. Cela ne signifie pas que nous sommes contre l'IA, bien au contraire. En fait, l'IA est un puissant catalyseur de notre mission : connecter les étudiants avec des coachs pour une immersion et une croissance professionnelle dans le monde réel.",
+    "aboutUsDesc": "Nous ne sommes pas une plateforme d'IA. Au fond, we champion human-centered interactions. Cela ne signifie pas que nous sommes contre l'IA, bien au contraire. En fait, l'IA est un puissant catalyseur de notre mission : connecter les étudiants avec des coachs pour une immersion et une croissance professionnelle dans le monde réel.",
     "ourStory": "Notre histoire",
     "storyP1": "Nebula est née d'un simple constat : d'innombrables étudiants talentueux obtenaient leur diplôme avec de solides connaissances académiques mais manquaient des compétences pratiques et des connexions nécessaires pour décrocher l'emploi de leurs rêves. Nous avons vu l'opportunité de combler ce fossé.",
     "storyP2": "Fondée par une équipe de professionnels et d'éducateurs expérimentés, Nebula a été créée pour connecter les étudiants avec des experts du secteur grâce à des expériences d'apprentissage immersives et pratiques. Nous pensons que le mentorat est la clé pour libérer le potentiel et nous nous engageons à bâtir une communauté où le savoir est partagé et les carrières sont lancées.",

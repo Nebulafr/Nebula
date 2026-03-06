@@ -83,7 +83,7 @@ function SearchableFilter({
           <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
           <input
             className="flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
-            placeholder="Type to search..."
+            placeholder={placeholder}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -145,7 +145,7 @@ function SearchableFilter({
 }
 
 const priceRanges = [
-  { label: "Any price", value: "all" },
+  { key: "anyPrice", value: "all" },
   { label: "€0 – €50", value: "0-50" },
   { label: "€50 – €100", value: "50-100" },
   { label: "€100 – €200", value: "100-200" },
@@ -250,8 +250,8 @@ function CoachesPageContent() {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
               {/* Specialty Filter */}
               <SearchableFilter
-                label="Speciality"
-                placeholder="All specialties"
+                label={t("speciality")}
+                placeholder={t("allSpecialities")}
                 value={selectedSpecialty}
                 onValueChange={setSelectedSpecialty}
                 options={specialties}
@@ -260,19 +260,19 @@ function CoachesPageContent() {
               {/* Price Filter */}
               <div className="flex flex-col gap-1.5 p-3 rounded-xl border bg-card hover:border-primary transition-colors cursor-pointer">
                 <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-1">
-                  Price per hour
+                  {t("pricePerHour")}
                 </Label>
                 <Select
                   value={selectedPriceRange}
                   onValueChange={setSelectedPriceRange}
                 >
                   <SelectTrigger className="border-0 p-0 h-auto focus:ring-0 shadow-none text-sm font-semibold">
-                    <SelectValue placeholder="Any price" />
+                    <SelectValue placeholder={t("anyPrice")} />
                   </SelectTrigger>
                   <SelectContent>
                     {priceRanges.map((range) => (
                       <SelectItem key={range.value} value={range.value}>
-                        {range.label}
+                        {range.key ? t(range.key) : range.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -281,8 +281,8 @@ function CoachesPageContent() {
 
               {/* Company Filter */}
               <SearchableFilter
-                label="Company background"
-                placeholder="Any company"
+                label={t("companyBackground")}
+                placeholder={t("anyCompany")}
                 value={selectedCompany}
                 onValueChange={setSelectedCompany}
                 options={companies}
@@ -290,8 +290,8 @@ function CoachesPageContent() {
 
               {/* School Filter */}
               <SearchableFilter
-                label="Academic background"
-                placeholder="Any school"
+                label={t("academicBackground")}
+                placeholder={t("anySchool")}
                 value={selectedSchool}
                 onValueChange={setSelectedSchool}
                 options={schools}
@@ -306,7 +306,7 @@ function CoachesPageContent() {
                   onClick={clearFilters}
                   className="text-muted-foreground hover:text-primary h-8"
                 >
-                  <X className="mr-2 h-4 w-4" /> Clear all filters
+                  <X className="mr-2 h-4 w-4" /> {t("clearFilters")}
                 </Button>
               )}
             </div>
@@ -316,15 +316,14 @@ function CoachesPageContent() {
         <section className="container pb-20">
           <div className="mb-8 flex items-center justify-between border-b pb-4">
             <h2 className="font-headline text-2xl font-bold">
-              {filteredCoaches.length} coach
-              {filteredCoaches.length !== 1 ? "es" : ""} available
+              {t("resultsCount", { count: filteredCoaches.length })}
             </h2>
           </div>
 
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
               <Loader2 className="h-10 w-10 animate-spin mb-4 text-primary" />
-              <p className="text-lg font-medium">Finding the best coaches for you...</p>
+              <p className="text-lg font-medium">{t("loading")}</p>
             </div>
           ) : filteredCoaches.length > 0 ? (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -338,13 +337,13 @@ function CoachesPageContent() {
             <div className="py-20 text-center text-muted-foreground border rounded-2xl border-dashed bg-muted/20">
               <Search className="h-12 w-12 mx-auto mb-4 opacity-20" />
               <p className="text-lg font-medium">
-                No coaches found matching your criteria.
+                {t("noCoachesFound")}
               </p>
               <p className="text-sm mb-6">
-                Try adjusting your filters or search terms.
+                {t("adjustFilters")}
               </p>
               <Button variant="outline" onClick={clearFilters}>
-                Clear all filters
+                {t("clearFilters")}
               </Button>
             </div>
           )}
