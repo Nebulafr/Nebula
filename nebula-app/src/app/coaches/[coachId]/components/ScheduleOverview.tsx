@@ -46,7 +46,6 @@ export function ScheduleOverview({
                 <SelectContent>
                     <SelectItem value="30">30 {t("min")}</SelectItem>
                     <SelectItem value="60">60 {t("min")}</SelectItem>
-                    <SelectItem value="90">90 {t("min")}</SelectItem>
                 </SelectContent>
             </Select>
 
