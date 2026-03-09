@@ -35,7 +35,7 @@ export class AuthService {
   }
 
   async register(data: RegisterData) {
-    const { email, password, fullName, role } = data;
+    const { email, password, fullName, country, countryIso, role } = data;
 
     const existingUser = await this.findUserByEmail(email);
     if (existingUser) {
@@ -57,11 +57,13 @@ export class AuthService {
         email,
         hashedPassword,
         fullName,
+        country,
+        countryIso,
         role,
         status: "PENDING",
         verificationToken,
         verificationTokenExpires,
-      },
+      } as any,
       select: {
         id: true,
         email: true,
@@ -286,8 +288,7 @@ export class AuthService {
 
   async updateProfile(userId: string, data: Record<string, unknown>) {
     try {
-      // Only allow updating specific fields for security
-      const allowedFields = ["fullName", "avatarUrl"];
+      const allowedFields = ["fullName", "avatarUrl", "country", "countryIso"];
       const updateData: Record<string, string> = {} as Record<string, string>;
 
       for (const field of allowedFields) {
@@ -296,7 +297,6 @@ export class AuthService {
         }
       }
 
-      // Handle avatar upload if avatarUrl is a base64 string
       if (updateData.avatarUrl && updateData.avatarUrl.startsWith("data:")) {
         const uploadResult = await uploadService.uploadAvatar(updateData.avatarUrl, userId);
         updateData.avatarUrl = uploadResult.url;
@@ -318,8 +318,10 @@ export class AuthService {
           fullName: true,
           email: true,
           avatarUrl: true,
+          country: true,
+          countryIso: true,
           role: true,
-        },
+        } as any,
       });
 
       return sendSuccess({ user: updatedUser }, "Profile updated successfully");
@@ -339,7 +341,6 @@ export class AuthService {
     try {
       const { currentPassword, newPassword } = data;
 
-      // Get user with password
       const user = await prisma.user.findUnique({
         where: { id: userId },
         select: {

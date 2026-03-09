@@ -9,6 +9,7 @@ import {
 import { NotFoundException } from "../utils/http-exception";
 import { sendSuccess } from "../utils/send-response";
 import { extractUserFromRequest } from "../utils/extract-user";
+import { stripeAccountService } from "./stripe-account.service";
 
 type CoachWithUserAndSpecialties = Prisma.CoachGetPayload<{
   include: {
@@ -189,28 +190,52 @@ export class CoachService {
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")}-${userId.substring(0, 8)}`;
 
+    let specialtiesData: { categoryId: string }[] = [];
+    if (data.specialties && data.specialties.length > 0) {
+      for (const specialtyName of data.specialties) {
+        const slug = specialtyName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+        const category = await prisma.category.upsert({
+          where: { slug },
+          update: {},
+          create: { name: specialtyName, slug },
+        });
+        specialtiesData.push({ categoryId: category.id });
+      }
+    }
+
     const newProfile = await prisma.$transaction(async (tx) => {
-      // Update user's full name if provided
       await tx.user.update({
         where: { id: userId },
         data: { fullName: data.fullName },
       });
 
-      // Fetch or verify categories for specialties
-      let specialtiesData: { categoryId: string }[] = [];
-      if (data.specialties && data.specialties.length > 0) {
-        const matchedCategories = await tx.category.findMany({
-          where: {
-            name: { in: data.specialties },
-          },
+      const existingCoach = await tx.coach.findUnique({ where: { userId } });
+      if (existingCoach && specialtiesData.length > 0) {
+        await tx.coachCategory.deleteMany({
+          where: { coachId: existingCoach.id },
         });
-        specialtiesData = matchedCategories.map((cat) => ({
-          categoryId: cat.id,
-        }));
       }
 
-      return await tx.coach.create({
-        data: {
+      return await tx.coach.upsert({
+        where: { userId },
+        update: {
+          title: data.title,
+          bio: data.bio,
+          style: data.style,
+          hourlyRate: data.hourlyRate,
+          pastCompanies: data.pastCompanies || [],
+          linkedinUrl: data.linkedinUrl || null,
+          availability: data.availability,
+          qualifications: data.qualifications || [],
+          experience: data.experience || null,
+          timezone: data.timezone || null,
+          languages: data.languages || [],
+          slug,
+          specialties: {
+            create: specialtiesData,
+          },
+        },
+        create: {
           userId,
           title: data.title,
           bio: data.bio,
@@ -231,29 +256,47 @@ export class CoachService {
       });
     });
 
+    // Create Stripe account for the coach
+    // This is done after profile creation but we don't await it to avoid blocking the response
+    // if it fails, it will be retried when the coach visits the payouts page
+    stripeAccountService
+      .createAccount(userId, {
+        email: data.email,
+        fullName: data.fullName,
+        countryIso: data.countryIso,
+      })
+      .catch((err) => {
+        console.error("Failed to create Stripe account in coach service:", err);
+      });
+
     return sendSuccess(newProfile, "Coach profile created successfully", 201);
   }
 
   async updateCoach(userId: string, data: CoachUpdateData) {
+    // Resolve category names to actual IDs, creating new categories if necessary
+    let specialtiesListData: { categoryId: string }[] = [];
+    if (data.specialties && data.specialties.length > 0) {
+      for (const specialtyName of data.specialties) {
+        const slug = specialtyName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+        const category = await prisma.category.upsert({
+          where: { slug },
+          update: {},
+          create: { name: specialtyName, slug },
+        });
+        specialtiesListData.push({ categoryId: category.id });
+      }
+    }
+
     const updatedProfile = await prisma.$transaction(async (tx) => {
-      // Update user's full name
+      // Update user's full name and country
       await tx.user.update({
         where: { id: userId },
-        data: { fullName: data.fullName },
+        data: { 
+          fullName: data.fullName,
+          country: data.country,
+          countryIso: data.countryIso,
+        },
       });
-
-      // Fetch or verify categories for specialties
-      let specialtiesListData: { categoryId: string }[] = [];
-      if (data.specialties && data.specialties.length > 0) {
-        const matchedCategories = await tx.category.findMany({
-          where: {
-            name: { in: data.specialties },
-          },
-        });
-        specialtiesListData = matchedCategories.map((cat) => ({
-          categoryId: cat.id,
-        }));
-      }
 
       // First, find the coach to get the ID
       const coach = await tx.coach.findUnique({ where: { userId } });

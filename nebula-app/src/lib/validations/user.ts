@@ -4,6 +4,8 @@ export const updateProfileSchema = z.object({
   fullName: z.string().min(1, "Full name is required").max(100, "Name is too long").optional(),
   email: z.string().email("Invalid email address").optional(),
   avatarUrl: z.string().optional(),
+  country: z.string().optional(),
+  countryIso: z.string().optional(),
 });
 
 export const changePasswordSchema = z.object({

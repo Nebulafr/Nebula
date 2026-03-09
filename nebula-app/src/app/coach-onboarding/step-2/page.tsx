@@ -40,6 +40,8 @@ function CoachOnboardingStep2Content() {
   const role = searchParams.get("role");
   const company = searchParams.get("company");
   const linkedin = searchParams.get("linkedin");
+  const country = searchParams.get("country");
+  const countryIso = searchParams.get("countryIso");
 
   const {
     setValue,
@@ -97,7 +99,9 @@ function CoachOnboardingStep2Content() {
     role || ""
   )}&company=${encodeURIComponent(company || "")}&linkedin=${encodeURIComponent(
     linkedin || ""
-  )}&specialties=${encodeURIComponent(JSON.stringify(specialties))}`;
+  )}&specialties=${encodeURIComponent(JSON.stringify(specialties))}&country=${encodeURIComponent(
+    country || ""
+  )}&countryIso=${encodeURIComponent(countryIso || "")}`;
 
   return (
     <div className="w-full min-h-screen lg:grid lg:grid-cols-5">
@@ -196,7 +200,9 @@ function CoachOnboardingStep2Content() {
                   role || ""
                 )}&company=${encodeURIComponent(
                   company || ""
-                )}&linkedin=${encodeURIComponent(linkedin || "")}`}
+                )}&linkedin=${encodeURIComponent(linkedin || "")}&country=${encodeURIComponent(
+                  country || ""
+                )}&countryIso=${encodeURIComponent(countryIso || "")}`}
               >
                 <ArrowLeft className="mr-2 h-5 w-5" /> {tCommon("back")}
               </Link>

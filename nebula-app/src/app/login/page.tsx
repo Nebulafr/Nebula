@@ -88,7 +88,6 @@ export default function LoginPage() {
         password: values.password,
       });
     } catch (error) {
-      // Check if it's an invalid credentials error from the server
       const errorMessage = error instanceof Error ? error.message.toLowerCase() : "";
       if (errorMessage.includes("invalid") && (errorMessage.includes("email") || errorMessage.includes("password"))) {
         toast.error(t("invalidCredentials"));

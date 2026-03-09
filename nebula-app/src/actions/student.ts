@@ -18,6 +18,8 @@ export async function createStudent(studentData: any) {
     timeZone:
       studentData.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone,
     learningGoals: studentData.learningGoals || [],
+    country: studentData.country,
+    countryIso: studentData.countryIso,
   };
 
   return updateStudentProfile(profileData);

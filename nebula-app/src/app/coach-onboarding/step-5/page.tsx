@@ -34,9 +34,7 @@ function CoachOnboardingStep5Content() {
   const searchParams = useSearchParams();
   const { profile, refreshUser } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  const [availability, setAvailability] = useState<
-    Record<string, DayAvailability>
-  >({});
+  const [availability, setAvailability] = useState<Record<string, DayAvailability>>({});
   const [rate, setRate] = useState("");
 
   const role = searchParams.get("role");
@@ -45,6 +43,8 @@ function CoachOnboardingStep5Content() {
   const specialtiesParam = searchParams.get("specialties");
   const motivation = searchParams.get("motivation");
   const style = searchParams.get("style");
+  const country = searchParams.get("country");
+  const countryIso = searchParams.get("countryIso");
 
   const prevStepUrl = `/coach-onboarding/step-4?role=${encodeURIComponent(
     role || ""
@@ -52,7 +52,9 @@ function CoachOnboardingStep5Content() {
     linkedin || ""
   )}&specialties=${encodeURIComponent(
     specialtiesParam || ""
-  )}&motivation=${encodeURIComponent(motivation || "")}`;
+  )}&motivation=${encodeURIComponent(motivation || "")}&country=${encodeURIComponent(
+    country || ""
+  )}&countryIso=${encodeURIComponent(countryIso || "")}`;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,6 +85,8 @@ function CoachOnboardingStep5Content() {
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         languages: ["English"],
         qualifications: [],
+        country: country || "",
+        countryIso: countryIso || "",
       };
 
       const result = await createCoach(coachData);
@@ -95,9 +99,9 @@ function CoachOnboardingStep5Content() {
       setTimeout(() => {
         router.replace("/coach-dashboard");
       }, 100);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error submitting coach application:", error);
-      toast.error(t("submitError"));
+      toast.error(error.message || t("submitError"));
     } finally {
       setIsLoading(false);
     }

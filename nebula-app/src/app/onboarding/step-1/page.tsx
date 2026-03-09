@@ -1,11 +1,9 @@
-/* eslint-disable */
 "use client";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { ArrowRight } from "lucide-react";
-import Link from "next/link";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/images/placeholder-images";
 import { useCategories } from "@/hooks";
@@ -18,13 +16,10 @@ import {
   type StudentOnboardingStep1Data,
 } from "@/lib/validations";
 import { getDefaultCategoryImage } from "@/lib/event-utils";
-const categoryIcons: Record<string, string> = {
-  "Career Prep": "/custom-images/career-prep.svg",
-  "School Admissions": "/custom-images/school.svg",
-  Technology: "/custom-images/skills-assessment.svg",
-  Design: "/custom-images/career-prep.svg",
-  Marketing: "/custom-images/skills-assessment.svg",
-};
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/use-auth";
+import { CountrySelect } from "@/components/ui/country-select";
 
 const categoryColors: Record<string, string> = {
   "Career Prep": "bg-primary/10",
@@ -39,6 +34,15 @@ export default function OnboardingStep1() {
   const tCommon = useTranslations("common.onboarding.common");
   const { data: categoriesResponse, isLoading: loading } = useCategories();
   const categories = categoriesResponse?.data?.categories || [];
+  const router = useRouter();
+  const { profile } = useAuth();
+
+  const [country, setCountry] = useState("");
+  const [countryIso, setCountryIso] = useState("");
+  const [countryError, setCountryError] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const needsCountry = !profile?.country;
 
   const {
     setValue,
@@ -51,8 +55,24 @@ export default function OnboardingStep1() {
       interestedCategoryId: "",
     },
   });
+  // eslint-disable-next-line react-hooks/incompatible-library
   const selectedCategoryId = watch("interestedCategoryId");
   const image = PlaceHolderImages.find((img) => img.id === "about-story");
+
+  const handleContinue = async () => {
+    if (needsCountry && (!country || !countryIso)) {
+      setCountryError("Please select your country");
+      return;
+    }
+    setCountryError("");
+    setSaving(true);
+
+    try {
+      router.push(`/onboarding/step-2?categoryId=${encodeURIComponent(selectedCategoryId || "")}&country=${encodeURIComponent(country)}&countryIso=${encodeURIComponent(countryIso)}`);
+    } catch {
+      setSaving(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -111,14 +131,14 @@ export default function OnboardingStep1() {
             </p>
           </div>
 
-          <div className="flex-1 overflow-y-auto min-h-0 max-h-[500px] scroll-smooth pr-2 custom-scrollbar animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300">
+          <div className="flex-1 overflow-y-auto min-h-0 max-h-[400px] scroll-smooth pr-2 custom-scrollbar animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300">
             <div className="grid grid-cols-1 gap-4 pb-4">
               {categories.map((category: any, idx: number) => (
                 <Card
                   key={category.id}
                   className={`group cursor-pointer rounded-2xl border-2 p-1 transition-all duration-300 hover:scale-[1.01] active:scale-[0.99] ${selectedCategoryId === category.id
-                      ? "border-primary bg-primary/5 shadow-xl shadow-primary/10"
-                      : "border-transparent bg-card hover:border-primary/20 hover:shadow-md"
+                    ? "border-primary bg-primary/5 shadow-xl shadow-primary/10"
+                    : "border-transparent bg-card hover:border-primary/20 hover:shadow-md"
                     }`}
                   onClick={() =>
                     setValue("interestedCategoryId", category.id, { shouldValidate: true })
@@ -149,8 +169,8 @@ export default function OnboardingStep1() {
                       </p>
                     </div>
                     <div className={`h-6 w-6 rounded-full border-2 transition-all duration-300 flex items-center justify-center ${selectedCategoryId === category.id
-                        ? "border-primary bg-primary"
-                        : "border-muted group-hover:border-primary/50"
+                      ? "border-primary bg-primary"
+                      : "border-muted group-hover:border-primary/50"
                       }`}>
                       {selectedCategoryId === category.id && (
                         <div className="h-2 w-2 rounded-full bg-white" />
@@ -168,15 +188,32 @@ export default function OnboardingStep1() {
             </p>
           )}
 
+          {needsCountry && (
+            <div className="grid gap-2 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-400">
+              <label className="text-sm font-semibold text-foreground">
+                Where are you based? <span className="text-destructive">*</span>
+              </label>
+              <CountrySelect
+                value={country}
+                onChange={(val) => { setCountry(val); setCountryError(""); }}
+                onIsoChange={setCountryIso}
+                disabled={saving}
+              />
+              {countryError && (
+                <p className="text-sm font-medium text-destructive">{countryError}</p>
+              )}
+            </div>
+          )}
+
           <div className="flex justify-end pt-4 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-500">
-            <Button size="lg" asChild disabled={!isValid} className="px-10 rounded-full h-14 text-lg font-semibold shadow-lg shadow-primary/20 transition-all active:scale-95 disabled:grayscale">
-              <Link
-                href={`/onboarding/step-2?categoryId=${encodeURIComponent(
-                  selectedCategoryId || ""
-                )}`}
-              >
-                {tCommon("continue")} <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-              </Link>
+            <Button
+              size="lg"
+              disabled={!isValid || saving}
+              onClick={handleContinue}
+              className="px-10 rounded-full h-14 text-lg font-semibold shadow-lg shadow-primary/20 transition-all active:scale-95 disabled:grayscale"
+            >
+              {saving ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : null}
+              {tCommon("continue")} <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
             </Button>
           </div>
         </div>

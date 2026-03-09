@@ -37,6 +37,8 @@ function CoachOnboardingStep4Content() {
   const linkedin = searchParams.get("linkedin");
   const specialties = searchParams.get("specialties");
   const motivation = searchParams.get("motivation");
+  const country = searchParams.get("country");
+  const countryIso = searchParams.get("countryIso");
 
   const {
     register,
@@ -60,7 +62,9 @@ function CoachOnboardingStep4Content() {
     specialties || ""
   )}&motivation=${encodeURIComponent(
     motivation || ""
-  )}&style=${encodeURIComponent(style)}`;
+  )}&style=${encodeURIComponent(style)}&country=${encodeURIComponent(
+    country || ""
+  )}&countryIso=${encodeURIComponent(countryIso || "")}`;
 
   const prevStepUrl = `/coach-onboarding/step-3?role=${encodeURIComponent(
     role || ""
@@ -68,7 +72,9 @@ function CoachOnboardingStep4Content() {
     linkedin || ""
   )}&specialties=${encodeURIComponent(
     specialties || ""
-  )}&motivation=${encodeURIComponent(motivation || "")}`;
+  )}&motivation=${encodeURIComponent(motivation || "")}&country=${encodeURIComponent(
+    country || ""
+  )}&countryIso=${encodeURIComponent(countryIso || "")}`;
 
   return (
     <div className="w-full min-h-screen lg:grid lg:grid-cols-5">

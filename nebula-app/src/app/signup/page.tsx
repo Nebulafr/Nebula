@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -291,6 +292,7 @@ export default function SignupPage() {
                             </FormItem>
                           )}
                         />
+
                         <Button
                           type="submit"
                           className="w-full"

@@ -7,6 +7,8 @@ export const updateStudentSchema = z.object({
   commitment: z.string().min(1, "Commitment level is required"),
   timeZone: z.string().optional(),
   learningGoals: z.array(z.string()).optional(),
+  country: z.string().min(1, "Country is required"),
+  countryIso: z.string().min(2, "Country ISO is required"),
 });
 
 export const studentOnboardingStep1Schema = z.object({

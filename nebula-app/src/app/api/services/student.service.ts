@@ -28,6 +28,16 @@ export class StudentService {
   async updateProfile(userId: string, data: UpdateStudentData) {
     const mappedSkillLevel = this.mapSkillLevelToEnum(data.skillLevel);
 
+    if (data.country || data.countryIso) {
+      await prisma.user.update({
+        where: { id: userId },
+        data: {
+          ...(data.country ? { country: data.country } : {}),
+          ...(data.countryIso ? { countryIso: data.countryIso } : {}),
+        },
+      });
+    }
+
     let student = await this.findByUserId(userId);
 
     if (!student) {

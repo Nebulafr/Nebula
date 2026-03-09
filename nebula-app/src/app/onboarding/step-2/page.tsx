@@ -51,6 +51,8 @@ function OnboardingStep2Content() {
   const image = PlaceHolderImages.find((img) => img.id === "about-hero");
   const searchParams = useSearchParams();
   const categoryId = searchParams.get("categoryId");
+  const country = searchParams.get("country");
+  const countryIso = searchParams.get("countryIso");
 
   const {
     setValue,
@@ -159,7 +161,7 @@ function OnboardingStep2Content() {
 
           <div className="mt-6 flex items-center justify-between gap-4 pt-4 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-500">
             <Button size="lg" variant="ghost" asChild className="px-0 hover:bg-transparent text-muted-foreground hover:text-foreground transition-colors group">
-              <Link href="/onboarding/step-1">
+              <Link href={`/onboarding/step-1?country=${encodeURIComponent(country || "")}&countryIso=${encodeURIComponent(countryIso || "")}`}>
                 <ArrowLeft className="mr-2 h-5 w-5 transition-transform group-hover:-translate-x-1" /> {tCommon("back")}
               </Link>
             </Button>
@@ -167,7 +169,9 @@ function OnboardingStep2Content() {
               <Link
                 href={`/onboarding/step-3?categoryId=${encodeURIComponent(
                   categoryId || ""
-                )}&skillLevel=${encodeURIComponent(selectedLevel || "")}`}
+                )}&skillLevel=${encodeURIComponent(selectedLevel || "")}&country=${encodeURIComponent(
+                  country || ""
+                )}&countryIso=${encodeURIComponent(countryIso || "")}`}
               >
                 {tCommon("continue")} <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
               </Link>

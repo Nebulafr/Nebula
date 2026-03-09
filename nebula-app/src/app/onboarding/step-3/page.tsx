@@ -1,4 +1,3 @@
- 
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -10,11 +9,10 @@ import Link from "next/link";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/images/placeholder-images";
 import { useSearchParams, useRouter } from "next/navigation";
-import React from "react";
+import React, { useState } from "react";
 import { createStudent } from "@/actions/student";
 import { toast } from "react-toastify";
 import { useAuth } from "@/hooks/use-auth";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -54,6 +52,8 @@ function OnboardingStep3Content() {
 
   const categoryId = searchParams.get("categoryId");
   const skillLevel = searchParams.get("skillLevel");
+  const country = searchParams.get("country");
+  const countryIso = searchParams.get("countryIso");
 
   const {
     setValue,
@@ -86,6 +86,8 @@ function OnboardingStep3Content() {
         skillLevel: skillLevel,
         commitment: selectedAvailability,
         timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        country: country || undefined,
+        countryIso: countryIso || undefined,
       });
 
       if (!result.success) {
@@ -126,11 +128,13 @@ function OnboardingStep3Content() {
           </p>
         </div>
       </div>
+
       <div className="flex h-full flex-col justify-center py-12 lg:col-span-2 relative overflow-hidden">
         <div className="absolute top-0 right-0 -z-10 h-64 w-64 rounded-full bg-primary/5 blur-3xl" />
         <div className="absolute bottom-0 left-0 -z-10 h-64 w-64 rounded-full bg-secondary/5 blur-3xl" />
 
-        <div className="mx-auto grid w-full max-w-md gap-8 px-6">
+        <div className="mx-auto grid w-full max-w-md gap-6 px-6">
+          {/* Progress */}
           <div className="space-y-2">
             <Progress value={100} className="h-1.5 bg-muted transition-all duration-500" />
             <div className="flex justify-between text-[10px] text-muted-foreground uppercase tracking-widest font-semibold">
@@ -140,6 +144,7 @@ function OnboardingStep3Content() {
             </div>
           </div>
 
+          {/* Heading */}
           <div className="text-left animate-in fade-in slide-in-from-bottom-4 duration-500 delay-150">
             <h1 className="font-headline text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
               {t("heading")}
@@ -149,18 +154,17 @@ function OnboardingStep3Content() {
             </p>
           </div>
 
+          {/* Availability cards */}
           <div className="grid grid-cols-1 gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300">
-            {availabilities.map((availability, idx) => (
+            {availabilities.map((availability) => (
               <Card
                 key={availability.title}
                 className={`group cursor-pointer rounded-2xl border-2 p-1 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] ${selectedAvailability === availability.title
-                    ? "border-primary bg-primary/5 shadow-xl shadow-primary/10"
-                    : "border-transparent bg-card hover:border-primary/20 hover:shadow-md"
+                  ? "border-primary bg-primary/5 shadow-xl shadow-primary/10"
+                  : "border-transparent bg-card hover:border-primary/20 hover:shadow-md"
                   }`}
                 onClick={() =>
-                  setValue("availability", availability.title, {
-                    shouldValidate: true,
-                  })
+                  setValue("availability", availability.title, { shouldValidate: true })
                 }
               >
                 <CardContent className="flex items-center gap-5 p-5">
@@ -179,10 +183,12 @@ function OnboardingStep3Content() {
                       {availability.description}
                     </p>
                   </div>
-                  <div className={`h-6 w-6 rounded-full border-2 transition-all duration-300 flex items-center justify-center ${selectedAvailability === availability.title
+                  <div
+                    className={`h-6 w-6 rounded-full border-2 transition-all duration-300 flex items-center justify-center ${selectedAvailability === availability.title
                       ? "border-primary bg-primary"
                       : "border-muted group-hover:border-primary/50"
-                    }`}>
+                      }`}
+                  >
                     {selectedAvailability === availability.title && (
                       <div className="h-2 w-2 rounded-full bg-white" />
                     )}
@@ -197,15 +203,19 @@ function OnboardingStep3Content() {
               {errors.availability.message}
             </p>
           )}
-
-          <div className="flex items-center justify-between gap-4 pt-4 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-500">
-            <Button size="lg" variant="ghost" asChild className="px-0 hover:bg-transparent text-muted-foreground hover:text-foreground transition-colors group">
+          {/* Navigation */}
+          <div className="flex items-center justify-between gap-4 pt-2 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-500">
+            <Button
+              size="lg"
+              variant="ghost"
+              asChild
+              className="px-0 hover:bg-transparent text-muted-foreground hover:text-foreground transition-colors group"
+            >
               <Link
-                href={`/onboarding/step-2?categoryId=${encodeURIComponent(
-                  categoryId || "",
-                )}`}
+                href={`/onboarding/step-2?categoryId=${encodeURIComponent(categoryId || "")}&country=${encodeURIComponent(country || "")}&countryIso=${encodeURIComponent(countryIso || "")}`}
               >
-                <ArrowLeft className="mr-2 h-5 w-5 transition-transform group-hover:-translate-x-1" /> {tCommon("back")}
+                <ArrowLeft className="mr-2 h-5 w-5 transition-transform group-hover:-translate-x-1" />
+                {tCommon("back")}
               </Link>
             </Button>
             <Button

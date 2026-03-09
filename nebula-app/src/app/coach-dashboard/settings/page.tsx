@@ -43,6 +43,8 @@ export default function CoachSettingsPage() {
     experience: "",
     timezone: "",
     languages: ["English"],
+    country: "",
+    countryIso: "",
   });
 
   useEffect(() => {
@@ -62,6 +64,8 @@ export default function CoachSettingsPage() {
         experience: coachProfile.experience || "",
         timezone: coachProfile.timezone || "UTC",
         languages: coachProfile.languages || ["English"],
+        country: profile.country || "",
+        countryIso: profile.countryIso || "",
       });
     }
   }, [profile]);

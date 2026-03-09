@@ -1,4 +1,3 @@
-/* eslint-disable */
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -15,7 +14,6 @@ import { PlaceHolderImages } from "@/lib/images/placeholder-images";
 import { ArrowRight, Linkedin } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
-import Link from "next/link";
 import { Progress } from "@/components/ui/progress";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -23,11 +21,23 @@ import {
   coachOnboardingStep1Schema,
   type CoachOnboardingStep1Data,
 } from "@/lib/validations";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/use-auth";
+import { CountrySelect } from "@/components/ui/country-select";
 
 export default function CoachOnboardingStep1() {
   const t = useTranslations("common.onboarding.coach.step1");
-  const tCommon = useTranslations("common.onboarding.common");
   const image = PlaceHolderImages.find((img) => img.id === "about-story");
+  const router = useRouter();
+  const { profile } = useAuth();
+
+  const [country, setCountry] = useState("");
+  const [countryIso, setCountryIso] = useState("");
+  const [countryError, setCountryError] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const needsCountry = !profile?.country;
 
   const {
     register,
@@ -44,6 +54,28 @@ export default function CoachOnboardingStep1() {
     },
   });
   const formValues = watch();
+
+  const handleContinue = async () => {
+    if (needsCountry && (!country || !countryIso)) {
+      setCountryError("Please select your country");
+      return;
+    }
+    setCountryError("");
+    setSaving(true);
+
+    try {
+      const url = `/coach-onboarding/step-2?role=${encodeURIComponent(
+        formValues.role
+      )}&company=${encodeURIComponent(
+        formValues.company
+      )}&linkedin=${encodeURIComponent(formValues.linkedin)}&country=${encodeURIComponent(
+        country
+      )}&countryIso=${encodeURIComponent(countryIso)}`;
+      router.push(url);
+    } catch {
+      setSaving(false);
+    }
+  };
 
   return (
     <div className="w-full min-h-screen lg:grid lg:grid-cols-5">
@@ -116,8 +148,7 @@ export default function CoachOnboardingStep1() {
                   <Input
                     id="linkedin"
                     placeholder={t("linkedinPlaceholder")}
-                    className={`pl-10 h-14 ${errors.linkedin ? "border-destructive" : ""
-                      }`}
+                    className={`pl-10 h-14 ${errors.linkedin ? "border-destructive" : ""}`}
                     {...register("linkedin")}
                   />
                 </div>
@@ -127,19 +158,31 @@ export default function CoachOnboardingStep1() {
                   </p>
                 )}
               </div>
+              {needsCountry && (
+                <div className="grid gap-2">
+                  <Label>
+                    Where are you based? <span className="text-destructive">*</span>
+                  </Label>
+                  <CountrySelect
+                    value={country}
+                    onChange={(val) => { setCountry(val); setCountryError(""); }}
+                    onIsoChange={setCountryIso}
+                    disabled={saving}
+                  />
+                  {countryError && (
+                    <p className="text-sm text-destructive">{countryError}</p>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
           <div className="flex justify-end">
-            <Button size="lg" asChild disabled={!isValid}>
-              <Link
-                href={`/coach-onboarding/step-2?role=${encodeURIComponent(
-                  formValues.role
-                )}&company=${encodeURIComponent(
-                  formValues.company
-                )}&linkedin=${encodeURIComponent(formValues.linkedin)}`}
-              >
-                Continue <ArrowRight className="ml-2 h-5 w-5" />
-              </Link>
+            <Button
+              size="lg"
+              disabled={!isValid || saving}
+              onClick={handleContinue}
+            >
+              Continue <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </div>
         </div>

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { EarningsChart } from "./components/earnings-chart";
 import { AccountBalance } from "./components/account-balance";
 import { PayoutHistory } from "./components/payout-history";
+import { StripeConnect } from "./components/stripe-connect";
 import { useTranslations } from "next-intl";
 
 const payouts = [
@@ -16,6 +17,7 @@ const payouts = [
 
 export default function PayoutsPage() {
   const t = useTranslations("dashboard.coach.payouts");
+  const [isConnected, setIsConnected] = useState(false);
   
   const chartData = [
     { month: "Mar", earnings: 1860 },
@@ -27,15 +29,24 @@ export default function PayoutsPage() {
   ];
 
   return (
-    <div className="flex-1 space-y-4 p-4 md:p-8">
-      <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-        <div className="md:col-span-2">
-          <EarningsChart data={chartData} />
-        </div>
-        <div className="md:col-span-1">
-          <AccountBalance balance={2350.75} />
+    <div className="flex-1 space-y-8 p-4 md:p-8">
+      <div className="flex flex-col gap-6">
+        <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
+        
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+          <div className="lg:col-span-2">
+            <EarningsChart data={chartData} />
+          </div>
+          <div className="lg:col-span-1 space-y-6">
+            <AccountBalance 
+              balance={2350.75} 
+              disabled={!isConnected}
+            />
+            <StripeConnect onStatusChange={setIsConnected} />
+          </div>
         </div>
       </div>
+      
       <PayoutHistory payouts={payouts} />
     </div>
   );

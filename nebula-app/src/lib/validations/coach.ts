@@ -19,6 +19,8 @@ export const createCoachSchema = z.object({
   experience: z.string().optional(),
   timezone: z.string().optional(),
   languages: z.array(z.string()).optional(),
+  country: z.string().min(1, "Country is required"),
+  countryIso: z.string().min(2, "Country ISO is required"),
 });
 
 export const updateCoachProfileSchema = z.object({
@@ -39,6 +41,8 @@ export const updateCoachProfileSchema = z.object({
   experience: z.string().optional(),
   timezone: z.string().optional(),
   languages: z.array(z.string()).optional(),
+  country: z.string().optional(),
+  countryIso: z.string().optional(),
 });
 
 export const coachQuerySchema = z.object({

@@ -157,6 +157,8 @@ export default function StudentSettingsPage() {
           fullName: profile.fullName || "",
           email: profile.email,
           avatarUrl: profile.avatarUrl || undefined,
+          country: profile.country || undefined,
+          countryIso: profile.countryIso || undefined,
         }}
         previewUrl={previewUrl}
         onSave={handleSaveProfile}

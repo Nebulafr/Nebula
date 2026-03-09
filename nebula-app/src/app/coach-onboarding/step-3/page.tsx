@@ -36,6 +36,8 @@ function CoachOnboardingStep3Content() {
   const company = searchParams.get("company");
   const linkedin = searchParams.get("linkedin");
   const specialties = searchParams.get("specialties");
+  const country = searchParams.get("country");
+  const countryIso = searchParams.get("countryIso");
 
   const {
     register,
@@ -57,13 +59,17 @@ function CoachOnboardingStep3Content() {
     linkedin || ""
   )}&specialties=${encodeURIComponent(
     specialties || ""
-  )}&motivation=${encodeURIComponent(motivation)}`;
+  )}&motivation=${encodeURIComponent(motivation)}&country=${encodeURIComponent(
+    country || ""
+  )}&countryIso=${encodeURIComponent(countryIso || "")}`;
 
   const prevStepUrl = `/coach-onboarding/step-2?role=${encodeURIComponent(
     role || ""
   )}&company=${encodeURIComponent(company || "")}&linkedin=${encodeURIComponent(
     linkedin || ""
-  )}&specialties=${encodeURIComponent(specialties || "")}`;
+  )}&specialties=${encodeURIComponent(specialties || "")}&country=${encodeURIComponent(
+    country || ""
+  )}&countryIso=${encodeURIComponent(countryIso || "")}`;
 
   return (
     <div className="w-full min-h-screen lg:grid lg:grid-cols-5 bg-background">

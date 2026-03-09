@@ -25,6 +25,10 @@ model User {
   createdAt                DateTime                  @default(now()) @map("created_at")
   updatedAt                DateTime                  @updatedAt @map("updated_at")
   stripeCustomerId         String?                   @map("stripe_customer_id")
+  country                  String?
+  countryIso               String?                   @map("country_iso")
+  isStripeConnected        Boolean                   @default(false) @map("is_stripe_connected")
+  stripeAccountId          String?                   @map("stripe_account_id")
   coachReviews             CoachReview[]
   coach                    Coach?
   conversations            ConversationParticipant[]

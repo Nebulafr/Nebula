@@ -28,6 +28,7 @@
         "fullName": "Nom complet",
         "email": "Adresse e-mail",
         "emailNote": "L'e-mail ne peut pas être modifié pour des raisons de sécurité",
+        "country": "Pays",
         "save": "Enregistrer le profil",
         "saving": "Enregistrement...",
         "success": "Profil mis à jour avec succès",
@@ -441,6 +442,7 @@
         "profile": {
           "title": "Paramètres du profil",
           "description": "Gérez vos informations de profil public et vos détails de coaching.",
+          "country": "Pays",
           "fullName": "Nom complet",
           "fullNameDescription": "C'est votre nom public affiché aux étudiants.",
           "professionalTitle": "Titre professionnel",

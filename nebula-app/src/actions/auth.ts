@@ -1,5 +1,3 @@
-import { auth } from "@/firebase/client";
-import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { apiPost, apiGet } from "@/lib/utils";
 import { AuthResponse } from "@/types";
 

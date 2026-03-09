@@ -23,6 +23,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { CountrySelect } from "@/components/ui/country-select";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -250,6 +251,23 @@ export function ProfileForm({
                       <Input
                         {...field}
                         placeholder={t("timezonePlaceholder")}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="country"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("country") || "Country"}</FormLabel>
+                    <FormControl>
+                      <CountrySelect
+                        value={field.value || ""}
+                        onChange={(name) => field.onChange(name)}
+                        onIsoChange={(iso) => form.setValue("countryIso", iso, { shouldDirty: true })}
                       />
                     </FormControl>
                     <FormMessage />

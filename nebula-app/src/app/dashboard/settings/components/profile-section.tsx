@@ -19,12 +19,15 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { CountrySelect } from "@/components/ui/country-select";
 
 interface ProfileSectionProps {
   user: {
     fullName: string;
     email: string;
     avatarUrl?: string;
+    country?: string;
+    countryIso?: string;
   };
   previewUrl?: string | null;
   onSave: (data: UpdateProfileData) => Promise<void>;
@@ -53,6 +56,8 @@ export function ProfileSection({
     defaultValues: {
       fullName: user.fullName,
       email: user.email,
+      country: user.country,
+      countryIso: user.countryIso,
     },
   });
 
@@ -165,6 +170,24 @@ export function ProfileSection({
                         <Input {...field} disabled />
                       </FormControl>
                       <FormDescription>{t("emailNote")}</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="country"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("country") || "Country"}</FormLabel>
+                      <FormControl>
+                        <CountrySelect
+                          value={field.value || ""}
+                          onChange={(name) => field.onChange(name)}
+                          onIsoChange={(iso) => form.setValue("countryIso", iso, { shouldDirty: true })}
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}

@@ -28,6 +28,7 @@
         "fullName": "Full Name",
         "email": "Email Address",
         "emailNote": "Email cannot be changed for security reasons",
+        "country": "Country",
         "save": "Save Profile",
         "saving": "Saving...",
         "success": "Profile updated successfully",
@@ -441,6 +442,7 @@
         "profile": {
           "title": "Profile Settings",
           "description": "Manage your public profile information and coaching details.",
+          "country": "Country",
           "fullName": "Full Name",
           "fullNameDescription": "This is your public name displayed to students.",
           "professionalTitle": "Professional Title",

@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,7 +12,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { PlaceHolderImages } from "@/lib/images/placeholder-images";
 import { ArrowLeft, Eye, EyeOff, Mail } from "lucide-react";
 import Image from "next/image";
@@ -312,6 +312,7 @@ export default function CoachSignupPage() {
                             </FormItem>
                           )}
                         />
+
                         <Button
                           type="submit"
                           className="w-full"
