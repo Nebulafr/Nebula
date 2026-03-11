@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma";
 import { sendSuccess } from "../utils/send-response";
-import { NotFoundException } from "../utils/http-exception";
+import { BadRequestException, NotFoundException } from "../utils/http-exception";
 import {
   CoachDashboardStats,
   FormattedStudent,
@@ -10,6 +10,7 @@ import {
   TransformedProgram,
   TransformedSession,
 } from "./types/coach-dashboard.types";
+import { TransactionType, TransactionSourceType, TransactionStatus } from "@/generated/prisma";
 
 export class CoachDashboardService {
   async getStats(userId: string) {
@@ -602,6 +603,54 @@ export class CoachDashboardService {
     );
   }
 
+  async getEarnings(userId: string) {
+    const coach = await prisma.coach.findUnique({
+      where: { userId },
+      select: { id: true, userId: true },
+    });
+
+    if (!coach) {
+      throw new NotFoundException("Coach profile not found");
+    }
+
+    // Get last 6 months of earnings
+    const now = new Date();
+    const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
+
+    const earningTransactions = await prisma.transaction.findMany({
+      where: {
+        userId: coach.userId,
+        type: TransactionType.EARNING,
+        status: TransactionStatus.COMPLETED,
+        createdAt: { gte: sixMonthsAgo },
+      },
+      select: { amount: true, createdAt: true },
+    });
+
+    // Initialize map for last 6 months
+    const monthlyData = new Map<string, number>();
+    for (let i = 0; i < 6; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
+      const monthName = d.toLocaleString("default", { month: "short" });
+      monthlyData.set(monthName, 0);
+    }
+
+    // Aggregate Transactions
+    earningTransactions.forEach((t) => {
+      const monthName = new Date(t.createdAt).toLocaleString("default", { month: "short" });
+      if (monthlyData.has(monthName)) {
+        monthlyData.set(monthName, (monthlyData.get(monthName) || 0) + (t.amount || 0) / 100);
+      }
+    });
+
+    const earnings = Array.from(monthlyData.entries()).map(([month, amount]) => ({
+      month,
+      earnings: Math.round(amount * 100) / 100,
+    }));
+
+    return sendSuccess(earnings, "Earnings data fetched successfully");
+  }
+
   async getRecentPayouts(userId: string, limit: number = 5) {
     const coach = await prisma.coach.findUnique({
       where: { userId },
@@ -612,64 +661,106 @@ export class CoachDashboardService {
       throw new NotFoundException("Coach profile not found");
     }
 
-    const paidEnrollments = await prisma.enrollment.findMany({
-      where: {
-        coachId: coach.id,
-        paymentStatus: "PAID",
-      },
-      include: {
-        program: {
-          select: { price: true },
-        },
-      },
-      orderBy: { createdAt: "desc" },
+    const payoutsList = await prisma.payout.findMany({
+      where: { coachId: coach.id },
+      orderBy: { date: "desc" },
+      take: limit,
     });
-
-    // Group enrollments by month
-    const monthlyEarnings = new Map<
-      string,
-      { month: string; year: number; amount: number; date: Date }
-    >();
-
-    paidEnrollments.forEach((enrollment) => {
-      const date = new Date(enrollment.createdAt);
-      const monthYear = `${date.getFullYear()}-${date.getMonth()}`;
-      const monthName = date.toLocaleString("default", { month: "long" });
-
-      if (monthlyEarnings.has(monthYear)) {
-        const existing = monthlyEarnings.get(monthYear)!;
-        existing.amount += enrollment.program.price || 0;
-      } else {
-        monthlyEarnings.set(monthYear, {
-          month: monthName,
-          year: date.getFullYear(),
-          amount: enrollment.program.price || 0,
-          date: date,
-        });
-      }
-    });
-
-    const payouts: Payout[] = Array.from(monthlyEarnings.values())
-      .sort((a, b) => b.date.getTime() - a.date.getTime())
-      .slice(0, limit)
-      .map((p) => ({
-        id: `${p.year}-${p.month}`,
-        month: `${p.month} ${p.year}`,
-        amount: p.amount / 100, // Convert cents to dollars for consistency
-        method: "Bank Transfer",
-        date: p.date.toISOString(),
-      }));
 
     const now = new Date();
     const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-    const payoutsThisMonth = paidEnrollments.filter(
-      (e) => new Date(e.createdAt) >= thisMonthStart
-    ).length;
+    const payoutsThisMonth = await prisma.payout.count({
+      where: {
+        coachId: coach.id,
+        date: { gte: thisMonthStart },
+      },
+    });
+
+    const formattedPayouts = payoutsList.map((p) => ({
+      id: p.id,
+      month: new Date(p.date).toLocaleString("default", { month: "long", year: "numeric" }),
+      amount: p.amount / 100,
+      status: p.status,
+      method: p.method,
+      date: p.date.toISOString(),
+    }));
 
     return sendSuccess(
-      { payouts, payoutsThisMonth },
+      { payouts: formattedPayouts, payoutsThisMonth },
       "Recent payouts fetched successfully"
     );
+  }
+
+  private async getTotalEarningBalance(userId: string): Promise<number> {
+    const earningsAggregate = await prisma.transaction.aggregate({
+      where: {
+        userId,
+        type: TransactionType.EARNING,
+        status: TransactionStatus.COMPLETED,
+      },
+      _sum: { amount: true },
+    });
+
+    const deductionsAggregate = await prisma.transaction.aggregate({
+      where: {
+        userId,
+        type: { in: [TransactionType.PAYOUT, TransactionType.REFUND] },
+        status: { in: [TransactionStatus.COMPLETED, TransactionStatus.PENDING] },
+      },
+      _sum: { amount: true },
+    });
+
+    const totalEarned = earningsAggregate._sum.amount || 0;
+    const totalDeducted = deductionsAggregate._sum.amount || 0;
+
+    return totalEarned - totalDeducted;
+  }
+
+  async requestPayout(userId: string, amount: number) {
+    const coach = await prisma.coach.findUnique({
+      where: { userId },
+      select: { id: true, userId: true },
+    });
+
+    if (!coach) {
+      throw new NotFoundException("Coach profile not found");
+    }
+
+    if (amount <= 0) {
+      throw new BadRequestException("Invalid amount");
+    }
+
+    const availableBalance = await this.getTotalEarningBalance(coach.userId);
+    const amountInCents = Math.round(amount * 100);
+
+    if (amountInCents > availableBalance) {
+      throw new BadRequestException("Insufficient balance");
+    }
+
+    const payout = await prisma.payout.create({
+      data: {
+        coachId: coach.id,
+        amount: amountInCents, // convert to cents
+        currency: "EUR",
+        status: "PENDING",
+        method: "Stripe Connect",
+        date: new Date(),
+      },
+    });
+
+    await prisma.transaction.create({
+      data: {
+        userId: coach.userId,
+        amount: amountInCents,
+        type: TransactionType.PAYOUT,
+        status: TransactionStatus.PENDING,
+        sourceType: TransactionSourceType.PAYOUT,
+        sourceId: payout.id,
+        description: `Requested payout of ${amount} EUR`
+      }
+    });
+
+    return sendSuccess(payout, "Payout request submitted successfully");
   }
 }
 

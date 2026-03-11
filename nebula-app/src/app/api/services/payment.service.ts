@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { PaymentStatus, SessionStatus, EnrollmentStatus, EventAttendeeStatus } from "@/generated/prisma";
+import { PaymentStatus, SessionStatus, EnrollmentStatus, EventAttendeeStatus, TransactionType, TransactionSourceType, TransactionStatus } from "@/generated/prisma";
 import Stripe from "stripe";
 import { NotFoundException, BadRequestException } from "../utils/http-exception";
 import { stripe } from "@/lib/stripe";
@@ -34,22 +34,39 @@ export class PaymentService {
                     programId: programId,
                 },
             },
+            include: { program: { select: { price: true, coach: { select: { userId: true } } } } }
         });
 
         if (existingEnrollment) {
             // Update existing enrollment if it was pending or handle idempotency
-            await prisma.enrollment.update({
+            const updatedEnrollment = await prisma.enrollment.update({
                 where: { id: existingEnrollment.id },
                 data: {
                     status: EnrollmentStatus.ACTIVE,
                     paymentStatus: PaymentStatus.PAID,
                     stripeSessionId,
-                }
+                },
+                include: { program: { select: { price: true, coach: { select: { userId: true } } } } }
             });
+
+            // Create Transaction
+            if (updatedEnrollment.program.price > 0 && updatedEnrollment.program.coach.userId) {
+                await prisma.transaction.create({
+                    data: {
+                        userId: updatedEnrollment.program.coach.userId,
+                        amount: updatedEnrollment.program.price,
+                        type: TransactionType.EARNING,
+                        status: TransactionStatus.COMPLETED,
+                        sourceType: TransactionSourceType.ENROLLMENT,
+                        sourceId: updatedEnrollment.id,
+                        description: `Earning from program enrollment: ${programId}`
+                    }
+                });
+            }
             return;
         }
 
-        await prisma.enrollment.create({
+        const newEnrollment = await prisma.enrollment.create({
             data: {
                 programId,
                 studentId: student.id,
@@ -59,7 +76,23 @@ export class PaymentService {
                 paymentStatus: PaymentStatus.PAID,
                 stripeSessionId,
             },
+            include: { program: { select: { price: true, coach: { select: { userId: true } } } } }
         });
+
+        // Create Transaction
+        if (newEnrollment.program.price > 0 && newEnrollment.program.coach.userId) {
+            await prisma.transaction.create({
+                data: {
+                    userId: newEnrollment.program.coach.userId,
+                    amount: newEnrollment.program.price,
+                    type: TransactionType.EARNING,
+                    status: TransactionStatus.COMPLETED,
+                    sourceType: TransactionSourceType.ENROLLMENT,
+                    sourceId: newEnrollment.id,
+                    description: `Earning from program enrollment: ${programId}`
+                }
+            });
+        }
     }
 
     private async handleSessionBooking(coachId: string, userId: string, scheduledTime: string, duration: string, stripeSessionId: string, timezone?: string) {
@@ -88,18 +121,33 @@ export class PaymentService {
         });
 
         if (existingRegistration) {
-            await prisma.eventAttendee.update({
+            const updatedRegistration = await prisma.eventAttendee.update({
                 where: { id: existingRegistration.id },
                 data: {
                     status: EventAttendeeStatus.REGISTERED,
                     paymentStatus: PaymentStatus.PAID,
                     stripeSessionId,
-                }
+                },
+                include: { event: { select: { price: true, organizerId: true } } }
             });
+
+            if (updatedRegistration.event.price > 0 && updatedRegistration.event.organizerId) {
+                await prisma.transaction.create({
+                    data: {
+                        userId: updatedRegistration.event.organizerId,
+                        amount: updatedRegistration.event.price,
+                        type: TransactionType.EARNING,
+                        status: TransactionStatus.COMPLETED,
+                        sourceType: TransactionSourceType.EVENT,
+                        sourceId: updatedRegistration.id,
+                        description: `Earning from event registration: ${eventId}`
+                    }
+                });
+            }
             return;
         }
 
-        await prisma.eventAttendee.create({
+        const newRegistration = await prisma.eventAttendee.create({
             data: {
                 eventId,
                 studentId: student.id,
@@ -107,7 +155,22 @@ export class PaymentService {
                 paymentStatus: PaymentStatus.PAID,
                 stripeSessionId,
             },
+            include: { event: { select: { price: true, organizerId: true } } }
         });
+
+        if (newRegistration.event.price > 0 && newRegistration.event.organizerId) {
+            await prisma.transaction.create({
+                data: {
+                    userId: newRegistration.event.organizerId,
+                    amount: newRegistration.event.price,
+                    type: TransactionType.EARNING,
+                    status: TransactionStatus.COMPLETED,
+                    sourceType: TransactionSourceType.EVENT,
+                    sourceId: newRegistration.id,
+                    description: `Earning from event registration: ${eventId}`
+                }
+            });
+        }
 
         // Send confirmation email
         try {
@@ -144,7 +207,7 @@ export class PaymentService {
         let updateStatus: () => Promise<void>;
 
         if (type === "PROGRAM") {
-            const enrollment = await prisma.enrollment.findUnique({ where: { id } });
+            const enrollment = await prisma.enrollment.findUnique({ where: { id }, include: { program: { select: { price: true, coach: { select: { userId: true } } } } } });
             if (!enrollment) throw new NotFoundException("Enrollment not found");
             stripeSessionId = enrollment.stripeSessionId;
             updateStatus = async () => {
@@ -152,9 +215,22 @@ export class PaymentService {
                     where: { id },
                     data: { status: EnrollmentStatus.CANCELLED, paymentStatus: PaymentStatus.REFUNDED },
                 });
+                if (enrollment.program.price > 0 && enrollment.program.coach.userId) {
+                    await prisma.transaction.create({
+                        data: {
+                            userId: enrollment.program.coach.userId,
+                            amount: enrollment.program.price,
+                            type: TransactionType.REFUND,
+                            status: TransactionStatus.COMPLETED,
+                            sourceType: TransactionSourceType.ENROLLMENT,
+                            sourceId: enrollment.id,
+                            description: `Refund for program enrollment: ${enrollment.programId}`
+                        }
+                    });
+                }
             };
         } else if (type === "SESSION") {
-            const session = await prisma.session.findUnique({ where: { id } });
+            const session = await prisma.session.findUnique({ where: { id }, include: { coach: { select: { userId: true } } } });
             if (!session) throw new NotFoundException("Session not found");
             stripeSessionId = session.stripeSessionId;
             updateStatus = async () => {
@@ -162,9 +238,22 @@ export class PaymentService {
                     where: { id },
                     data: { status: SessionStatus.CANCELLED, paymentStatus: PaymentStatus.REFUNDED },
                 });
+                if (session.price > 0 && session.coach.userId) {
+                    await prisma.transaction.create({
+                        data: {
+                            userId: session.coach.userId,
+                            amount: session.price,
+                            type: TransactionType.REFUND,
+                            status: TransactionStatus.COMPLETED,
+                            sourceType: TransactionSourceType.SESSION,
+                            sourceId: session.id,
+                            description: `Refund for session booking: ${session.id}`
+                        }
+                    });
+                }
             };
         } else if (type === "EVENT") {
-            const attendee = await prisma.eventAttendee.findUnique({ where: { id } });
+            const attendee = await prisma.eventAttendee.findUnique({ where: { id }, include: { event: { select: { price: true, organizerId: true } } } });
             if (!attendee) throw new NotFoundException("Event attendee not found");
             stripeSessionId = attendee.stripeSessionId;
             updateStatus = async () => {
@@ -172,6 +261,19 @@ export class PaymentService {
                     where: { id },
                     data: { status: EventAttendeeStatus.CANCELLED, paymentStatus: PaymentStatus.REFUNDED },
                 });
+                if (attendee.event.price > 0 && attendee.event.organizerId) {
+                    await prisma.transaction.create({
+                        data: {
+                            userId: attendee.event.organizerId,
+                            amount: attendee.event.price,
+                            type: TransactionType.REFUND,
+                            status: TransactionStatus.COMPLETED,
+                            sourceType: TransactionSourceType.EVENT,
+                            sourceId: attendee.id,
+                            description: `Refund for event registration: ${attendee.eventId}`
+                        }
+                    });
+                }
             };
         } else {
             throw new BadRequestException("Invalid refund type");

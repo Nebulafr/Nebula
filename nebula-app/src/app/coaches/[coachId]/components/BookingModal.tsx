@@ -63,7 +63,7 @@ export function BookingModal({
         };
     });
 
-    const isAvailable = (dayFullName: string, time: string) => {
+    const isAvailable = (dayFullName: string, time: string, dayFullDate?: Date) => {
         if (!availabilityData) return true;
         const dayAvail = availabilityData[dayFullName];
         if (!dayAvail || !dayAvail.enabled) return false;
@@ -75,6 +75,17 @@ export function BookingModal({
         const timeInMins = hours * 60 + minutes;
         const startInMins = startH * 60 + startM;
         const endInMins = endH * 60 + endM;
+
+        // Check if the slot is in the past
+        if (dayFullDate) {
+            const now = new Date();
+            const slotDate = new Date(dayFullDate);
+            slotDate.setHours(hours, minutes, 0, 0);
+
+            if (slotDate < now) {
+                return false;
+            }
+        }
 
         return timeInMins >= startInMins && timeInMins < endInMins;
     };
@@ -194,13 +205,13 @@ export function BookingModal({
                     <ScrollArea className="h-[300px] w-full p-4">
                         <div className="flex flex-col gap-2">
                             {rawTimeSlots.map((time) => {
-                                const isAnyDayAvailable = weekDays.some(day => isAvailable(day.fullName, time));
+                                const isAnyDayAvailable = weekDays.some(day => isAvailable(day.fullName, time, day.fullDate));
                                 if (!isAnyDayAvailable) return null;
 
                                 return (
                                     <div key={time} className="grid grid-cols-7 gap-x-2 items-center">
                                         {weekDays.map((day) => {
-                                            const available = isAvailable(day.fullName, time);
+                                            const available = isAvailable(day.fullName, time, day.fullDate);
                                             const isSelected = selectedSlot?.time === time && selectedSlot?.date.toDateString() === day.fullDate.toDateString();
 
                                             return (

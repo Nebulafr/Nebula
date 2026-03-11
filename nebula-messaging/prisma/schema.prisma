@@ -89,6 +89,7 @@ model Coach {
   coachPrograms              ProgramCoach[]
   programs                   Program[]
   sessions                   Session[]
+  payouts                    Payout[]
 
   @@index([isActive, isVerified])
   @@index([createdAt])
@@ -563,4 +564,28 @@ enum EventAttendeeStatus {
   ATTENDED
   CANCELLED
   NO_SHOW
+}
+
+model Payout {
+  id        String       @id @default(cuid())
+  coachId   String       @map("coach_id")
+  amount    Int
+  currency  String       @default("EUR")
+  status    PayoutStatus @default(PENDING)
+  method    String?      @default("Stripe Connect")
+  date      DateTime     @default(now())
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @updatedAt @map("updated_at")
+  coach     Coach        @relation(fields: [coachId], references: [id])
+
+  @@index([coachId])
+  @@index([status])
+  @@map("payouts")
+}
+
+enum PayoutStatus {
+  PENDING
+  PROCESSING
+  PAID
+  FAILED
 }

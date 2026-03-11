@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { PaymentStatus, SessionStatus, Coach, User, Student, Session, Prisma } from "@/generated/prisma";
+import { PaymentStatus, SessionStatus, Coach, User, Student, Session, Prisma, TransactionType, TransactionSourceType, TransactionStatus } from "@/generated/prisma";
 import { createCalendarEvent } from "@/lib/google-api";
 import { emailService } from "./email.service";
 import { paymentService } from "./payment.service";
@@ -161,6 +161,20 @@ export class SessionService {
         attendance: { include: { student: { include: { user: true } } } }
       }
     });
+
+    if (session.price > 0 && session.coach.userId) {
+      await prisma.transaction.create({
+        data: {
+          userId: session.coach.userId,
+          amount: session.price,
+          type: TransactionType.EARNING,
+          status: TransactionStatus.COMPLETED,
+          sourceType: TransactionSourceType.SESSION,
+          sourceId: session.id,
+          description: `Earning from session booking: ${session.id}`
+        }
+      });
+    }
 
     await this.updateCoachStats(coach.id, student.id, session.id);
 

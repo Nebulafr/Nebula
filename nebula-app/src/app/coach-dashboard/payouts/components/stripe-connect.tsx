@@ -1,22 +1,15 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, CheckCircle2, AlertCircle, ExternalLink } from "lucide-react";
 import { toast } from "react-toastify";
 import { useTranslations } from "next-intl";
-import { getStripeStatus, onboardStripeAccount } from "@/actions/stripe";
+import { onboardStripeAccount } from "@/actions/stripe";
 import { useAuth } from "@/hooks";
-
-interface StripeStatus {
-  isConnected: boolean;
-  detailsSubmitted: boolean;
-  chargesEnabled: boolean;
-  payoutsEnabled: boolean;
-  requirements: string[];
-}
+import { useStripeStatus } from "@/hooks/use-coach-queries";
 
 interface StripeConnectProps {
   onStatusChange?: (connected: boolean) => void;
@@ -24,33 +17,18 @@ interface StripeConnectProps {
 
 export function StripeConnect({ onStatusChange }: StripeConnectProps) {
   const t = useTranslations("dashboard.coach.payouts");
-  const { profile } = useAuth()
-  const [status, setStatus] = useState<StripeStatus | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { profile } = useAuth();
+  
+  const { data: status, isLoading: loading } = useStripeStatus();
   const [onboardingLoading, setOnboardingLoading] = useState(false);
 
-  const fetchStatus = useCallback(async () => {
-    try {
-      const data = await getStripeStatus();
-      if (data.success) {
-        setStatus(data.data);
-        if (onStatusChange) {
-          onStatusChange(data.data.isConnected && data.data.payoutsEnabled);
-        }
-      }
-    } catch (error) {
-      console.error("Failed to fetch Stripe status:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, [onStatusChange]);
-
   useEffect(() => {
-    fetchStatus();
-  }, [fetchStatus]);
+    if (status && onStatusChange) {
+      onStatusChange(status.isConnected && status.payoutsEnabled);
+    }
+  }, [status, onStatusChange]);
 
   const handleOnboard = async () => {
-
     if (profile && (!profile.country || !profile.countryIso)) {
       toast.error("Please add your country to your profile");
       return;
@@ -58,7 +36,6 @@ export function StripeConnect({ onStatusChange }: StripeConnectProps) {
 
     setOnboardingLoading(true);
     try {
-
       const returnUrl = window.location.href;
       const refreshUrl = window.location.href;
 
@@ -72,7 +49,7 @@ export function StripeConnect({ onStatusChange }: StripeConnectProps) {
       console.error("Onboarding error:", error);
       toast.error("An error occurred. Please try again.");
     } finally {
-      setOnboardingLoading(false);
+      setOnboardingLoading(true); // Keep loading state until redirect
     }
   };
 
@@ -140,7 +117,7 @@ export function StripeConnect({ onStatusChange }: StripeConnectProps) {
             <div>
               <p className="font-semibold mb-1">Missing requirements:</p>
               <ul className="list-disc list-inside space-y-1">
-                {status.requirements.map((req, i) => (
+                {status.requirements.map((req: string, i: number) => (
                   <li key={i}>{req.replace(/_/g, " ")}</li>
                 ))}
               </ul>

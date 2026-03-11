@@ -64,6 +64,7 @@ export interface Payout {
   id: string;
   month: string;
   amount: number;
+  status: string;
   method: string;
   date: string;
 }

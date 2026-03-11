@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { type AuthenticatedRequest } from "@/types";
 import { stripeAccountService } from "../services/stripe-account.service";
+import { coachDashboardService } from "../services/coach-dashboard.service";
 import { sendSuccess, sendError } from "../utils/send-response";
 
 export class StripeAccountController {
@@ -50,6 +51,33 @@ export class StripeAccountController {
     } catch (error: any) {
       console.error("Stripe Status error:", error);
       return sendError(error.message || "Failed to retrieve Stripe status", 500);
+    }
+  }
+
+  async getBalance(request: NextRequest) {
+    try {
+      const user = (request as unknown as AuthenticatedRequest).user;
+      return await stripeAccountService.getBalance(user.id);
+    } catch (error: any) {
+      console.error("Stripe Balance error:", error);
+      return sendError(error.message || "Failed to retrieve Stripe balance", 500);
+    }
+  }
+
+  async requestPayout(request: NextRequest) {
+    try {
+      const user = (request as unknown as AuthenticatedRequest).user;
+      const body = await request.json();
+      const { amount } = body;
+
+      if (!amount || amount <= 0) {
+        return sendError("Invalid amount", 400);
+      }
+
+      return await coachDashboardService.requestPayout(user.id, amount);
+    } catch (error: any) {
+      console.error("Payout request error:", error);
+      return sendError(error.message || "Failed to submit payout request", 500);
     }
   }
 }

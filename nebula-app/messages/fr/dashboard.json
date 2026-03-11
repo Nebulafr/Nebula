@@ -72,6 +72,7 @@
       "recentPayouts": "Paiements récents",
       "payoutCount": "Vous avez effectué {count} paiements ce mois-ci.",
       "viewAllPayouts": "Voir tous les paiements",
+      "noPayouts": "Aucun paiement pour l'instant",
       "connectCalendar": "Connecter l'agenda",
       "calendarConnected": "Agenda connecté",
       "failedToSaveCalendar": "Échec de l'enregistrement des jetons de l'agenda. Veuillez réessayer.",

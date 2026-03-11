@@ -102,7 +102,34 @@ export class StripeAccountService {
     return sendSuccess(status, "Stripe account status retrieved");
   }
 
+  async getBalance(userId: string) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { stripeAccountId: true },
+    });
 
+    if (!user || !user.stripeAccountId) {
+      return sendSuccess({ available: 0, pending: 0 }, "Stripe account not found");
+    }
+
+    try {
+      const balance = await stripe.balance.retrieve({
+        stripeAccount: user.stripeAccountId,
+      });
+
+      const available = balance.available.reduce((sum, b) => sum + b.amount, 0) / 100;
+      const pending = balance.pending.reduce((sum, b) => sum + b.amount, 0) / 100;
+
+      return sendSuccess(
+        { available, pending },
+        "Stripe balance retrieved successfully"
+      );
+    } catch (error: any) {
+      console.error("Stripe Balance Retrieval error:", error);
+      // Return 0 balance instead of failing if account isn't fully set up
+      return sendSuccess({ available: 0, pending: 0 }, "Could not retrieve Stripe balance");
+    }
+  }
 }
 
 export const stripeAccountService = new StripeAccountService();

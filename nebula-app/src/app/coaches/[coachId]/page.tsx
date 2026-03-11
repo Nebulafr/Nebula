@@ -117,9 +117,9 @@ export default function CoachDetailPage() {
       } else {
         toast.error(response.error || "Failed to submit review.");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error submitting review:", error);
-      toast.error("Failed to submit review. Please try again.");
+      toast.error(error.message || "Failed to submit review. Please try again.");
     } finally {
       setIsSubmittingReview(false);
     }

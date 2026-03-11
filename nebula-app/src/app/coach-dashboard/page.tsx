@@ -45,6 +45,7 @@ import {
   useApproveSession,
   useRejectSession,
 } from "@/hooks/use-session-queries";
+import { useCoachPayouts } from "@/hooks/use-coach-queries";
 import { getDefaultAvatar } from "@/lib/event-utils";
 import { useTranslations } from "next-intl";
 
@@ -61,6 +62,7 @@ function CoachDashboardContent() {
   const { mutate: approveSession, isPending: isApproving } =
     useApproveSession();
   const { mutate: rejectSession, isPending: isRejecting } = useRejectSession();
+  const { data: payoutsData, isLoading: isLoadingPayouts } = useCoachPayouts(3);
 
   const handleApprove = (sessionId: string) => {
     approveSession(sessionId, {
@@ -422,60 +424,40 @@ function CoachDashboardContent() {
             </CardHeader>
             <CardContent>
               <div className="space-y-8">
-                <div className="flex items-center">
-                  <Avatar className="h-9 w-9">
-                    <AvatarImage
-                      src="https://i.pravatar.cc/40?u=payout1"
-                      alt="Avatar"
-                    />
-                    <AvatarFallback>OM</AvatarFallback>
-                  </Avatar>
-                  <div className="ml-4 space-y-1">
-                    <p className="text-sm font-medium leading-none">
-                      August Payout
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {t("settings.payout.bankTransfer")}
-                    </p>
+                {isLoadingPayouts ? (
+                  <div className="flex justify-center py-4">
+                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                   </div>
-                  <div className="ml-auto font-medium">+$1,999.00</div>
-                </div>
-                <div className="flex items-center">
-                  <Avatar className="flex h-9 w-9 items-center justify-center space-y-0 border">
-                    <AvatarImage
-                      src="https://i.pravatar.cc/40?u=payout2"
-                      alt="Avatar"
-                    />
-                    <AvatarFallback>JL</AvatarFallback>
-                  </Avatar>
-                  <div className="ml-4 space-y-1">
-                    <p className="text-sm font-medium leading-none">
-                      July Payout
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {t("settings.payout.bankTransfer")}
-                    </p>
+                ) : payoutsData?.payouts?.length ? (
+                  payoutsData.payouts.map((payout: any, i: number) => (
+                    <div key={payout.id} className="flex items-center">
+                      <Avatar className="h-9 w-9">
+                        <AvatarImage
+                          src={`https://i.pravatar.cc/40?u=payout${i + 1}`}
+                          alt="Avatar"
+                        />
+                        <AvatarFallback>
+                          {payout.status.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="ml-4 space-y-1">
+                        <p className="text-sm font-medium leading-none">
+                          {payout.month}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {payout.method || t("settings.payout.bankTransfer")}
+                        </p>
+                      </div>
+                      <div className="ml-auto font-medium">
+                        +${payout.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center text-sm text-muted-foreground py-4">
+                    {t("noPayouts")}
                   </div>
-                  <div className="ml-auto font-medium">+$390.00</div>
-                </div>
-                <div className="flex items-center">
-                  <Avatar className="h-9 w-9">
-                    <AvatarImage
-                      src="https://i.pravatar.cc/40?u=payout3"
-                      alt="Avatar"
-                    />
-                    <AvatarFallback>IN</AvatarFallback>
-                  </Avatar>
-                  <div className="ml-4 space-y-1">
-                    <p className="text-sm font-medium leading-none">
-                      June Payout
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {t("settings.payout.bankTransfer")}
-                    </p>
-                  </div>
-                  <div className="ml-auto font-medium">+$1,200.00</div>
-                </div>
+                )}
               </div>
               <Button asChild className="mt-6 w-full">
                 <Link href="/coach-dashboard/payouts">

@@ -51,6 +51,11 @@ export class CoachDashboardController {
       limit,
     });
   }
+
+  async getEarnings(req: NextRequest) {
+    const user = (req as unknown as AuthenticatedRequest).user;
+    return await coachDashboardService.getEarnings(user.id);
+  }
 }
 
 export const coachDashboardController = new CoachDashboardController();

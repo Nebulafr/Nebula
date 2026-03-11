@@ -72,6 +72,7 @@
       "recentPayouts": "Recent Payouts",
       "payoutCount": "You made {count} payouts this month.",
       "viewAllPayouts": "View all payouts",
+      "noPayouts": "No payouts yet",
       "connectCalendar": "Connect Calendar",
       "calendarConnected": "Calendar Connected",
       "failedToSaveCalendar": "Failed to save calendar tokens. Please try again.",

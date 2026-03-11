@@ -36,6 +36,7 @@ model User {
   messagesSent             Message[]
   programReviews           ProgramReview[]
   student                  Student?
+  transactions             Transaction[]
 
   @@index([role, status])
   @@index([createdAt])
@@ -89,6 +90,7 @@ model Coach {
   coachPrograms              ProgramCoach[]
   programs                   Program[]
   sessions                   Session[]
+  payouts                    Payout[]
 
   @@index([isActive, isVerified])
   @@index([createdAt])
@@ -563,4 +565,68 @@ enum EventAttendeeStatus {
   ATTENDED
   CANCELLED
   NO_SHOW
+}
+
+model Payout {
+  id        String       @id @default(cuid())
+  coachId   String       @map("coach_id")
+  amount    Int
+  currency  String       @default("EUR")
+  status    PayoutStatus @default(PENDING)
+  method    String?      @default("Stripe Connect")
+  date      DateTime     @default(now())
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @updatedAt @map("updated_at")
+  coach     Coach        @relation(fields: [coachId], references: [id])
+
+  @@index([coachId])
+  @@index([status])
+  @@map("payouts")
+}
+
+enum PayoutStatus {
+  PENDING
+  PROCESSING
+  PAID
+  FAILED
+}
+
+model Transaction {
+  id          String                @id @default(cuid())
+  userId      String                @map("user_id")
+  amount      Int
+  currency    String                @default("EUR")
+  type        TransactionType
+  status      TransactionStatus     @default(COMPLETED)
+  sourceType  TransactionSourceType @map("source_type")
+  sourceId    String                @map("source_id")
+  description String?
+  createdAt   DateTime              @default(now()) @map("created_at")
+  updatedAt   DateTime              @updatedAt @map("updated_at")
+  user        User                  @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([userId, type])
+  @@index([sourceId, sourceType])
+  @@map("transactions")
+}
+
+enum TransactionType {
+  EARNING
+  PAYOUT
+  REFUND
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+enum TransactionSourceType {
+  ENROLLMENT
+  SESSION
+  EVENT
+  PAYOUT
+  OTHER
 }

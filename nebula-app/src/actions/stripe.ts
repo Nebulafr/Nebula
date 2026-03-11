@@ -22,3 +22,15 @@ export async function onboardStripeAccount(
 ): Promise<any> {
   return apiPost("/stripe-account/onboard", { returnUrl, refreshUrl });
 }
+
+export async function getStripeBalance(): Promise<any> {
+  return apiGet("/coaches/payouts/balance");
+}
+
+export async function getCoachEarnings(): Promise<any> {
+  return apiGet("/coaches/payouts/earnings");
+}
+
+export async function getCoachPayouts(limit: number = 5): Promise<any> {
+  return apiGet(`/coaches/payouts?limit=${limit}`);
+}

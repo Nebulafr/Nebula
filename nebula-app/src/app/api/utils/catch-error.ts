@@ -12,7 +12,7 @@ export default function catchError(fn: Function) {
     } catch (err: any) {
       console.error("API Error:", { err });
 
-      if (err instanceof HttpException) {
+      if (err instanceof HttpException || (err && err.statusCode && typeof err.statusCode === 'number')) {
          
         return sendError(err.message, err.statusCode, (err as any)?.code);
       }
