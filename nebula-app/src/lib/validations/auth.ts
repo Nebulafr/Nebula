@@ -14,7 +14,8 @@ export const signupSchema = z.object({
     .regex(/[a-z]/, "Password must contain at least one lowercase letter")
     .regex(/[0-9]/, "Password must contain at least one number")
     .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character"),
-  fullName: z.string().min(2, "Full name must be at least 2 characters"),
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
   country: z.string().optional(),
   countryIso: z.string().optional(),
   role: z.nativeEnum(UserRole).refine((val) => ["STUDENT", "COACH"].includes(val), {
@@ -31,7 +32,8 @@ export const registerSchema = z.object({
     .regex(/[a-z]/, "Password must contain at least one lowercase letter")
     .regex(/[0-9]/, "Password must contain at least one number")
     .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character"),
-  fullName: z.string().min(2, "Full name must be at least 2 characters"),
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
   country: z.string().optional(),
   countryIso: z.string().optional(),
   role: z.nativeEnum(UserRole).refine((val) => ["STUDENT", "COACH"].includes(val), {
@@ -47,7 +49,9 @@ export const signinSchema = z.object({
 export const googleAuthSchema = z.object({
   googleId: z.string(),
   email: z.string().email(),
-  fullName: z.string(),
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+  fullName: z.string().optional(),
   role: z.nativeEnum(UserRole).refine((val) => ["STUDENT", "COACH"].includes(val), {
     message: "Invalid role selected",
   }),

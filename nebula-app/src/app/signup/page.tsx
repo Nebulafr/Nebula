@@ -90,7 +90,8 @@ export default function SignupPage() {
       email: "",
       password: "",
       confirmPassword: "",
-      fullName: "",
+      firstName: "",
+      lastName: "",
       role: UserRole.STUDENT,
     },
   });
@@ -104,7 +105,8 @@ export default function SignupPage() {
       await signUp({
         email: values.email,
         password: values.password,
-        fullName: values.fullName,
+        firstName: values.firstName,
+        lastName: values.lastName,
         role: UserRole.STUDENT,
       });
 
@@ -206,23 +208,42 @@ export default function SignupPage() {
                   <Form {...form}>
                     <form onSubmit={form.handleSubmit(handleSignup)}>
                       <CardContent className="grid gap-4 p-0 mt-6">
-                        <FormField
-                          control={form.control}
-                          name="fullName"
-                          render={({ field }) => (
-                            <FormItem className="grid gap-2 space-y-0">
-                              <FormLabel>{t("fullName")}</FormLabel>
-                              <FormControl>
-                                <Input
-                                  {...field}
-                                  placeholder={t("fullNamePlaceholder")}
-                                  disabled={loading}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField
+                            control={form.control}
+                            name="firstName"
+                            render={({ field }) => (
+                              <FormItem className="grid gap-2 space-y-0">
+                                <FormLabel>{f("firstName") || "First Name"}</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    {...field}
+                                    placeholder={f("firstNamePlaceholder") || "John"}
+                                    disabled={loading}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="lastName"
+                            render={({ field }) => (
+                              <FormItem className="grid gap-2 space-y-0">
+                                <FormLabel>{f("lastName") || "Last Name"}</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    {...field}
+                                    placeholder={f("lastNamePlaceholder") || "Doe"}
+                                    disabled={loading}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
                         <FormField
                           control={form.control}
                           name="email"

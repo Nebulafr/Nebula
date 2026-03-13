@@ -1,4 +1,4 @@
-import { agent } from "@/lib/agents";
+import { agent } from "../agents/lib";
 import { AgentInput } from "@/lib/validations";
 import { HumanMessage } from "langchain";
 import { sendSuccess } from "../utils/send-response";

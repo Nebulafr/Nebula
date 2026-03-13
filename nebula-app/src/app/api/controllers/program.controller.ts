@@ -4,72 +4,105 @@ import { BadRequestException } from "../utils/http-exception";
 
 export class ProgramController {
   async createProgram(request: NextRequest) {
-    return await programService.createProgram(request);
+    const body = await request.json();
+    const user = (request as unknown as any).user;
+    return await programService.createProgram(user, body);
   }
 
   async getPrograms(request: NextRequest) {
-    return await programService.getPrograms(request);
+    const { searchParams } = new URL(request.url);
+    const params = {
+      coachId: searchParams.get("coachId") || undefined,
+      category: searchParams.get("category") || undefined,
+      search: searchParams.get("search") || undefined,
+      limit: searchParams.get("limit") ? parseInt(searchParams.get("limit")!) : undefined,
+      offset: searchParams.get("offset") ? parseInt(searchParams.get("offset")!) : undefined,
+    };
+    return await programService.getPrograms(params);
   }
 
   async getGroupedPrograms(request: NextRequest) {
-    return await programService.getGroupedPrograms(request);
+    const { searchParams } = new URL(request.url);
+    const params = {
+      coachId: searchParams.get("coachId") || undefined,
+      category: searchParams.get("category") || undefined,
+      search: searchParams.get("search") || undefined,
+      limit: searchParams.get("limit") ? parseInt(searchParams.get("limit")!) : undefined,
+      page: searchParams.get("page") ? parseInt(searchParams.get("page")!) : 1,
+    };
+    return await programService.getGroupedPrograms(params);
   }
 
   async getRecommendedPrograms(request: NextRequest) {
-    return await programService.getRecommendedPrograms(request);
+    const user = (request as unknown as any).user;
+    return await programService.getRecommendedPrograms(user);
   }
 
   async getPopularPrograms(request: NextRequest) {
-    return await programService.getPopularPrograms(request);
+    const { searchParams } = new URL(request.url);
+    const params = {
+      limit: searchParams.get("limit") ? parseInt(searchParams.get("limit")!) : undefined,
+      offset: searchParams.get("offset") ? parseInt(searchParams.get("offset")!) : undefined,
+    };
+    return await programService.getPopularPrograms(params);
   }
 
   async getBySlug(request: NextRequest, slug: string) {
     if (!slug) {
       throw new BadRequestException("Program Slug is required");
     }
-    return await programService.getBySlug(request, slug);
+    const { extractUserFromRequest } = await import("../utils/extract-user");
+    const user = await extractUserFromRequest(request);
+    return await programService.getBySlug(slug, user?.id);
   }
 
   async updateProgram(request: NextRequest, slug: string) {
     if (!slug) {
       throw new BadRequestException("Program Slug is required");
     }
-    return await programService.updateProgram(request, slug);
+    const body = await request.json();
+    const user = (request as unknown as any).user;
+    return await programService.updateProgram(user, slug, body);
   }
 
   async deleteProgram(request: NextRequest, slug: string) {
     if (!slug) {
       throw new BadRequestException("Program Slug is required");
     }
-    return await programService.deleteProgram(request, slug);
+    const user = (request as unknown as any).user;
+    return await programService.deleteProgram(user, slug);
   }
 
   async submitProgram(request: NextRequest, programId: string) {
     if (!programId) {
       throw new BadRequestException("Program ID is required");
     }
-    return await programService.submitProgram(request, programId);
+    const user = (request as unknown as any).user;
+    return await programService.submitProgram(user, programId);
   }
 
   async getById(request: NextRequest, id: string) {
     if (!id) {
       throw new BadRequestException("Program ID is required");
     }
-    return await programService.getById(request, id);
+    return await programService.getById(id);
   }
 
   async updateById(request: NextRequest, id: string) {
     if (!id) {
       throw new BadRequestException("Program ID is required");
     }
-    return await programService.updateById(request, id);
+    const body = await request.json();
+    const user = (request as unknown as any).user;
+    return await programService.updateById(user, id, body);
   }
 
   async deleteById(request: NextRequest, id: string) {
     if (!id) {
       throw new BadRequestException("Program ID is required");
     }
-    return await programService.deleteById(request, id);
+    const user = (request as unknown as any).user;
+    return await programService.deleteById(user, id);
   }
 }
 

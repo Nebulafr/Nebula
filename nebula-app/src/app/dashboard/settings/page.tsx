@@ -154,6 +154,8 @@ export default function StudentSettingsPage() {
 
       <ProfileSection
         user={{
+          firstName: profile.firstName || "",
+          lastName: profile.lastName || "",
           fullName: profile.fullName || "",
           email: profile.email,
           avatarUrl: profile.avatarUrl || undefined,

@@ -12,6 +12,8 @@ model User {
   id                       String                    @id @default(cuid())
   googleId                 String?                   @unique @map("google_id")
   email                    String                    @unique
+  firstName                String                    @default("") @map("first_name")
+  lastName                 String                    @default("") @map("last_name")
   hashedPassword           String?                   @map("hashed_password")
   role                     UserRole                  @default(STUDENT)
   status                   UserStatus                @default(PENDING)

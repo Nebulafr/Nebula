@@ -18,9 +18,7 @@ import { uploadService } from "./upload.service";
 import { AuthenticatedRequest } from "@/types";
 
 export class EventService {
-  create = async (request: NextRequest, data: CreateEventData) => {
-    const user = (request as unknown as AuthenticatedRequest).user;
-
+  create = async (user: AuthenticatedRequest["user"], data: CreateEventData) => {
     if (user.role !== "ADMIN") {
       throw new UnauthorizedException("Admin access required");
     }
@@ -126,24 +124,29 @@ export class EventService {
     );
   };
 
-  find = async (request: NextRequest) => {
-    const { searchParams } = new URL(request.url);
-
-    const search = searchParams.get("search") || undefined;
-    const eventType = searchParams.get("eventType") || undefined;
-    const status = searchParams.get("status") || undefined;
-    const accessType = searchParams.get("accessType") || undefined;
-    const limitParam = searchParams.get("limit");
-    const offsetParam = searchParams.get("offset");
-
-    const limit = limitParam ? parseInt(limitParam) : 20;
-    const offset = offsetParam ? parseInt(offsetParam) : 0;
-    const isPublicParam = searchParams.get("isPublic");
+  find = async (params: {
+    search?: string;
+    eventType?: string;
+    status?: string;
+    accessType?: string;
+    limit?: number;
+    offset?: number;
+    isPublic?: boolean;
+  }) => {
+    const {
+      search,
+      eventType,
+      status,
+      accessType,
+      limit = 20,
+      offset = 0,
+      isPublic,
+    } = params;
 
     const whereClause: Prisma.EventWhereInput = {};
 
-    if (isPublicParam !== null) {
-      whereClause.isPublic = isPublicParam === "true";
+    if (isPublic !== undefined) {
+      whereClause.isPublic = isPublic;
     }
 
     if (eventType) {
@@ -459,9 +462,7 @@ export class EventService {
     return sendSuccess({ event: transformedEvent });
   };
 
-  update = async (request: NextRequest, id: string, data: UpdateEventData) => {
-    const user = (request as unknown as AuthenticatedRequest).user;
-
+  update = async (user: AuthenticatedRequest["user"], id: string, data: UpdateEventData) => {
     if (user.role !== "ADMIN") {
       throw new UnauthorizedException("Admin access required");
     }
@@ -557,8 +558,7 @@ export class EventService {
     );
   };
 
-  remove = async (request: NextRequest, id: string) => {
-    const user = (request as unknown as AuthenticatedRequest).user;
+  remove = async (user: AuthenticatedRequest["user"], id: string) => {
 
     const existingEvent = await prisma.event.findUnique({
       where: { id },

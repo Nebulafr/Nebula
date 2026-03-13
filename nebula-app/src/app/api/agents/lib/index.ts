@@ -4,6 +4,8 @@ import { z } from "zod";
 import { UserRole } from "@/enums";
 import { NEBULA_AI_SYSTEM_PROMPT } from "./prompt";
 
+import { allTools } from "./tools";
+
 const contextSchema = z.object({
   userRole: z.nativeEnum(UserRole).optional(),
   userId: z.string().optional()
@@ -32,6 +34,6 @@ export const agent = createAgent({
   model,
   contextSchema,
   systemPrompt: NEBULA_AI_SYSTEM_PROMPT,
-  // tools: [],
+  tools: allTools,
   // middleware: [],
 });

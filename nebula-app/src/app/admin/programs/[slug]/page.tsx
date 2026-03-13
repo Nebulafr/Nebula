@@ -126,11 +126,11 @@ export default function ProgramDetailsPage({
   });
 
   // Fetch cohorts for this program
-  const { data: cohortsResponse, isLoading: isLoadingCohorts } = useCohorts(program!.id);
+  const { data: cohortsResponse, isLoading: isLoadingCohorts } = useCohorts(program?.id);
   const cohorts = cohortsResponse?.data?.cohorts || [];
 
   // Update cohort mutation
-  const updateCohortMutation = useUpdateCohort(program!.id, {
+  const updateCohortMutation = useUpdateCohort(program?.id, {
     onSuccess: () => {
       setCohortDialogOpen(false);
       setEditingCohort(null);
@@ -138,7 +138,7 @@ export default function ProgramDetailsPage({
   });
 
   // Create cohort mutation
-  const createCohortMutation = useCreateCohort(program!.id, {
+  const createCohortMutation = useCreateCohort(program?.id, {
     onSuccess: () => {
       setCohortDialogOpen(false);
       setIsCreatingCohort(false);
@@ -153,7 +153,7 @@ export default function ProgramDetailsPage({
 
     try {
       await updateProgramStatusMutation.mutateAsync({
-        programId: program!.id,
+        programId: program?.id as string,
         action: "approve",
         startDate: startDate.toISOString(),
       });
@@ -165,7 +165,7 @@ export default function ProgramDetailsPage({
   const handleReject = async () => {
     try {
       await updateProgramStatusMutation.mutateAsync({
-        programId: program!.id,
+        programId: program?.id as string,
         action: "reject",
       });
       router.push("/admin/programs");
@@ -177,7 +177,7 @@ export default function ProgramDetailsPage({
   const handleActivate = async () => {
     try {
       await updateProgramStatusMutation.mutateAsync({
-        programId: program!.id,
+        programId: program?.id as string,
         action: "activate",
       });
     } catch {
@@ -188,7 +188,7 @@ export default function ProgramDetailsPage({
   const handleDeactivate = async () => {
     try {
       await updateProgramStatusMutation.mutateAsync({
-        programId: program!.id,
+        programId: program?.id as string,
         action: "deactivate",
       });
     } catch {
@@ -230,7 +230,7 @@ export default function ProgramDetailsPage({
 
     if (isCreatingCohort) {
       createCohortMutation.mutate({
-        programId: program!.id,
+        programId: program?.id as string,
         name: cohortForm.name || "New Cohort",
         startDate: startDateTime.toISOString(),
         maxStudents: cohortForm.maxStudents,

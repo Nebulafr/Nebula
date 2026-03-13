@@ -1,7 +1,9 @@
 import { z } from "zod";
 
 export const updateProfileSchema = z.object({
-  fullName: z.string().min(1, "Full name is required").max(100, "Name is too long").optional(),
+  firstName: z.string().min(1, "First name is required").max(100, "Name is too long").optional(),
+  lastName: z.string().min(1, "Last name is required").max(100, "Name is too long").optional(),
+  fullName: z.string().optional(),
   email: z.string().email("Invalid email address").optional(),
   avatarUrl: z.string().optional(),
   country: z.string().optional(),

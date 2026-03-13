@@ -21,11 +21,7 @@ type ProgramWithRelations = Program & {
 };
 
 export class ProgramService {
-  async createProgram(request: NextRequest) {
-    const body = await request.json();
-    const user = (request as unknown as AuthenticatedRequest)
-      .user;
-
+  async createProgram(user: AuthenticatedRequest["user"], body: any) {
     if (user.role !== "COACH") {
       throw new UnauthorizedException("Coach access required");
     }
@@ -235,10 +231,14 @@ export class ProgramService {
     };
   }
 
-  private getProgramsWhereClause(searchParams: URLSearchParams) {
-    const coachId = searchParams.get("coachId") || undefined;
-    const category = searchParams.get("category") || undefined;
-    const search = searchParams.get("search") || undefined;
+  private async fetchProgramsData(params: {
+    coachId?: string;
+    category?: string;
+    search?: string;
+    limit?: number;
+    offset?: number;
+  }) {
+    const { coachId, category, search, limit = 10, offset = 0 } = params;
 
     const whereClause: Prisma.ProgramWhereInput = {};
 
@@ -268,19 +268,6 @@ export class ProgramService {
         { tags: { has: search } },
       ];
     }
-
-    return whereClause;
-  }
-
-  private async fetchProgramsData(request: NextRequest) {
-    const { searchParams } = new URL(request.url);
-
-    const limitParam = searchParams.get("limit");
-    const offsetParam = searchParams.get("offset");
-    const limit = limitParam ? parseInt(limitParam) : 10;
-    const offset = offsetParam ? parseInt(offsetParam) : 0;
-
-    const whereClause = this.getProgramsWhereClause(searchParams);
 
     const [programs, totalCount] = await Promise.all([
       prisma.program.findMany({
@@ -345,9 +332,9 @@ export class ProgramService {
     };
   }
 
-  async getPrograms(request: NextRequest) {
+  async getPrograms(params: any) {
     const { transformedPrograms, totalCount, limit, offset } =
-      await this.fetchProgramsData(request);
+      await this.fetchProgramsData(params);
 
     return sendSuccess({
       programs: transformedPrograms,
@@ -360,15 +347,35 @@ export class ProgramService {
     });
   }
 
-  async getGroupedPrograms(request: NextRequest) {
-    const { searchParams } = new URL(request.url);
-    const whereClause = this.getProgramsWhereClause(searchParams);
-
-    const limitParam = searchParams.get("limit");
-    const pageParam = searchParams.get("page");
-    const limit = limitParam ? parseInt(limitParam) : undefined;
-    const page = pageParam ? parseInt(pageParam) : 1;
+  async getGroupedPrograms(params: any) {
+    const { coachId, category: categoryFilter, search, limit, page = 1 } = params;
     const skip = limit ? (page - 1) * limit : undefined;
+
+    const whereClause: Prisma.ProgramWhereInput = {};
+    if (coachId) {
+      whereClause.coachId = coachId;
+    } else {
+      whereClause.isActive = true;
+      whereClause.status = "ACTIVE";
+    }
+
+    if (categoryFilter) {
+      whereClause.category = { name: categoryFilter };
+    }
+
+    if (search) {
+      whereClause.OR = [
+        { title: { contains: search, mode: "insensitive" } },
+        { description: { contains: search, mode: "insensitive" } },
+        { category: { name: { contains: search, mode: "insensitive" } } },
+        {
+          coach: {
+            user: { fullName: { contains: search, mode: "insensitive" } },
+          },
+        },
+        { tags: { has: search } },
+      ];
+    }
 
     const categories = await prisma.category.findMany({
       where: {
@@ -441,9 +448,8 @@ export class ProgramService {
     });
   }
 
-  async getBySlug(request: NextRequest, slug: string) {
-    const user = await extractUserFromRequest(request);
-    const userId = user?.id;
+  async getBySlug(slug: string, authenticatedUserId?: string) {
+    const userId = authenticatedUserId;
 
     const program = await prisma.program.findUnique({
       where: { slug },
@@ -507,7 +513,7 @@ export class ProgramService {
     return sendSuccess({ program: transformedProgram });
   }
 
-  async getById(request: NextRequest, id: string) {
+  async getById(id: string) {
     const program = await prisma.program.findUnique({
       where: { id },
       include: {
@@ -548,11 +554,7 @@ export class ProgramService {
     return sendSuccess({ program });
   }
 
-  async updateById(request: NextRequest, id: string) {
-    const body = await request.json();
-    const user = (request as unknown as AuthenticatedRequest)
-      .user;
-
+  async updateById(user: AuthenticatedRequest["user"], id: string, body: any) {
     if (user.role !== "COACH") {
       throw new UnauthorizedException("Coach access required");
     }
@@ -766,11 +768,7 @@ export class ProgramService {
     }
   }
 
-  async updateProgram(request: NextRequest, slug: string) {
-    const body = await request.json();
-    const user = (request as unknown as AuthenticatedRequest)
-      .user;
-
+  async updateProgram(user: AuthenticatedRequest["user"], slug: string, body: any) {
     if (user.role !== "COACH") {
       throw new UnauthorizedException("Coach access required");
     }
@@ -889,7 +887,7 @@ export class ProgramService {
     return sendSuccess({ program: updatedProgram });
   }
 
-  async deleteProgram(request: NextRequest, slug: string) {
+  async deleteProgram(user: AuthenticatedRequest["user"], slug: string) {
     if (!slug) {
       throw new BadRequestException("Program Slug is required");
     }
@@ -905,10 +903,10 @@ export class ProgramService {
       },
     });
 
-    return await this.performDeletion(request, program);
+    return await this.performDeletion(user, program);
   }
 
-  async deleteById(request: NextRequest, id: string) {
+  async deleteById(user: AuthenticatedRequest["user"], id: string) {
     if (!id) {
       throw new BadRequestException("Program ID is required");
     }
@@ -917,12 +915,10 @@ export class ProgramService {
       where: { id },
     });
 
-    return await this.performDeletion(request, program);
+    return await this.performDeletion(user, program);
   }
 
-  private async performDeletion(request: NextRequest, program: any) {
-    const user = (request as unknown as AuthenticatedRequest)
-      .user;
+  private async performDeletion(user: AuthenticatedRequest["user"], program: any) {
 
     if (!program) {
       throw new NotFoundException("Program not found");
@@ -946,9 +942,7 @@ export class ProgramService {
     return sendSuccess(null, "Program deleted successfully");
   }
 
-  async getRecommendedPrograms(request: NextRequest) {
-    const user = (request as unknown as AuthenticatedRequest)
-      .user;
+  async getRecommendedPrograms(user: AuthenticatedRequest["user"]) {
 
     if (!user.student) {
       throw new BadRequestException("User is not a student");
@@ -1044,10 +1038,9 @@ export class ProgramService {
     return sendSuccess({ programs: transformedPrograms });
   }
 
-  async getPopularPrograms(request: NextRequest) {
-    const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get("limit") || "6");
-    const offset = parseInt(searchParams.get("offset") || "0");
+  async getPopularPrograms(params: { limit?: number; offset?: number }) {
+    const limit = params.limit || 6;
+    const offset = params.offset || 0;
 
     const [programs, totalCount] = await Promise.all([
       prisma.program.findMany({

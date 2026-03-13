@@ -23,6 +23,8 @@ import { CountrySelect } from "@/components/ui/country-select";
 
 interface ProfileSectionProps {
   user: {
+    firstName: string;
+    lastName: string;
     fullName: string;
     email: string;
     avatarUrl?: string;
@@ -54,6 +56,8 @@ export function ProfileSection({
   const form = useForm<UpdateProfileData>({
     resolver: zodResolver(updateProfileSchema),
     defaultValues: {
+      firstName: user.firstName,
+      lastName: user.lastName,
       fullName: user.fullName,
       email: user.email,
       country: user.country,
@@ -76,7 +80,7 @@ export function ProfileSection({
             <div className="relative mx-auto mb-4 w-fit">
               <Avatar className="h-24 w-24">
                 <AvatarImage src={previewUrl || user.avatarUrl} />
-                <AvatarFallback>{user.fullName.charAt(0)}</AvatarFallback>
+                <AvatarFallback>{(user.firstName?.charAt(0) || user.fullName?.charAt(0) || "").toUpperCase()}</AvatarFallback>
               </Avatar>
               {!previewUrl && (
                 <Button
@@ -146,19 +150,34 @@ export function ProfileSection({
                 onSubmit={form.handleSubmit(onSubmit)}
                 className="space-y-6 mt-6"
               >
-                <FormField
-                  control={form.control}
-                  name="fullName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("fullName")}</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="firstName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t("firstName") || "First Name"}</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="lastName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t("lastName") || "Last Name"}</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
 
                 <FormField
                   control={form.control}

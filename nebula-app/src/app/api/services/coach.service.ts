@@ -260,11 +260,7 @@ export class CoachService {
     // This is done after profile creation but we don't await it to avoid blocking the response
     // if it fails, it will be retried when the coach visits the payouts page
     stripeAccountService
-      .createAccount(userId, {
-        email: data.email,
-        fullName: data.fullName,
-        countryIso: data.countryIso,
-      })
+      .createAccount(userId)
       .catch((err) => {
         console.error("Failed to create Stripe account in coach service:", err);
       });
@@ -291,7 +287,7 @@ export class CoachService {
       // Update user's full name and country
       await tx.user.update({
         where: { id: userId },
-        data: { 
+        data: {
           fullName: data.fullName,
           country: data.country,
           countryIso: data.countryIso,
@@ -386,7 +382,7 @@ export class CoachService {
     return coach.id;
   }
 
-  async getCoachById(coachId: string, request?: NextRequest) {
+  async getCoachById(coachId: string, authenticatedUserId?: string) {
     const coach = await prisma.coach.findFirst({
       where: {
         id: coachId,
@@ -412,17 +408,11 @@ export class CoachService {
       throw new NotFoundException("Coach not found");
     }
 
-    let userId: string | undefined;
-    if (request) {
-      const user = await extractUserFromRequest(request);
-      userId = user?.id;
-    }
-
     const [programs, reviews, hasUserReviewed] = await Promise.all([
       this.fetchCoachPrograms(coachId),
       this.fetchCoachReviews(coachId),
-      userId
-        ? this.checkUserReview(coachId, userId, "COACH")
+      authenticatedUserId
+        ? this.checkUserReview(coachId, authenticatedUserId, "COACH")
         : Promise.resolve(false),
     ]);
 

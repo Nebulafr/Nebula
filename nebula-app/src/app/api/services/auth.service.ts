@@ -35,7 +35,8 @@ export class AuthService {
   }
 
   async register(data: RegisterData) {
-    const { email, password, fullName, country, countryIso, role } = data;
+    const { email, password, firstName, lastName, role } = data;
+    const fullName = `${firstName} ${lastName}`.trim();
 
     const existingUser = await this.findUserByEmail(email);
     if (existingUser) {
@@ -56,9 +57,9 @@ export class AuthService {
       data: {
         email,
         hashedPassword,
+        firstName,
+        lastName,
         fullName,
-        country,
-        countryIso,
         role,
         status: "PENDING",
         verificationToken,
@@ -67,6 +68,8 @@ export class AuthService {
       select: {
         id: true,
         email: true,
+        firstName: true,
+        lastName: true,
         fullName: true,
         role: true,
         status: true,
@@ -82,7 +85,7 @@ export class AuthService {
 
     await emailService.sendVerificationEmail(
       email,
-      fullName || "Nebula User",
+      firstName || "Nebula User",
       verificationUrl,
     );
 
@@ -172,7 +175,17 @@ export class AuthService {
   }
 
   async googleAuth(data: GoogleAuthData) {
-    const { googleId, email, fullName, role, avatarUrl } = data;
+    let { googleId, email, fullName, firstName, lastName, role, avatarUrl } = data;
+
+    if ((!firstName || !lastName) && fullName) {
+      const parts = fullName.trim().split(/\s+/);
+      firstName = firstName || parts[0] || "";
+      lastName = lastName || parts.slice(1).join(" ") || "";
+    }
+
+    if (!fullName && firstName && lastName) {
+      fullName = `${firstName} ${lastName}`.trim();
+    }
 
     let user = await this.findUserByGoogleId(googleId);
 
@@ -209,6 +222,8 @@ export class AuthService {
       data: {
         email,
         googleId,
+        firstName,
+        lastName,
         fullName,
         role,
         avatarUrl,
@@ -288,8 +303,12 @@ export class AuthService {
 
   async updateProfile(userId: string, data: Record<string, unknown>) {
     try {
-      const allowedFields = ["fullName", "avatarUrl", "country", "countryIso"];
+      const allowedFields = ["firstName", "lastName", "fullName", "avatarUrl", "country", "countryIso"];
       const updateData: Record<string, string> = {} as Record<string, string>;
+
+      if (data.firstName && data.lastName && !data.fullName) {
+        data.fullName = `${data.firstName} ${data.lastName}`.trim();
+      }
 
       for (const field of allowedFields) {
         if (data[field] !== undefined) {
@@ -315,6 +334,8 @@ export class AuthService {
         data: updateData,
         select: {
           id: true,
+          firstName: true,
+          lastName: true,
           fullName: true,
           email: true,
           avatarUrl: true,

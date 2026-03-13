@@ -72,7 +72,14 @@ export class CoachController {
       throw new BadRequestException("Coach ID is required");
     }
 
-    return await coachService.getCoachById(coachId, request);
+    let userId: string | undefined;
+    if (request) {
+      const { extractUserFromRequest } = await import("../utils/extract-user");
+      const user = await extractUserFromRequest(request);
+      userId = user?.id;
+    }
+
+    return await coachService.getCoachById(coachId, userId);
   }
 
   async getSuggestedCoaches(request: NextRequest) {
