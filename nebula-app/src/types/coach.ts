@@ -218,14 +218,24 @@ export interface UpdateCoachResponse {
   error?: string;
   message?: string;
 }
+export interface TimeInterval {
+  startTime: string; // HH:mm
+  endTime: string;   // HH:mm
+}
+
+export interface DayAvailability {
+  enabled: boolean;
+  intervals: TimeInterval[];
+}
+
 export interface CoachAvailability {
-  monday: { enabled: boolean; startTime: string; endTime: string };
-  tuesday: { enabled: boolean; startTime: string; endTime: string };
-  wednesday: { enabled: boolean; startTime: string; endTime: string };
-  thursday: { enabled: boolean; startTime: string; endTime: string };
-  friday: { enabled: boolean; startTime: string; endTime: string };
-  saturday: { enabled: boolean; startTime: string; endTime: string };
-  sunday: { enabled: boolean; startTime: string; endTime: string };
+  monday: DayAvailability;
+  tuesday: DayAvailability;
+  wednesday: DayAvailability;
+  thursday: DayAvailability;
+  friday: DayAvailability;
+  saturday: DayAvailability;
+  sunday: DayAvailability;
 }
 
 export type CoachAvailabilityResponse = ApiResponse<{

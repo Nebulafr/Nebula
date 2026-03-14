@@ -543,20 +543,26 @@ export class SessionService {
         sessionDateTime.hours() * 60 + sessionDateTime.minutes();
       const slotEndMinutes = slotStartMinutes + duration;
 
-      const availStartMinutes = startHour * 60 + startMinute;
-      const availEndMinutes = endHour * 60 + endMinute;
+      // Use new intervals-based logic only
+      if (dayAvail.intervals && Array.isArray(dayAvail.intervals)) {
+        const isWithinAnyInterval = dayAvail.intervals.some((interval: any) => {
+          const [iStartHour, iStartMinute] = interval.startTime.split(":").map(Number);
+          const [iEndHour, iEndMinute] = interval.endTime.split(":").map(Number);
+          const iStartMinutes = iStartHour * 60 + iStartMinute;
+          const iEndMinutes = iEndHour * 60 + iEndMinute;
+          return slotStartMinutes >= iStartMinutes && slotEndMinutes <= iEndMinutes;
+        });
 
-      if (
-        slotStartMinutes < availStartMinutes ||
-        slotEndMinutes > availEndMinutes
-      ) {
-        throw new BadRequestException(
-          `Requested time ${sessionDateTime.format("HH:mm")} - ${sessionDateTime
-            .clone()
-            .add(duration, "minutes")
-            .format("HH:mm")} is outside of coach's available hours (${dayAvail.startTime
-          } - ${dayAvail.endTime})`,
-        );
+        if (!isWithinAnyInterval) {
+          throw new BadRequestException(
+            `Requested time ${sessionDateTime.format("HH:mm")} - ${sessionDateTime
+              .clone()
+              .add(duration, "minutes")
+              .format("HH:mm")} is outside of coach's available intervals`,
+          );
+        }
+      } else {
+        throw new BadRequestException(`Coach has no available time slots set for ${dayName}`);
       }
     } catch (error) {
       if (error instanceof BadRequestException) {

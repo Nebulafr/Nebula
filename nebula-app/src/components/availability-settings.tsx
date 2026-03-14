@@ -12,12 +12,7 @@ import {
   useSaveCoachAvailability,
 } from "@/hooks/use-schedule-queries";
 import { useTranslations } from "next-intl";
-
-export interface DayAvailability {
-  enabled: boolean;
-  startTime: string;
-  endTime: string;
-}
+import { CoachAvailability, DayAvailability } from "@/types/coach";
 
 const DAYS = [
   { key: "monday", labelKey: "monday" },
@@ -30,13 +25,13 @@ const DAYS = [
 ];
 
 const DEFAULT_AVAILABILITY: Record<string, DayAvailability> = {
-  monday: { enabled: true, startTime: "09:00", endTime: "17:00" },
-  tuesday: { enabled: true, startTime: "09:00", endTime: "17:00" },
-  wednesday: { enabled: true, startTime: "09:00", endTime: "17:00" },
-  thursday: { enabled: true, startTime: "09:00", endTime: "17:00" },
-  friday: { enabled: true, startTime: "09:00", endTime: "17:00" },
-  saturday: { enabled: false, startTime: "09:00", endTime: "17:00" },
-  sunday: { enabled: false, startTime: "09:00", endTime: "17:00" },
+  monday: { enabled: true, intervals: [{ startTime: "09:00", endTime: "17:00" }] },
+  tuesday: { enabled: true, intervals: [{ startTime: "09:00", endTime: "17:00" }] },
+  wednesday: { enabled: true, intervals: [{ startTime: "09:00", endTime: "17:00" }] },
+  thursday: { enabled: true, intervals: [{ startTime: "09:00", endTime: "17:00" }] },
+  friday: { enabled: true, intervals: [{ startTime: "09:00", endTime: "17:00" }] },
+  saturday: { enabled: false, intervals: [] },
+  sunday: { enabled: false, intervals: [] },
 };
 
 interface AvailabilitySettingsProps {
@@ -88,18 +83,14 @@ export function AvailabilitySettings({
   // Initialize from fetched data (dashboard mode)
   useEffect(() => {
     if (showSaveButton && availabilityData?.availability) {
-      const fetchedAvailability = availabilityData.availability;
-      setAvailability((prev) => ({
-        ...prev,
-        ...fetchedAvailability,
-      }));
+      setAvailability(availabilityData.availability as Record<string, DayAvailability>);
     }
   }, [availabilityData, showSaveButton]);
 
   // Initialize from prop (onboarding mode)
   useEffect(() => {
     if (initialAvailability) {
-      setAvailability(initialAvailability);
+      setAvailability(initialAvailability as Record<string, DayAvailability>);
     }
   }, [initialAvailability]);
 
@@ -112,22 +103,73 @@ export function AvailabilitySettings({
 
   const handleToggleDay = (day: string) => {
     if (disabled) return;
-    setAvailability((prev) => ({
-      ...prev,
-      [day]: { ...prev[day], enabled: !prev[day].enabled },
-    }));
+    setAvailability((prev) => {
+      const isEnabled = !prev[day].enabled;
+      return {
+        ...prev,
+        [day]: {
+          ...prev[day],
+          enabled: isEnabled,
+          intervals: isEnabled && (!prev[day].intervals || prev[day].intervals.length === 0)
+            ? [{ startTime: "09:00", endTime: "17:00" }]
+            : (prev[day].intervals || [])
+        },
+      };
+    });
   };
 
   const handleTimeChange = (
     day: string,
+    index: number,
     field: "startTime" | "endTime",
     value: string,
   ) => {
     if (disabled) return;
-    setAvailability((prev) => ({
-      ...prev,
-      [day]: { ...prev[day], [field]: value },
-    }));
+    setAvailability((prev) => {
+      const newIntervals = [...(prev[day].intervals || [])];
+      newIntervals[index] = { ...newIntervals[index], [field]: value };
+      return {
+        ...prev,
+        [day]: { ...prev[day], intervals: newIntervals },
+      };
+    });
+  };
+
+  const handleAddInterval = (day: string) => {
+    if (disabled) return;
+    setAvailability((prev) => {
+      const intervals = prev[day].intervals || [];
+      const lastInterval = intervals[intervals.length - 1];
+      const startTime = lastInterval ? lastInterval.endTime : "09:00";
+      // Add 1 hour or default to 17:00
+      const [hour, minute] = startTime.split(":").map(Number);
+      const endHour = Math.min(hour + 1, 23);
+      const endTime = `${String(endHour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+
+      return {
+        ...prev,
+        [day]: {
+          ...prev[day],
+          intervals: [...intervals, { startTime, endTime }]
+        },
+      };
+    });
+  };
+
+  const handleRemoveInterval = (day: string, index: number) => {
+    if (disabled) return;
+    setAvailability((prev) => {
+      const intervals = prev[day].intervals;
+      const newIntervals = intervals.filter((_, i: number) => i !== index);
+      return {
+        ...prev,
+        [day]: {
+          ...prev[day],
+          intervals: newIntervals,
+          enabled: newIntervals.length > 0 ? prev[day].enabled : false
+        },
+      };
+    });
   };
 
   const handleSave = () => {
@@ -166,47 +208,81 @@ export function AvailabilitySettings({
           {DAYS.map(({ key, labelKey }) => (
             <div
               key={key}
-              className="flex items-center justify-between gap-4 py-2 border-b last:border-0"
+              className="flex flex-col gap-3 py-4 border-b last:border-0"
             >
-              <div className="flex items-center gap-3 min-w-[140px]">
-                <Switch
-                  checked={availability[key].enabled}
-                  onCheckedChange={() => handleToggleDay(key)}
-                  disabled={disabled || (showSaveButton && saving)}
-                />
-                <Label className="font-medium">
-                  {commonT(`days.${labelKey}`)}
-                </Label>
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3 min-w-[140px]">
+                  <Switch
+                    checked={availability[key].enabled}
+                    onCheckedChange={() => handleToggleDay(key)}
+                    disabled={disabled || (showSaveButton && saving)}
+                  />
+                  <Label className="font-medium">
+                    {commonT(`days.${labelKey}`)}
+                  </Label>
+                </div>
+
+                {availability[key].enabled && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleAddInterval(key)}
+                    disabled={disabled || (showSaveButton && saving)}
+                    className="h-8"
+                  >
+                    + Add Slot
+                  </Button>
+                )}
+
+                {!availability[key].enabled && (
+                  <span className="text-sm text-muted-foreground">
+                    {t("notAvailable")}
+                  </span>
+                )}
               </div>
 
               {availability[key].enabled && (
-                <div className="flex items-center gap-2 text-sm">
-                  <input
-                    type="time"
-                    value={availability[key].startTime}
-                    onChange={(e) =>
-                      handleTimeChange(key, "startTime", e.target.value)
-                    }
-                    className="border rounded px-2 py-1 text-sm"
-                    disabled={disabled || (showSaveButton && saving)}
-                  />
-                  <span className="text-muted-foreground">{t("to")}</span>
-                  <input
-                    type="time"
-                    value={availability[key].endTime}
-                    onChange={(e) =>
-                      handleTimeChange(key, "endTime", e.target.value)
-                    }
-                    className="border rounded px-2 py-1 text-sm"
-                    disabled={disabled || (showSaveButton && saving)}
-                  />
+                <div className="flex flex-col gap-2 pl-14">
+                  {(availability[key].intervals || []).map((interval, index) => (
+                    <div key={index} className="flex items-center gap-2 group">
+                      <div className="flex items-center gap-2 text-sm">
+                        <input
+                          type="time"
+                          value={interval.startTime}
+                          onChange={(e) =>
+                            handleTimeChange(key, index, "startTime", e.target.value)
+                          }
+                          className="border rounded px-2 py-1 text-sm bg-background"
+                          disabled={disabled || (showSaveButton && saving)}
+                        />
+                        <span className="text-muted-foreground">{t("to")}</span>
+                        <input
+                          type="time"
+                          value={interval.endTime}
+                          onChange={(e) =>
+                            handleTimeChange(key, index, "endTime", e.target.value)
+                          }
+                          className="border rounded px-2 py-1 text-sm bg-background"
+                          disabled={disabled || (showSaveButton && saving)}
+                        />
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleRemoveInterval(key, index)}
+                        disabled={disabled || (showSaveButton && saving)}
+                        className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+                      >
+                        ×
+                      </Button>
+                    </div>
+                  ))}
+                  {(!availability[key].intervals || availability[key].intervals.length === 0) && (
+                    <span className="text-sm text-muted-foreground italic">
+                      No time slots added.
+                    </span>
+                  )}
                 </div>
-              )}
-
-              {!availability[key].enabled && (
-                <span className="text-sm text-muted-foreground">
-                  {t("notAvailable")}
-                </span>
               )}
             </div>
           ))}

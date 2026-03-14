@@ -1,5 +1,5 @@
 import { apiGet, apiPost, apiPut, apiDelete, apiPatch } from "@/lib/utils";
-import { CoachSessionsResponse, CoachStatsResponse, CoachAvailabilityResponse, CoachStudentsResponse } from '@/types/coach';
+import { CoachSessionsResponse, CoachStatsResponse, CoachAvailabilityResponse, CoachStudentsResponse, CoachAvailability, DayAvailability } from '@/types/coach';
 
 
 export async function bookCoachSession({
@@ -92,14 +92,8 @@ export async function getCoachAvailability(): Promise<CoachAvailabilityResponse>
   return apiGet("/coaches/availability");
 }
 
-export interface DayAvailability {
-  enabled: boolean;
-  startTime: string;
-  endTime: string;
-}
-
 export async function saveCoachAvailability(
-  availability: Record<string, DayAvailability>
+  availability: CoachAvailability
 ) {
   return apiPut("/coaches/availability", { availability }, { throwOnError: true });
 }

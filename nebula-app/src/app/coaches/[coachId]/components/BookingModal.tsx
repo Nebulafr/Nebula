@@ -66,15 +66,12 @@ export function BookingModal({
     const isAvailable = (dayFullName: string, time: string, dayFullDate?: Date) => {
         if (!availabilityData) return true;
         const dayAvail = availabilityData[dayFullName];
-        if (!dayAvail || !dayAvail.enabled) return false;
+        if (!dayAvail || !dayAvail.enabled || !Array.isArray(dayAvail.intervals)) return false;
 
         const [hours, minutes] = time.split(":").map(Number);
-        const [startH, startM] = dayAvail.startTime.split(":").map(Number);
-        const [endH, endM] = dayAvail.endTime.split(":").map(Number);
-
         const timeInMins = hours * 60 + minutes;
-        const startInMins = startH * 60 + startM;
-        const endInMins = endH * 60 + endM;
+        const durationInMins = parseInt(duration);
+        const endTimeInMins = timeInMins + durationInMins;
 
         // Check if the slot is in the past
         if (dayFullDate) {
@@ -87,7 +84,13 @@ export function BookingModal({
             }
         }
 
-        return timeInMins >= startInMins && timeInMins < endInMins;
+        return dayAvail.intervals.some((interval: any) => {
+            const [startH, startM] = interval.startTime.split(":").map(Number);
+            const [endH, endM] = interval.endTime.split(":").map(Number);
+            const startInMins = startH * 60 + startM;
+            const endInMins = endH * 60 + endM;
+            return timeInMins >= startInMins && endTimeInMins <= endInMins;
+        });
     };
 
     const calculatedPrice = Math.round(
@@ -119,13 +122,13 @@ export function BookingModal({
                 </DialogHeader>
 
                 {/* Duration Toggle */}
-                <div className="flex gap-4 mb-10">
+                <div className="flex p-1 gap-1 mb-10 bg-muted/30 rounded-2xl border border-muted/20">
                     <button
                         className={cn(
-                            "flex-1 py-4 text-sm font-bold transition-all rounded-xl border-2",
+                            "flex-1 py-3 text-sm font-bold transition-all rounded-xl",
                             duration === "30"
-                                ? "bg-[#00966d] border-[#00966d] text-white"
-                                : "bg-white border-muted text-muted-foreground hover:border-primary/30"
+                                ? "bg-primary text-primary-foreground shadow-sm"
+                                : "text-muted-foreground hover:bg-muted/50"
                         )}
                         onClick={() => setDuration("30")}
                     >
@@ -133,10 +136,10 @@ export function BookingModal({
                     </button>
                     <button
                         className={cn(
-                            "flex-1 py-4 text-sm font-bold transition-all rounded-xl border-2",
+                            "flex-1 py-3 text-sm font-bold transition-all rounded-xl",
                             duration === "60"
-                                ? "bg-[#00966d] border-[#00966d] text-white"
-                                : "bg-white border-muted text-muted-foreground hover:border-primary/30"
+                                ? "bg-primary text-primary-foreground shadow-sm"
+                                : "text-muted-foreground hover:bg-muted/50"
                         )}
                         onClick={() => setDuration("60")}
                     >

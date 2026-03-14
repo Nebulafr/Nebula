@@ -1,9 +1,8 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Info, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { toast } from "react-toastify";
 import { useTranslations, useLocale } from "next-intl";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -143,20 +142,22 @@ export function ScheduleOverview({
 
                         const dayAvail = availabilityData?.[dayFullName];
                         let slotsForDay: string[] = [];
-                        if (dayAvail?.enabled) {
-                            const [startH, startM] = dayAvail.startTime.split(":").map(Number);
-                            const [endH, endM] = dayAvail.endTime.split(":").map(Number);
-                            const startTotal = startH * 60 + startM;
-                            const endTotal = endH * 60 + endM;
+                        if (dayAvail?.enabled && Array.isArray(dayAvail.intervals)) {
                             const step = parseInt(duration);
+                            dayAvail.intervals.forEach((interval: any) => {
+                                const [startH, startM] = interval.startTime.split(":").map(Number);
+                                const [endH, endM] = interval.endTime.split(":").map(Number);
+                                const startTotal = startH * 60 + startM;
+                                const endTotal = endH * 60 + endM;
 
-                            for (let t = startTotal; t < endTotal; t += step) {
-                                const h = Math.floor(t / 60)
-                                    .toString()
-                                    .padStart(2, "0");
-                                const m = (t % 60).toString().padStart(2, "0");
-                                slotsForDay.push(`${h}:${m} `);
-                            }
+                                for (let t = startTotal; t + step <= endTotal; t += step) {
+                                    const h = Math.floor(t / 60)
+                                        .toString()
+                                        .padStart(2, "0");
+                                    const m = (t % 60).toString().padStart(2, "0");
+                                    slotsForDay.push(`${h}:${m} `);
+                                }
+                            });
                         }
 
                         return (

@@ -15,6 +15,8 @@ export class StripeAccountService {
         email: true,
         stripeAccountId: true,
         fullName: true,
+        firstName: true,
+        lastName: true,
         countryIso: true,
       },
     });
@@ -32,8 +34,9 @@ export class StripeAccountService {
     const email = user.email || '';
 
     const nameParts = fullName.split(' ') || [];
-    const firstName = nameParts[0] || '';
-    const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
+    const firstName = user.firstName || nameParts[0] || '';
+    const lastName =
+      user.lastName || nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
 
     // Create Express account
     const account = await stripe.accounts.create({
@@ -233,9 +236,15 @@ export class StripeAccountService {
         stripeAccount: user.stripeAccountId,
       });
 
-      const available = balance.available.reduce((acc, b) => acc + b.amount / 100, 0);
+      const available = balance.available.reduce(
+        (acc, b) => acc + b.amount / 100,
+        0,
+      );
 
-      const pending = balance.pending.reduce((acc, b) => acc + b.amount / 100, 0);
+      const pending = balance.pending.reduce(
+        (acc, b) => acc + b.amount / 100,
+        0,
+      );
 
       return sendSuccess(
         { available, pending },
