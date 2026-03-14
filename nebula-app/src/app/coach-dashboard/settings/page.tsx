@@ -1,28 +1,23 @@
- 
-"use client";
+'use client';
 
-import { useEffect, useState, useRef } from "react";
-import { ProfileAvatar } from "./components/profile-avatar";
-import { ProfileForm, ProfileFormData } from "./components/profile-form";
-import {
-  PayoutSettings,
-  PayoutSettingsData,
-} from "./components/payout-settings";
-import { updateCoachProfile } from "@/actions/coaches";
-import { uploadUserAvatar, changePassword } from "@/actions/user";
-import { toast } from "react-toastify";
-import { useAuth } from "@/hooks/use-auth";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, CreditCard, Shield } from "lucide-react";
-import { SecuritySection } from "@/app/dashboard/settings/components/security-section";
-import { type ChangePasswordData } from "@/lib/validations";
-import { useTranslations } from "next-intl";
+import { useEffect, useState, useRef } from 'react';
+import { ProfileAvatar } from './components/profile-avatar';
+import { ProfileForm, ProfileFormData } from './components/profile-form';
+import { StripeConnect } from '../payouts/components/stripe-connect';
+import { updateCoachProfile } from '@/actions/coaches';
+import { uploadUserAvatar, changePassword } from '@/actions/user';
+import { toast } from 'react-toastify';
+import { useAuth } from '@/hooks/use-auth';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { User, CreditCard, Shield } from 'lucide-react';
+import { SecuritySection } from '@/app/dashboard/settings/components/security-section';
+import { type ChangePasswordData } from '@/lib/validations';
+import { useTranslations } from 'next-intl';
 
 export default function CoachSettingsPage() {
-  const t = useTranslations("dashboard.coach.settings");
+  const t = useTranslations('dashboard.coach.settings');
   const { profile, refreshUser } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  const [isPayoutLoading, setIsPayoutLoading] = useState(false);
   const [isPasswordLoading, setIsPasswordLoading] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [previewFile, setPreviewFile] = useState<File | null>(null);
@@ -30,42 +25,57 @@ export default function CoachSettingsPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState<ProfileFormData>({
-    fullName: "",
-    title: "",
-    bio: "",
-    style: "",
+    firstName: '',
+    lastName: '',
+    fullName: '',
+    title: '',
+    bio: '',
+    style: '',
     specialties: [],
     pastCompanies: [],
-    linkedinUrl: "",
-    availability: "",
+    linkedinUrl: '',
+    availability: '',
     hourlyRate: 0,
     qualifications: [],
-    experience: "",
-    timezone: "",
-    languages: ["English"],
-    country: "",
-    countryIso: "",
+    experience: '',
+    timezone: '',
+    languages: ['English'],
+    country: '',
+    countryIso: '',
   });
 
   useEffect(() => {
     if (profile && profile.coach) {
       const coachProfile = profile.coach;
+      
+      let firstName = profile.firstName;
+      let lastName = profile.lastName;
+      
+      // Fallback: extract from fullName if firstName or lastName are missing
+      if ((!firstName || !lastName) && profile.fullName) {
+        const parts = profile.fullName.trim().split(/\s+/);
+        firstName = firstName || parts[0] || '';
+        lastName = lastName || (parts.length > 1 ? parts.slice(1).join(' ') : '');
+      }
+
       setFormData({
-        fullName: profile.fullName || "",
-        title: coachProfile.title || "",
-        bio: coachProfile.bio || "",
-        style: coachProfile.style || "",
+        firstName: firstName || '',
+        lastName: lastName || '',
+        fullName: profile.fullName || '',
+        title: coachProfile.title || '',
+        bio: coachProfile.bio || '',
+        style: coachProfile.style || '',
         specialties: coachProfile.specialties || [],
         pastCompanies: coachProfile.pastCompanies || [],
-        linkedinUrl: coachProfile.linkedinUrl || "",
-        availability: coachProfile.availability || "",
+        linkedinUrl: coachProfile.linkedinUrl || '',
+        availability: coachProfile.availability || '',
         hourlyRate: coachProfile.hourlyRate || 0,
         qualifications: coachProfile.qualifications || [],
-        experience: coachProfile.experience || "",
-        timezone: coachProfile.timezone || "UTC",
-        languages: coachProfile.languages || ["English"],
-        country: profile.country || "",
-        countryIso: profile.countryIso || "",
+        experience: coachProfile.experience || '',
+        timezone: coachProfile.timezone || 'UTC',
+        languages: coachProfile.languages || ['English'],
+        country: profile.country || '',
+        countryIso: profile.countryIso || '',
       });
     }
   }, [profile]);
@@ -82,16 +92,16 @@ export default function CoachSettingsPage() {
     if (!file) return;
 
     // Validate file type
-    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
-      toast.error(t("avatar.errorFileType"));
+      toast.error(t('avatar.errorFileType'));
       return;
     }
 
     // Validate file size (max 5MB)
     const maxSize = 5 * 1024 * 1024; // 5MB
     if (file.size > maxSize) {
-      toast.error(t("avatar.errorFileSize"));
+      toast.error(t('avatar.errorFileSize'));
       return;
     }
 
@@ -101,7 +111,7 @@ export default function CoachSettingsPage() {
 
     // Clear the file input so the same file can be selected again
     if (fileInputRef.current) {
-      fileInputRef.current.value = "";
+      fileInputRef.current.value = '';
     }
   };
 
@@ -114,13 +124,13 @@ export default function CoachSettingsPage() {
 
       if (response.success) {
         await refreshUser();
-        toast.success(t("avatar.uploadSuccess"));
+        toast.success(t('avatar.uploadSuccess'));
         handleCancelPreview();
       } else {
-        toast.error(response.message || t("avatar.uploadError"));
+        toast.error(response.message || t('avatar.uploadError'));
       }
     } catch (error) {
-      toast.error(t("errorUnexpected"));
+      toast.error(t('errorUnexpected'));
     } finally {
       setIsUploadingAvatar(false);
     }
@@ -133,7 +143,7 @@ export default function CoachSettingsPage() {
     setPreviewFile(null);
     setPreviewUrl(null);
     if (fileInputRef.current) {
-      fileInputRef.current.value = "";
+      fileInputRef.current.value = '';
     }
   };
 
@@ -154,29 +164,15 @@ export default function CoachSettingsPage() {
 
       if (response.success) {
         // Profile updated successfully
-        toast.success(t("profile.saveSuccess") || "Profile updated");
+        toast.success(t('profile.saveSuccess') || 'Profile updated');
         await refreshUser(); // Refresh user to get updated coach data
       } else {
-        toast.error(response.message || t("profile.errorUpdate"));
+        toast.error(response.message || t('profile.errorUpdate'));
       }
     } catch (error) {
-      toast.error(t("profile.errorUnexpected") || t("errorUnexpected"));
+      toast.error(t('profile.errorUnexpected') || t('errorUnexpected'));
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handlePayoutSave = async (payoutData: PayoutSettingsData) => {
-    setIsPayoutLoading(true);
-    try {
-      // TODO: Implement payout settings save API
-      console.log("Saving payout settings:", payoutData);
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulated delay
-      toast.success(t("payout.saveSuccess") || "Payout settings saved");
-    } catch (error) {
-      toast.error(t("payout.errorSave"));
-    } finally {
-      setIsPayoutLoading(false);
     }
   };
 
@@ -187,19 +183,19 @@ export default function CoachSettingsPage() {
 
       if (response.success) {
         // Password changed successfully
-        toast.success(t("security.passwordSuccess") || "Password changed");
+        toast.success(t('security.passwordSuccess') || 'Password changed');
       } else {
-        toast.error(response.message || t("security.errorPassword"));
+        toast.error(response.message || t('security.errorPassword'));
       }
     } catch (error: any) {
-      toast.error(error.message || t("errorUnexpected"));
+      toast.error(error.message || t('errorUnexpected'));
     } finally {
       setIsPasswordLoading(false);
     }
   };
 
   if (!profile) {
-    return <div>{t("loading")}</div>;
+    return <div>{t('loading')}</div>;
   }
 
   const isGoogleUser = !profile.hashedPassword && !!profile.googleId;
@@ -207,23 +203,23 @@ export default function CoachSettingsPage() {
   return (
     <div className="flex-1 space-y-6 p-4 md:p-8">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">{t("title")}</h2>
-        <p className="text-muted-foreground">{t("subtitle")}</p>
+        <h2 className="text-3xl font-bold tracking-tight">{t('title')}</h2>
+        <p className="text-muted-foreground">{t('subtitle')}</p>
       </div>
 
       <Tabs defaultValue="account" className="space-y-6">
         <TabsList>
           <TabsTrigger value="account" className="gap-2">
             <User className="h-4 w-4" />
-            {t("tabs.account")}
+            {t('tabs.account')}
           </TabsTrigger>
           <TabsTrigger value="payout" className="gap-2">
             <CreditCard className="h-4 w-4" />
-            {t("tabs.payout")}
+            {t('tabs.payout')}
           </TabsTrigger>
           <TabsTrigger value="security" className="gap-2">
             <Shield className="h-4 w-4" />
-            {t("tabs.security")}
+            {t('tabs.security')}
           </TabsTrigger>
         </TabsList>
 
@@ -233,7 +229,9 @@ export default function CoachSettingsPage() {
               <ProfileAvatar
                 avatarUrl={profile?.avatarUrl || undefined}
                 previewUrl={previewUrl || undefined}
-                fullName={profile?.fullName || ""}
+                firstName={profile?.firstName || ''}
+                lastName={profile?.lastName || ''}
+                fullName={profile?.fullName || ''}
                 title={formData.title}
                 onChangePhoto={handleChangePhoto}
                 onSave={handleConfirmUpload}
@@ -245,7 +243,7 @@ export default function CoachSettingsPage() {
                 type="file"
                 accept="image/*"
                 onChange={handleFileChange}
-                style={{ display: "none" }}
+                style={{ display: 'none' }}
               />
             </div>
             <div className="md:col-span-2">
@@ -260,10 +258,7 @@ export default function CoachSettingsPage() {
 
         <TabsContent value="payout">
           <div className="max-w-2xl">
-            <PayoutSettings
-              onSave={handlePayoutSave}
-              isLoading={isPayoutLoading}
-            />
+            <StripeConnect />
           </div>
         </TabsContent>
 

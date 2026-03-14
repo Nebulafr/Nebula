@@ -57,7 +57,7 @@ export function PayoutItem({
       <TableCell className="font-medium">{payout.id}</TableCell>
       <TableCell>{formatDate(payout.date)}</TableCell>
       <TableCell>
-        {payout.currency || '$'}{payout.amount.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+        {payout.currency || '€'}{payout.amount.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
       </TableCell>
       <TableCell>
         <Badge className={getStatusColor(payout.status)}>

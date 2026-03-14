@@ -69,20 +69,34 @@ export function ProfileForm({
       <CardContent className="space-y-6">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <FormField
-              control={form.control}
-              name="fullName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t("fullName")}</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder={t("fullName")} />
-                  </FormControl>
-                  <FormDescription>{t("fullNameDescription")}</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="firstName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("firstName")}</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder={t("firstName")} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="lastName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("lastName")}</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder={t("lastName")} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField

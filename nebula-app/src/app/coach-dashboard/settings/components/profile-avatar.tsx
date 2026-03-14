@@ -9,6 +9,8 @@ import { useTranslations } from "next-intl";
 interface ProfileAvatarProps {
   avatarUrl?: string;
   previewUrl?: string; // New prop for preview
+  firstName: string;
+  lastName: string;
   fullName: string;
   title: string;
   onChangePhoto?: () => void;
@@ -20,6 +22,8 @@ interface ProfileAvatarProps {
 export function ProfileAvatar({
   avatarUrl,
   previewUrl,
+  firstName,
+  lastName,
   fullName,
   title,
   onChangePhoto,
@@ -28,11 +32,13 @@ export function ProfileAvatar({
   isUploading = false,
 }: ProfileAvatarProps) {
   const t = useTranslations("dashboard.coach.settings.avatar");
-  const initials = fullName
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase();
+  const initials = firstName && lastName 
+    ? `${firstName[0]}${lastName[0]}`.toUpperCase()
+    : fullName
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase();
 
   const currentDisplayUrl = previewUrl || avatarUrl;
 
@@ -45,7 +51,7 @@ export function ProfileAvatar({
             {initials || "C"}
           </AvatarFallback>
         </Avatar>
-        <CardTitle>{fullName}</CardTitle>
+        <CardTitle>{`${firstName} ${lastName}`}</CardTitle>
         <CardDescription>{title}</CardDescription>
       </CardHeader>
       <CardContent className="text-center space-y-4">

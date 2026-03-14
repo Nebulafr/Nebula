@@ -15,7 +15,7 @@ interface AccountBalanceProps {
 
 export function AccountBalance({
   balance,
-  currency = "$",
+  currency = "€",
   onRequestPayout,
   loading = false,
   disabled = false,

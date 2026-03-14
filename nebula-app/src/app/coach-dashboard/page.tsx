@@ -160,11 +160,11 @@ function CoachDashboardContent() {
               <CardTitle className="text-sm font-medium">
                 {t("totalRevenue")}
               </CardTitle>
-              <span className="text-muted-foreground">$</span>
+              <span className="text-muted-foreground">€</span>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                ${stats?.totalRevenue || 0}
+                €{stats?.totalRevenue || 0}
               </div>
               <p className="text-xs text-muted-foreground">
                 {t("fromLastMonth", { change: stats?.revenueChange || 0 })}
@@ -180,9 +180,10 @@ function CoachDashboardContent() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                +{stats?.activeStudents || 0}
+                {stats?.activeStudents || 0}
               </div>
               <p className="text-xs text-muted-foreground">
+                {stats?.studentsChange && stats.studentsChange > 0 ? "+" : ""}
                 {t("sinceLastMonth", { count: stats?.studentsChange || 0 })}
               </p>
             </CardContent>
@@ -199,6 +200,7 @@ function CoachDashboardContent() {
                 {stats?.sessionsThisMonth || 0}
               </div>
               <p className="text-xs text-muted-foreground">
+                {stats?.sessionsChange && stats.sessionsChange > 0 ? "+" : ""}
                 {t("sinceLastMonth", { count: stats?.sessionsChange || 0 })}
               </p>
             </CardContent>
@@ -419,7 +421,7 @@ function CoachDashboardContent() {
             <CardHeader>
               <CardTitle>{t("recentPayouts")}</CardTitle>
               <CardDescription>
-                {t("payoutCount", { count: 3 })}
+                {t("payoutCount", { count: payoutsData?.payoutsThisMonth || 0 })}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -449,7 +451,7 @@ function CoachDashboardContent() {
                         </p>
                       </div>
                       <div className="ml-auto font-medium">
-                        +${payout.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        +€{payout.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </div>
                     </div>
                   ))
