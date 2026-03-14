@@ -1,9 +1,7 @@
 import { NextRequest } from "next/server";
 import { type AuthenticatedRequest } from "@/types";
 import { reviewService } from "../services/review.service";
-import { targetReviewSchema, reviewQuerySchema } from "@/lib/validations";
-import { ReviewTargetType } from "@/generated/prisma";
-import type { CreateReviewBySlugData } from "../services/review.service";
+import { targetReviewSchema, reviewQuerySchema } from "@/lib/validations/review";
 
 export class ReviewController {
   async createReview(
@@ -20,10 +18,22 @@ export class ReviewController {
       targetId,
     });
 
-    return await reviewService.createReview({
-      reviewerId: user.id,
-      ...payload,
-    });
+    if (targetType === "COACH") {
+      return await reviewService.createCoachReview({
+        reviewerId: user.id,
+        targetId: payload.targetId,
+        rating: payload.rating,
+        content: payload.content,
+        sessionId: payload.sessionId,
+      });
+    } else {
+      return await reviewService.createProgramReview({
+        reviewerId: user.id,
+        targetId: payload.targetId,
+        rating: payload.rating,
+        content: payload.content,
+      });
+    }
   }
 
   async createReviewBySlug(
@@ -37,13 +47,26 @@ export class ReviewController {
     const payload = targetReviewSchema.parse({
       ...body,
       targetType,
+      targetId: targetType === "COACH" ? slug : "placeholder", // targetId is required by schema, slug is the Id for coaches
     });
 
-    return await reviewService.createReviewBySlug({
-      reviewerId: user.id,
-      slug,
-      ...payload,
-    } as unknown as CreateReviewBySlugData);
+    if (targetType === "PROGRAM") {
+      return await reviewService.createProgramReviewBySlug({
+        reviewerId: user.id,
+        slug,
+        rating: payload.rating,
+        content: payload.content,
+      });
+    } else {
+      // For COACH type, slug is the coach targetId
+      return await reviewService.createCoachReview({
+        reviewerId: user.id,
+        targetId: slug,
+        rating: payload.rating,
+        content: payload.content,
+        sessionId: payload.sessionId,
+      });
+    }
   }
 
   async getReviews(request: NextRequest, targetType: string, targetId: string) {
@@ -63,11 +86,11 @@ export class ReviewController {
       limit: validatedParams.limit,
     };
 
-    return await reviewService.getReviews(
-      targetType as ReviewTargetType,
-      targetId,
-      sortOptions,
-    );
+    if (targetType === "COACH") {
+      return await reviewService.getCoachReviews(targetId, sortOptions);
+    } else {
+      return await reviewService.getProgramReviews(targetId, sortOptions);
+    }
   }
 
   async getReviewsBySlug(
@@ -91,11 +114,12 @@ export class ReviewController {
       limit: validatedParams.limit,
     };
 
-    return await reviewService.getReviewsBySlug(
-      targetType as ReviewTargetType,
-      slug,
-      sortOptions,
-    );
+    if (targetType === "COACH") {
+      // For coaches, slug is the coachId
+      return await reviewService.getCoachReviews(slug, sortOptions);
+    } else {
+      return await reviewService.getProgramReviewsBySlug(slug, sortOptions);
+    }
   }
 }
 

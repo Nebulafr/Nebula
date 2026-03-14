@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { ReviewTargetType, CoachReview, ProgramReview, Prisma } from "@/generated/prisma";
+import { ReviewTargetType, Prisma } from "@/generated/prisma";
 import { sendSuccess } from "../utils/send-response";
 import {
   NotFoundException,
@@ -34,43 +34,8 @@ export interface ReviewSortOptions {
 }
 
 export class ReviewService {
-  async createReviewBySlug(data: CreateReviewBySlugData) {
-    const { slug, targetType, ...reviewData } = data;
-
-    // Resolve the target ID from slug
-    let resolvedTargetId: string;
-
-    if (targetType === "PROGRAM") {
-      const program = await prisma.program.findUnique({
-        where: { slug },
-      });
-
-      if (!program) {
-        throw new NotFoundException("Program not found");
-      }
-
-      resolvedTargetId = program.id;
-    } else {
-      // For COACH type, we expect the targetId to be passed directly
-      resolvedTargetId = reviewData.targetId;
-    }
-
-    return this.createReview({
-      ...reviewData,
-      targetId: resolvedTargetId,
-      targetType,
-    });
-  }
-
-  async createReview(data: CreateReviewData) {
-    const {
-      reviewerId,
-      targetType,
-      targetId,
-      rating,
-      content,
-      sessionId,
-    } = data;
+  async createCoachReview(data: Omit<CreateReviewData, "targetType">) {
+    const { reviewerId, targetId, rating, content, sessionId } = data;
 
     if (rating < 1 || rating > 5) {
       throw new BadRequestException("Rating must be between 1 and 5");
@@ -89,79 +54,38 @@ export class ReviewService {
       throw new BadRequestException("Only students can create reviews");
     }
 
-    switch (targetType) {
-      case "COACH":
-        await this.validateCoachReview(
-          targetId,
-          reviewerId,
-          sessionId
-        );
-        break;
-      case "PROGRAM":
-        await this.validateProgramReview(targetId, reviewerId);
-        break;
-      default:
-        throw new BadRequestException("Invalid target type");
-    }
+    await this.validateCoachReview(targetId, reviewerId, sessionId);
 
     // Check for existing review
-    const existingReview =
-      targetType === "COACH"
-        ? await prisma.coachReview.findFirst({
-          where: { userId: reviewerId, coachId: targetId },
-        })
-        : await prisma.programReview.findFirst({
-          where: { userId: reviewerId, programId: targetId },
-        });
+    const existingReview = await prisma.coachReview.findFirst({
+      where: { userId: reviewerId, coachId: targetId },
+    });
 
     if (existingReview) {
-      throw new BadRequestException(
-        `You have already reviewed this ${targetType.toLowerCase()}`
-      );
+      throw new BadRequestException("You have already reviewed this coach");
     }
 
     // Create review in transaction
     const result = await prisma.$transaction(async (tx) => {
-      let review;
-      if (targetType === "COACH") {
-        review = await tx.coachReview.create({
-          data: {
-            userId: reviewerId,
-            coachId: targetId,
-            rating,
-            comment: content.trim(),
-          },
-          include: {
-            user: {
-              select: {
-                id: true,
-                fullName: true,
-                avatarUrl: true,
-              },
+      const review = await tx.coachReview.create({
+        data: {
+          userId: reviewerId,
+          coachId: targetId,
+          rating,
+          comment: content.trim(),
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              fullName: true,
+              avatarUrl: true,
             },
           },
-        });
-      } else {
-        review = await tx.programReview.create({
-          data: {
-            userId: reviewerId,
-            programId: targetId,
-            rating,
-            comment: content.trim(),
-          },
-          include: {
-            user: {
-              select: {
-                id: true,
-                fullName: true,
-                avatarUrl: true,
-              },
-            },
-          },
-        });
-      }
+        },
+      });
 
-      await this.updateTargetRating(tx, targetType, targetId, rating);
+      await this.updateCoachRating(tx, targetId, rating);
 
       return review;
     });
@@ -170,128 +94,181 @@ export class ReviewService {
       {
         reviewId: result.id,
       },
-      "Review submitted successfully",
+      "Coach review submitted successfully",
       201
     );
   }
 
-  async deleteReview(id: string, targetType?: ReviewTargetType) {
-    let resolvedTargetType = targetType;
+  async createProgramReviewBySlug(data: Omit<CreateReviewBySlugData, "targetType" | "targetId">) {
+    const { slug, ...reviewData } = data;
 
-    // If targetType is not provided, try to find the review in both tables
-    if (!resolvedTargetType) {
-      const coachReview = await prisma.coachReview.findUnique({ where: { id } });
-      if (coachReview) {
-        resolvedTargetType = "COACH";
-      } else {
-        const programReview = await prisma.programReview.findUnique({ where: { id } });
-        if (programReview) {
-          resolvedTargetType = "PROGRAM";
-        }
-      }
+    const program = await prisma.program.findUnique({
+      where: { slug },
+    });
+
+    if (!program) {
+      throw new NotFoundException("Program not found");
     }
 
-    if (!resolvedTargetType) {
-      throw new NotFoundException("Review not found");
+    return this.createProgramReview({
+      ...reviewData,
+      targetId: program.id,
+    });
+  }
+
+  async createProgramReview(data: Omit<CreateReviewData, "targetType">) {
+    const { reviewerId, targetId, rating, content } = data;
+
+    if (rating < 1 || rating > 5) {
+      throw new BadRequestException("Rating must be between 1 and 5");
     }
 
-    const review =
-      resolvedTargetType === "COACH"
-        ? await prisma.coachReview.findUnique({ where: { id } })
-        : await prisma.programReview.findUnique({ where: { id } });
+    if (!content.trim()) {
+      throw new BadRequestException("Review content is required");
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: reviewerId },
+      include: { student: true },
+    });
+
+    if (!user || user.role !== "STUDENT" || !user.student) {
+      throw new BadRequestException("Only students can create reviews");
+    }
+
+    await this.validateProgramReview(targetId, reviewerId);
+
+    // Check for existing review
+    const existingReview = await prisma.programReview.findFirst({
+      where: { userId: reviewerId, programId: targetId },
+    });
+
+    if (existingReview) {
+      throw new BadRequestException("You have already reviewed this program");
+    }
+
+    // Create review in transaction
+    const result = await prisma.$transaction(async (tx) => {
+      const review = await tx.programReview.create({
+        data: {
+          userId: reviewerId,
+          programId: targetId,
+          rating,
+          comment: content.trim(),
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              fullName: true,
+              avatarUrl: true,
+            },
+          },
+        },
+      });
+
+      await this.updateProgramRating(tx, targetId, rating);
+
+      return review;
+    });
+
+    return sendSuccess(
+      {
+        reviewId: result.id,
+      },
+      "Program review submitted successfully",
+      201
+    );
+  }
+
+  async deleteCoachReview(id: string) {
+    const review = await prisma.coachReview.findUnique({ where: { id } });
 
     if (!review) {
       throw new NotFoundException("Review not found");
     }
 
-    const targetId = resolvedTargetType === "COACH" ? (review as CoachReview).coachId : (review as ProgramReview).programId;
+    const targetId = review.coachId;
 
     await prisma.$transaction(async (tx) => {
-      // Delete the review
-      if (resolvedTargetType === "COACH") {
-        await tx.coachReview.delete({ where: { id } });
-      } else {
-        await tx.programReview.delete({ where: { id } });
-      }
+      await tx.coachReview.delete({ where: { id } });
 
-      // Recalculate average rating and total count
-      const result =
-        resolvedTargetType === "COACH"
-          ? await tx.coachReview.aggregate({
-            where: { coachId: targetId },
-            _avg: { rating: true },
-            _count: { id: true },
-          })
-          : await tx.programReview.aggregate({
-            where: { programId: targetId },
-            _avg: { rating: true },
-            _count: { id: true },
-          });
+      const result = await tx.coachReview.aggregate({
+        where: { coachId: targetId },
+        _avg: { rating: true },
+        _count: { id: true },
+      });
 
       const newAvgRating = result._avg.rating || 0;
       const newTotalReviews = result._count.id || 0;
 
-      // Update target entity
-      if (resolvedTargetType === "COACH") {
-        await tx.coach.update({
-          where: { id: targetId },
-          data: {
-            rating: Number(newAvgRating.toFixed(1)),
-            totalReviews: newTotalReviews,
-          },
-        });
-      } else {
-        await tx.program.update({
-          where: { id: targetId },
-          data: {
-            rating: Number(newAvgRating.toFixed(1)),
-            totalReviews: newTotalReviews,
-          },
-        });
-      }
+      await tx.coach.update({
+        where: { id: targetId },
+        data: {
+          rating: Number(newAvgRating.toFixed(1)),
+          totalReviews: newTotalReviews,
+        },
+      });
     });
 
-    return sendSuccess(null, "Review deleted successfully");
+    return sendSuccess(null, "Coach review deleted successfully");
   }
 
-  async getReviewsBySlug(
-    targetType: ReviewTargetType,
+  async deleteProgramReview(id: string) {
+    const review = await prisma.programReview.findUnique({ where: { id } });
+
+    if (!review) {
+      throw new NotFoundException("Review not found");
+    }
+
+    const targetId = review.programId;
+
+    await prisma.$transaction(async (tx) => {
+      await tx.programReview.delete({ where: { id } });
+
+      const result = await tx.programReview.aggregate({
+        where: { programId: targetId },
+        _avg: { rating: true },
+        _count: { id: true },
+      });
+
+      const newAvgRating = result._avg.rating || 0;
+      const newTotalReviews = result._count.id || 0;
+
+      await tx.program.update({
+        where: { id: targetId },
+        data: {
+          rating: Number(newAvgRating.toFixed(1)),
+          totalReviews: newTotalReviews,
+        },
+      });
+    });
+
+    return sendSuccess(null, "Program review deleted successfully");
+  }
+
+  async getProgramReviewsBySlug(
     slug: string,
     sortOptions: ReviewSortOptions
   ) {
-    // Resolve the target ID from slug
-    let targetId: string;
+    const program = await prisma.program.findUnique({
+      where: { slug },
+    });
 
-    if (targetType === "PROGRAM") {
-      const program = await prisma.program.findUnique({
-        where: { slug },
-      });
-
-      if (!program) {
-        throw new NotFoundException("Program not found");
-      }
-
-      targetId = program.id;
-    } else {
-      targetId = slug;
+    if (!program) {
+      throw new NotFoundException("Program not found");
     }
 
-    return this.getReviews(targetType, targetId, sortOptions);
+    return this.getProgramReviews(program.id, sortOptions);
   }
 
-  async getReviews(
-    targetType: ReviewTargetType,
+  async getCoachReviews(
     targetId: string,
     sortOptions: ReviewSortOptions
   ) {
     const { sortBy, page, limit } = sortOptions;
+    const offset = (page - 1) * limit;
 
-    // Build where clause
-    const whereClause: Record<string, string> = {
-      [targetType === "COACH" ? "coachId" : "programId"]: targetId,
-    };
-
-    // Build order by clause
     let orderBy: Record<string, "asc" | "desc"> = { createdAt: "desc" };
     switch (sortBy) {
       case "rating":
@@ -302,72 +279,38 @@ export class ReviewService {
         break;
     }
 
-    const offset = (page - 1) * limit;
-
-    // Get reviews and total count
-    const [reviews, totalCount] =
-      targetType === "COACH"
-        ? await Promise.all([
-          prisma.coachReview.findMany({
-            where: whereClause,
-            orderBy,
-            take: limit,
-            skip: offset,
-            include: {
-              user: {
-                select: {
-                  id: true,
-                  fullName: true,
-                  avatarUrl: true,
-                  role: true,
-                },
-              },
+    const [reviews, totalCount] = await Promise.all([
+      prisma.coachReview.findMany({
+        where: { coachId: targetId },
+        orderBy,
+        take: limit,
+        skip: offset,
+        include: {
+          user: {
+            select: {
+              id: true,
+              fullName: true,
+              avatarUrl: true,
+              role: true,
             },
-          }),
-          prisma.coachReview.count({ where: whereClause }),
-        ])
-        : await Promise.all([
-          prisma.programReview.findMany({
-            where: whereClause,
-            orderBy,
-            take: limit,
-            skip: offset,
-            include: {
-              user: {
-                select: {
-                  id: true,
-                  fullName: true,
-                  avatarUrl: true,
-                  role: true,
-                },
-              },
-            },
-          }),
-          prisma.programReview.count({ where: whereClause }),
-        ]);
+          },
+        },
+      }),
+      prisma.coachReview.count({ where: { coachId: targetId } }),
+    ]);
 
-    // Get rating distribution
-    const ratingDistribution = await this.getRatingDistribution(
-      targetType,
-      targetId
-    );
-
-    // Get target entity info
-    const targetEntity = await this.getTargetEntityInfo(targetType, targetId);
-
+    const ratingDistribution = await this.getCoachRatingDistribution(targetId);
+    const targetEntity = await this.getCoachEntityInfo(targetId);
     const totalPages = Math.ceil(totalCount / limit);
 
     return sendSuccess(
       {
         reviews: reviews.map((review) => ({
-          id: review.id,
-          reviewerId: "userId" in review ? review.userId : "",
-          targetType: targetType,
-          rating: review.rating,
+          ...review,
+          reviewerId: review.userId,
+          targetType: "COACH" as const,
           content: review.comment,
-          createdAt: review.createdAt,
-          updatedAt: review.updatedAt,
-          reviewer: "user" in review ? review.user : undefined,
+          reviewer: review.user,
         })),
         targetEntity,
         ratingDistribution,
@@ -380,7 +323,72 @@ export class ReviewService {
           limit,
         },
       },
-      "Reviews fetched successfully"
+      "Coach reviews fetched successfully"
+    );
+  }
+
+  async getProgramReviews(
+    targetId: string,
+    sortOptions: ReviewSortOptions
+  ) {
+    const { sortBy, page, limit } = sortOptions;
+    const offset = (page - 1) * limit;
+
+    let orderBy: Record<string, "asc" | "desc"> = { createdAt: "desc" };
+    switch (sortBy) {
+      case "rating":
+        orderBy = { rating: "desc" };
+        break;
+      case "oldest":
+        orderBy = { createdAt: "asc" };
+        break;
+    }
+
+    const [reviews, totalCount] = await Promise.all([
+      prisma.programReview.findMany({
+        where: { programId: targetId },
+        orderBy,
+        take: limit,
+        skip: offset,
+        include: {
+          user: {
+            select: {
+              id: true,
+              fullName: true,
+              avatarUrl: true,
+              role: true,
+            },
+          },
+        },
+      }),
+      prisma.programReview.count({ where: { programId: targetId } }),
+    ]);
+
+    const ratingDistribution = await this.getProgramRatingDistribution(targetId);
+    const targetEntity = await this.getProgramEntityInfo(targetId);
+    const totalPages = Math.ceil(totalCount / limit);
+
+    return sendSuccess(
+      {
+        reviews: reviews.map((review) => ({
+          ...review,
+          reviewerId: review.userId,
+          targetType: "PROGRAM" as const,
+          content: review.comment,
+          reviewer: review.user,
+        })),
+        targetEntity,
+        ratingDistribution,
+        pagination: {
+          currentPage: page,
+          totalPages,
+          totalReviews: totalCount,
+          hasNextPage: page < totalPages,
+          hasPreviousPage: page > 1,
+          limit,
+        },
+      },
+      "Program reviews fetched successfully"
     );
   }
 
@@ -457,59 +465,53 @@ export class ReviewService {
     return program;
   }
 
-  private async updateTargetRating(
+  private async updateCoachRating(
     tx: Prisma.TransactionClient,
-    targetType: ReviewTargetType,
     targetId: string,
     newRating: number
   ) {
-    if (targetType === "COACH") {
-      const coach = await tx.coach.findUnique({ where: { id: targetId } });
-      const currentRating = coach?.rating || 0;
-      const currentReviewCount = coach?.totalReviews || 0;
-      const newReviewCount = currentReviewCount + 1;
-      const updatedRating =
-        (currentRating * currentReviewCount + newRating) / newReviewCount;
+    const coach = await tx.coach.findUnique({ where: { id: targetId } });
+    const currentRating = coach?.rating || 0;
+    const currentReviewCount = coach?.totalReviews || 0;
+    const newReviewCount = currentReviewCount + 1;
+    const updatedRating =
+      (currentRating * currentReviewCount + newRating) / newReviewCount;
 
-      await tx.coach.update({
-        where: { id: targetId },
-        data: {
-          rating: Number(updatedRating.toFixed(1)),
-          totalReviews: newReviewCount,
-        },
-      });
-    } else if (targetType === "PROGRAM") {
-      const program = await tx.program.findUnique({ where: { id: targetId } });
-      const currentRating = program?.rating || 0;
-      const currentReviewCount = program?.totalReviews || 0;
-      const newReviewCount = currentReviewCount + 1;
-      const updatedRating =
-        (currentRating * currentReviewCount + newRating) / newReviewCount;
-
-      await tx.program.update({
-        where: { id: targetId },
-        data: {
-          rating: Number(updatedRating.toFixed(1)),
-          totalReviews: newReviewCount,
-        },
-      });
-    }
+    await tx.coach.update({
+      where: { id: targetId },
+      data: {
+        rating: Number(updatedRating.toFixed(1)),
+        totalReviews: newReviewCount,
+      },
+    });
   }
 
-  private async getRatingDistribution(
-    targetType: ReviewTargetType,
-    targetId: string
+  private async updateProgramRating(
+    tx: Prisma.TransactionClient,
+    targetId: string,
+    newRating: number
   ) {
-    const reviews =
-      targetType === "COACH"
-        ? await prisma.coachReview.findMany({
-          where: { coachId: targetId },
-          select: { rating: true },
-        })
-        : await prisma.programReview.findMany({
-          where: { programId: targetId },
-          select: { rating: true },
-        });
+    const program = await tx.program.findUnique({ where: { id: targetId } });
+    const currentRating = program?.rating || 0;
+    const currentReviewCount = program?.totalReviews || 0;
+    const newReviewCount = currentReviewCount + 1;
+    const updatedRating =
+      (currentRating * currentReviewCount + newRating) / newReviewCount;
+
+    await tx.program.update({
+      where: { id: targetId },
+      data: {
+        rating: Number(updatedRating.toFixed(1)),
+        totalReviews: newReviewCount,
+      },
+    });
+  }
+
+  private async getCoachRatingDistribution(targetId: string) {
+    const reviews = await prisma.coachReview.findMany({
+      where: { coachId: targetId },
+      select: { rating: true },
+    });
 
     const distribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
     reviews.forEach((review) => {
@@ -521,39 +523,49 @@ export class ReviewService {
     return distribution;
   }
 
-  private async getTargetEntityInfo(
-    targetType: ReviewTargetType,
-    targetId: string
-  ) {
-    switch (targetType) {
-      case "COACH":
-        return await prisma.coach.findUnique({
-          where: { id: targetId },
+  private async getProgramRatingDistribution(targetId: string) {
+    const reviews = await prisma.programReview.findMany({
+      where: { programId: targetId },
+      select: { rating: true },
+    });
+
+    const distribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+    reviews.forEach((review) => {
+      if (review.rating >= 1 && review.rating <= 5) {
+        distribution[review.rating as keyof typeof distribution]++;
+      }
+    });
+
+    return distribution;
+  }
+
+  private async getCoachEntityInfo(targetId: string) {
+    return await prisma.coach.findUnique({
+      where: { id: targetId },
+      select: {
+        id: true,
+        rating: true,
+        totalReviews: true,
+        user: {
           select: {
-            id: true,
-            rating: true,
-            totalReviews: true,
-            user: {
-              select: {
-                fullName: true,
-                avatarUrl: true,
-              },
-            },
+            fullName: true,
+            avatarUrl: true,
           },
-        });
-      case "PROGRAM":
-        return await prisma.program.findUnique({
-          where: { id: targetId },
-          select: {
-            id: true,
-            title: true,
-            rating: true,
-            totalReviews: true,
-          },
-        });
-      default:
-        return null;
-    }
+        },
+      },
+    });
+  }
+
+  private async getProgramEntityInfo(targetId: string) {
+    return await prisma.program.findUnique({
+      where: { id: targetId },
+      select: {
+        id: true,
+        title: true,
+        rating: true,
+        totalReviews: true,
+      },
+    });
   }
 }
 

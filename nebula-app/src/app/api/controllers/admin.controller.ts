@@ -6,7 +6,7 @@ import {
 } from "@/lib/validations";
 import { BadRequestException } from "../utils/http-exception";
 import { reviewService } from "../services/review.service";
-import { ReviewTargetType } from "@/generated/prisma";
+import { prisma } from "@/lib/prisma";
 
 export class AdminController {
   async getPrograms(request: NextRequest) {
@@ -143,9 +143,28 @@ export class AdminController {
     }
 
     const { searchParams } = new URL(request.url);
-    const targetType = searchParams.get("targetType");
+    let targetType = searchParams.get("targetType");
 
-    return await reviewService.deleteReview(id, targetType as ReviewTargetType);
+    if (!targetType) {
+      // Try to resolve targetType from database
+      const coachReview = await prisma.coachReview.findUnique({ where: { id } });
+      if (coachReview) {
+        targetType = "COACH";
+      } else {
+        const programReview = await prisma.programReview.findUnique({ where: { id } });
+        if (programReview) {
+          targetType = "PROGRAM";
+        }
+      }
+    }
+
+    if (targetType === "COACH") {
+      return await reviewService.deleteCoachReview(id);
+    } else if (targetType === "PROGRAM") {
+      return await reviewService.deleteProgramReview(id);
+    } else {
+      throw new BadRequestException("Could not determine review type");
+    }
   }
 }
 
