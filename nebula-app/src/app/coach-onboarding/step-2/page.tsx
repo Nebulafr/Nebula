@@ -17,7 +17,7 @@ import { useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
 import { Progress } from "@/components/ui/progress";
-import React, { useState } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { useSearchParams } from "next/navigation";
 import { useCategories } from "@/hooks";
@@ -34,7 +34,7 @@ function CoachOnboardingStep2Content() {
   const image = PlaceHolderImages.find((img) => img.id === "about-hero");
   const [inputValue, setInputValue] = useState("");
   const { data: categoriesResponse, isLoading: loading } = useCategories();
-  const categories = categoriesResponse?.data?.categories || [];
+  const categories = useMemo(() => categoriesResponse?.data?.categories || [], [categoriesResponse]);
 
   const searchParams = useSearchParams();
   const role = searchParams.get("role");
@@ -56,6 +56,40 @@ function CoachOnboardingStep2Content() {
   });
   const specialties = watch("specialties");
 
+  // Sync specialties from URL and ensure they are IDs if possible
+  useEffect(() => {
+    const specialtiesParam = searchParams.get("specialties");
+    if (specialtiesParam) {
+      try {
+        const parsed = JSON.parse(specialtiesParam);
+        if (Array.isArray(parsed)) {
+          const refined = parsed.map(item => {
+            // Find ID if it's a name
+            if (typeof item === 'string' && item.length < 20 && categories.length > 0) {
+              const category = categories.find(c => 
+                c.name.toLowerCase() === item.toLowerCase() || 
+                c.slug.toLowerCase() === item.toLowerCase()
+              );
+              if (category) return category.id;
+            }
+            return item;
+          });
+          setValue("specialties", refined, { shouldValidate: true });
+        }
+      } catch (e) {
+        console.error("Failed to parse specialties from URL", e);
+      }
+    }
+  }, [searchParams, categories, setValue]);
+
+  const removeSpecialty = (specToRemove: string) => {
+    setValue(
+      "specialties",
+      specialties.filter((spec) => spec !== specToRemove),
+      { shouldValidate: true }
+    );
+  };
+
   if (loading) {
     return (
       <div className="w-full min-h-screen flex items-center justify-center">
@@ -67,29 +101,9 @@ function CoachOnboardingStep2Content() {
     );
   }
 
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === "Enter" && inputValue.trim()) {
-      event.preventDefault();
-      if (!specialties.includes(inputValue.trim())) {
-        setValue("specialties", [...specialties, inputValue.trim()], {
-          shouldValidate: true,
-        });
-      }
-      setInputValue("");
-    }
-  };
-
-  const removeSpecialty = (specToRemove: string) => {
-    setValue(
-      "specialties",
-      specialties.filter((spec) => spec !== specToRemove),
-      { shouldValidate: true }
-    );
-  };
-
-  const addCategoryAsSpecialty = (categoryName: string) => {
-    if (!specialties.includes(categoryName)) {
-      setValue("specialties", [...specialties, categoryName], {
+  const addCategoryAsSpecialty = (categoryId: string) => {
+    if (!specialties.includes(categoryId)) {
+      setValue("specialties", [...specialties, categoryId], {
         shouldValidate: true,
       });
     }
@@ -145,8 +159,8 @@ function CoachOnboardingStep2Content() {
                         key={category.id}
                         variant="outline"
                         size="sm"
-                        onClick={() => addCategoryAsSpecialty(category.name)}
-                        disabled={specialties.includes(category.name)}
+                        onClick={() => addCategoryAsSpecialty(category.id)}
+                        disabled={specialties.includes(category.id)}
                         className="h-8 text-xs"
                       >
                         {category.name}
@@ -155,33 +169,26 @@ function CoachOnboardingStep2Content() {
                   </div>
                 </div>
 
-                <div className="grid gap-2">
-                  <Label htmlFor="specialties">{t("custom")}</Label>
-                  <Input
-                    id="specialties"
-                    placeholder={t("placeholder")}
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    className="h-14"
-                  />
-                </div>
+                {/* Custom input removed as specialties must be category IDs */}
 
                 {specialties.length > 0 && (
                   <div className="grid gap-2">
                     <Label>{t("selected")}</Label>
                     <div className="flex flex-wrap gap-2">
-                      {specialties.map((spec) => (
-                        <Badge key={spec} variant="secondary">
-                          {spec}
-                          <button
-                            onClick={() => removeSpecialty(spec)}
-                            className="ml-2 rounded-full hover:bg-black/20 p-0.5"
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
-                        </Badge>
-                      ))}
+                      {specialties.map((specId) => {
+                        const category = categories.find((c: any) => c.id === specId);
+                        return (
+                          <Badge key={specId} variant="secondary">
+                            {category?.name || specId}
+                            <button
+                              onClick={() => removeSpecialty(specId)}
+                              className="ml-2 rounded-full hover:bg-black/20 p-0.5"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </Badge>
+                        );
+                      })}
                     </div>
                   </div>
                 )}

@@ -32,7 +32,7 @@ export const updateCoachProfileSchema = z.object({
   title: z.string().min(1, "Title is required").max(100),
   bio: z.string().min(10, "Bio must be at least 10 characters").max(1000),
   style: z.string().min(1, "Coaching style is required"),
-  specialties: z.array(z.string()).min(1, "At least one specialty is required"),
+  specialties: z.array(z.string().cuid()).min(1, "At least one specialty is required"),
   pastCompanies: z.array(z.string()).optional(),
   linkedinUrl: z
     .string()

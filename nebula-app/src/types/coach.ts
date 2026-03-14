@@ -87,7 +87,7 @@ export interface CoachWithRelations {
   title: string;
   bio: string;
   style: string;
-  specialties: string[];
+  specialties: { id: string; name: string }[];
   pastCompanies: string[];
   linkedinUrl?: string;
   availability: string;
@@ -156,7 +156,7 @@ export interface ApiCoach {
   title: string;
   bio: string;
   style: string;
-  specialties: string[];
+  specialties: { id: string; name: string }[];
   pastCompanies: string[];
   linkedinUrl?: string;
   availability: string;

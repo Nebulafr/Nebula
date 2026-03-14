@@ -145,9 +145,9 @@ export class CoachService {
   private mapCoachToTransformed(coach: any) {
     const specialties = Array.isArray(coach.specialties)
       ? coach.specialties.map((s: any) => ({
-          id: s.categoryId || s.id || s,
-          name: s.category?.name || s.name || s,
-        }))
+        id: s.categoryId || s.id || s,
+        name: s.category?.name || s.name || s,
+      }))
       : [];
 
     return {
@@ -198,7 +198,7 @@ export class CoachService {
       const coach = await this.upsertCoachProfile(tx, userId, { ...data, slug });
       await this.handleCoachSpecialties(tx, coach.id, specialtiesData);
       return coach;
-    });
+    }, { timeout: 10000 });
 
     stripeAccountService.createAccount(userId).catch((err) => {
       console.error("Failed to create Stripe account in coach service:", err);
@@ -215,7 +215,7 @@ export class CoachService {
       const coach = await this.upsertCoachProfile(tx, userId, data);
       await this.handleCoachSpecialties(tx, coach.id, specialtiesData);
       return coach;
-    });
+    }, { timeout: 10000 });
 
     return sendSuccess(updatedProfile, "Coach profile updated successfully");
   }

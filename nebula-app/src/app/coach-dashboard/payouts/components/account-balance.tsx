@@ -21,6 +21,7 @@ export function AccountBalance({
   disabled = false,
 }: AccountBalanceProps) {
   const t = useTranslations("dashboard.coach.payouts");
+  console.log({ balance })
 
   if (loading) {
     return (
@@ -47,12 +48,12 @@ export function AccountBalance({
         <p className="text-4xl font-bold">
           {currency}{balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         </p>
-        <Button 
-          className="w-full" 
+        <Button
+          className="w-full"
           onClick={onRequestPayout}
           disabled={disabled || balance <= 0}
         >
-          {balance <= 0 ? t("noBalance") : t("requestPayout")}
+          {t("requestPayout")}
         </Button>
         {balance > 0 && (
           <p className="text-xs text-muted-foreground">

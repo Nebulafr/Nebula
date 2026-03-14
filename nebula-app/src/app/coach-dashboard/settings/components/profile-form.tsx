@@ -1,35 +1,35 @@
-"use client";
+'use client';
 
-import { useEffect } from "react";
-import { useTranslations } from "next-intl";
+import { useEffect, useMemo } from 'react';
+import { useTranslations } from 'next-intl';
 import {
   Card,
   CardHeader,
   CardTitle,
   CardContent,
   CardDescription,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Separator } from "@/components/ui/separator";
-import { TagInputField } from "./tag-input-field";
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Separator } from '@/components/ui/separator';
+import { TagInputField } from './tag-input-field';
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { CountrySelect } from "@/components/ui/country-select";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+} from '@/components/ui/form';
+import { CountrySelect } from '@/components/ui/country-select';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import {
   updateCoachProfileSchema,
   type CoachUpdateData,
-} from "@/lib/validations";
+} from '@/lib/validations';
+import { useCategories } from '@/hooks/use-categories-queries';
 
 export type ProfileFormData = CoachUpdateData;
 
@@ -44,7 +44,10 @@ export function ProfileForm({
   onSave,
   isLoading = false,
 }: ProfileFormProps) {
-  const t = useTranslations("dashboard.coach.settings.profile");
+  const t = useTranslations('dashboard.coach.settings.profile');
+
+  const { data: categoriesData } = useCategories();
+  const categories = useMemo(() => (categoriesData as any)?.data?.categories || [], [categoriesData]);
 
   const form = useForm<ProfileFormData>({
     resolver: zodResolver(updateCoachProfileSchema),
@@ -53,8 +56,27 @@ export function ProfileForm({
 
   // Update form values when formData prop changes (e.g. after initial load)
   useEffect(() => {
-    form.reset(formData);
-  }, [formData, form]);
+    // Ensure specialties are mapped to IDs
+    const refinedData = {
+      ...formData,
+      specialties: formData.specialties?.map((s: any) => {
+        // If it's an object, extract ID
+        if (typeof s === 'object') return s.id || s.categoryId;
+        
+        // If it's a name (not a CUID-like string), try to find matching ID from categories
+        if (typeof s === 'string' && s.length < 20 && categories.length > 0) {
+          const category = categories.find((c: any) => 
+            c.name.toLowerCase() === s.toLowerCase() || 
+            c.slug.toLowerCase() === s.toLowerCase()
+          );
+          if (category) return category.id;
+        }
+        
+        return s;
+      }) || [],
+    };
+    form.reset(refinedData);
+  }, [formData, form, categories]);
 
   const onSubmit = (data: ProfileFormData) => {
     onSave(data);
@@ -63,8 +85,8 @@ export function ProfileForm({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{t("title")}</CardTitle>
-        <CardDescription>{t("description")}</CardDescription>
+        <CardTitle>{t('title')}</CardTitle>
+        <CardDescription>{t('description')}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <Form {...form}>
@@ -75,9 +97,9 @@ export function ProfileForm({
                 name="firstName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("firstName")}</FormLabel>
+                    <FormLabel>{t('firstName')}</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder={t("firstName")} />
+                      <Input {...field} placeholder={t('firstName')} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -88,9 +110,9 @@ export function ProfileForm({
                 name="lastName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("lastName")}</FormLabel>
+                    <FormLabel>{t('lastName')}</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder={t("lastName")} />
+                      <Input {...field} placeholder={t('lastName')} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -104,11 +126,11 @@ export function ProfileForm({
                 name="title"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("professionalTitle")}</FormLabel>
+                    <FormLabel>{t('professionalTitle')}</FormLabel>
                     <FormControl>
                       <Input
                         {...field}
-                        placeholder={t("professionalTitlePlaceholder")}
+                        placeholder={t('professionalTitlePlaceholder')}
                       />
                     </FormControl>
                     <FormMessage />
@@ -120,13 +142,13 @@ export function ProfileForm({
                 name="hourlyRate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("hourlyRate")}</FormLabel>
+                    <FormLabel>{t('hourlyRate')}</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
                         {...field}
                         onChange={(e) => field.onChange(Number(e.target.value))}
-                        placeholder={t("hourlyRatePlaceholder")}
+                        placeholder={t('hourlyRatePlaceholder')}
                       />
                     </FormControl>
                     <FormMessage />
@@ -140,12 +162,12 @@ export function ProfileForm({
               name="bio"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("bio")}</FormLabel>
+                  <FormLabel>{t('bio')}</FormLabel>
                   <FormControl>
                     <Textarea
                       {...field}
                       rows={5}
-                      placeholder={t("bioPlaceholder")}
+                      placeholder={t('bioPlaceholder')}
                     />
                   </FormControl>
                   <FormMessage />
@@ -158,9 +180,9 @@ export function ProfileForm({
               name="style"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("style")}</FormLabel>
+                  <FormLabel>{t('style')}</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder={t("stylePlaceholder")} />
+                    <Input {...field} placeholder={t('stylePlaceholder')} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -172,9 +194,9 @@ export function ProfileForm({
               name="linkedinUrl"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("linkedin")}</FormLabel>
+                  <FormLabel>{t('linkedin')}</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder={t("linkedinPlaceholder")} />
+                    <Input {...field} placeholder={t('linkedinPlaceholder')} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -186,12 +208,12 @@ export function ProfileForm({
               name="experience"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("experience")}</FormLabel>
+                  <FormLabel>{t('experience')}</FormLabel>
                   <FormControl>
                     <Textarea
                       {...field}
                       rows={3}
-                      placeholder={t("experiencePlaceholder")}
+                      placeholder={t('experiencePlaceholder')}
                     />
                   </FormControl>
                   <FormMessage />
@@ -204,11 +226,12 @@ export function ProfileForm({
               name="specialties"
               render={({ field }) => (
                 <TagInputField
-                  label={t("specialties")}
-                  description={t("specialtiesDesc")}
+                  label={t('specialties')}
+                  description={t('specialtiesDesc')}
                   tags={field.value}
                   onTagsChange={field.onChange}
-                  placeholder={t("addSpecialty")}
+                  placeholder={t('addSpecialty')}
+                  options={categories.map((c: any) => ({ id: c.id, name: c.name }))}
                 />
               )}
             />
@@ -218,11 +241,11 @@ export function ProfileForm({
               name="pastCompanies"
               render={({ field }) => (
                 <TagInputField
-                  label={t("pastCompanies")}
-                  description={t("pastCompaniesDesc")}
+                  label={t('pastCompanies')}
+                  description={t('pastCompaniesDesc')}
                   tags={field.value || []}
                   onTagsChange={field.onChange}
-                  placeholder={t("addCompany")}
+                  placeholder={t('addCompany')}
                 />
               )}
             />
@@ -232,10 +255,10 @@ export function ProfileForm({
               name="qualifications"
               render={({ field }) => (
                 <TagInputField
-                  label={t("qualifications")}
+                  label={t('qualifications')}
                   tags={field.value || []}
                   onTagsChange={field.onChange}
-                  placeholder={t("addQualification")}
+                  placeholder={t('addQualification')}
                 />
               )}
             />
@@ -245,11 +268,11 @@ export function ProfileForm({
               name="languages"
               render={({ field }) => (
                 <TagInputField
-                  label={t("languages")}
+                  label={t('languages')}
                   tags={field.value || []}
                   onTagsChange={field.onChange}
-                  placeholder={t("addLanguage")}
-                  protectedTags={["English"]}
+                  placeholder={t('addLanguage')}
+                  protectedTags={['English']}
                 />
               )}
             />
@@ -260,11 +283,11 @@ export function ProfileForm({
                 name="timezone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("timezone")}</FormLabel>
+                    <FormLabel>{t('timezone')}</FormLabel>
                     <FormControl>
                       <Input
                         {...field}
-                        placeholder={t("timezonePlaceholder")}
+                        placeholder={t('timezonePlaceholder')}
                       />
                     </FormControl>
                     <FormMessage />
@@ -276,12 +299,16 @@ export function ProfileForm({
                 name="country"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("country") || "Country"}</FormLabel>
+                    <FormLabel>{t('country') || 'Country'}</FormLabel>
                     <FormControl>
                       <CountrySelect
-                        value={field.value || ""}
+                        value={field.value || ''}
                         onChange={(name) => field.onChange(name)}
-                        onIsoChange={(iso) => form.setValue("countryIso", iso, { shouldDirty: true })}
+                        onIsoChange={(iso) =>
+                          form.setValue('countryIso', iso, {
+                            shouldDirty: true,
+                          })
+                        }
                       />
                     </FormControl>
                     <FormMessage />
@@ -293,7 +320,7 @@ export function ProfileForm({
             <Separator />
             <div className="flex justify-end">
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? t("saving") : t("save")}
+                {isLoading ? t('saving') : t('save')}
               </Button>
             </div>
           </form>

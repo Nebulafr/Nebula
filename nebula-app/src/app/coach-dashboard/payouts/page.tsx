@@ -10,7 +10,7 @@ import { useStripeBalance, useCoachEarnings, useCoachPayouts } from "@/hooks/use
 export default function PayoutsPage() {
   const t = useTranslations("dashboard.coach.payouts");
   const [isConnected, setIsConnected] = useState(false);
-  
+
   const { data: balanceData, isLoading: balanceLoading } = useStripeBalance();
   const { data: earningsData, isLoading: earningsLoading } = useCoachEarnings();
   const { data: payoutsData, isLoading: payoutsLoading } = useCoachPayouts(10);
@@ -19,27 +19,26 @@ export default function PayoutsPage() {
     <div className="flex-1 space-y-8 p-4 md:p-8">
       <div className="flex flex-col gap-6">
         <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
-        
+
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
           <div className="lg:col-span-2">
-            <EarningsChart 
-              data={earningsData || []} 
+            <EarningsChart
+              data={earningsData || []}
               loading={earningsLoading}
             />
           </div>
           <div className="lg:col-span-1 space-y-6">
-            <AccountBalance 
-              balance={balanceData?.available || 0} 
+            <AccountBalance
+              balance={balanceData?.available || 0}
               loading={balanceLoading}
               disabled={!isConnected}
             />
-            <StripeConnect onStatusChange={setIsConnected} />
           </div>
         </div>
       </div>
-      
-      <PayoutHistory 
-        payouts={payoutsData?.payouts || []} 
+
+      <PayoutHistory
+        payouts={payoutsData?.payouts || []}
         loading={payoutsLoading}
       />
     </div>

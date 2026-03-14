@@ -233,15 +233,9 @@ export class StripeAccountService {
         stripeAccount: user.stripeAccountId,
       });
 
-      const available = balance.available.map((b) => ({
-        amount: b.amount / 100,
-        currency: b.currency,
-      }));
+      const available = balance.available.reduce((acc, b) => acc + b.amount / 100, 0);
 
-      const pending = balance.pending.map((b) => ({
-        amount: b.amount / 100,
-        currency: b.currency,
-      }));
+      const pending = balance.pending.reduce((acc, b) => acc + b.amount / 100, 0);
 
       return sendSuccess(
         { available, pending },

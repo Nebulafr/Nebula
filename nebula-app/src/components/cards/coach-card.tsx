@@ -14,7 +14,7 @@ interface CoachCardProps {
     avatarUrl?: string;
     title: string;
     rating: number;
-    specialties: string[];
+    specialties: { id: string; name: string }[];
     studentsCoached: number;
     hourlyRate: number;
   };
@@ -55,9 +55,9 @@ export function CoachCard({ coach }: CoachCardProps) {
         </div>
         <div className="mt-4 text-center">
           <div className="flex flex-wrap justify-center gap-2">
-            {coach.specialties.slice(0, 3).map((specialty: string) => (
-              <Badge key={specialty} variant="secondary" className="text-[10px]">
-                {specialty}
+            {coach.specialties.slice(0, 3).map((spec: any) => (
+              <Badge key={spec.id || spec} variant="secondary" className="text-[10px]">
+                {spec.name || spec}
               </Badge>
             ))}
             {coach.specialties.length > 3 && (

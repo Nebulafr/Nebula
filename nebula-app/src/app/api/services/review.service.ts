@@ -33,6 +33,8 @@ export interface ReviewSortOptions {
   limit: number;
 }
 
+const COACH_RATING_THRESHOLD = 5;
+
 export class ReviewService {
   async createCoachReview(data: Omit<CreateReviewData, "targetType">) {
     const { reviewerId, targetId, rating, content, sessionId } = data;
@@ -199,8 +201,10 @@ export class ReviewService {
         _count: { id: true },
       });
 
-      const newAvgRating = result._avg.rating || 0;
       const newTotalReviews = result._count.id || 0;
+      const newAvgRating = (newTotalReviews >= COACH_RATING_THRESHOLD) 
+        ? (result._avg.rating || 0) 
+        : 0;
 
       await tx.coach.update({
         where: { id: targetId },
@@ -468,20 +472,24 @@ export class ReviewService {
   private async updateCoachRating(
     tx: Prisma.TransactionClient,
     targetId: string,
-    newRating: number
+    _unusedNewRating: number // Kept for signature compatibility if needed, but we aggregate now
   ) {
-    const coach = await tx.coach.findUnique({ where: { id: targetId } });
-    const currentRating = coach?.rating || 0;
-    const currentReviewCount = coach?.totalReviews || 0;
-    const newReviewCount = currentReviewCount + 1;
-    const updatedRating =
-      (currentRating * currentReviewCount + newRating) / newReviewCount;
+    const result = await tx.coachReview.aggregate({
+      where: { coachId: targetId },
+      _avg: { rating: true },
+      _count: { id: true },
+    });
+
+    const totalReviews = result._count.id || 0;
+    const avgRating = (totalReviews >= COACH_RATING_THRESHOLD)
+      ? (result._avg.rating || 0)
+      : 0;
 
     await tx.coach.update({
       where: { id: targetId },
       data: {
-        rating: Number(updatedRating.toFixed(1)),
-        totalReviews: newReviewCount,
+        rating: Number(avgRating.toFixed(1)),
+        totalReviews: totalReviews,
       },
     });
   }
@@ -489,20 +497,22 @@ export class ReviewService {
   private async updateProgramRating(
     tx: Prisma.TransactionClient,
     targetId: string,
-    newRating: number
+    _unusedNewRating: number
   ) {
-    const program = await tx.program.findUnique({ where: { id: targetId } });
-    const currentRating = program?.rating || 0;
-    const currentReviewCount = program?.totalReviews || 0;
-    const newReviewCount = currentReviewCount + 1;
-    const updatedRating =
-      (currentRating * currentReviewCount + newRating) / newReviewCount;
+    const result = await tx.programReview.aggregate({
+      where: { programId: targetId },
+      _avg: { rating: true },
+      _count: { id: true },
+    });
+
+    const totalReviews = result._count.id || 0;
+    const avgRating = result._avg.rating || 0;
 
     await tx.program.update({
       where: { id: targetId },
       data: {
-        rating: Number(updatedRating.toFixed(1)),
-        totalReviews: newReviewCount,
+        rating: Number(avgRating.toFixed(1)),
+        totalReviews: totalReviews,
       },
     });
   }
