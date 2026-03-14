@@ -135,6 +135,16 @@ export default function StudentSettingsPage() {
 
   const isGoogleUser = !profile.hashedPassword && !!profile.googleId;
 
+  let firstName = profile.firstName;
+  let lastName = profile.lastName;
+
+  // Fallback: extract from fullName if firstName or lastName are missing
+  if ((!firstName || !lastName) && profile.fullName) {
+    const parts = profile.fullName.trim().split(/\s+/);
+    firstName = firstName || parts[0] || "";
+    lastName = lastName || (parts.length > 1 ? parts.slice(1).join(" ") : "");
+  }
+
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8">
       <div>
@@ -154,8 +164,8 @@ export default function StudentSettingsPage() {
 
       <ProfileSection
         user={{
-          firstName: profile.firstName || "",
-          lastName: profile.lastName || "",
+          firstName: firstName || "",
+          lastName: lastName || "",
           fullName: profile.fullName || "",
           email: profile.email,
           avatarUrl: profile.avatarUrl || undefined,

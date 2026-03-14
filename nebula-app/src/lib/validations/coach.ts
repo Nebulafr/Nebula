@@ -1,7 +1,9 @@
 import { z } from "zod";
 
 export const createCoachSchema = z.object({
-  fullName: z.string().min(1, "Full name is required").max(100),
+  firstName: z.string().min(1, "First name is required").max(50),
+  lastName: z.string().min(1, "Last name is required").max(50),
+  fullName: z.string().optional(),
   email: z.string().email("Valid email is required"),
   title: z.string().min(1, "Title is required").max(100),
   bio: z.string().min(10, "Bio must be at least 10 characters").max(1000),
@@ -24,7 +26,9 @@ export const createCoachSchema = z.object({
 });
 
 export const updateCoachProfileSchema = z.object({
-  fullName: z.string().min(1, "Full name is required").max(100),
+  firstName: z.string().min(1, "First name is required").max(50),
+  lastName: z.string().min(1, "Last name is required").max(50),
+  fullName: z.string().optional(),
   title: z.string().min(1, "Title is required").max(100),
   bio: z.string().min(10, "Bio must be at least 10 characters").max(1000),
   style: z.string().min(1, "Coaching style is required"),

@@ -10,7 +10,7 @@ class EventController {
     const body = createEventSchema.parse(payload);
     const user = (request as unknown as any).user;
 
-    return await eventService.create(user, body);
+    return await eventService.create(user.id, user.role, body);
   }
 
   async getEvents(request: NextRequest) {
@@ -51,7 +51,7 @@ class EventController {
     const body = updateEventSchema.parse(payload);
     const user = (request as unknown as any).user;
 
-    return await eventService.update(user, id, body);
+    return await eventService.update(user.id, user.role, id, body);
   }
 
   async deleteEvent(request: NextRequest, id: string) {
@@ -59,7 +59,7 @@ class EventController {
       throw new BadRequestException("Event ID is required");
     }
     const user = (request as unknown as any).user;
-    return await eventService.remove(user, id);
+    return await eventService.remove(user.id, user.role, id);
   }
 
   async registerForEvent(request: NextRequest, eventId: string) {

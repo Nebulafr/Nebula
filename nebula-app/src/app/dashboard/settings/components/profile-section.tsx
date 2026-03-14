@@ -80,7 +80,11 @@ export function ProfileSection({
             <div className="relative mx-auto mb-4 w-fit">
               <Avatar className="h-24 w-24">
                 <AvatarImage src={previewUrl || user.avatarUrl} />
-                <AvatarFallback>{(user.firstName?.charAt(0) || user.fullName?.charAt(0) || "").toUpperCase()}</AvatarFallback>
+                <AvatarFallback>
+                  {(user.firstName?.[0] || "") + (user.lastName?.[0] || "") || 
+                    user.fullName?.[0] || 
+                    "U"}
+                </AvatarFallback>
               </Avatar>
               {!previewUrl && (
                 <Button
@@ -128,7 +132,7 @@ export function ProfileSection({
             ) : (
               <>
                 <h3 className="text-2xl font-semibold leading-none tracking-tight">
-                  {user.fullName}
+                  {`${user.firstName} ${user.lastName}`}
                 </h3>
                 <p className="text-sm text-muted-foreground">{user.email}</p>
               </>

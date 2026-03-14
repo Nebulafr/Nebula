@@ -28,7 +28,7 @@ export class CheckoutService {
             line_items: [
                 {
                     price_data: {
-                        currency: "usd",
+                        currency: "eur",
                         product_data: {
                             name: program.title,
                             description: program.description ? program.description.substring(0, 255) : undefined,
@@ -72,7 +72,7 @@ export class CheckoutService {
             line_items: [
                 {
                     price_data: {
-                        currency: "usd",
+                        currency: "eur",
                         product_data: {
                             name: `Coaching Session with ${coach.user.fullName || "Coach"}`,
                             description: `${duration} minute session on ${new Date(scheduledTime).toLocaleString()}`,
@@ -120,7 +120,7 @@ export class CheckoutService {
             line_items: [
                 {
                     price_data: {
-                        currency: "usd",
+                        currency: "eur",
                         product_data: {
                             name: event.title,
                             description: event.description.substring(0, 255),

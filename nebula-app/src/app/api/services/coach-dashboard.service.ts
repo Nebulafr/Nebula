@@ -5,7 +5,6 @@ import { BadRequestException, NotFoundException } from "../utils/http-exception"
 import {
   CoachDashboardStats,
   FormattedStudent,
-  Payout,
   SessionFilter,
   TransformedProgram,
   TransformedSession,
@@ -33,13 +32,13 @@ export class CoachDashboardService {
     // Get current month date range
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
 
     // Get previous month date range
     const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+    const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
 
-    // Get active students count
+    // Get active students count (Total currently active)
     const activeStudents = await prisma.enrollment.count({
       where: {
         coachId: coach.id,
@@ -47,13 +46,14 @@ export class CoachDashboardService {
       },
     });
 
-    // Get last month's active students
+    // Get total students active as of end of last month
+    // We consider students who were enrolled before end of last month and whose status wasn't COMPLETED/CANCELLED before that date
+    // For simplicity, we compare with active students enrolled by that time
     const lastMonthActiveStudents = await prisma.enrollment.count({
       where: {
         coachId: coach.id,
         status: "ACTIVE",
         enrollmentDate: {
-          gte: startOfLastMonth,
           lte: endOfLastMonth,
         },
       },
@@ -81,53 +81,39 @@ export class CoachDashboardService {
       },
     });
 
-    // Calculate revenue (this month)
-    const enrollmentsThisMonth = await prisma.enrollment.findMany({
+    // Calculate revenue (this month) - Use Transaction records
+    const revenueThisMonthAggregate = await prisma.transaction.aggregate({
       where: {
-        coachId: coach.id,
-        enrollmentDate: {
+        userId: userId,
+        type: TransactionType.EARNING,
+        status: TransactionStatus.COMPLETED,
+        createdAt: {
           gte: startOfMonth,
           lte: endOfMonth,
         },
-        paymentStatus: "PAID",
       },
-      select: {
-        program: {
-          select: {
-            price: true,
-          },
-        },
+      _sum: {
+        amount: true,
       },
     });
+    const revenueThisMonth = revenueThisMonthAggregate._sum.amount || 0;
 
-    const revenueThisMonth = enrollmentsThisMonth.reduce(
-      (sum, enrollment) => sum + (enrollment.program.price || 0),
-      0
-    );
-
-    // Calculate revenue (last month)
-    const enrollmentsLastMonth = await prisma.enrollment.findMany({
+    // Calculate revenue (last month) - Use Transaction records
+    const revenueLastMonthAggregate = await prisma.transaction.aggregate({
       where: {
-        coachId: coach.id,
-        enrollmentDate: {
+        userId: userId,
+        type: TransactionType.EARNING,
+        status: TransactionStatus.COMPLETED,
+        createdAt: {
           gte: startOfLastMonth,
           lte: endOfLastMonth,
         },
-        paymentStatus: "PAID",
       },
-      select: {
-        program: {
-          select: {
-            price: true,
-          },
-        },
+      _sum: {
+        amount: true,
       },
     });
-
-    const revenueLastMonth = enrollmentsLastMonth.reduce(
-      (sum, enrollment) => sum + (enrollment.program.price || 0),
-      0
-    );
+    const revenueLastMonth = revenueLastMonthAggregate._sum.amount || 0;
 
     // Calculate percentage changes
     const revenueChange =
@@ -137,9 +123,7 @@ export class CoachDashboardService {
 
     const studentsChange =
       lastMonthActiveStudents > 0
-        ? ((activeStudents - lastMonthActiveStudents) /
-          lastMonthActiveStudents) *
-        100
+        ? ((activeStudents - lastMonthActiveStudents) / lastMonthActiveStudents) * 100
         : 0;
 
     const sessionsChange =
@@ -148,7 +132,7 @@ export class CoachDashboardService {
         : 0;
 
     const stats: CoachDashboardStats = {
-      totalRevenue: revenueThisMonth / 100, // Convert cents to dollars
+      totalRevenue: revenueThisMonth / 100, // Convert cents to euros
       revenueChange: Math.round(revenueChange * 10) / 10,
       activeStudents,
       studentsChange: Math.round(studentsChange * 10) / 10,

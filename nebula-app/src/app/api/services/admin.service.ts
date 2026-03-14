@@ -574,7 +574,7 @@ export class AdminService {
       {
         stats: {
           revenue: {
-            value: `$${totalRevenue.toLocaleString()}`,
+            value: `€${totalRevenue.toLocaleString()}`,
             change: `${
               revenueGrowthPercent >= 0 ? "+" : ""
             }${revenueGrowthPercent.toFixed(1)}% from last month`,

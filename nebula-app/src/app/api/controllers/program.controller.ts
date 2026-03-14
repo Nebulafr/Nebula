@@ -6,7 +6,8 @@ export class ProgramController {
   async createProgram(request: NextRequest) {
     const body = await request.json();
     const user = (request as unknown as any).user;
-    return await programService.createProgram(user, body);
+    const coachId = user?.coach?.id;
+    return await programService.createProgram(coachId, user.role, body);
   }
 
   async getPrograms(request: NextRequest) {
@@ -35,7 +36,10 @@ export class ProgramController {
 
   async getRecommendedPrograms(request: NextRequest) {
     const user = (request as unknown as any).user;
-    return await programService.getRecommendedPrograms(user);
+    if (!user?.student) {
+      throw new BadRequestException("User is not a student");
+    }
+    return await programService.getRecommendedPrograms(user.student.id, user.student.interestedCategoryId);
   }
 
   async getPopularPrograms(request: NextRequest) {
@@ -62,7 +66,8 @@ export class ProgramController {
     }
     const body = await request.json();
     const user = (request as unknown as any).user;
-    return await programService.updateProgram(user, slug, body);
+    const coachId = user?.coach?.id;
+    return await programService.updateProgram(coachId, user.role, slug, body);
   }
 
   async deleteProgram(request: NextRequest, slug: string) {
@@ -70,7 +75,8 @@ export class ProgramController {
       throw new BadRequestException("Program Slug is required");
     }
     const user = (request as unknown as any).user;
-    return await programService.deleteProgram(user, slug);
+    const coachId = user?.coach?.id;
+    return await programService.deleteProgram(coachId, user.role, slug);
   }
 
   async submitProgram(request: NextRequest, programId: string) {
@@ -78,7 +84,8 @@ export class ProgramController {
       throw new BadRequestException("Program ID is required");
     }
     const user = (request as unknown as any).user;
-    return await programService.submitProgram(user, programId);
+    const coachId = user?.coach?.id;
+    return await programService.submitProgram(coachId, user.role, programId);
   }
 
   async getById(request: NextRequest, id: string) {
@@ -94,7 +101,8 @@ export class ProgramController {
     }
     const body = await request.json();
     const user = (request as unknown as any).user;
-    return await programService.updateById(user, id, body);
+    const coachId = user?.coach?.id;
+    return await programService.updateById(coachId, user.role, id, body);
   }
 
   async deleteById(request: NextRequest, id: string) {
@@ -102,7 +110,8 @@ export class ProgramController {
       throw new BadRequestException("Program ID is required");
     }
     const user = (request as unknown as any).user;
-    return await programService.deleteById(user, id);
+    const coachId = user?.coach?.id;
+    return await programService.deleteById(coachId, user.role, id);
   }
 }
 

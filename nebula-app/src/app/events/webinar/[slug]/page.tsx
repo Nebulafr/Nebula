@@ -255,7 +255,7 @@ export default function WebinarPage() {
                 <div className="mb-4 text-2xl font-bold">
                   {new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-US", {
                     style: "currency",
-                    currency: "USD",
+                    currency: "EUR",
                   }).format(event.price || 0)}
                 </div>
               )}

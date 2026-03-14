@@ -63,8 +63,93 @@ export class CoachService {
   }
 
 
-  private transformCoach(coach: CoachWithUserAndSpecialties) {
-    const coachSpecialties = coach.specialties.map((s: { category: { name: string } }) => s.category.name);
+
+
+  private async fetchTransformedCoaches(params: CoachQueryData) {
+    const { search, limit = 16, page = 1 } = params;
+    const skip = (page - 1) * limit;
+
+    const whereClause: Prisma.CoachWhereInput = {
+      ...this.buildCoachFilters(params),
+      ...(search ? this.buildSearchQuery(search) : {}),
+    };
+
+    const [coaches, totalCount] = await Promise.all([
+      prisma.coach.findMany({
+        where: whereClause,
+        orderBy: { rating: "desc" },
+        skip,
+        take: limit,
+        include: {
+          user: {
+            select: { fullName: true, email: true, avatarUrl: true, role: true },
+          },
+          specialties: { include: { category: true } },
+        },
+      }),
+      prisma.coach.count({ where: whereClause }),
+    ]);
+
+    return {
+      coaches: coaches.map((coach) => this.mapCoachToTransformed(coach)),
+      totalCount,
+    };
+  }
+
+
+  private buildCoachFilters(params: CoachQueryData): Prisma.CoachWhereInput {
+    const { category, minPrice, maxPrice, company, school } = params;
+    const whereClause: Prisma.CoachWhereInput = { isActive: true };
+
+    if (category && category !== "All") {
+      whereClause.specialties = { some: { categoryId: category } };
+    }
+
+    if (minPrice !== undefined || maxPrice !== undefined) {
+      whereClause.hourlyRate = {};
+      if (minPrice !== undefined) whereClause.hourlyRate.gte = minPrice;
+      if (maxPrice !== undefined) whereClause.hourlyRate.lte = maxPrice;
+    }
+
+    if (company) whereClause.pastCompanies = { has: company };
+    if (school) whereClause.qualifications = { has: school };
+
+    return whereClause;
+  }
+
+  private buildSearchQuery(search: string): Prisma.CoachWhereInput {
+    return {
+      OR: [
+        { user: { fullName: { contains: search, mode: "insensitive" } } },
+        { title: { contains: search, mode: "insensitive" } },
+        { bio: { contains: search, mode: "insensitive" } },
+        {
+          specialties: {
+            some: {
+              category: { name: { contains: search, mode: "insensitive" } },
+            },
+          },
+        },
+      ],
+    };
+  }
+
+  private parseAvailability(availabilityJson: string | null): Record<string, any> {
+    try {
+      return JSON.parse(availabilityJson || "{}");
+    } catch {
+      return {};
+    }
+  }
+
+  private mapCoachToTransformed(coach: any) {
+    const specialties = Array.isArray(coach.specialties)
+      ? coach.specialties.map((s: any) => ({
+          id: s.categoryId || s.id || s,
+          name: s.category?.name || s.name || s,
+        }))
+      : [];
+
     return {
       id: coach.id,
       userId: coach.userId,
@@ -74,10 +159,10 @@ export class CoachService {
       title: coach.title,
       bio: coach.bio,
       style: coach.style,
-      specialties: coachSpecialties,
+      specialties,
       pastCompanies: coach.pastCompanies,
       linkedinUrl: coach.linkedinUrl,
-      availability: coach.availability,
+      availability: typeof coach.availability === 'string' ? this.parseAvailability(coach.availability) : coach.availability,
       hourlyRate: coach.hourlyRate,
       rating: coach.rating,
       totalReviews: coach.totalReviews,
@@ -90,262 +175,103 @@ export class CoachService {
       experience: coach.experience,
       timezone: coach.timezone,
       languages: coach.languages,
-      createdAt: coach.createdAt.toISOString(),
-      updatedAt: coach.updatedAt.toISOString(),
+      createdAt: coach.createdAt instanceof Date ? coach.createdAt.toISOString() : coach.createdAt,
+      updatedAt: coach.updatedAt instanceof Date ? coach.updatedAt.toISOString() : coach.updatedAt,
     };
   }
 
-  private async fetchTransformedCoaches(params: CoachQueryData) {
-    const { category, search, minPrice, maxPrice, company, school, limit = 16, page = 1 } = params;
 
-    const whereClause: Prisma.CoachWhereInput = {
-      isActive: true,
-    };
+  private async resolveSpecialties(specialties: string[]) {
+    if (!specialties || specialties.length === 0) return [];
 
-    if (category && category !== "All") {
-      whereClause.specialties = {
-        some: {
-          category: {
-            name: {
-              equals: category,
-              mode: "insensitive",
-            },
-          },
-        },
-      };
-    }
-
-    if (minPrice !== undefined || maxPrice !== undefined) {
-      whereClause.hourlyRate = {};
-      if (minPrice !== undefined) whereClause.hourlyRate.gte = minPrice;
-      if (maxPrice !== undefined) whereClause.hourlyRate.lte = maxPrice;
-    }
-
-    if (company) {
-      whereClause.pastCompanies = {
-        has: company,
-      };
-    }
-
-    if (school) {
-      whereClause.qualifications = {
-        has: school,
-      };
-    }
-
-    if (search) {
-      whereClause.OR = [
-        { user: { fullName: { contains: search, mode: "insensitive" } } },
-        { title: { contains: search, mode: "insensitive" } },
-        { bio: { contains: search, mode: "insensitive" } },
-        {
-          specialties: {
-            some: {
-              category: {
-                name: { contains: search, mode: "insensitive" },
-              },
-            },
-          },
-        },
-      ];
-    }
-
-    const skip = (page - 1) * limit;
-
-    const [coaches, totalCount] = await Promise.all([
-      prisma.coach.findMany({
-        where: whereClause,
-        orderBy: {
-          rating: "desc",
-        },
-        skip,
-        take: limit,
-        include: {
-          user: {
-            select: {
-              fullName: true,
-              email: true,
-              avatarUrl: true,
-              role: true,
-            },
-          },
-          specialties: {
-            include: {
-              category: true,
-            },
-          },
-        },
-      }),
-      prisma.coach.count({ where: whereClause }),
-    ]);
-
-    return {
-      coaches: coaches.map((coach) => this.transformCoach(coach)),
-      totalCount,
-    };
+    return specialties.map((id) => ({
+      categoryId: id,
+    }));
   }
 
   async createCoach(userId: string, data: CreateCoachData) {
-    const slug = `${data.title
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")}-${userId.substring(0, 8)}`;
-
-    let specialtiesData: { categoryId: string }[] = [];
-    if (data.specialties && data.specialties.length > 0) {
-      for (const specialtyName of data.specialties) {
-        const slug = specialtyName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-        const category = await prisma.category.upsert({
-          where: { slug },
-          update: {},
-          create: { name: specialtyName, slug },
-        });
-        specialtiesData.push({ categoryId: category.id });
-      }
-    }
+    const slug = `${data.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${userId.substring(0, 8)}`;
+    const specialtiesData = await this.resolveSpecialties(data.specialties || []);
 
     const newProfile = await prisma.$transaction(async (tx) => {
-      await tx.user.update({
-        where: { id: userId },
-        data: { fullName: data.fullName },
-      });
-
-      const existingCoach = await tx.coach.findUnique({ where: { userId } });
-      if (existingCoach && specialtiesData.length > 0) {
-        await tx.coachCategory.deleteMany({
-          where: { coachId: existingCoach.id },
-        });
-      }
-
-      return await tx.coach.upsert({
-        where: { userId },
-        update: {
-          title: data.title,
-          bio: data.bio,
-          style: data.style,
-          hourlyRate: data.hourlyRate,
-          pastCompanies: data.pastCompanies || [],
-          linkedinUrl: data.linkedinUrl || null,
-          availability: data.availability,
-          qualifications: data.qualifications || [],
-          experience: data.experience || null,
-          timezone: data.timezone || null,
-          languages: data.languages || [],
-          slug,
-          specialties: {
-            create: specialtiesData,
-          },
-        },
-        create: {
-          userId,
-          title: data.title,
-          bio: data.bio,
-          style: data.style,
-          hourlyRate: data.hourlyRate,
-          pastCompanies: data.pastCompanies || [],
-          linkedinUrl: data.linkedinUrl || null,
-          availability: data.availability,
-          qualifications: data.qualifications || [],
-          experience: data.experience || null,
-          timezone: data.timezone || null,
-          languages: data.languages || [],
-          slug,
-          specialties: {
-            create: specialtiesData,
-          },
-        },
-      });
+      await this.updateUserProfile(tx, userId, data);
+      const coach = await this.upsertCoachProfile(tx, userId, { ...data, slug });
+      await this.handleCoachSpecialties(tx, coach.id, specialtiesData);
+      return coach;
     });
 
-    // Create Stripe account for the coach
-    // This is done after profile creation but we don't await it to avoid blocking the response
-    // if it fails, it will be retried when the coach visits the payouts page
-    stripeAccountService
-      .createAccount(userId)
-      .catch((err) => {
-        console.error("Failed to create Stripe account in coach service:", err);
-      });
+    stripeAccountService.createAccount(userId).catch((err) => {
+      console.error("Failed to create Stripe account in coach service:", err);
+    });
 
     return sendSuccess(newProfile, "Coach profile created successfully", 201);
   }
 
   async updateCoach(userId: string, data: CoachUpdateData) {
-    // Resolve category names to actual IDs, creating new categories if necessary
-    let specialtiesListData: { categoryId: string }[] = [];
-    if (data.specialties && data.specialties.length > 0) {
-      for (const specialtyName of data.specialties) {
-        const slug = specialtyName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-        const category = await prisma.category.upsert({
-          where: { slug },
-          update: {},
-          create: { name: specialtyName, slug },
-        });
-        specialtiesListData.push({ categoryId: category.id });
-      }
-    }
+    const specialtiesData = await this.resolveSpecialties(data.specialties || []);
 
     const updatedProfile = await prisma.$transaction(async (tx) => {
-      // Update user's full name and country
-      await tx.user.update({
-        where: { id: userId },
-        data: {
-          fullName: data.fullName,
-          country: data.country,
-          countryIso: data.countryIso,
-        },
-      });
-
-      // First, find the coach to get the ID
-      const coach = await tx.coach.findUnique({ where: { userId } });
-
-      if (coach && specialtiesListData.length > 0) {
-        // Delete old specialties
-        await tx.coachCategory.deleteMany({
-          where: { coachId: coach.id },
-        });
-      }
-
-      return await tx.coach.upsert({
-        where: { userId },
-        update: {
-          title: data.title,
-          bio: data.bio,
-          style: data.style,
-          hourlyRate: data.hourlyRate,
-          pastCompanies: data.pastCompanies || [],
-          linkedinUrl: data.linkedinUrl || null,
-          availability: data.availability,
-          qualifications: data.qualifications || [],
-          experience: data.experience || null,
-          timezone: data.timezone || null,
-          languages: data.languages || [],
-          updatedAt: new Date(),
-          specialties: {
-            create: specialtiesListData,
-          },
-        },
-        create: {
-          userId,
-          title: data.title,
-          bio: data.bio,
-          style: data.style,
-          hourlyRate: data.hourlyRate,
-          pastCompanies: data.pastCompanies || [],
-          linkedinUrl: data.linkedinUrl || null,
-          availability: data.availability,
-          qualifications: data.qualifications || [],
-          experience: data.experience || null,
-          timezone: data.timezone || null,
-          languages: data.languages || [],
-          updatedAt: new Date(),
-          specialties: {
-            create: specialtiesListData,
-          },
-        },
-      });
+      await this.updateUserProfile(tx, userId, data);
+      const coach = await this.upsertCoachProfile(tx, userId, data);
+      await this.handleCoachSpecialties(tx, coach.id, specialtiesData);
+      return coach;
     });
 
     return sendSuccess(updatedProfile, "Coach profile updated successfully");
   }
+
+  private async updateUserProfile(tx: any, userId: string, data: any) {
+    const userData: any = {
+      firstName: data.firstName || "",
+      lastName: data.lastName || "",
+      fullName: data.fullName,
+    };
+
+    if (data.country) userData.country = data.country;
+    if (data.countryIso) userData.countryIso = data.countryIso;
+
+    await tx.user.update({
+      where: { id: userId },
+      data: userData,
+    });
+  }
+
+  private async upsertCoachProfile(tx: any, userId: string, data: any) {
+    const coachData = {
+      title: data.title,
+      bio: data.bio,
+      style: data.style,
+      hourlyRate: data.hourlyRate,
+      pastCompanies: data.pastCompanies || [],
+      linkedinUrl: data.linkedinUrl || null,
+      availability: typeof data.availability === 'object' ? JSON.stringify(data.availability) : data.availability,
+      qualifications: data.qualifications || [],
+      experience: data.experience || null,
+      timezone: data.timezone || null,
+      languages: data.languages || [],
+      updatedAt: new Date(),
+    };
+
+    return await tx.coach.upsert({
+      where: { userId },
+      update: coachData,
+      create: {
+        userId,
+        ...coachData,
+        slug: data.slug,
+      },
+    });
+  }
+
+  private async handleCoachSpecialties(tx: any, coachId: string, specialties: { categoryId: string }[]) {
+    if (specialties.length > 0) {
+      await tx.coachCategory.deleteMany({ where: { coachId } });
+      await tx.coachCategory.createMany({
+        data: specialties.map(s => ({ ...s, coachId })),
+      });
+    }
+  }
+
 
   async getProfile(userId: string) {
     const coach = await this.findByUserId(userId);
@@ -353,13 +279,8 @@ export class CoachService {
       throw new NotFoundException("Coach profile not found");
     }
 
-    const transformedCoach = {
-      ...coach,
-      specialties: coach.specialties.map((s) => s.category.name),
-    };
-
     return sendSuccess(
-      { coach: transformedCoach },
+      { coach: this.mapCoachToTransformed(coach) },
       "Coach profile fetched successfully",
     );
   }
@@ -416,12 +337,12 @@ export class CoachService {
         : Promise.resolve(false),
     ]);
 
-    const transformedCoach = this.transformCoachData(
-      coach,
+    const transformedCoach = {
+      ...this.mapCoachToTransformed(coach),
       programs,
       reviews,
-      hasUserReviewed,
-    );
+      hasUserReviewed: hasUserReviewed || false,
+    };
 
     return sendSuccess(
       { coach: transformedCoach },
@@ -538,53 +459,7 @@ export class CoachService {
     }
   }
 
-  transformCoachData(
-    coach: any,
-    programs: any[],
-    reviews: any[],
-    hasUserReviewed?: boolean,
-  ) {
-    // Parse availability JSON if it exists
-    let parsedAvailability = {};
-    try {
-      parsedAvailability = JSON.parse(coach.availability || "{}");
-    } catch {
-      parsedAvailability = {};
-    }
 
-    return {
-      id: coach.id,
-      userId: coach.userId,
-      email: coach.user?.email || "",
-      fullName: coach.user?.fullName || "",
-      avatarUrl: coach.user?.avatarUrl || null,
-      title: coach.title,
-      bio: coach.bio,
-      style: coach.style,
-      specialties: coach.specialties,
-      pastCompanies: coach.pastCompanies,
-      linkedinUrl: coach.linkedinUrl,
-      availability: parsedAvailability,
-      hourlyRate: coach.hourlyRate,
-      rating: coach.rating,
-      totalReviews: coach.totalReviews,
-      totalSessions: coach.totalSessions,
-      studentsCoached: coach.studentsCoached,
-      isActive: coach.isActive,
-      isVerified: coach.isVerified,
-      slug: coach.slug,
-      category: coach.category,
-      qualifications: coach.qualifications,
-      experience: coach.experience,
-      timezone: coach.timezone,
-      languages: coach.languages,
-      createdAt: coach.createdAt.toISOString(),
-      updatedAt: coach.updatedAt.toISOString(),
-      programs,
-      reviews,
-      hasUserReviewed: hasUserReviewed || false,
-    };
-  }
 
   async getSuggestedCoaches(userId: string, limit: number = 4) {
     // Get the student's profile to understand their interests
@@ -644,38 +519,9 @@ export class CoachService {
     }
 
     // Transform coaches to match the expected format
-    const transformedCoaches = coaches.map((coach) => ({
-      id: coach.id,
-      userId: coach.userId,
-      email: coach.user?.email || "",
-      fullName: coach.user?.fullName || "",
-      avatarUrl: coach.user?.avatarUrl || null,
-      title: coach.title,
-      bio: coach.bio,
-      style: coach.style,
-      specialties: coach.specialties.map((s: { category: { name: string } }) => s.category.name),
-      pastCompanies: coach.pastCompanies,
-      linkedinUrl: coach.linkedinUrl,
-      availability: coach.availability,
-      hourlyRate: coach.hourlyRate,
-      rating: coach.rating,
-      totalReviews: coach.totalReviews,
-      totalSessions: coach.totalSessions,
-      studentsCoached: coach.studentsCoached,
-      isActive: coach.isActive,
-      isVerified: coach.isVerified,
-      slug: coach.slug,
-      qualifications: coach.qualifications,
-      experience: coach.experience,
-      timezone: coach.timezone,
-      languages: coach.languages,
-      createdAt: coach.createdAt.toISOString(),
-      updatedAt: coach.updatedAt.toISOString(),
-    }));
-
     return sendSuccess(
       {
-        coaches: transformedCoaches,
+        coaches: coaches.map((coach) => this.mapCoachToTransformed(coach)),
       },
       "Suggested coaches retrieved successfully",
     );
@@ -713,13 +559,7 @@ export class CoachService {
       throw new NotFoundException("Coach profile not found");
     }
 
-    let availability;
-    try {
-      availability = JSON.parse(coach.availability || "{}");
-    } catch {
-      availability = {};
-    }
-
+    const availability = this.parseAvailability(coach.availability);
     return sendSuccess({ availability }, "Availability fetched successfully");
   }
 

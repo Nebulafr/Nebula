@@ -25,6 +25,8 @@
       },
       "profile": {
         "title": "Informations de profil",
+        "firstName": "Prénom",
+        "lastName": "Nom de famille",
         "fullName": "Nom complet",
         "email": "Adresse e-mail",
         "emailNote": "L'e-mail ne peut pas être modifié pour des raisons de sécurité",
@@ -444,6 +446,8 @@
           "title": "Paramètres du profil",
           "description": "Gérez vos informations de profil public et vos détails de coaching.",
           "country": "Pays",
+          "firstName": "Prénom",
+          "lastName": "Nom de famille",
           "fullName": "Nom complet",
           "fullNameDescription": "C'est votre nom public affiché aux étudiants.",
           "professionalTitle": "Titre professionnel",

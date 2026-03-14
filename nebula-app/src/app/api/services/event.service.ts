@@ -18,8 +18,8 @@ import { uploadService } from "./upload.service";
 import { AuthenticatedRequest } from "@/types";
 
 export class EventService {
-  create = async (user: AuthenticatedRequest["user"], data: CreateEventData) => {
-    if (user.role !== "ADMIN") {
+  create = async (userId: string, userRole: string, data: CreateEventData) => {
+    if (userRole !== "ADMIN") {
       throw new UnauthorizedException("Admin access required");
     }
 
@@ -75,7 +75,7 @@ export class EventService {
       data: {
         ...(eventData as any),
         images: images || [],
-        organizerId: organizerId || user.id,
+        organizerId: organizerId || userId,
       },
       include: {
         organizer: {
@@ -462,8 +462,8 @@ export class EventService {
     return sendSuccess({ event: transformedEvent });
   };
 
-  update = async (user: AuthenticatedRequest["user"], id: string, data: UpdateEventData) => {
-    if (user.role !== "ADMIN") {
+  update = async (userId: string, userRole: string, id: string, data: UpdateEventData) => {
+    if (userRole !== "ADMIN") {
       throw new UnauthorizedException("Admin access required");
     }
 
@@ -558,7 +558,7 @@ export class EventService {
     );
   };
 
-  remove = async (user: AuthenticatedRequest["user"], id: string) => {
+  remove = async (userId: string, userRole: string, id: string) => {
 
     const existingEvent = await prisma.event.findUnique({
       where: { id },
@@ -572,7 +572,7 @@ export class EventService {
       );
     }
 
-    if (user.role !== "ADMIN" && existingEvent.organizerId !== user.id) {
+    if (userRole !== "ADMIN" && existingEvent.organizerId !== userId) {
       throw new UnauthorizedException(
         "You are not authorized to delete this event",
       );

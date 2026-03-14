@@ -21,8 +21,8 @@ type ProgramWithRelations = Program & {
 };
 
 export class ProgramService {
-  async createProgram(user: AuthenticatedRequest["user"], body: any) {
-    if (user.role !== "COACH") {
+  async createProgram(coachId: string, coachRole: string, body: any) {
+    if (coachRole !== "COACH") {
       throw new UnauthorizedException("Coach access required");
     }
 
@@ -42,7 +42,6 @@ export class ProgramService {
       coCoachIds: coCoachUserIds,
     } = createProgramSchema.parse(body);
 
-    const coachId = user!.coach!.id;
 
     const slug = generateSlug(title);
 
@@ -250,9 +249,7 @@ export class ProgramService {
     }
 
     if (category) {
-      whereClause.category = {
-        name: category,
-      };
+      whereClause.categoryId = category;
     }
 
     if (search) {
@@ -360,7 +357,7 @@ export class ProgramService {
     }
 
     if (categoryFilter) {
-      whereClause.category = { name: categoryFilter };
+      whereClause.categoryId = categoryFilter;
     }
 
     if (search) {
@@ -554,8 +551,8 @@ export class ProgramService {
     return sendSuccess({ program });
   }
 
-  async updateById(user: AuthenticatedRequest["user"], id: string, body: any) {
-    if (user.role !== "COACH") {
+  async updateById(coachId: string, coachRole: string, id: string, body: any) {
+    if (coachRole !== "COACH") {
       throw new UnauthorizedException("Coach access required");
     }
 
@@ -568,7 +565,7 @@ export class ProgramService {
       throw new NotFoundException("Program not found");
     }
 
-    if (program.coachId !== user!.coach!.id) {
+    if (program.coachId !== coachId) {
       throw new UnauthorizedException(
         "You are not authorized to update this program",
       );
@@ -768,8 +765,8 @@ export class ProgramService {
     }
   }
 
-  async updateProgram(user: AuthenticatedRequest["user"], slug: string, body: any) {
-    if (user.role !== "COACH") {
+  async updateProgram(coachId: string, coachRole: string, slug: string, body: any) {
+    if (coachRole !== "COACH") {
       throw new UnauthorizedException("Coach access required");
     }
 
@@ -781,7 +778,7 @@ export class ProgramService {
       throw new NotFoundException("Program not found");
     }
 
-    if (program.coachId !== user!.coach!.id) {
+    if (program.coachId !== coachId) {
       throw new UnauthorizedException(
         "You are not authorized to update this program",
       );
@@ -887,7 +884,7 @@ export class ProgramService {
     return sendSuccess({ program: updatedProgram });
   }
 
-  async deleteProgram(user: AuthenticatedRequest["user"], slug: string) {
+  async deleteProgram(coachId: string, coachRole: string, slug: string) {
     if (!slug) {
       throw new BadRequestException("Program Slug is required");
     }
@@ -903,10 +900,10 @@ export class ProgramService {
       },
     });
 
-    return await this.performDeletion(user, program);
+    return await this.performDeletion(coachId, coachRole, program);
   }
 
-  async deleteById(user: AuthenticatedRequest["user"], id: string) {
+  async deleteById(coachId: string, coachRole: string, id: string) {
     if (!id) {
       throw new BadRequestException("Program ID is required");
     }
@@ -915,23 +912,23 @@ export class ProgramService {
       where: { id },
     });
 
-    return await this.performDeletion(user, program);
+    return await this.performDeletion(coachId, coachRole, program);
   }
 
-  private async performDeletion(user: AuthenticatedRequest["user"], program: any) {
+  private async performDeletion(coachId: string, coachRole: string, program: any) {
 
     if (!program) {
       throw new NotFoundException("Program not found");
     }
 
     // Role-based security
-    if (user.role === "COACH") {
-      if (program.coachId !== user!.coach!.id) {
+    if (coachRole === "COACH") {
+      if (program.coachId !== coachId) {
         throw new UnauthorizedException(
           "You are not authorized to delete this program",
         );
       }
-    } else if (user.role !== "ADMIN") {
+    } else if (coachRole !== "ADMIN") {
       throw new UnauthorizedException("Unauthorized access");
     }
 
@@ -942,13 +939,8 @@ export class ProgramService {
     return sendSuccess(null, "Program deleted successfully");
   }
 
-  async getRecommendedPrograms(user: AuthenticatedRequest["user"]) {
+  async getRecommendedPrograms(studentId: string, interestedCategoryId: string | null) {
 
-    if (!user.student) {
-      throw new BadRequestException("User is not a student");
-    }
-
-    const interestedCategoryId = user.student.interestedCategoryId;
 
     const includeOptions = {
       category: {
@@ -1151,10 +1143,8 @@ export class ProgramService {
     return sendSuccess({ cohorts });
   }
 
-  async createCohort(request: NextRequest, programId: string) {
-    const user = (request as unknown as AuthenticatedRequest)
-      .user;
-    if (user.role !== "COACH") {
+  async createCohort(coachId: string, coachRole: string, programId: string, body: any) {
+    if (coachRole !== "COACH") {
       throw new UnauthorizedException("Coach access required");
     }
 
@@ -1162,13 +1152,12 @@ export class ProgramService {
       where: { id: programId },
     });
 
-    if (!program || program.coachId !== user!.coach!.id) {
+    if (!program || program.coachId !== coachId) {
       throw new UnauthorizedException(
         "Unauthorized to manage cohorts for this program",
       );
     }
 
-    const body = await request.json();
     const { name, startDate, endDate, maxStudents } = body;
 
     const cohort = await prisma.cohort.create({
@@ -1185,10 +1174,8 @@ export class ProgramService {
     return sendSuccess({ cohort }, "Cohort created successfully", 201);
   }
 
-  async updateCohort(request: NextRequest, cohortId: string) {
-    const user = (request as unknown as AuthenticatedRequest)
-      .user;
-    if (user.role !== "COACH") {
+  async updateCohort(coachId: string, coachRole: string, cohortId: string, body: any) {
+    if (coachRole !== "COACH") {
       throw new UnauthorizedException("Coach access required");
     }
 
@@ -1197,11 +1184,10 @@ export class ProgramService {
       include: { program: true },
     });
 
-    if (!cohort || cohort.program.coachId !== user!.coach!.id) {
+    if (!cohort || cohort.program.coachId !== coachId) {
       throw new UnauthorizedException("Unauthorized to update this cohort");
     }
 
-    const body = await request.json();
     const { name, startDate, endDate, maxStudents, status } = body;
 
     const updatedCohort = await prisma.cohort.update({
@@ -1221,10 +1207,8 @@ export class ProgramService {
     );
   }
 
-  async deleteCohort(request: NextRequest, cohortId: string) {
-    const user = (request as unknown as AuthenticatedRequest)
-      .user;
-    if (user.role !== "COACH") {
+  async deleteCohort(coachId: string, coachRole: string, cohortId: string) {
+    if (coachRole !== "COACH") {
       throw new UnauthorizedException("Coach access required");
     }
 
@@ -1236,7 +1220,7 @@ export class ProgramService {
       },
     });
 
-    if (!cohort || cohort.program.coachId !== user!.coach!.id) {
+    if (!cohort || cohort.program.coachId !== coachId) {
       throw new UnauthorizedException("Unauthorized to delete this cohort");
     }
 
@@ -1253,11 +1237,8 @@ export class ProgramService {
     return sendSuccess(null, "Cohort deleted successfully");
   }
 
-  async submitProgram(request: NextRequest, programId: string) {
-    const user = (request as unknown as AuthenticatedRequest)
-      .user;
-
-    if (user.role !== "COACH") {
+  async submitProgram(coachId: string, coachRole: string, programId: string) {
+    if (coachRole !== "COACH") {
       throw new UnauthorizedException("Coach access required");
     }
 
@@ -1274,7 +1255,7 @@ export class ProgramService {
       throw new NotFoundException("Program not found");
     }
 
-    if (program.coachId !== user!.coach!.id) {
+    if (program.coachId !== coachId) {
       throw new UnauthorizedException(
         "You are not authorized to submit this program",
       );
