@@ -79,8 +79,6 @@ export class StripeAccountService {
           email: email,
           relationship: {
             representative: true,
-            owner: true,
-            executive: true,
           },
         })
         .catch((err) => {

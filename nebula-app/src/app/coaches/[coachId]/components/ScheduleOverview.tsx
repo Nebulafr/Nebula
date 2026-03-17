@@ -40,7 +40,7 @@ export function ScheduleOverview({
 
             <Select value={duration} onValueChange={setDuration}>
                 <SelectTrigger className="w-[180px] mb-8">
-                    <SelectValue placeholder="Select duration" />
+                    <SelectValue placeholder={t("selectDuration")} />
                 </SelectTrigger>
                 <SelectContent>
                     <SelectItem value="30">30 {t("min")}</SelectItem>
@@ -75,21 +75,16 @@ export function ScheduleOverview({
                             const end = new Date(start);
                             end.setDate(end.getDate() + 6);
 
-                            const formatShort = (d: Date) =>
-                                d.toLocaleDateString(activeLocale, {
-                                    month: "long",
-                                    day: "numeric",
-                                });
                             const formatYear = (d: Date) => d.getFullYear();
 
-                            // Localization for specific range format in the image: "5–11 mars 2026"
                             const startDay = start.getDate();
                             const endDay = end.getDate();
-                            const month = end.toLocaleDateString("fr-FR", { month: "long" });
+                            const month = end.toLocaleDateString(activeLocale, { month: "long" });
                             const year = formatYear(end);
 
                             if (start.getMonth() !== end.getMonth()) {
-                                return `${startDay} ${start.toLocaleDateString("fr-FR", { month: "short" })} – ${endDay} ${month} ${year} `;
+                                const startMonth = start.toLocaleDateString(activeLocale, { month: "short" });
+                                return `${startDay} ${startMonth} – ${endDay} ${month} ${year} `;
                             }
                             return `${startDay}–${endDay} ${month} ${year} `;
                         })()}
@@ -133,9 +128,10 @@ export function ScheduleOverview({
                     {Array.from({ length: 7 }, (_, i) => {
                         const d = new Date();
                         d.setDate(d.getDate() + weekOffset * 7 + i);
-                        const dayName = d.toLocaleDateString("fr-FR", { weekday: "short" }).replace(/\.$/, "");
+                        const dayName = d.toLocaleDateString(activeLocale, { weekday: "short" }).replace(/\.$/, "");
                         const formattedDayName = dayName.charAt(0).toUpperCase() + dayName.slice(1);
                         const dayNum = d.getDate();
+                        // We use en-US for the internal key name as it matches the availabilityData structure
                         const dayFullName = d.toLocaleDateString("en-US", {
                             weekday: "long",
                         }).toLowerCase();

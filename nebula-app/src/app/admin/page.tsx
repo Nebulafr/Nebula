@@ -21,7 +21,7 @@ export default function AdminDashboardPage() {
 
   // Default stats for loading state
   const defaultStats = {
-    revenue: { value: "$0", change: t("fromLastMonthShort", { change: "0" }) },
+    revenue: { value: "€0", change: t("fromLastMonthShort", { change: "0" }) },
     users: { value: "0", change: t("fromLastMonthShort", { change: "0" }) },
     signups: { value: "+0", change: t("fromLastMonthShort", { change: "0" }) },
     coaches: { value: "0", change: t("sinceLastMonthShort", { count: "0" }) },

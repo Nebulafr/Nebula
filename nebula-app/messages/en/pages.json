@@ -146,7 +146,8 @@
     "scheduleInfo": "Choose the time for your first lesson. The timings are displayed in your local timezone.",
     "min": "min",
     "viewAllSchedule": "View all schedule",
-    "today": "Today"
+    "today": "Today",
+    "selectDuration": "Select duration"
   },
   "reviewsPage": {
     "loading": "Loading reviews...",

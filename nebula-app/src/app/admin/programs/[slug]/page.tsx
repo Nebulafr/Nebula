@@ -560,7 +560,7 @@ export default function ProgramDetailsPage({
               </div>
               <div>
                 <Label className="text-xs text-muted-foreground">Price</Label>
-                <p className="font-medium">${program.price}</p>
+                <p className="font-medium">€{program.price}</p>
               </div>
               <div>
                 <Label className="text-xs text-muted-foreground">

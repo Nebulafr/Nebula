@@ -142,7 +142,8 @@
     "scheduleInfo": "Choisissez l'heure de votre premier cours. Les horaires sont affichés dans votre fuseau horaire local.",
     "min": "min",
     "viewAllSchedule": "Voir tout l'agenda",
-    "today": "Aujourd'hui"
+    "today": "Aujourd'hui",
+    "selectDuration": "Choisir la durée"
   },
   "reviewsPage": {
     "loading": "Chargement des avis...",
