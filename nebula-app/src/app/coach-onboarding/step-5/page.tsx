@@ -24,6 +24,7 @@ import { useAuth } from "@/hooks/use-auth";
 import {
   AvailabilitySettings,
   DayAvailability,
+  CoachAvailability,
 } from "@/components/availability-settings";
 
 function CoachOnboardingStep5Content() {
@@ -34,7 +35,15 @@ function CoachOnboardingStep5Content() {
   const searchParams = useSearchParams();
   const { profile, refreshUser } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  const [availability, setAvailability] = useState<Record<string, DayAvailability>>({});
+  const [availability, setAvailability] = useState<CoachAvailability>({
+    monday: { enabled: true, intervals: [{ startTime: "09:00", endTime: "17:00" }] },
+    tuesday: { enabled: true, intervals: [{ startTime: "09:00", endTime: "17:00" }] },
+    wednesday: { enabled: true, intervals: [{ startTime: "09:00", endTime: "17:00" }] },
+    thursday: { enabled: true, intervals: [{ startTime: "09:00", endTime: "17:00" }] },
+    friday: { enabled: true, intervals: [{ startTime: "09:00", endTime: "17:00" }] },
+    saturday: { enabled: false, intervals: [] },
+    sunday: { enabled: false, intervals: [] },
+  });
   const [rate, setRate] = useState("");
 
   const role = searchParams.get("role");
@@ -70,6 +79,8 @@ function CoachOnboardingStep5Content() {
       const specialties = specialtiesParam ? JSON.parse(specialtiesParam) : [];
 
       const coachData = {
+        firstName: profile.firstName || "",
+        lastName: profile.lastName || "",
         fullName: profile.fullName || "",
         email: profile.email as string,
         userId: profile.id,

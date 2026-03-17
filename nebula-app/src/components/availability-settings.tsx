@@ -13,6 +13,7 @@ import {
 } from "@/hooks/use-schedule-queries";
 import { useTranslations } from "next-intl";
 import { CoachAvailability, DayAvailability } from "@/types/coach";
+export type { CoachAvailability, DayAvailability };
 
 const DAYS = [
   { key: "monday", labelKey: "monday" },
@@ -24,7 +25,7 @@ const DAYS = [
   { key: "sunday", labelKey: "sunday" },
 ];
 
-const DEFAULT_AVAILABILITY: Record<string, DayAvailability> = {
+const DEFAULT_AVAILABILITY: CoachAvailability = {
   monday: { enabled: true, intervals: [{ startTime: "09:00", endTime: "17:00" }] },
   tuesday: { enabled: true, intervals: [{ startTime: "09:00", endTime: "17:00" }] },
   wednesday: { enabled: true, intervals: [{ startTime: "09:00", endTime: "17:00" }] },
@@ -45,10 +46,10 @@ interface AvailabilitySettingsProps {
   description?: string;
   /** Callback when availability changes (useful for onboarding) */
   onAvailabilityChange?: (
-    availability: Record<string, DayAvailability>,
+    availability: CoachAvailability,
   ) => void;
   /** Initial availability data (useful for onboarding) */
-  initialAvailability?: Record<string, DayAvailability>;
+  initialAvailability?: CoachAvailability;
   /** Whether the component is in loading state */
   loading?: boolean;
   /** Whether the component is disabled */
@@ -76,21 +77,21 @@ export function AvailabilitySettings({
     ? useSaveCoachAvailability()
     : { mutate: () => { }, isPending: false };
 
-  const [availability, setAvailability] = useState<
-    Record<string, DayAvailability>
-  >(initialAvailability || DEFAULT_AVAILABILITY);
+  const [availability, setAvailability] = useState<CoachAvailability>(
+    initialAvailability || DEFAULT_AVAILABILITY
+  );
 
   // Initialize from fetched data (dashboard mode)
   useEffect(() => {
     if (showSaveButton && availabilityData?.availability) {
-      setAvailability(availabilityData.availability as Record<string, DayAvailability>);
+      setAvailability(availabilityData.availability);
     }
   }, [availabilityData, showSaveButton]);
 
   // Initialize from prop (onboarding mode)
   useEffect(() => {
     if (initialAvailability) {
-      setAvailability(initialAvailability as Record<string, DayAvailability>);
+      setAvailability(initialAvailability);
     }
   }, [initialAvailability]);
 
@@ -104,15 +105,16 @@ export function AvailabilitySettings({
   const handleToggleDay = (day: string) => {
     if (disabled) return;
     setAvailability((prev) => {
-      const isEnabled = !prev[day].enabled;
+      const dayKey = day as keyof CoachAvailability;
+      const isEnabled = !prev[dayKey].enabled;
       return {
         ...prev,
-        [day]: {
-          ...prev[day],
+        [dayKey]: {
+          ...prev[dayKey],
           enabled: isEnabled,
-          intervals: isEnabled && (!prev[day].intervals || prev[day].intervals.length === 0)
+          intervals: isEnabled && (!prev[dayKey].intervals || prev[dayKey].intervals.length === 0)
             ? [{ startTime: "09:00", endTime: "17:00" }]
-            : (prev[day].intervals || [])
+            : (prev[dayKey].intervals || [])
         },
       };
     });
@@ -126,11 +128,12 @@ export function AvailabilitySettings({
   ) => {
     if (disabled) return;
     setAvailability((prev) => {
-      const newIntervals = [...(prev[day].intervals || [])];
+      const dayKey = day as keyof CoachAvailability;
+      const newIntervals = [...(prev[dayKey].intervals || [])];
       newIntervals[index] = { ...newIntervals[index], [field]: value };
       return {
         ...prev,
-        [day]: { ...prev[day], intervals: newIntervals },
+        [dayKey]: { ...prev[dayKey], intervals: newIntervals },
       };
     });
   };
@@ -138,7 +141,8 @@ export function AvailabilitySettings({
   const handleAddInterval = (day: string) => {
     if (disabled) return;
     setAvailability((prev) => {
-      const intervals = prev[day].intervals || [];
+      const dayKey = day as keyof CoachAvailability;
+      const intervals = prev[dayKey].intervals || [];
       const lastInterval = intervals[intervals.length - 1];
       const startTime = lastInterval ? lastInterval.endTime : "09:00";
       // Add 1 hour or default to 17:00
@@ -148,8 +152,8 @@ export function AvailabilitySettings({
 
       return {
         ...prev,
-        [day]: {
-          ...prev[day],
+        [dayKey]: {
+          ...prev[dayKey],
           intervals: [...intervals, { startTime, endTime }]
         },
       };
@@ -159,14 +163,15 @@ export function AvailabilitySettings({
   const handleRemoveInterval = (day: string, index: number) => {
     if (disabled) return;
     setAvailability((prev) => {
-      const intervals = prev[day].intervals;
+      const dayKey = day as keyof CoachAvailability;
+      const intervals = prev[dayKey].intervals;
       const newIntervals = intervals.filter((_, i: number) => i !== index);
       return {
         ...prev,
-        [day]: {
-          ...prev[day],
+        [dayKey]: {
+          ...prev[dayKey],
           intervals: newIntervals,
-          enabled: newIntervals.length > 0 ? prev[day].enabled : false
+          enabled: newIntervals.length > 0 ? prev[dayKey].enabled : false
         },
       };
     });
@@ -213,7 +218,7 @@ export function AvailabilitySettings({
               <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3 min-w-[140px]">
                   <Switch
-                    checked={availability[key].enabled}
+                    checked={availability[key as keyof CoachAvailability].enabled}
                     onCheckedChange={() => handleToggleDay(key)}
                     disabled={disabled || (showSaveButton && saving)}
                   />
@@ -222,7 +227,7 @@ export function AvailabilitySettings({
                   </Label>
                 </div>
 
-                {availability[key].enabled && (
+                {availability[key as keyof CoachAvailability].enabled && (
                   <Button
                     variant="outline"
                     size="sm"
@@ -234,16 +239,16 @@ export function AvailabilitySettings({
                   </Button>
                 )}
 
-                {!availability[key].enabled && (
+                {!availability[key as keyof CoachAvailability].enabled && (
                   <span className="text-sm text-muted-foreground">
                     {t("notAvailable")}
                   </span>
                 )}
               </div>
 
-              {availability[key].enabled && (
+              {availability[key as keyof CoachAvailability].enabled && (
                 <div className="flex flex-col gap-2 pl-14">
-                  {(availability[key].intervals || []).map((interval, index) => (
+                  {(availability[key as keyof CoachAvailability].intervals || []).map((interval, index) => (
                     <div key={index} className="flex items-center gap-2 group">
                       <div className="flex items-center gap-2 text-sm">
                         <input
@@ -277,7 +282,7 @@ export function AvailabilitySettings({
                       </Button>
                     </div>
                   ))}
-                  {(!availability[key].intervals || availability[key].intervals.length === 0) && (
+                  {(!availability[key as keyof CoachAvailability].intervals || availability[key as keyof CoachAvailability].intervals.length === 0) && (
                     <span className="text-sm text-muted-foreground italic">
                       No time slots added.
                     </span>

@@ -11,6 +11,7 @@ import {
   getCoachAvailability,
   saveCoachAvailability,
   DayAvailability,
+  CoachAvailability,
 } from "@/actions/session";
 import { CoachSessionsResponse, CoachStatsResponse, CoachAvailabilityResponse } from "@/types/coach";
 import { handleAndToastError } from "@/lib/error-handler";
@@ -160,7 +161,7 @@ export function useSaveCoachAvailability() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (availability: Record<string, DayAvailability>) =>
+    mutationFn: (availability: CoachAvailability) =>
       saveCoachAvailability(availability),
     onSuccess: () => {
       queryClient.invalidateQueries({

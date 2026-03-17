@@ -1,5 +1,6 @@
 import { apiGet, apiPost, apiPut, apiDelete, apiPatch } from "@/lib/utils";
 import { CoachSessionsResponse, CoachStatsResponse, CoachAvailabilityResponse, CoachStudentsResponse, CoachAvailability, DayAvailability } from '@/types/coach';
+export type { CoachAvailability, DayAvailability };
 
 
 export async function bookCoachSession({

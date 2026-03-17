@@ -197,7 +197,6 @@ export class StripeAccountService {
         pastDue: account.requirements?.past_due || [],
       },
       capabilities: {
-        cardPayments: account.capabilities?.card_payments === 'active',
         transfers: account.capabilities?.transfers === 'active',
       },
       disabledReason: account.requirements?.disabled_reason,
