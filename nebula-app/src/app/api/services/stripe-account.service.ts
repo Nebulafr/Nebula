@@ -50,7 +50,7 @@ export class StripeAccountService {
       },
       business_type: 'individual',
       business_profile: {
-        url: 'https://example.com',
+        url: 'https://www.nebulaengage.com',
         product_description: 'Description of services',
       },
       individual: {
