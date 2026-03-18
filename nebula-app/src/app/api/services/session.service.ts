@@ -49,6 +49,12 @@ export class SessionService {
       throw new NotFoundException("Coach not found or inactive");
     }
 
+    if (!coach.googleCalendarAccessToken) {
+      throw new BadRequestException(
+        "This coach has not connected their calendar yet. Please try again later or contact support.",
+      );
+    }
+
     const student = await prisma.student.findUnique({
       where: { userId: studentUserId },
       include: {
@@ -319,6 +325,12 @@ export class SessionService {
 
     if (session.status !== "REQUESTED") {
       throw new BadRequestException("Only requested sessions can be approved");
+    }
+
+    if (!session.coach.googleCalendarAccessToken) {
+      throw new BadRequestException(
+        "You must connect your Google Calendar before you can approve sessions.",
+      );
     }
 
     // Check for conflicts before approving

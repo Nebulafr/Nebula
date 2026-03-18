@@ -12,6 +12,8 @@ import {
   GraduationCap,
   Calendar,
   Star,
+  LayoutGrid,
+  Banknote,
 } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
@@ -49,6 +51,10 @@ function TopBar() {
     pageTitle = td("eventManagement");
   } else if (pathname.includes("/reviews")) {
     pageTitle = td("reviewManagement");
+  } else if (pathname.includes("/categories")) {
+    pageTitle = td("categoryManagement");
+  } else if (pathname.includes("/transactions")) {
+    pageTitle = td("transactionManagement");
   } else if (pathname.includes("/settings")) {
     pageTitle = t("settings");
   }
@@ -192,6 +198,20 @@ export default function AdminLayout({
                   <div>
                     <Star />
                     <span>{t("reviews")}</span>
+                  </div>
+                </SidebarMenuButton>
+              </Link>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <Link href="/admin/categories">
+                <SidebarMenuButton
+                  tooltip={t("categories")}
+                  isActive={pathname.startsWith("/admin/categories")}
+                  asChild
+                >
+                  <div>
+                    <LayoutGrid />
+                    <span>{t("categories")}</span>
                   </div>
                 </SidebarMenuButton>
               </Link>

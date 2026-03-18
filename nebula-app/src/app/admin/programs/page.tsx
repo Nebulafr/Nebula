@@ -24,6 +24,7 @@ import {
   Check,
   Plus,
   Loader2,
+  LayoutGrid,
 } from "lucide-react";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import {
@@ -260,6 +261,11 @@ export default function AdminProgramsPage() {
                       >
                         <Plus className="mr-2 h-4 w-4" />
                         {t("addCategory")}
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => router.push("/admin/categories")}>
+                        <LayoutGrid className="mr-2 h-4 w-4" />
+                        {t("categoryManagement")}
                       </DropdownMenuItem>
                     </>
                   )}

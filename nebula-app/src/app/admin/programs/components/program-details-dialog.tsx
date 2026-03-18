@@ -21,7 +21,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { formatUserName, getUserInitials } from "@/lib/chat-utils";
+import { formatUserName, getInitials } from "@/lib/utils";
 import { AdminProgram } from "@/types/program";
 import { useTranslations } from "next-intl";
 
@@ -66,7 +66,7 @@ export function ProgramDetailsDialog({
   if (!program) return null;
 
   const coachName = formatUserName(program.coach.user.fullName || "Unknown");
-  const coachInitials = getUserInitials(
+  const coachInitials = getInitials(
     program.coach.user.fullName || "Unknown"
   );
 

@@ -26,7 +26,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { format } from "date-fns";
-import { formatUserName, getUserInitials } from "@/lib/chat-utils";
+import { formatUserName, getInitials } from "@/lib/utils";
 import { AdminProgram } from "@/types/program";
 import { useTranslations } from "next-intl";
 
@@ -138,7 +138,7 @@ export function ProgramsTable({
             const coachName = formatUserName(
               program.coach.user.fullName || "Unknown"
             );
-            const coachInitials = getUserInitials(
+            const coachInitials = getInitials(
               program.coach.user.fullName || "Unknown"
             );
 

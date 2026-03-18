@@ -26,8 +26,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { formatUserName, getUserInitials } from "@/lib/chat-utils";
-import { getDefaultAvatar } from "@/lib/event-utils";
+import { formatUserName, getInitials, getDefaultAvatar } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 import { AdminPagination } from "../../components/admin-pagination";
 
@@ -162,7 +161,7 @@ export function UsersTable({
             <TableBody>
               {users.map((user) => {
                 const displayName = formatUserName(user.name);
-                const initials = getUserInitials(user.name);
+                const initials = getInitials(user.name);
 
                 return (
                   <TableRow key={user.email}>

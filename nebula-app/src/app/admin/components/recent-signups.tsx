@@ -22,8 +22,7 @@ import { format } from "date-fns/format"; // Added format
 import { enUS, fr } from "date-fns/locale"; // Added date-fns locales
 import { useTranslations, useLocale } from "next-intl"; // Added next-intl hooks
 import Link from "next/link";
-import { formatUserName, getUserInitials } from "@/lib/chat-utils";
-import { getDefaultAvatar } from "@/lib/event-utils";
+import { formatUserName, getInitials, getDefaultAvatar } from "@/lib/utils";
 
 interface RecentSignup {
   name: string;
@@ -102,7 +101,7 @@ export function RecentSignups({ signups, loading, onUserAction }: RecentSignupsP
               <TableBody>
                 {signups.map((user, index) => {
                   const displayName = formatUserName(user.name);
-                  const initials = getUserInitials(user.name);
+                  const initials = getInitials(user.name);
 
                   return (
                     <TableRow key={index}>
