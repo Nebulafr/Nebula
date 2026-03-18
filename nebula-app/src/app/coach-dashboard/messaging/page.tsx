@@ -1,27 +1,18 @@
-/* eslint-disable */
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback, Suspense } from "react";
+import { useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { createAuthenticatedSocket } from "@/lib/socket";
 import { useAuth } from "@/hooks/use-auth";
 import { getAccessToken } from "@/lib/auth-storage";
-import { getUserConversations } from "@/actions/messaging";
-
-import { ConversationList } from "./components/conversation-list";
-import { ChatHeader } from "./components/chat-header";
-import { MessageList } from "./components/message-list";
-import { MessageInput } from "./components/message-input";
-import { EmptyState } from "./components/empty-state";
-import { TypingIndicator } from "./components/typing-indicator";
-import { Conversation, Message } from "@/generated/prisma";
+import { useMessaging } from "@/hooks/use-messaging";
 import { useTranslations } from "next-intl";
 
-interface TypingUser {
-  conversationId: string;
-  userId: string;
-  userName: string;
-}
+import { ConversationList } from "@/components/messaging/conversation-list";
+import { ChatHeader } from "@/components/messaging/chat-header";
+import { MessageList } from "@/components/messaging/message-list";
+import { MessageInput } from "@/components/messaging/message-input";
+import { EmptyState } from "@/components/messaging/empty-state";
+import { TypingIndicator } from "@/components/messaging/typing-indicator";
 
 function CoachMessagingPageContent() {
   const t = useTranslations("dashboard.coach.messaging");
@@ -29,6 +20,7 @@ function CoachMessagingPageContent() {
   const router = useRouter();
   const conversationId = searchParams.get("conversationId");
   const { profile } = useAuth();
+  const [searchTerm, setSearchTerm] = useState("");
 
   const accessToken = getAccessToken();
   const currentUser = {
@@ -38,240 +30,28 @@ function CoachMessagingPageContent() {
     token: accessToken || "",
   };
 
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [selectedConversation, setSelectedConversation] =
-    useState<Conversation | null>(null);
-  const [currentMessages, setCurrentMessages] = useState<Message[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [sending, setSending] = useState(false);
-  const [socket, setSocket] = useState<any>(null);
-  const [typingUser, setTypingUser] = useState<TypingUser | null>(null);
+  const {
+    conversations,
+    selectedConversation,
+    currentMessages,
+    loading,
+    sending,
+    typingUser,
+    handleSendMessage,
+    handleTypingStart,
+  } = useMessaging(currentUser, conversationId);
 
-  // Refs for typing indicator debouncing
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const isTypingRef = useRef(false);
-
-  const loadConversations = async () => {
-    if (!currentUser.id) {
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const response = await getUserConversations(currentUser.id, 10);
-      if (response.success) {
-        setConversations(response.data || []);
-        setLoading(false);
-      }
-    } catch (error) {
-      console.error("Error loading conversations:", error);
-      setLoading(false);
-    }
-  };
-
-  // Handle conversation updates from socket
-  const handleConversationUpdate = useCallback((data: any) => {
-    setConversations((prev) => {
-      const updated = prev.map((c) =>
-        c.id === data.conversationId
-          ? {
-            ...c,
-            lastMessage: data.lastMessage,
-            lastMessageTime: new Date(data.lastMessageTime),
-          }
-          : c
-      );
-      // Sort by most recent message
-      return updated.sort(
-        (a, b) =>
-          new Date(b.lastMessageTime || 0).getTime() -
-          new Date(a.lastMessageTime || 0).getTime()
-      );
-    });
-  }, []);
-
-  // Handle typing indicator
-  const handleTypingIndicator = useCallback(
-    (data: any) => {
-      if (data.userId === currentUser.id) return; // Ignore own typing
-
-      if (data.isTyping) {
-        setTypingUser({
-          conversationId: data.conversationId,
-          userId: data.userId,
-          userName: data.userName,
-        });
-      } else if (typingUser?.userId === data.userId) {
-        setTypingUser(null);
-      }
-    },
-    [currentUser.id, typingUser?.userId]
-  );
-
-  useEffect(() => {
-    if (conversationId && conversations.length > 0) {
-      const convo = conversations.find((c) => c.id === conversationId);
-      if (convo && convo.id !== selectedConversation?.id) {
-        setCurrentMessages([]);
-        setSelectedConversation(convo);
-
-        if (socket?.connected) {
-          socket.emit("join_conversation", convo.id);
-          socket.emit("load_messages", { conversationId: convo.id });
-        }
-      }
-    } else if (!conversationId) {
-      setSelectedConversation(null);
-      setCurrentMessages([]);
-    }
-  }, [conversationId, conversations]);
-
-  useEffect(() => {
-    if (currentUser.token && currentUser.id) {
-      const newSocket = createAuthenticatedSocket(currentUser.token);
-      newSocket.connect();
-      setSocket(newSocket);
-
-      newSocket.on("connect", () => {
-        loadConversations();
-      });
-      newSocket.on("messages_loaded", (data: any) => {
-        setCurrentMessages(data.messages || []);
-      });
-      newSocket.on("new_message", (message: any) => {
-        setCurrentMessages((prev) => {
-          // Remove any optimistic message with temp id and add the real one
-          const filtered = prev.filter(
-            (m: any) => !m.id?.startsWith("temp-") || m.text !== message.content
-          );
-          return [
-            ...filtered,
-            {
-              id: message.id,
-              senderId: message.senderId,
-              conversationId: message.conversationId,
-              content: message.content,
-              type: message.type,
-              isRead: false,
-              createdAt: new Date(message.createdAt),
-              updatedAt: new Date(message.createdAt),
-            } as Message,
-          ];
-        });
-        // Clear typing indicator when message received
-        setTypingUser(null);
-      });
-
-      newSocket.on("conversation_updated", handleConversationUpdate);
-      newSocket.on("typing_indicator", handleTypingIndicator);
-      newSocket.on("error", (error: any) => {
-        console.error("Coach socket error:", error);
-      });
-
-      return () => {
-        newSocket.off("connect");
-        newSocket.off("messages_loaded");
-        newSocket.off("new_message");
-        newSocket.off("conversation_updated");
-        newSocket.off("typing_indicator");
-        newSocket.off("error");
-        newSocket.disconnect();
-        setSocket(null);
-      };
-    }
-  }, [currentUser.token, currentUser.id]);
-
-  useEffect(() => {
-    if (selectedConversation && socket?.connected) {
-      socket.emit("join_conversation", selectedConversation.id);
-
-      return () => {
-        socket.emit("leave_conversation", selectedConversation.id);
-      };
-    }
-  }, [selectedConversation, socket]);
-
-  const handleSelectConversation = async (conversation: Conversation) => {
+  const handleSelectConversation = (conversation: any) => {
     router.push(`/coach-dashboard/messaging?conversationId=${conversation?.id}`);
   };
 
-  // Emit typing indicator with debounce
-  const handleTypingStart = useCallback(() => {
-    if (!socket?.connected || !selectedConversation) return;
-
-    if (!isTypingRef.current) {
-      isTypingRef.current = true;
-      socket.emit("typing_start", selectedConversation.id);
-    }
-
-    // Clear existing timeout
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
-    }
-
-    // Set new timeout to stop typing indicator after 2 seconds of no input
-    typingTimeoutRef.current = setTimeout(() => {
-      if (isTypingRef.current && socket?.connected && selectedConversation) {
-        isTypingRef.current = false;
-        socket.emit("typing_stop", selectedConversation.id);
-      }
-    }, 2000);
-  }, [socket, selectedConversation]);
-
-  const handleSendMessage = async (messageText: string) => {
-    if (!selectedConversation || sending) return;
-
-    try {
-      setSending(true);
-
-      // Stop typing indicator
-      if (isTypingRef.current && socket?.connected) {
-        isTypingRef.current = false;
-        socket.emit("typing_stop", selectedConversation.id);
-      }
-      if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current);
-      }
-
-      if (!socket || !socket.connected) {
-        console.error("Socket not connected");
-        return;
-      }
-
-      // Optimistic update - add message immediately
-      const optimisticMessage: Message = {
-        id: `temp-${Date.now()}`,
-        senderId: currentUser.id,
-        conversationId: selectedConversation.id,
-        content: messageText,
-        type: "TEXT",
-        isRead: false,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        readAt: null,
-        editedAt: null,
-        isEdited: false,
-        isDeleted: false
-      };
-      setCurrentMessages((prev) => [...prev, optimisticMessage]);
-
-      // Send via socket - no need to reload conversations anymore
-      socket.emit("send_message", {
-        conversationId: selectedConversation.id,
-        content: messageText,
-        type: "TEXT",
-      });
-    } catch (error) {
-      console.error("Error sending message:", error);
-      // Remove the optimistic message on error
-      setCurrentMessages((prev) =>
-        prev.filter((m: any) => !m.id?.startsWith("temp-"))
-      );
-    } finally {
-      setSending(false);
-    }
-  };
+  if (loading && conversations.length === 0) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="text-muted-foreground">{t("loading")}</div>
+      </div>
+    );
+  }
 
   const showTypingIndicator =
     typingUser && typingUser.conversationId === selectedConversation?.id;
@@ -280,17 +60,22 @@ function CoachMessagingPageContent() {
     <div className="flex h-full bg-gray-50 overflow-hidden">
       <ConversationList
         conversations={conversations}
-        selectedConversation={selectedConversation}
+        selectedConversationId={selectedConversation?.id}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
         onConversationSelect={handleSelectConversation}
         loading={loading}
+        searchPlaceholder={t("searchHint")}
+        noConversationsMessage={t("noConversations")}
       />
 
       <div className="flex flex-1 flex-col min-h-0">
         {selectedConversation ? (
           <>
-            <ChatHeader conversation={selectedConversation} />
+            <ChatHeader
+              conversation={selectedConversation}
+              onBack={() => router.push("/coach-dashboard/messaging")}
+            />
             <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
               <MessageList messages={currentMessages} />
             </div>

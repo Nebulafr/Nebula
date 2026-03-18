@@ -1,14 +1,15 @@
 import { Pinecone } from '@pinecone-database/pinecone';
+import { env } from '@/config/env';
 
-if (!process.env.PINECONE_API_KEY) {
+if (!env.PINECONE_API_KEY) {
   throw new Error('PINECONE_API_KEY is not defined');
 }
 
 export const pinecone = new Pinecone({
-  apiKey: process.env.PINECONE_API_KEY,
+  apiKey: env.PINECONE_API_KEY,
 });
 
-export const PINECONE_INDEX = process.env.PINECONE_INDEX_NAME || 'nebula-ai-index';
+export const PINECONE_INDEX = env.PINECONE_INDEX_NAME || 'nebula-ai-index';
 
 export const PINECONE_NAMESPACES = {
   CONVERSATION_MEMORY: 'conversation_memory',

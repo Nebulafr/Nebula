@@ -3,11 +3,12 @@
  * Only import this file in API routes, server actions, or server components
  */
 import { v2 as cloudinary } from "cloudinary";
+import { env } from "@/config/env";
 
 cloudinary.config({
-  cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
+  cloud_name: env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+  api_key: env.CLOUDINARY_API_KEY,
+  api_secret: env.CLOUDINARY_API_SECRET,
 });
 
 export { cloudinary };
@@ -129,14 +130,14 @@ export const generateSignedUploadUrl = (
   const timestamp = Math.round(new Date().getTime() / 1000);
   const signature = cloudinary.utils.api_sign_request(
     { timestamp, folder },
-    process.env.CLOUDINARY_API_SECRET!,
+    env.CLOUDINARY_API_SECRET!,
   );
 
   return {
     signature,
     timestamp,
-    apiKey: process.env.CLOUDINARY_API_KEY!,
-    cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!,
+    apiKey: env.CLOUDINARY_API_KEY!,
+    cloudName: env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!,
   };
 };
 

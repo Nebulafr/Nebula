@@ -19,7 +19,7 @@ import {
   getEventBackgroundColor,
   getDefaultAvatar,
   getAccessTypeText,
-} from "@/lib/event-utils";
+} from "@/lib/utils";
 import { useTranslations, useLocale } from "next-intl";
 
 function EventCard({

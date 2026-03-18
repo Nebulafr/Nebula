@@ -15,7 +15,7 @@ import {
   studentOnboardingStep1Schema,
   type StudentOnboardingStep1Data,
 } from "@/lib/validations";
-import { getDefaultCategoryImage } from "@/lib/event-utils";
+import { getDefaultCategoryImage } from "@/lib/utils";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";

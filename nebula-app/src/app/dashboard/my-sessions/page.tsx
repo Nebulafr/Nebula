@@ -34,7 +34,7 @@ import {
   useStudentSessions,
   useCancelSession,
 } from "@/hooks/use-session-queries";
-import { getDefaultAvatar } from "@/lib/event-utils";
+import { getDefaultAvatar } from "@/lib/utils";
 import {
   useActiveEnrollments,
   useCompletedEnrollments,

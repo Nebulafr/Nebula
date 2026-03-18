@@ -5,8 +5,20 @@ export async function getCategories(): Promise<CategoriesResponse> {
   return apiGet<CategoriesResponse["data"]>("/categories", { requireAuth: false }) as Promise<CategoriesResponse>;
 }
 
-export async function getAdminCategories(): Promise<CategoriesResponse> {
-  return apiGet<CategoriesResponse["data"]>("/admin/categories") as Promise<CategoriesResponse>;
+export async function getAdminCategories(params?: {
+  page?: number;
+  limit?: number;
+  search?: string;
+}): Promise<CategoriesResponse> {
+  const queryParams = new URLSearchParams();
+  if (params?.page) queryParams.set("page", params.page.toString());
+  if (params?.limit) queryParams.set("limit", params.limit.toString());
+  if (params?.search) queryParams.set("search", params.search);
+
+  const queryString = queryParams.toString();
+  const url = `/admin/categories${queryString ? `?${queryString}` : ""}`;
+
+  return apiGet<CategoriesResponse["data"]>(url) as Promise<CategoriesResponse>;
 }
 
  

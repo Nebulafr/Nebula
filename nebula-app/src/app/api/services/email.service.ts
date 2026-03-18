@@ -1,4 +1,5 @@
 import { emailTemplates, EmailTemplateType } from "@/lib/email-templates";
+import { env } from "@/config/env";
 
 interface SendEmailOptions {
   to: string | string[];
@@ -41,8 +42,8 @@ export class EmailService {
     error?: string;
   }> {
     try {
-      const apiKey = process.env.ZEPTOMAIL_API_KEY || "akjkjd";
-      const fromAddress = process.env.ZEPTOMAIL_FROM_ADDRESS || "noreply@nebulaengage.com";
+      const apiKey = env.ZEPTOMAIL_API_KEY || "akjkjd";
+      const fromAddress = env.ZEPTOMAIL_FROM_ADDRESS || "noreply@nebulaengage.com";
 
       const recipients = Array.isArray(options.to)
         ? options.to.map((email) => ({
@@ -601,7 +602,7 @@ export class EmailService {
           </div>
           ${data.meetLink ? `<p><strong>Meeting Link:</strong> <a href="${data.meetLink}">${data.meetLink}</a></p>` : ""}
           <p style="text-align: center; margin: 30px 0;">
-            <a href="${process.env.NEXTAUTH_URL}/dashboard" style="background-color: #059669; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">View in Dashboard</a>
+            <a href="${env.NEXTAUTH_URL}/dashboard" style="background-color: #059669; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">View in Dashboard</a>
           </p>
           <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
           <p style="font-size: 12px; color: #6b7280;">© ${new Date().getFullYear()} Nebula. All rights reserved.</p>
@@ -633,12 +634,11 @@ export class EmailService {
   }): Promise<{ success: boolean; error?: string }> {
     try {
       const subject = `New Contact Form Submission from ${data.fullName}`;
-      const recipientEmail =
-        process.env.CONTACT_EMAIL || process.env.SMTP_USER || "";
+      const recipientEmail = env.CONTACT_EMAIL || "";
 
       if (!recipientEmail) {
         throw new Error(
-          "Recipient email not configured (CONTACT_EMAIL or SMTP_USER)",
+          "Recipient email not configured (CONTACT_EMAIL)",
         );
       }
 
@@ -671,9 +671,9 @@ export class EmailService {
   }
 
   validateConfiguration(): boolean {
-    const requiredEnvVars = ["ZEPTOMAIL_API_KEY", "ZEPTOMAIL_FROM_ADDRESS"];
+    const requiredEnvVars = ["ZEPTOMAIL_API_KEY", "ZEPTOMAIL_FROM_ADDRESS"] as const;
 
-    return requiredEnvVars.every((varName) => !!process.env[varName]);
+    return requiredEnvVars.every((varName) => !!env[varName]);
   }
 }
 

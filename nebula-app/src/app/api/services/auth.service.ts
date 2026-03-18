@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { env } from "@/config/env";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import {
@@ -19,7 +20,7 @@ import crypto from "crypto";
 
 export class AuthService {
   generateAccessToken(userId: string): string {
-    const secret = process.env.ACCESS_TOKEN_SECRET || "ACCESS_TOKEN_SECRET";
+    const secret = env.ACCESS_TOKEN_SECRET || "ACCESS_TOKEN_SECRET";
     return jwt.sign({ userId, type: "access" }, secret, { expiresIn: "7d" });
   }
 
@@ -80,7 +81,7 @@ export class AuthService {
     });
 
     // Send verification email
-    const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+    const baseUrl = env.NEXTAUTH_URL || "http://localhost:3000";
     const verificationUrl = `${baseUrl}/verify-email?token=${verificationToken}`;
 
     await emailService.sendVerificationEmail(
@@ -428,7 +429,7 @@ export class AuthService {
         data: { resetToken, resetTokenExpires },
       });
 
-      const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+      const baseUrl = env.NEXTAUTH_URL || "http://localhost:3000";
       const resetUrl = `${baseUrl}/reset-password?token=${resetToken}`;
 
       await emailService.sendPasswordResetEmail(

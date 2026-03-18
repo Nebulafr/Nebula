@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Calendar, Clock, Video } from "lucide-react";
-import { getDefaultAvatar } from "@/lib/event-utils";
+import { getDefaultAvatar } from "@/lib/utils";
 
 interface Session {
   id: string;

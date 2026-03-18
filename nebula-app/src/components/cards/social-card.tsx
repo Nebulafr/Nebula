@@ -13,7 +13,7 @@ import {
   getEventGradientBackground,
   getDefaultAvatar,
   getDefaultBanner,
-} from "@/lib/event-utils";
+} from "@/lib/utils";
 
 interface SocialCardProps {
   event: Event;

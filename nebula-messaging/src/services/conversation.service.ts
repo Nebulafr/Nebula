@@ -1,42 +1,6 @@
 import { prisma } from "../lib/prisma";
+import { formatConversation } from "../lib";
 import type { FormattedConversation } from "../types";
-
-const findOtherParticipant = (participants: any[], userId: string) => {
-  return participants.find((p: any) => p.userId !== userId);
-};
-
-const formatTime = (date: Date | null): string => {
-  return date
-    ? new Date(date).toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      })
-    : "";
-};
-
-const getUserUnreadCount = (participants: any[], userId: string): number => {
-  return participants.find((p: any) => p.userId === userId)?.unreadCount || 0;
-};
-
-const formatConversation = (
-  conv: any,
-  userId: string
-): FormattedConversation => {
-  const otherParticipant = findOtherParticipant(conv.participants, userId);
-
-  return {
-    id: conv.id,
-    type: conv.type,
-    name: otherParticipant?.user.fullName || "Unknown",
-    avatar: otherParticipant?.user.avatarUrl,
-    lastMessage: conv.messages[0]?.content || "",
-    time: formatTime(conv.messages[0]?.createdAt),
-    unread: getUserUnreadCount(conv.participants, userId),
-    role: otherParticipant?.user.role || "STUDENT",
-    otherUserId: otherParticipant?.user.id || "",
-    coachId: otherParticipant?.user.coach?.id,
-  };
-};
 
 const formatConversations = (
   conversations: any[],

@@ -4,7 +4,7 @@
  */
 
 import { google, calendar_v3 } from "googleapis";
-import "dotenv/config";
+import { env } from "@/config/env";
 
 /**
  * Creates a Google Calendar event with a Google Meet link.
@@ -29,7 +29,7 @@ export async function createCalendarEvent(
   refreshToken?: string
 ): Promise<{ meetLink: string; eventId: string; newAccessToken?: string }> {
   // Check for required environment variables
-  if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+  if (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET) {
     throw new Error(
       "GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be set in environment variables"
     );
@@ -37,9 +37,9 @@ export async function createCalendarEvent(
 
   // Create OAuth2 client credentials
   const auth = new google.auth.OAuth2(
-    process.env.GOOGLE_CLIENT_ID,
-    process.env.GOOGLE_CLIENT_SECRET,
-    `${process.env.NEXTAUTH_URL}/api/auth/google-calendar`
+    env.GOOGLE_CLIENT_ID,
+    env.GOOGLE_CLIENT_SECRET,
+    `${env.NEXTAUTH_URL}/api/auth/google-calendar`
   );
 
   // Set the credentials
@@ -169,9 +169,9 @@ export async function updateCalendarEvent(
   refreshToken?: string
 ): Promise<{ newAccessToken?: string }> {
   const auth = new google.auth.OAuth2(
-    process.env.GOOGLE_CLIENT_ID,
-    process.env.GOOGLE_CLIENT_SECRET,
-    `${process.env.NEXTAUTH_URL}/api/auth/google-calendar`
+    env.GOOGLE_CLIENT_ID,
+    env.GOOGLE_CLIENT_SECRET,
+    `${env.NEXTAUTH_URL}/api/auth/google-calendar`
   );
 
   auth.setCredentials({
@@ -227,9 +227,9 @@ export async function deleteCalendarEvent(
   refreshToken?: string
 ): Promise<{ newAccessToken?: string }> {
   const auth = new google.auth.OAuth2(
-    process.env.GOOGLE_CLIENT_ID,
-    process.env.GOOGLE_CLIENT_SECRET,
-    `${process.env.NEXTAUTH_URL}/api/auth/google-calendar`
+    env.GOOGLE_CLIENT_ID,
+    env.GOOGLE_CLIENT_SECRET,
+    `${env.NEXTAUTH_URL}/api/auth/google-calendar`
   );
 
   auth.setCredentials({

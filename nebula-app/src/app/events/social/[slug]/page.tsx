@@ -24,7 +24,7 @@ import { useTranslations, useLocale } from "next-intl";
 import {
   getDefaultAvatar,
   getDefaultBanner,
-} from "@/lib/event-utils";
+} from "@/lib/utils";
 import { toast } from "react-toastify";
 import { CheckoutStatusModal } from "@/components/checkout/checkout-status-modal";
 import { useParams, useRouter } from "next/navigation";

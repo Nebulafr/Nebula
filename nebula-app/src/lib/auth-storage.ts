@@ -1,4 +1,5 @@
 import Cookies from "universal-cookie";
+import { env } from "@/config/env";
 
 export const AUTH_TOKEN_KEY = "accessToken";
 export const USER_DATA_KEY = "userData";
@@ -9,7 +10,7 @@ const cookies = new Cookies();
 
 const cookieOptions = {
   httpOnly: false, // Must be accessible by client-side auth-storage
-  secure: process.env.NODE_ENV === "production",
+  secure: env.NODE_ENV === "production",
   sameSite: "lax" as const,
   maxAge: 60 * 60 * 24 * 7, // 7 days
   path: "/",

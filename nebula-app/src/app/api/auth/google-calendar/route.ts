@@ -1,11 +1,12 @@
 import { google } from "googleapis";
 import { NextRequest, NextResponse } from "next/server";
+import { env } from "@/config/env";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const code = searchParams.get("code");
 
-  if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+  if (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET) {
     return NextResponse.json(
       { error: "Missing Google credentials" },
       { status: 500 },
@@ -13,9 +14,9 @@ export async function GET(request: NextRequest) {
   }
 
   const oauth2Client = new google.auth.OAuth2(
-    process.env.GOOGLE_CLIENT_ID,
-    process.env.GOOGLE_CLIENT_SECRET,
-    `${process.env.NEXTAUTH_URL}/api/auth/google-calendar`,
+    env.GOOGLE_CLIENT_ID,
+    env.GOOGLE_CLIENT_SECRET,
+    `${env.NEXTAUTH_URL}/api/auth/google-calendar`,
   );
 
   if (!code) {
@@ -26,14 +27,14 @@ export async function GET(request: NextRequest) {
         "https://www.googleapis.com/auth/calendar",
         "https://www.googleapis.com/auth/calendar.events",
       ],
-      redirect_uri: `${process.env.NEXTAUTH_URL}/api/auth/google-calendar`,
+      redirect_uri: `${env.NEXTAUTH_URL}/api/auth/google-calendar`,
       prompt: "consent",
       include_granted_scopes: true,
     });
 
     console.log({
       authUrl,
-      url: `${process.env.NEXTAUTH_URL}/api/auth/google-calendar`,
+      url: `${env.NEXTAUTH_URL}/api/auth/google-calendar`,
     });
 
     return NextResponse.redirect(authUrl);
@@ -49,7 +50,7 @@ export async function GET(request: NextRequest) {
     const stateData = state ? JSON.parse(state) : {};
 
     // Redirect back to admin events page with access token and form state
-    const redirectUrl = new URL("/coach-dashboard", process.env.NEXTAUTH_URL);
+    const redirectUrl = new URL("/coach-dashboard", env.NEXTAUTH_URL);
     redirectUrl.searchParams.set("access_token", tokens.access_token || "");
     if (tokens.refresh_token) {
       redirectUrl.searchParams.set("refresh_token", tokens.refresh_token);

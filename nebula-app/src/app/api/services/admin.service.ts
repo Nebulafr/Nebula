@@ -1,22 +1,23 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from '@/lib/prisma';
 import {
   AdminEventQueryData,
   AdminProgramQueryData,
   AdminReviewQueryData,
   AdminUserQueryData,
+  AdminTransactionQueryData,
   ProgramActionData,
-} from "@/lib/validations";
+} from '@/lib/validations';
 import {
   Prisma,
   ProgramStatus,
   UserRole,
   UserStatus,
-} from "@/generated/prisma";
-import { sendSuccess } from "../utils/send-response";
+} from '@/generated/prisma';
+import { sendSuccess } from '../utils/send-response';
 import {
   NotFoundException,
   BadRequestException,
-} from "../utils/http-exception";
+} from '../utils/http-exception';
 
 export class AdminService {
   async getPrograms(params: AdminProgramQueryData) {
@@ -25,15 +26,15 @@ export class AdminService {
 
     const whereClause: Prisma.ProgramWhereInput = {};
 
-    if (status && status !== "all") {
-      if (status === "active") {
+    if (status && status !== 'all') {
+      if (status === 'active') {
         whereClause.isActive = true;
-      } else if (status === "inactive") {
+      } else if (status === 'inactive') {
         whereClause.isActive = false;
       }
     }
 
-    if (category && category !== "all") {
+    if (category && category !== 'all') {
       whereClause.category = {
         name: category,
       };
@@ -44,20 +45,20 @@ export class AdminService {
         {
           title: {
             contains: search,
-            mode: "insensitive",
+            mode: 'insensitive',
           },
         },
         {
           description: {
             contains: search,
-            mode: "insensitive",
+            mode: 'insensitive',
           },
         },
         {
           category: {
             name: {
               contains: search,
-              mode: "insensitive",
+              mode: 'insensitive',
             },
           },
         },
@@ -66,7 +67,7 @@ export class AdminService {
             user: {
               fullName: {
                 contains: search,
-                mode: "insensitive",
+                mode: 'insensitive',
               },
             },
           },
@@ -95,14 +96,14 @@ export class AdminService {
         },
         orderBy: [
           {
-            createdAt: "desc",
+            createdAt: 'desc',
           },
         ],
       }),
       prisma.program.count({ where: whereClause }),
     ]);
 
-    const { programService } = await import("./program.service");
+    const { programService } = await import('./program.service');
     const formattedPrograms = programs.map((program) =>
       programService.transformProgramData(program),
     );
@@ -117,7 +118,7 @@ export class AdminService {
           totalPages: Math.ceil(totalCount / limit),
         },
       },
-      "Programs fetched successfully",
+      'Programs fetched successfully',
     );
   }
 
@@ -139,59 +140,59 @@ export class AdminService {
         });
 
         if (!program) {
-          throw new NotFoundException("Program not found");
+          throw new NotFoundException('Program not found');
         }
 
         let status: ProgramStatus;
         let isActive: boolean;
         let emailTemplate:
-          | "APPLICATION_APPROVED"
-          | "APPLICATION_DECLINED"
-          | "PROGRAM_LIVE"
+          | 'APPLICATION_APPROVED'
+          | 'APPLICATION_DECLINED'
+          | 'PROGRAM_LIVE'
           | null = null;
 
         switch (action) {
-          case "approve":
-            if (program.status !== "PENDING_APPROVAL") {
+          case 'approve':
+            if (program.status !== 'PENDING_APPROVAL') {
               throw new BadRequestException(
-                "Only pending programs can be approved",
+                'Only pending programs can be approved',
               );
             }
-            status = "APPROVED";
+            status = 'APPROVED';
             isActive = false;
-            emailTemplate = "APPLICATION_APPROVED";
+            emailTemplate = 'APPLICATION_APPROVED';
             break;
-          case "reject":
-            if (program.status !== "PENDING_APPROVAL") {
+          case 'reject':
+            if (program.status !== 'PENDING_APPROVAL') {
               throw new BadRequestException(
-                "Only pending programs can be rejected",
+                'Only pending programs can be rejected',
               );
             }
-            status = "REJECTED";
+            status = 'REJECTED';
             isActive = false;
-            emailTemplate = "APPLICATION_DECLINED";
+            emailTemplate = 'APPLICATION_DECLINED';
             break;
-          case "activate":
-            if (!["SUBMITTED", "INACTIVE"].includes(program.status)) {
+          case 'activate':
+            if (!['SUBMITTED', 'INACTIVE'].includes(program.status)) {
               throw new BadRequestException(
-                "Only submitted or inactive programs can be activated",
+                'Only submitted or inactive programs can be activated',
               );
             }
-            status = "ACTIVE";
+            status = 'ACTIVE';
             isActive = true;
-            emailTemplate = "PROGRAM_LIVE";
+            emailTemplate = 'PROGRAM_LIVE';
             break;
-          case "deactivate":
-            if (program.status !== "ACTIVE") {
+          case 'deactivate':
+            if (program.status !== 'ACTIVE') {
               throw new BadRequestException(
-                "Only active programs can be deactivated",
+                'Only active programs can be deactivated',
               );
             }
-            status = "INACTIVE";
+            status = 'INACTIVE';
             isActive = false;
             break;
           default:
-            throw new BadRequestException("Invalid action");
+            throw new BadRequestException('Invalid action');
         }
 
         const updatedProgram = await tx.program.update({
@@ -211,13 +212,13 @@ export class AdminService {
           },
         });
 
-        if (action === "approve" && startDate) {
+        if (action === 'approve' && startDate) {
           await tx.cohort.create({
             data: {
               programId: programId,
               startDate: new Date(startDate),
-              name: "Inaugural Cohort",
-              status: "UPCOMING",
+              name: 'Inaugural Cohort',
+              status: 'UPCOMING',
               maxStudents: program.maxStudents || 30,
             },
           });
@@ -229,7 +230,7 @@ export class AdminService {
             ? {
                 email: program.coach.user.email,
                 template: emailTemplate,
-                fullName: program.coach.user.fullName || "Coach",
+                fullName: program.coach.user.fullName || 'Coach',
               }
             : null,
           action,
@@ -240,14 +241,14 @@ export class AdminService {
 
     if (result.emailData) {
       try {
-        const { emailService } = await import("./email.service");
+        const { emailService } = await import('./email.service');
         await emailService.sendProgramProposalEmail(
           result.emailData.email,
           result.emailData.template,
           result.emailData.fullName,
         );
       } catch (error) {
-        console.error("Failed to send program status email:", error);
+        console.error('Failed to send program status email:', error);
       }
     }
 
@@ -264,25 +265,25 @@ export class AdminService {
     // Build where clause for Prisma query
     const whereClause: Prisma.UserWhereInput = {
       role: {
-        in: ["COACH", "STUDENT"],
+        in: ['COACH', 'STUDENT'],
       },
     };
 
     // Apply role filter at database level
-    if (role && role !== "all") {
+    if (role && role !== 'all') {
       whereClause.role = role.toUpperCase() as UserRole;
 
-      if (role === "COACH") {
+      if (role === 'COACH') {
         whereClause.coach = { isNot: null };
       }
 
-      if (role === "STUDENT") {
+      if (role === 'STUDENT') {
         whereClause.student = { isNot: null };
       }
     }
 
     // Apply status filter at database level
-    if (status && status !== "all") {
+    if (status && status !== 'all') {
       whereClause.status = status.toUpperCase() as UserStatus;
     }
 
@@ -292,13 +293,13 @@ export class AdminService {
         {
           fullName: {
             contains: search,
-            mode: "insensitive",
+            mode: 'insensitive',
           },
         },
         {
           email: {
             contains: search,
-            mode: "insensitive",
+            mode: 'insensitive',
           },
         },
       ];
@@ -324,7 +325,7 @@ export class AdminService {
             },
           },
         },
-        orderBy: [{ role: "asc" }, { fullName: "asc" }],
+        orderBy: [{ role: 'asc' }, { fullName: 'asc' }],
       }),
       prisma.user.count({ where: whereClause }),
     ]);
@@ -339,7 +340,7 @@ export class AdminService {
           totalPages: Math.ceil(totalCount / limit),
         },
       },
-      "Users fetched successfully",
+      'Users fetched successfully',
     );
   }
 
@@ -349,7 +350,7 @@ export class AdminService {
 
     // Build common where clauses
     const ratingFilter =
-      rating && rating !== "all" ? parseInt(rating) : undefined;
+      rating && rating !== 'all' ? parseInt(rating) : undefined;
 
     const programWhere: Prisma.ProgramReviewWhereInput = {};
     const coachWhere: Prisma.CoachReviewWhereInput = {};
@@ -357,9 +358,9 @@ export class AdminService {
       | Prisma.CoachReviewWhereInput
       | Prisma.ProgramReviewWhereInput = {
       OR: [
-        { comment: { contains: search, mode: "insensitive" } },
-        { user: { fullName: { contains: search, mode: "insensitive" } } },
-        { user: { email: { contains: search, mode: "insensitive" } } },
+        { comment: { contains: search, mode: 'insensitive' } },
+        { user: { fullName: { contains: search, mode: 'insensitive' } } },
+        { user: { email: { contains: search, mode: 'insensitive' } } },
       ],
     };
 
@@ -376,7 +377,7 @@ export class AdminService {
     let reviews: unknown[] = [];
     let totalCount = 0;
 
-    if (targetType === "COACH") {
+    if (targetType === 'COACH') {
       [reviews, totalCount] = await Promise.all([
         prisma.coachReview.findMany({
           where: coachWhere,
@@ -386,12 +387,12 @@ export class AdminService {
             user: true,
             coach: { include: { user: true } },
           },
-          orderBy: { createdAt: "desc" },
+          orderBy: { createdAt: 'desc' },
         }),
         prisma.coachReview.count({ where: coachWhere }),
       ]);
-      reviews = reviews.map((r: any) => ({ ...r, targetType: "COACH" }));
-    } else if (targetType === "PROGRAM") {
+      reviews = reviews.map((r: any) => ({ ...r, targetType: 'COACH' }));
+    } else if (targetType === 'PROGRAM') {
       [reviews, totalCount] = await Promise.all([
         prisma.programReview.findMany({
           where: programWhere,
@@ -401,32 +402,32 @@ export class AdminService {
             user: true,
             program: true,
           },
-          orderBy: { createdAt: "desc" },
+          orderBy: { createdAt: 'desc' },
         }),
         prisma.programReview.count({ where: programWhere }),
       ]);
-      reviews = reviews.map((r: any) => ({ ...r, targetType: "PROGRAM" }));
+      reviews = reviews.map((r: any) => ({ ...r, targetType: 'PROGRAM' }));
     } else {
       const [pReviews, pCount, cReviews, cCount] = await Promise.all([
         prisma.programReview.findMany({
           where: programWhere,
           include: { user: true, program: true },
-          orderBy: { createdAt: "desc" },
+          orderBy: { createdAt: 'desc' },
           take: skip + limit,
         }),
         prisma.programReview.count({ where: programWhere }),
         prisma.coachReview.findMany({
           where: coachWhere,
           include: { user: true, coach: { include: { user: true } } },
-          orderBy: { createdAt: "desc" },
+          orderBy: { createdAt: 'desc' },
           take: skip + limit,
         }),
         prisma.coachReview.count({ where: coachWhere }),
       ]);
 
       const allReviews = [
-        ...pReviews.map((r) => ({ ...r, targetType: "PROGRAM" })),
-        ...cReviews.map((r) => ({ ...r, targetType: "COACH" })),
+        ...pReviews.map((r) => ({ ...r, targetType: 'PROGRAM' })),
+        ...cReviews.map((r) => ({ ...r, targetType: 'COACH' })),
       ].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
       reviews = allReviews.slice(skip, skip + limit);
@@ -447,7 +448,7 @@ export class AdminService {
             email: r.user.email,
             avatarUrl: r.user.avatarUrl,
           },
-          target: r.targetType === "PROGRAM" ? r.program : r.coach,
+          target: r.targetType === 'PROGRAM' ? r.program : r.coach,
         })),
         pagination: {
           total: totalCount,
@@ -456,14 +457,14 @@ export class AdminService {
           totalPages: Math.ceil(totalCount / limit),
         },
       },
-      "Reviews fetched successfully",
+      'Reviews fetched successfully',
     );
   }
 
   async getDashboardStats() {
     const enrollments = await prisma.enrollment.findMany({
       where: {
-        paymentStatus: "PAID",
+        paymentStatus: 'PAID',
       },
       select: {
         program: {
@@ -546,7 +547,7 @@ export class AdminService {
     // Calculate revenue growth
     const enrollmentsLastMonth = await prisma.enrollment.findMany({
       where: {
-        paymentStatus: "PAID",
+        paymentStatus: 'PAID',
         createdAt: {
           lt: lastMonth,
         },
@@ -576,30 +577,30 @@ export class AdminService {
           revenue: {
             value: `€${totalRevenue.toLocaleString()}`,
             change: `${
-              revenueGrowthPercent >= 0 ? "+" : ""
+              revenueGrowthPercent >= 0 ? '+' : ''
             }${revenueGrowthPercent.toFixed(1)}% from last month`,
           },
           users: {
             value: totalUsers.toLocaleString(),
             change: `${
-              userGrowth >= 0 ? "+" : ""
+              userGrowth >= 0 ? '+' : ''
             }${userGrowth} from last month`,
           },
           signups: {
             value: `+${newSignupsThisMonth}`,
             change: `${
-              signupGrowthPercent >= 0 ? "+" : ""
+              signupGrowthPercent >= 0 ? '+' : ''
             }${signupGrowthPercent.toFixed(1)}% from last month`,
           },
           coaches: {
             value: activeCoaches.toString(),
             change: `${
-              coachGrowth >= 0 ? "+" : ""
+              coachGrowth >= 0 ? '+' : ''
             }${coachGrowth} since last month`,
           },
         },
       },
-      "Dashboard stats fetched successfully",
+      'Dashboard stats fetched successfully',
     );
   }
 
@@ -607,7 +608,7 @@ export class AdminService {
     const recentUsers = await prisma.user.findMany({
       take: limit,
       orderBy: {
-        createdAt: "desc",
+        createdAt: 'desc',
       },
       select: {
         id: true,
@@ -624,15 +625,15 @@ export class AdminService {
       email: user.email,
       avatar: user.avatarUrl,
       role:
-        user.role === "COACH"
-          ? "Coach"
-          : user.role === "STUDENT"
-            ? "Student"
-            : "Admin",
+        user.role === 'COACH'
+          ? 'Coach'
+          : user.role === 'STUDENT'
+            ? 'Student'
+            : 'Admin',
       joined: user.createdAt.toISOString(),
     }));
 
-    return sendSuccess({ signups }, "Recent signups fetched successfully");
+    return sendSuccess({ signups }, 'Recent signups fetched successfully');
   }
 
   async getPlatformActivity(limit: number = 10) {
@@ -640,7 +641,7 @@ export class AdminService {
     const recentCoaches = await prisma.coach.findMany({
       take: 3,
       orderBy: {
-        createdAt: "desc",
+        createdAt: 'desc',
       },
       include: {
         user: {
@@ -655,7 +656,7 @@ export class AdminService {
     const recentPrograms = await prisma.program.findMany({
       take: 3,
       orderBy: {
-        createdAt: "desc",
+        createdAt: 'desc',
       },
       select: {
         title: true,
@@ -667,7 +668,7 @@ export class AdminService {
     const recentStudents = await prisma.student.findMany({
       take: 3,
       orderBy: {
-        createdAt: "desc",
+        createdAt: 'desc',
       },
       include: {
         user: {
@@ -689,9 +690,9 @@ export class AdminService {
 
     recentCoaches.forEach((coach) => {
       activities.push({
-        type: "New Coach",
+        type: 'New Coach',
         description: `${
-          coach.user.fullName || "A new coach"
+          coach.user.fullName || 'A new coach'
         } has been approved as a new coach.`,
         time: getRelativeTime(coach.createdAt),
         timestamp: coach.createdAt,
@@ -700,7 +701,7 @@ export class AdminService {
 
     recentPrograms.forEach((program) => {
       activities.push({
-        type: "New Program",
+        type: 'New Program',
         description: `A new program "${program.title}" was created.`,
         time: getRelativeTime(program.createdAt),
         timestamp: program.createdAt,
@@ -709,7 +710,7 @@ export class AdminService {
 
     recentStudents.forEach((student) => {
       activities.push({
-        type: "New Student",
+        type: 'New Student',
         description: `${
           student.user.fullName || student.user.email
         } signed up as a new student.`,
@@ -730,7 +731,7 @@ export class AdminService {
 
     return sendSuccess(
       { activities: sortedActivities },
-      "Platform activity fetched successfully",
+      'Platform activity fetched successfully',
     );
   }
 
@@ -740,11 +741,11 @@ export class AdminService {
 
     const whereClause: Prisma.EventWhereInput = {};
 
-    if (eventType && eventType !== "all") {
+    if (eventType && eventType !== 'all') {
       whereClause.eventType = eventType;
     }
 
-    if (status && status !== "all") {
+    if (status && status !== 'all') {
       whereClause.status = status;
     }
 
@@ -753,13 +754,13 @@ export class AdminService {
         {
           title: {
             contains: search,
-            mode: "insensitive",
+            mode: 'insensitive',
           },
         },
         {
           description: {
             contains: search,
-            mode: "insensitive",
+            mode: 'insensitive',
           },
         },
       ];
@@ -787,10 +788,10 @@ export class AdminService {
         },
         orderBy: [
           {
-            date: "desc",
+            date: 'desc',
           },
           {
-            createdAt: "desc",
+            createdAt: 'desc',
           },
         ],
       }),
@@ -807,7 +808,7 @@ export class AdminService {
           totalPages: Math.ceil(totalCount / limit),
         },
       },
-      "Events fetched successfully",
+      'Events fetched successfully',
     );
   }
 
@@ -826,7 +827,7 @@ export class AdminService {
     });
 
     if (!cohort) {
-      throw new NotFoundException("Cohort not found");
+      throw new NotFoundException('Cohort not found');
     }
 
     const updatedCohort = await prisma.cohort.update({
@@ -850,7 +851,7 @@ export class AdminService {
 
     return sendSuccess(
       { cohort: updatedCohort },
-      "Cohort updated successfully",
+      'Cohort updated successfully',
     );
   }
 
@@ -862,10 +863,10 @@ export class AdminService {
           select: { enrollments: true },
         },
       },
-      orderBy: { startDate: "asc" },
+      orderBy: { startDate: 'asc' },
     });
 
-    return sendSuccess({ cohorts }, "Cohorts fetched successfully");
+    return sendSuccess({ cohorts }, 'Cohorts fetched successfully');
   }
 
   async createCohort(
@@ -877,16 +878,16 @@ export class AdminService {
     });
 
     if (!program) {
-      throw new NotFoundException("Program not found");
+      throw new NotFoundException('Program not found');
     }
 
     const cohort = await prisma.cohort.create({
       data: {
         programId,
-        name: data.name || "New Cohort",
+        name: data.name || 'New Cohort',
         startDate: new Date(data.startDate),
         maxStudents: data.maxStudents || program.maxStudents || 30,
-        status: "UPCOMING",
+        status: 'UPCOMING',
       },
       include: {
         _count: {
@@ -895,7 +896,80 @@ export class AdminService {
       },
     });
 
-    return sendSuccess({ cohort }, "Cohort created successfully", 201);
+    return sendSuccess({ cohort }, 'Cohort created successfully', 201);
+  }
+
+  async getTransactions(params: AdminTransactionQueryData) {
+    const { search, type, status, sourceType, page = 1, limit = 10 } = params;
+    const skip = (page - 1) * limit;
+
+    const whereClause: Prisma.TransactionWhereInput = {};
+
+    if (type && type !== 'all') {
+      whereClause.type = type.toUpperCase() as any;
+    }
+
+    if (status && status !== 'all') {
+      whereClause.status = status.toUpperCase() as any;
+    }
+
+    if (sourceType && sourceType !== 'all') {
+      whereClause.sourceType = sourceType.toUpperCase() as any;
+    }
+
+    if (search) {
+      whereClause.user = {
+        OR: [
+          {
+            fullName: {
+              contains: search,
+              mode: 'insensitive',
+            },
+          },
+          {
+            email: {
+              contains: search,
+              mode: 'insensitive',
+            },
+          },
+        ],
+      };
+    }
+
+    const [transactions, totalCount] = await Promise.all([
+      prisma.transaction.findMany({
+        where: whereClause,
+        skip,
+        take: limit,
+        include: {
+          user: {
+            select: {
+              id: true,
+              fullName: true,
+              email: true,
+              avatarUrl: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      }),
+      prisma.transaction.count({ where: whereClause }),
+    ]);
+
+    return sendSuccess(
+      {
+        transactions,
+        pagination: {
+          total: totalCount,
+          page,
+          limit,
+          totalPages: Math.ceil(totalCount / limit),
+        },
+      },
+      'Transactions fetched successfully',
+    );
   }
 }
 
@@ -908,7 +982,7 @@ function getRelativeTime(date: Date): string {
   const diffInDays = Math.floor(diffInMs / 86400000);
 
   if (diffInMinutes < 1) {
-    return "Just now";
+    return 'Just now';
   } else if (diffInMinutes < 60) {
     return `${diffInMinutes}m ago`;
   } else if (diffInHours < 24) {

@@ -65,7 +65,6 @@ const handleJoinConversation = async (
 
     if (isParticipant) {
       joinSocketRoom(socket, conversationId);
-      console.log(`User ${userId} joined conversation ${conversationId}`);
     } else {
       handleError(socket, "Not authorized to join this conversation");
     }
@@ -83,7 +82,6 @@ const handleLeaveConversation = async (
     const userId = getUserId(socket)!;
 
     leaveSocketRoom(socket, conversationId);
-    console.log(`User ${userId} left conversation ${conversationId}`);
   } catch (error) {
     console.error("Error in leaveConversation handler:", error);
     handleError(socket, "Failed to leave conversation");
@@ -98,9 +96,6 @@ const handleMarkAsRead = async (
     const userId = getUserId(socket)!;
 
     await ConversationService.markAsRead(conversationId, userId);
-    console.log(
-      `Messages marked as read for user ${userId} in conversation ${conversationId}`
-    );
   } catch (error) {
     console.error("Error in markAsRead handler:", error);
     handleError(socket, "Failed to mark messages as read");

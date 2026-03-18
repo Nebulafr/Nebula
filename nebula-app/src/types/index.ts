@@ -81,6 +81,12 @@ export interface Category {
 
 export type CategoriesResponse = ApiResponse<{
   categories: Category[];
+  pagination?: {
+    total: number;
+    totalPages: number;
+    page: number;
+    limit: number;
+  };
 }>;
 
 // Program Response Types

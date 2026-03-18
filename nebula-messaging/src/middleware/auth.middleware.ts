@@ -1,12 +1,11 @@
 import jwt from "jsonwebtoken";
 import { prisma } from "../lib/prisma";
+import { env } from "../config/env";
 import type { AuthenticatedSocket, JwtPayload } from "../types";
-
-const JWT_SECRET = process.env.ACCESS_TOKEN_SECRET || "ACCESS_TOKEN_SECRET";
 
 const validateJwtToken = (token: string): JwtPayload | null => {
   try {
-    return jwt.verify(token, JWT_SECRET) as JwtPayload;
+    return jwt.verify(token, env.ACCESS_TOKEN_SECRET) as JwtPayload;
   } catch {
     return null;
   }

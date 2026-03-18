@@ -3,6 +3,7 @@ import {
   type CreateCategoryData,
   type UpdateCategoryData,
 } from "@/lib/validations";
+import { Prisma } from "@/generated/prisma";
 import {
   NotFoundException,
   BadRequestException,
@@ -38,24 +39,54 @@ export class CategoryService {
 
     return slug;
   }
-  async getAll() {
-    const categories = await prisma.category.findMany({
-      where: {
-        isActive: true,
-      },
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        isActive: true,
-        createdAt: true,
-      },
-      orderBy: {
-        name: "asc",
-      },
-    });
+  async getAll(isAdmin: boolean = false, options: { page?: number; limit?: number; search?: string } = {}) {
+    const { page, limit, search } = options;
 
-    return sendSuccess({ categories }, "Categories fetched successfully");
+    const where: Prisma.CategoryWhereInput = {
+      ...(isAdmin ? {} : { isActive: true }),
+      ...(search ? {
+        OR: [
+          { name: { contains: search, mode: "insensitive" } },
+          { description: { contains: search, mode: "insensitive" } },
+        ],
+      } : {}),
+    };
+
+    // If no pagination provided, fetch all (common for public dropdowns/lists)
+    if (!page || !limit) {
+      const categories = await prisma.category.findMany({
+        where,
+        orderBy: { name: "asc" },
+      });
+      return sendSuccess({ categories });
+    }
+
+    const skip = (page - 1) * limit;
+
+    const [categories, total] = await Promise.all([
+      prisma.category.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.category.count({ where }),
+    ]);
+
+    const totalPages = Math.ceil(total / limit);
+
+    return sendSuccess(
+      {
+        categories,
+        pagination: {
+          total,
+          page,
+          limit,
+          totalPages,
+        },
+      },
+      "Categories fetched successfully"
+    );
   }
 
   async getById(id: string) {
@@ -106,6 +137,8 @@ export class CategoryService {
       data: {
         name: name.trim(),
         slug,
+        assetUrl: data.assetUrl || null,
+        description: data.description || null,
       },
     });
 
@@ -139,6 +172,8 @@ export class CategoryService {
             ? await this.generateUniqueSlug(data.name, id)
             : existingCategory.slug,
         isActive: data.isActive ?? existingCategory.isActive,
+        assetUrl: data.assetUrl !== undefined ? (data.assetUrl || null) : existingCategory.assetUrl,
+        description: data.description !== undefined ? (data.description || null) : existingCategory.description,
         updatedAt: new Date(),
       },
     });

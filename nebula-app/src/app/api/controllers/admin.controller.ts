@@ -166,6 +166,23 @@ export class AdminController {
       throw new BadRequestException("Could not determine review type");
     }
   }
+
+  async getTransactions(request: NextRequest) {
+    const { searchParams } = new URL(request.url);
+
+    const queryParams = {
+      search: searchParams.get("search") || undefined,
+      type: searchParams.get("type") || undefined,
+      status: searchParams.get("status") || undefined,
+      sourceType: searchParams.get("sourceType") || undefined,
+      page: searchParams.get("page") || undefined,
+      limit: searchParams.get("limit") || undefined,
+    };
+
+    const { adminTransactionQuerySchema } = await import("@/lib/validations");
+    const payload = adminTransactionQuerySchema.parse(queryParams);
+    return await adminService.getTransactions(payload);
+  }
 }
 
 export const adminController = new AdminController();

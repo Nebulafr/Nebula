@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ExternalLink } from "lucide-react";
 import { useTranslations, useLocale } from "next-intl";
 import { Event } from "@/types/event";
-import { getEventBackgroundColor, getDefaultAvatar, getAccessTypeText } from "@/lib/event-utils";
+import { getEventBackgroundColor, getDefaultAvatar, getAccessTypeText } from "@/lib/utils";
 
 interface WebinarCardProps {
   event: Event;

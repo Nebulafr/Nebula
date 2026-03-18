@@ -4,6 +4,7 @@ import { stripe } from "@/lib/stripe";
 import { paymentService } from "../../services/payment.service";
 import { prisma } from "@/lib/prisma";
 import Stripe from "stripe";
+import { env } from "@/config/env";
 
 export async function POST(req: NextRequest) {
     const body = await req.text();
@@ -15,7 +16,7 @@ export async function POST(req: NextRequest) {
         event = stripe.webhooks.constructEvent(
             body,
             signature,
-            process.env.STRIPE_WEBHOOK_SECRET!
+            env.STRIPE_WEBHOOK_SECRET!
         );
      
     } catch (error: any) {

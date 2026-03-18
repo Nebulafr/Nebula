@@ -7,6 +7,7 @@ import {
   deleteCategory,
 } from "@/actions/categories";
 import { handleAndToastError } from "@/lib/error-handler";
+import { CategoriesResponse } from "@/types";
 
 export const CATEGORIES_QUERY_KEY = "categories";
 export const ADMIN_CATEGORIES_QUERY_KEY = "admin-categories";
@@ -19,10 +20,14 @@ export function useCategories() {
   });
 }
 
-export function useAdminCategories() {
-  return useQuery({
-    queryKey: [ADMIN_CATEGORIES_QUERY_KEY],
-    queryFn: getAdminCategories,
+export function useAdminCategories(params?: {
+  page?: number;
+  limit?: number;
+  search?: string;
+}) {
+  return useQuery<CategoriesResponse>({
+    queryKey: [ADMIN_CATEGORIES_QUERY_KEY, params],
+    queryFn: () => getAdminCategories(params),
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }

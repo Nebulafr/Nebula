@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ExternalLink, Star } from "lucide-react";
 import { useTranslations, useLocale } from "next-intl";
 import { Event } from "@/types/event";
-import { getEventGradientBackground, getDefaultAvatar, getDefaultBanner, getAccessTypeText } from "@/lib/event-utils";
+import { getEventGradientBackground, getDefaultAvatar, getDefaultBanner, getAccessTypeText } from "@/lib/utils";
 
 interface SocialCardProps {
   event: Event;

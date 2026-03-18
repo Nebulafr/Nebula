@@ -67,7 +67,6 @@ const emitConversationUpdate = (
     senderId,
     senderName,
   };
-  // Emit to all users who might have this conversation
   io.emit("conversation_updated", update);
 };
 
@@ -138,17 +137,13 @@ const handleSendMessage =
         );
       }
 
-      // Execute message creation and conversation updates
       const [message] = await Promise.all([
         MessageService.createMessage(conversationId, userId, content, type),
         ConversationService.updateLastMessage(conversationId, content),
         ConversationService.updateUnreadCount(conversationId, userId),
       ]);
 
-      // Emit new message to conversation room
       emitNewMessage(io, conversationId, message);
-
-      // Emit conversation update to all clients for sidebar refresh
       emitConversationUpdate(io, conversationId, content, userId, userName);
     } catch (error) {
       console.error("Error in sendMessage handler:", error);
@@ -163,7 +158,6 @@ const handleMarkRead = async (
   try {
     const userId = getUserId(socket)!;
 
-    // Execute both operations in parallel
     await Promise.all([
       ConversationService.markAsRead(conversationId, userId),
       MessageService.markMessagesAsRead(conversationId, userId),

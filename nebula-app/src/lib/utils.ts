@@ -4,10 +4,12 @@ import { v4 as uuidv4 } from "uuid";
 import { twMerge } from "tailwind-merge";
 import { getAccessToken } from "./auth-storage";
 
+/** UI Styling */
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+/** Routing */
 export const protectedRoutes = {
   "/dashboard": "student",
   "/coach-dashboard": "coach",
@@ -17,30 +19,15 @@ export const protectedRoutes = {
 };
 
 export const publicRoutes = [
-  "/",
-  "/login",
-  "/signup",
-  "/coach-login",
-  "/coach-signup",
-  "/forgot-password",
-  "/coaches",
-  "/programs",
-  "/about",
-  "/help-center",
-  "/events",
-  "/become-a-coach",
-  "/reset-password",
-  "/verify-email",
-  "/universities",
-  "/privacy-policy",
-  "/terms-of-service",
-  "/careers",
-  "/nebula-ai",
-  "/help-center",
+  "/", "/login", "/signup", "/coach-login", "/coach-signup",
+  "/forgot-password", "/coaches", "/programs", "/about",
+  "/help-center", "/events", "/become-a-coach", "/reset-password",
+  "/verify-email", "/universities", "/privacy-policy",
+  "/terms-of-service", "/careers", "/nebula-ai"
 ];
 
+/** API Request Helpers */
 interface RequestOptions {
-   
   body?: any;
   headers?: Record<string, string>;
   requireAuth?: boolean;
@@ -48,7 +35,6 @@ interface RequestOptions {
   timeout?: number;
 }
 
- 
 export async function makeRequest<T = any>(
   endpoint: string,
   method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH",
@@ -63,9 +49,7 @@ export async function makeRequest<T = any>(
   } = options;
 
   const isFormData = body instanceof FormData;
-  const requestHeaders: Record<string, string> = {
-    ...headers,
-  };
+  const requestHeaders: Record<string, string> = { ...headers };
 
   if (!isFormData && !requestHeaders["Content-Type"]) {
     requestHeaders["Content-Type"] = "application/json";
@@ -74,11 +58,7 @@ export async function makeRequest<T = any>(
   if (requireAuth) {
     const token = getAccessToken();
     if (!token) {
-      const err = {
-        success: false,
-        error: "Authentication required",
-        message: "Please log in to continue",
-      };
+      const err = { success: false, error: "Authentication required", message: "Please log in to continue" };
       if (throwOnError) throw new Error(err.message);
       return err;
     }
@@ -106,15 +86,11 @@ export async function makeRequest<T = any>(
 
     clearTimeout(timeoutId);
 
-    // Auto-clear invalid tokens
-    if (response.status === 401) {
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("accessToken");
-        sessionStorage.removeItem("accessToken");
-      }
+    if (response.status === 401 && typeof window !== "undefined") {
+      localStorage.removeItem("accessToken");
+      sessionStorage.removeItem("accessToken");
     }
 
-     
     let result: any;
     try {
       result = await response.json();
@@ -130,7 +106,6 @@ export async function makeRequest<T = any>(
         message: errorMsg,
         code: result.code || `HTTP_${response.status}`,
       };
-
       if (throwOnError) throw new Error(errorResponse.message);
       return errorResponse;
     }
@@ -143,10 +118,7 @@ export async function makeRequest<T = any>(
     };
   } catch (error: unknown) {
     if (throwOnError) throw error;
-
     const err = error instanceof Error ? error : new Error(String(error));
-
-    // Provide more specific error messages
     let errorMessage = "Failed to connect to server";
     let errorType = "Network error";
 
@@ -154,153 +126,211 @@ export async function makeRequest<T = any>(
       errorMessage = "Request timed out. Please try again.";
       errorType = "Timeout";
     } else if (err.message === "Failed to fetch") {
-      errorMessage =
-        "Unable to reach the server. Please check your connection.";
+      errorMessage = "Unable to reach the server. Please check your connection.";
       errorType = "Connection error";
     } else if (err.message) {
       errorMessage = err.message;
     }
 
     console.error(`API Error [${method} ${endpoint}]:`, errorType, err);
-
-    return {
-      success: false,
-      error: errorType,
-      message: errorMessage,
-    };
+    return { success: false, error: errorType, message: errorMessage };
   }
 }
 
-export const apiGet = <T = unknown>(endpoint: string, options?: RequestOptions) =>
-  makeRequest<T>(endpoint, "GET", options);
+export const apiGet = <T = unknown>(endpoint: string, options?: RequestOptions) => makeRequest<T>(endpoint, "GET", options);
+export const apiPost = <T = unknown>(endpoint: string, body?: unknown, options?: RequestOptions) => makeRequest<T>(endpoint, "POST", { ...options, body });
+export const apiPut = <T = unknown>(endpoint: string, body?: unknown, options?: RequestOptions) => makeRequest<T>(endpoint, "PUT", { ...options, body });
+export const apiPatch = <T = unknown>(endpoint: string, body?: unknown, options?: RequestOptions) => makeRequest<T>(endpoint, "PATCH", { ...options, body });
+export const apiDelete = <T = unknown>(endpoint: string, options?: RequestOptions) => makeRequest<T>(endpoint, "DELETE", options);
 
-export const apiPost = <T = unknown>(
-  endpoint: string,
-  body?: unknown,
-  options?: RequestOptions,
-) => makeRequest<T>(endpoint, "POST", { ...options, body });
+/** String Manipulation */
+export const capitalize = (str: string) => str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 
-export const apiPut = <T = unknown>(
-  endpoint: string,
-  body?: unknown,
-  options?: RequestOptions,
-) => makeRequest<T>(endpoint, "PUT", { ...options, body });
+export const formatUserName = (name: string | null | undefined): string => {
+  if (!name || name.trim().length === 0) return "Unknown User";
+  return name.trim().split(" ").map(capitalize).join(" ");
+};
 
-export const apiPatch = <T = unknown>(
-  endpoint: string,
-  body?: unknown,
-  options?: RequestOptions,
-) => makeRequest<T>(endpoint, "PATCH", { ...options, body });
-
-export const apiDelete = <T = unknown>(
-  endpoint: string,
-  options?: RequestOptions,
-) => makeRequest<T>(endpoint, "DELETE", options);
-
-export const capitalize = (str: string) =>
-  str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+export const formatUserRole = (role: string | null | undefined): string => {
+  if (!role || role.trim().length === 0) return "User";
+  const roleMap: Record<string, string> = {
+    COACH: "Coach", STUDENT: "Student", ADMIN: "Administrator",
+    SUPPORT: "Support", MENTOR: "Mentor", TUTOR: "Tutor",
+    INSTRUCTOR: "Instructor", TEACHER: "Teacher",
+  };
+  return roleMap[role.toUpperCase()] || formatUserName(role);
+};
 
 export const generateSlug = (text: string): string => {
   const id = uuidv4().split("-")[0];
-  const slug =
-    text
-      .toLowerCase()
-      .trim()
-      .replace(/[^\w\s-]/g, "")
-      .replace(/[\s_-]+/g, "-")
-      .replace(/^-+|-+$/g, "") + id;
-  return slug;
+  return text.toLowerCase().trim()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/[\s_-]+/g, "-")
+    .replace(/^-+|-+$/g, "") + id;
 };
 
-// Date utilities
+export function truncateText(text: string | null | undefined, maxLength: number): string {
+  if (!text) return "";
+  const cleanText = text.trim().replace(/\s+/g, " ");
+  if (cleanText.length <= maxLength) return cleanText;
+  return cleanText.substring(0, maxLength - 3).trim() + "...";
+}
+
+/** Date utilities */
 export const getStartOfWeek = (date: Date): Date => {
   const d = new Date(date);
   const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust for Sunday being 0
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
   d.setDate(diff);
   d.setHours(0, 0, 0, 0);
   return d;
 };
 
-export const formatTime = (date: Date): string => {
-  return date.toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  });
-};
+export const formatTime = (date: Date): string => date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+export const formatDate = (date: Date): string => date.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
 
-export const formatDate = (date: Date): string => {
-  return date.toLocaleDateString("en-US", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-};
+export function formatChatTime(date: string | Date | null | undefined): string {
+  if (!date) return "";
+  try {
+    const dateObj = typeof date === "string" ? new Date(date) : date;
+    if (isNaN(dateObj.getTime())) return "";
+    const now = new Date();
+    const diff = now.getTime() - dateObj.getTime();
+    const diffInDays = Math.floor(diff / (1000 * 60 * 60 * 24));
 
-export function truncateText(
-  text: string | null | undefined,
-  maxLength: number,
-): string {
-  if (!text) return "";
-  if (text.length <= maxLength) return text;
-  return text.substring(0, maxLength).trim() + "...";
+    if (diffInDays === 0) return formatTime(dateObj);
+    if (diffInDays === 1) return "Yesterday";
+    if (diffInDays < 7) return dateObj.toLocaleDateString([], { weekday: "short" });
+    if (dateObj.getFullYear() === now.getFullYear()) return dateObj.toLocaleDateString([], { month: "short", day: "numeric" });
+    return dateObj.toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" });
+  } catch { return ""; }
 }
 
-/**
- * Avatar colors for consistent user avatars
- */
-const avatarColors = [
-  "0EA5E9", // sky-500
-  "8B5CF6", // violet-500
-  "EC4899", // pink-500
-  "F97316", // orange-500
-  "22C55E", // green-500
-  "06B6D4", // cyan-500
-  "EAB308", // yellow-500
-  "EF4444", // red-500
-  "6366F1", // indigo-500
-  "14B8A6", // teal-500
-];
+/** Avatar / Image Utilities */
+const avatarColors = ["0EA5E9", "8B5CF6", "EC4899", "F97316", "22C55E", "06B6D4", "EAB308", "EF4444", "6366F1", "14B8A6"];
 
-/**
- * Get a consistent color based on a string (name/email)
- */
 function getAvatarColor(str: string): string {
   let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    hash = str.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  const index = Math.abs(hash) % avatarColors.length;
-  return avatarColors[index];
+  for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  return avatarColors[Math.abs(hash) % avatarColors.length];
 }
 
-/**
- * Get initials from a name
- */
 export function getInitials(name?: string | null): string {
-  if (!name) return "U";
-  const parts = name.trim().split(/\s+/);
-  if (parts.length === 1) {
-    return parts[0].charAt(0).toUpperCase();
-  }
+  if (!name || name.trim().length === 0) return "U";
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
   return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
 }
 
-/**
- * Get a consistent default avatar URL using UI Avatars
- * @param name - The user's name
- * @param size - Avatar size in pixels (default: 128)
- * @returns UI Avatars URL with consistent styling
- */
-export function getUserAvatar(
-  name?: string | null,
-  size: number = 128,
-): string {
+export function getUserAvatar(name?: string | null, size: number = 128): string {
   const displayName = name || "User";
   const initials = getInitials(displayName);
   const color = getAvatarColor(displayName.toLowerCase());
-
   return `https://ui-avatars.com/api/?name=${encodeURIComponent(initials)}&size=${size}&background=${color}&color=ffffff&bold=true&format=png`;
 }
+
+/** Chat Specific Utilities */
+export interface ChatHeaderInfo {
+  displayName: string;
+  displayRole: string;
+  initials: string;
+  lastSeen?: string;
+}
+
+export function formatChatHeader(conversation: any): ChatHeaderInfo {
+  return {
+    displayName: formatUserName(conversation.name),
+    displayRole: formatUserRole(conversation.role),
+    initials: getInitials(conversation.name),
+    lastSeen: conversation.time ? formatChatTime(conversation.time) : undefined,
+  };
+}
+
+export function formatUnreadCount(count: number | null | undefined): string {
+  if (!count || count <= 0) return "";
+  return count > 99 ? "99+" : count.toString();
+}
+
+export function formatMessagePreview(message: string | null | undefined, maxLength: number = 15): string {
+  if (!message || message.trim().length === 0) return "No messages yet";
+  const cleanMessage = message.trim().replace(/\s+/g, " ");
+  if (cleanMessage.length <= maxLength) return cleanMessage;
+  return cleanMessage.substring(0, maxLength - 3) + "...";
+}
+
+export function getMessageInputPlaceholder(userRole: string, recipientRole: string): string {
+  return `Type a message to your ${formatUserRole(recipientRole).toLowerCase()}...`;
+}
+
+/** Event Backgrounds & Assets */
+export const backgroundColors = ["bg-yellow-50", "bg-blue-50", "bg-purple-50"];
+export const gradientBackgrounds = [
+  "bg-gradient-to-br from-blue-100 to-blue-200", "bg-gradient-to-br from-purple-100 to-purple-200",
+  "bg-gradient-to-br from-pink-100 to-pink-200", "bg-gradient-to-br from-green-100 to-green-200",
+  "bg-gradient-to-br from-yellow-100 to-yellow-200", "bg-gradient-to-br from-indigo-100 to-indigo-200",
+  "bg-gradient-to-br from-orange-100 to-orange-200", "bg-gradient-to-br from-teal-100 to-teal-200",
+  "bg-gradient-to-br from-cyan-100 to-cyan-200", "bg-gradient-to-br from-emerald-100 to-emerald-200",
+];
+
+export function getEventBackgroundColor(index: number, prevIdx?: number): string {
+  let idx = index % backgroundColors.length;
+  if (prevIdx !== undefined && idx === prevIdx % backgroundColors.length) idx = (idx + 1) % backgroundColors.length;
+  return backgroundColors[idx];
+}
+
+export function getEventGradientBackground(index: number, prevIdx?: number): string {
+  let idx = index % gradientBackgrounds.length;
+  if (prevIdx !== undefined && idx === prevIdx % gradientBackgrounds.length) idx = (idx + 1) % gradientBackgrounds.length;
+  return gradientBackgrounds[idx];
+}
+
+export function getEventBackgroundColors(count: number): string[] {
+  const colors: string[] = [];
+  let last = -1;
+  for (let i = 0; i < count; i++) {
+    let idx = i % backgroundColors.length;
+    if (idx === last) idx = (idx + 1) % backgroundColors.length;
+    colors.push(backgroundColors[idx]);
+    last = idx;
+  }
+  return colors;
+}
+
+export function getEventGradientBackgrounds(count: number): string[] {
+  const gradients: string[] = [];
+  let last = -1;
+  for (let i = 0; i < count; i++) {
+    let idx = i % gradientBackgrounds.length;
+    if (idx === last) idx = (idx + 1) % gradientBackgrounds.length;
+    gradients.push(gradientBackgrounds[idx]);
+    last = idx;
+  }
+  return gradients;
+}
+
+export const getDefaultAvatar = (name?: string) => getUserAvatar(name, 400);
+
+export function getDefaultCategoryImage(name?: string): string {
+  const seed = name ? name.replace(/\s/g, "").toLowerCase() : "default";
+  return `https://picsum.photos/400/400?random=${seed}`;
+}
+
+export function getDefaultBanner(index: number, prevSeed?: number): string {
+  let seed = (index % 1000) + 1;
+  if (prevSeed !== undefined && seed === prevSeed) seed = (seed % 1000) + 1;
+  return `https://picsum.photos/800/400?random=${seed}`;
+}
+
+export function getDefaultBanners(count: number): string[] {
+  const banners: string[] = [];
+  let last = -1;
+  for (let i = 0; i < count; i++) {
+    let seed = (i % 1000) + 1;
+    if (seed === last) seed = ((i + 1) % 1000) + 1;
+    banners.push(`https://picsum.photos/800/400?random=${seed}`);
+    last = seed;
+  }
+  return banners;
+}
+
+export const getAccessTypeText = (type?: string) => type?.toLowerCase() === "free" ? "Free" : "Premium";

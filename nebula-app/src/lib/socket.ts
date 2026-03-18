@@ -1,8 +1,9 @@
 "use client";
 
 import { io } from "socket.io-client";
+import { publicEnv } from "@/config/env";
 
-const NEXT_PUBLIC_WS_URL = process.env.NEXT_PUBLIC_WS_URL || "http://localhost:9001";
+const NEXT_PUBLIC_WS_URL = publicEnv.NEXT_PUBLIC_WS_URL || "http://localhost:3001";
 
 export const createAuthenticatedSocket = (token: string) => {
   return io(NEXT_PUBLIC_WS_URL, {

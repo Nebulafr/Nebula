@@ -1,10 +1,11 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import jwt from "jsonwebtoken";
+import { env } from "@/config/env";
 
 function verifyJWT(token: string): { userId: string } | null {
   try {
-    const secret = process.env.ACCESS_TOKEN_SECRET || "ACCESS_TOKEN_SECRET";
+    const secret = env.ACCESS_TOKEN_SECRET || "ACCESS_TOKEN_SECRET";
      
     const decoded = jwt.verify(token, secret) as any;
 

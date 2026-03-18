@@ -9,6 +9,7 @@ import Image from "next/image";
 import { logos } from "@/lib/images/logos";
 import { PopupModal } from "react-calendly";
 import { useState, useEffect } from "react";
+import { publicEnv } from "@/config/env";
 
 function NebulaLogo() {
   return (
@@ -64,7 +65,7 @@ export function ContactCard() {
       {rootElement && (
         <PopupModal
           url={
-            process.env.NEXT_PUBLIC_CALENDLY_URL ||
+            publicEnv.NEXT_PUBLIC_CALENDLY_URL ||
             "https://calendly.com/masudndatsu/30min"
           }
           onModalClose={() => setIsOpen(false)}

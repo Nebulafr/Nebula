@@ -1,11 +1,15 @@
 import { NextRequest } from "next/server";
 import { categoryService } from "../services/category.service";
-import { createCategorySchema, updateCategorySchema } from "@/lib/validations";
+import { createCategorySchema, updateCategorySchema, categoryQuerySchema } from "@/lib/validations";
 import { BadRequestException } from "../utils/http-exception";
 
 export class CategoryController {
   async getAll(request: NextRequest) {
-    return await categoryService.getAll();
+    const isAdmin = request.nextUrl.pathname.includes("/admin/");
+    const searchParams = Object.fromEntries(request.nextUrl.searchParams);
+    const query = categoryQuerySchema.parse(searchParams);
+
+    return await categoryService.getAll(isAdmin, query);
   }
 
   async getById(request: NextRequest, id: string) {

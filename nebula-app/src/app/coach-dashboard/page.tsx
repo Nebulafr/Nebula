@@ -46,7 +46,7 @@ import {
   useRejectSession,
 } from "@/hooks/use-session-queries";
 import { useCoachPayouts } from "@/hooks/use-coach-queries";
-import { getDefaultAvatar } from "@/lib/event-utils";
+import { getDefaultAvatar } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 
 function CoachDashboardContent() {

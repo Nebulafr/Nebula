@@ -1,47 +1,22 @@
 import { prisma } from "../lib/prisma";
 import type { MessageType } from "../../generated/prisma";
-import type {
+import {
+  calculatePagination,
+  formatMessage,
+  hasMoreMessages,
+  transformToNewMessageEmit,
+} from "../lib";
+import {
   FormattedMessage,
   MessagesLoadedResponse,
   NewMessageEmit,
 } from "../types";
-
-const formatTimestamp = (date: Date): string => {
-  return new Date(date).toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-};
-
-const isMessageFromUser = (senderId: string, userId: string): boolean => {
-  return senderId === userId;
-};
-
-const formatMessage = (msg: any, userId: string): FormattedMessage => ({
-  id: msg.id,
-  sender: msg.sender.fullName || "Unknown",
-  text: msg.content,
-  timestamp: formatTimestamp(msg.createdAt),
-  isMe: isMessageFromUser(msg.senderId, userId),
-  type: msg.type,
-  isRead: msg.isRead,
-  isEdited: msg.isEdited,
-});
 
 const formatMessages = (
   messages: any[],
   userId: string
 ): FormattedMessage[] => {
   return messages.map((msg) => formatMessage(msg, userId));
-};
-
-const calculatePagination = (page: number, limit: number) => ({
-  skip: (page - 1) * limit,
-  take: limit,
-});
-
-const hasMoreMessages = (messagesLength: number, limit: number): boolean => {
-  return messagesLength === limit;
 };
 
 const fetchMessages = async (
@@ -134,15 +109,6 @@ const updateMessageContent = async (messageId: string, newContent: string) => {
   });
 };
 
-const transformToNewMessageEmit = (message: any): NewMessageEmit => ({
-  id: message.id,
-  conversationId: message.conversationId,
-  senderId: message.senderId,
-  content: message.content,
-  type: message.type,
-  createdAt: message.createdAt,
-  sender: message.sender,
-});
 
 export const getMessages = async (
   conversationId: string,

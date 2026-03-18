@@ -17,7 +17,7 @@ import {
   getDefaultAvatar,
   getDefaultBanner,
   getEventBackgroundColor,
-} from "@/lib/event-utils";
+} from "@/lib/utils";
 
 import { CheckoutStatusModal } from "@/components/checkout/checkout-status-modal";
 import { UserRole } from "@/enums";

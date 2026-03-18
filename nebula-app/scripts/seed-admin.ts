@@ -1,4 +1,5 @@
 import "dotenv/config";
+import { env } from "../src/config/env";
 import {
   PrismaClient,
   UserRole,
@@ -10,7 +11,7 @@ import bcrypt from "bcryptjs";
 
 // Create a connection pool
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  connectionString: env.DATABASE_URL,
 });
 
 // Create the Prisma adapter
