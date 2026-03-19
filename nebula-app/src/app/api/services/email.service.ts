@@ -56,11 +56,8 @@ export class EmailService {
         to: recipients,
         subject: options.subject,
         htmlbody: options.html,
+        textbody: options.text || this.stripHtml(options.html),
       };
-
-      if (options.text) {
-        payload.textbody = options.text;
-      }
 
       if (options.replyTo) {
         payload.reply_to = [
@@ -497,6 +494,14 @@ export class EmailService {
     }
   }
 
+  private stripHtml(html: string): string {
+    return html
+      .replace(/<style[^>]*>[\s\S]*?<\/style>/gm, "")
+      .replace(/<[^>]+>/g, "")
+      .replace(/\n\s+\n/g, "\n\n")
+      .trim();
+  }
+
   async sendVerificationEmail(
     email: string,
     firstName: string,
@@ -512,6 +517,7 @@ export class EmailService {
         to: email,
         subject: template.subject,
         html: template.html,
+        text: (template as any).text || this.stripHtml(template.html),
       });
     } catch (error: any) {
       console.error("Failed to send verification email:", error);
@@ -537,6 +543,7 @@ export class EmailService {
         to: email,
         subject: template.subject,
         html: template.html,
+        text: (template as any).text || this.stripHtml(template.html),
       });
     } catch (error: any) {
       console.error("Failed to send password reset email:", error);

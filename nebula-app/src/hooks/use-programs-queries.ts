@@ -131,6 +131,8 @@ export function useCreateProgram() {
         queryKey: [RECOMMENDED_PROGRAMS_QUERY_KEY],
       });
       queryClient.invalidateQueries({ queryKey: [ADMIN_PROGRAMS_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: [GROUPED_PROGRAMS_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: [POPULAR_PROGRAMS_QUERY_KEY] });
     },
     onError: (error: unknown) => {
       handleAndToastError(error, "Failed to create program.");
@@ -149,12 +151,15 @@ export function useUpdateProgram() {
       programId: string;
       updateData: Partial<CreateProgramData>;
     }) => updateProgram(programId, updateData),
-    onSuccess: () => {
+    onSuccess: (_, { programId }) => {
       queryClient.invalidateQueries({ queryKey: [PROGRAMS_QUERY_KEY] });
       queryClient.invalidateQueries({
         queryKey: [RECOMMENDED_PROGRAMS_QUERY_KEY],
       });
       queryClient.invalidateQueries({ queryKey: [ADMIN_PROGRAMS_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: [GROUPED_PROGRAMS_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: [POPULAR_PROGRAMS_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: [PROGRAM_BY_ID_QUERY_KEY, programId] });
       queryClient.invalidateQueries({ queryKey: [PROGRAM_BY_SLUG_QUERY_KEY] });
     },
     onError: (error: unknown) => {
@@ -168,12 +173,15 @@ export function useDeleteProgram() {
 
   return useMutation({
     mutationFn: (programId: string) => deleteProgram(programId),
-    onSuccess: () => {
+    onSuccess: (_, programId) => {
       queryClient.invalidateQueries({ queryKey: [PROGRAMS_QUERY_KEY] });
       queryClient.invalidateQueries({
         queryKey: [RECOMMENDED_PROGRAMS_QUERY_KEY],
       });
       queryClient.invalidateQueries({ queryKey: [ADMIN_PROGRAMS_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: [GROUPED_PROGRAMS_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: [POPULAR_PROGRAMS_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: [PROGRAM_BY_ID_QUERY_KEY, programId] });
       queryClient.invalidateQueries({ queryKey: [PROGRAM_BY_SLUG_QUERY_KEY] });
     },
     onError: (error: unknown) => {
@@ -197,9 +205,12 @@ export function useUpdateProgramStatus() {
       reason?: string;
       startDate?: string;
     }) => updateProgramStatus(programId, action, reason, startDate),
-    onSuccess: () => {
+    onSuccess: (_, { programId }) => {
       queryClient.invalidateQueries({ queryKey: [ADMIN_PROGRAMS_QUERY_KEY] });
       queryClient.invalidateQueries({ queryKey: [PROGRAMS_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: [GROUPED_PROGRAMS_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: [POPULAR_PROGRAMS_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: [PROGRAM_BY_ID_QUERY_KEY, programId] });
       queryClient.invalidateQueries({ queryKey: [PROGRAM_BY_SLUG_QUERY_KEY] });
     },
     onError: (error: unknown) => {
@@ -213,10 +224,13 @@ export function useSubmitProgram() {
 
   return useMutation({
     mutationFn: (programId: string) => submitProgram(programId),
-    onSuccess: () => {
+    onSuccess: (_, programId) => {
       queryClient.invalidateQueries({ queryKey: [PROGRAMS_QUERY_KEY] });
-      queryClient.invalidateQueries({ queryKey: [PROGRAM_BY_SLUG_QUERY_KEY] });
       queryClient.invalidateQueries({ queryKey: [ADMIN_PROGRAMS_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: [GROUPED_PROGRAMS_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: [POPULAR_PROGRAMS_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: [PROGRAM_BY_ID_QUERY_KEY, programId] });
+      queryClient.invalidateQueries({ queryKey: [PROGRAM_BY_SLUG_QUERY_KEY] });
     },
     onError: (error: unknown) => {
       handleAndToastError(error, "Failed to submit program.");

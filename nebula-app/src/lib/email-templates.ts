@@ -29,6 +29,18 @@ export const emailTemplates = {
         <p style="color: #94a3b8; font-size: 12px;">&copy; ${new Date().getFullYear()} Nebula. All rights reserved.</p>
       </div>
     `,
+    text: `
+      Welcome to Nebula, ${firstName}!
+      
+      Thank you for signing up. Please verify your email address to activate your account and start exploring our coaching programs.
+      
+      Verify your email by clicking or copying the following link:
+      ${verificationUrl}
+      
+      This link will expire in 24 hours. If you didn't create an account, you can safely ignore this email.
+      
+      © ${new Date().getFullYear()} Nebula. All rights reserved.
+    `,
   }),
   RESET_PASSWORD: ({ firstName, resetUrl }: TemplateParams) => ({
     subject: "Reset your Nebula password",
@@ -45,6 +57,16 @@ export const emailTemplates = {
         <p style="color: #94a3b8; font-size: 12px;">This link will expire in 1 hour. If you didn't request a password reset, you can safely ignore this email.</p>
         <p style="color: #94a3b8; font-size: 12px;">&copy; ${new Date().getFullYear()} Nebula. All rights reserved.</p>
       </div>
+    `,
+    text: `
+      Hello ${firstName},
+      
+      We received a request to reset your Nebula password. Reset your password by clicking or copying the following link:
+      ${resetUrl}
+      
+      This link will expire in 1 hour. If you didn't request a password reset, you can safely ignore this email.
+      
+      © ${new Date().getFullYear()} Nebula. All rights reserved.
     `,
   }),
   APPLICATION_RECEIVED: ({ firstName }: TemplateParams) => ({

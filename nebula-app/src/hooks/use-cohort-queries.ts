@@ -27,6 +27,11 @@ export function useUpdateCohort(programId?: string, options?: { onSuccess?: () =
             queryClient.invalidateQueries({
                 queryKey: [ADMIN_COHORTS_QUERY_KEY, programId],
             });
+            if (programId) {
+                queryClient.invalidateQueries({ queryKey: ["programs"] });
+                queryClient.invalidateQueries({ queryKey: ["program-by-id", programId] });
+                queryClient.invalidateQueries({ queryKey: ["program-by-slug"] });
+            }
             options?.onSuccess?.();
         },
         onError: (error: unknown) => {
@@ -46,6 +51,11 @@ export function useCreateCohort(programId?: string, options?: { onSuccess?: () =
             queryClient.invalidateQueries({
                 queryKey: [ADMIN_COHORTS_QUERY_KEY, programId],
             });
+            if (programId) {
+                queryClient.invalidateQueries({ queryKey: ["programs"] });
+                queryClient.invalidateQueries({ queryKey: ["program-by-id", programId] });
+                queryClient.invalidateQueries({ queryKey: ["program-by-slug"] });
+            }
             options?.onSuccess?.();
         },
         onError: (error: unknown) => {
