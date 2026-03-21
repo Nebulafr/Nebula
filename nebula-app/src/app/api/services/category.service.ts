@@ -12,8 +12,26 @@ import { RESPONSE_CODE } from "@/types";
 import HttpException from "../utils/http-exception";
 import { sendSuccess } from "../utils/send-response";
 import { generateSlug } from "@/lib/utils";
+import { uploadService } from "./upload.service";
 
 export class CategoryService {
+  private async handleImageUpload(assetUrl?: string | null): Promise<string | null> {
+    if (!assetUrl || !assetUrl.startsWith("data:image/")) {
+      return assetUrl || null;
+    }
+
+    try {
+      const uploadResult = await uploadService.uploadFile(assetUrl, {
+        folder: "categories",
+        resourceType: "image",
+      });
+      return uploadResult.url;
+    } catch (error) {
+      console.error("Error uploading category image:", error);
+      return assetUrl;
+    }
+  }
+
   private async slugExists(slug: string, excludeId?: string): Promise<boolean> {
     const category = await prisma.category.findFirst({
       where: {
@@ -132,12 +150,13 @@ export class CategoryService {
     }
 
     const slug = await this.generateUniqueSlug(name);
+    const assetUrl = await this.handleImageUpload(data.assetUrl);
 
     const category = await prisma.category.create({
       data: {
         name: name.trim(),
         slug,
-        assetUrl: data.assetUrl || null,
+        assetUrl,
         description: data.description || null,
       },
     });
@@ -163,6 +182,10 @@ export class CategoryService {
       throw new NotFoundException("The specified category does not exist");
     }
 
+    const assetUrl = data.assetUrl !== undefined
+      ? await this.handleImageUpload(data.assetUrl)
+      : existingCategory.assetUrl;
+
     const category = await prisma.category.update({
       where: { id },
       data: {
@@ -172,7 +195,7 @@ export class CategoryService {
             ? await this.generateUniqueSlug(data.name, id)
             : existingCategory.slug,
         isActive: data.isActive ?? existingCategory.isActive,
-        assetUrl: data.assetUrl !== undefined ? (data.assetUrl || null) : existingCategory.assetUrl,
+        assetUrl,
         description: data.description !== undefined ? (data.description || null) : existingCategory.description,
         updatedAt: new Date(),
       },
