@@ -1,4 +1,3 @@
-/* eslint-disable */
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -16,7 +15,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
-import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -26,18 +25,14 @@ import {
 } from "@/lib/validations";
 import { Label } from "@/components/ui/label";
 
+import { useCoachOnboarding } from "@/contexts/coach-onboarding-context";
+
 function CoachOnboardingStep3Content() {
   const t = useTranslations("common.onboarding.coach.step3");
   const tCommon = useTranslations("common.onboarding.common");
   const image = PlaceHolderImages.find((img) => img.id === "benefit-impact");
-
-  const searchParams = useSearchParams();
-  const role = searchParams.get("role");
-  const company = searchParams.get("company");
-  const linkedin = searchParams.get("linkedin");
-  const specialties = searchParams.get("specialties");
-  const country = searchParams.get("country");
-  const countryIso = searchParams.get("countryIso");
+  const router = useRouter();
+  const { data: onboardingData, updateData } = useCoachOnboarding();
 
   const {
     register,
@@ -47,32 +42,19 @@ function CoachOnboardingStep3Content() {
     resolver: zodResolver(coachOnboardingStep3Schema),
     mode: "onChange",
     defaultValues: {
-      motivation: "",
+      motivation: onboardingData.motivation || "",
     },
   });
   const motivation = watch("motivation");
   const charCount = motivation.length;
 
-  const nextStepUrl = `/coach-onboarding/step-4?role=${encodeURIComponent(
-    role || ""
-  )}&company=${encodeURIComponent(company || "")}&linkedin=${encodeURIComponent(
-    linkedin || ""
-  )}&specialties=${encodeURIComponent(
-    specialties || ""
-  )}&motivation=${encodeURIComponent(motivation)}&country=${encodeURIComponent(
-    country || ""
-  )}&countryIso=${encodeURIComponent(countryIso || "")}`;
-
-  const prevStepUrl = `/coach-onboarding/step-2?role=${encodeURIComponent(
-    role || ""
-  )}&company=${encodeURIComponent(company || "")}&linkedin=${encodeURIComponent(
-    linkedin || ""
-  )}&specialties=${encodeURIComponent(specialties || "")}&country=${encodeURIComponent(
-    country || ""
-  )}&countryIso=${encodeURIComponent(countryIso || "")}`;
+  const handleContinue = () => {
+    updateData({ motivation });
+    router.push("/coach-onboarding/step-4");
+  };
 
   return (
-    <div className="w-full min-h-screen lg:grid lg:grid-cols-5 bg-background">
+    <div className="w-full h-screen lg:grid lg:grid-cols-5 bg-background overflow-hidden">
       <div className="relative hidden h-full bg-muted lg:col-span-3 lg:block overflow-hidden">
         {image && (
           <Image
@@ -88,24 +70,24 @@ function CoachOnboardingStep3Content() {
         <div className="absolute inset-0 bg-gradient-to-tr from-black/80 via-black/40 to-transparent" />
         <div className="absolute bottom-12 left-12 text-white z-10 animate-in fade-in slide-in-from-bottom-8 duration-700">
           <h2 className="text-5xl font-bold tracking-tight">{t("title")}</h2>
-          <p className="mt-4 max-w-lg text-lg text-white/80 leading-relaxed font-light">
+          <p className="mt-4 max-w-lg text-lg text-white/80 leading-relaxed font-light font-sans">
             {t("description")}
           </p>
         </div>
       </div>
-      <div className="flex h-full flex-col justify-center py-12 lg:col-span-2 relative overflow-hidden">
-        <div className="absolute top-0 right-0 -z-10 h-64 w-64 rounded-full bg-primary/5 blur-3xl" />
-        <div className="absolute bottom-0 left-0 -z-10 h-64 w-64 rounded-full bg-secondary/5 blur-3xl" />
+      <div className="h-full lg:col-span-2 relative overflow-y-auto custom-scrollbar">
+        <div className="absolute top-0 right-0 -z-10 h-64 w-64 rounded-full bg-primary/5 blur-3xl opacity-50" />
+        <div className="absolute bottom-0 left-0 -z-10 h-64 w-64 rounded-full bg-secondary/5 blur-3xl opacity-50" />
 
-        <div className="mx-auto grid w-full max-w-md gap-8 px-6">
+        <div className="min-h-full flex flex-col justify-center py-12 px-6 mx-auto w-full max-w-md gap-8">
           <div className="space-y-2">
             <Progress value={60} className="h-1.5 bg-muted transition-all duration-500" />
             <div className="flex justify-between text-[10px] text-muted-foreground uppercase tracking-widest font-semibold font-sans">
-              <span>Basic Info</span>
-              <span>Specialties</span>
-              <span className="text-primary font-bold">Motivation</span>
-              <span>Style</span>
-              <span>Final</span>
+              <span>{t("stepper.basicInfo")}</span>
+              <span>{t("stepper.specialties")}</span>
+              <span className="text-primary font-bold">{t("stepper.motivation")}</span>
+              <span>{t("stepper.style")}</span>
+              <span>{t("stepper.final")}</span>
             </div>
           </div>
 
@@ -116,21 +98,21 @@ function CoachOnboardingStep3Content() {
               </CardTitle>
               <CardDescription className="mt-4 text-lg text-muted-foreground leading-relaxed">
                 {t("subheading")}{" "}
-                <span className="text-destructive">*</span>
+                <span className="text-destructive font-bold text-xl leading-none">*</span>
               </CardDescription>
             </CardHeader>
-            <CardContent className="grid gap-6 p-0 mt-10 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300">
-              <div className="grid gap-3 group">
+            <CardContent className="grid gap-6 p-0 mt-10 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300 group">
+              <div className="grid gap-3">
                 <div className="flex justify-between items-end mb-1">
                   <Label htmlFor="motivation" className="text-base font-semibold group-focus-within:text-primary transition-colors">
                     {t("label")}
                   </Label>
                   <span
-                    className={`text-xs font-mono font-medium px-2 py-0.5 rounded-full ${charCount < 50
-                        ? "bg-muted text-muted-foreground"
-                        : charCount > 1000
-                          ? "bg-destructive/10 text-destructive"
-                          : "bg-green-500/10 text-green-600"
+                    className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-md tracking-tighter uppercase ${charCount < 50
+                      ? "bg-muted text-muted-foreground"
+                      : charCount > 1000
+                        ? "bg-destructive/10 text-destructive border border-destructive/20"
+                        : "bg-primary/10 text-primary border border-primary/20"
                       }`}
                   >
                     {t("charCount", { count: charCount })}
@@ -141,9 +123,9 @@ function CoachOnboardingStep3Content() {
                     id="motivation"
                     placeholder={t("placeholder")}
                     rows={8}
-                    className={`resize-none rounded-2xl border-2 p-5 text-base transition-all duration-300 focus:ring-4 focus:ring-primary/10 ${errors.motivation
-                        ? "border-destructive focus:border-destructive"
-                        : "border-muted-foreground/10 focus:border-primary"
+                    className={`resize-none rounded-2xl border-2 p-5 text-base transition-all duration-300 focus:ring-8 focus:ring-primary/5 ${errors.motivation
+                      ? "border-destructive focus:border-destructive"
+                      : "border-muted-foreground/10 focus:border-primary"
                       } bg-card/50 backdrop-blur-sm`}
                     {...register("motivation")}
                   />
@@ -164,14 +146,17 @@ function CoachOnboardingStep3Content() {
 
           <div className="flex items-center justify-between gap-4 pt-4 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-500">
             <Button size="lg" variant="ghost" asChild className="px-0 hover:bg-transparent text-muted-foreground hover:text-foreground transition-colors group">
-              <Link href={prevStepUrl}>
+              <Link href="/coach-onboarding/step-2">
                 <ArrowLeft className="mr-2 h-5 w-5 transition-transform group-hover:-translate-x-1" /> {tCommon("back")}
               </Link>
             </Button>
-            <Button size="lg" asChild disabled={!isValid} className="px-10 rounded-full h-14 text-lg font-semibold shadow-lg shadow-primary/20 transition-all active:scale-95">
-              <Link href={isValid ? nextStepUrl : "#"}>
-                {tCommon("continue")} <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-              </Link>
+            <Button 
+              size="lg" 
+              onClick={handleContinue} 
+              disabled={!isValid} 
+              className="px-10 rounded-full h-14 text-lg font-bold shadow-xl shadow-primary/20 transition-all hover:scale-105 active:scale-95 bg-primary hover:bg-primary/90"
+            >
+              {tCommon("continue")} <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
             </Button>
           </div>
         </div>
