@@ -41,6 +41,7 @@
           "welcome": "Welcome to Nebula!",
           "description": "Let's personalize your experience. To start, which program are you interested in?",
           "categoriesLoading": "Loading categories...",
+          "selectCategory": "Select a category",
           "explore": "Explore programs in {category}"
         },
         "step2": {
@@ -48,6 +49,7 @@
           "subtitle": "This helps us tailor your experience to the right level.",
           "heading": "What is your skill level?",
           "description": "This will help us match you with the right coaches and content.",
+          "selectSkillLevel": "Select your skill level",
           "beginner": {
             "title": "Beginner",
             "description": "Just starting out, 0-2 years of experience."
@@ -66,6 +68,7 @@
           "subtitle": "Let us know how much time you can dedicate to your growth.",
           "heading": "How much time can you commit?",
           "description": "This will help us find the perfect time for your coaching sessions.",
+          "selectAvailability": "Select your availability",
           "finish": "Finish",
           "creatingProfile": "Creating Profile...",
           "availability": {
@@ -87,14 +90,25 @@
         }
       },
       "coach": {
+        "stepper": {
+          "basicInfo": "Basic Info",
+          "specialties": "Specialties",
+          "motivation": "Motivation",
+          "style": "Style",
+          "final": "Final"
+        },
         "step1": {
           "title": "Step 1: Your Professional Background",
           "description": "Let's start with your current role and professional presence.",
           "heading": "Your Role & Profile",
           "subheading": "What's your current professional role? Please share your LinkedIn profile as well.",
           "role": "Current Role",
+          "roleLabel": "Current Role",
           "company": "Company",
+          "companyLabel": "Company",
           "linkedin": "LinkedIn Profile URL",
+          "linkedinLabel": "LinkedIn Profile URL",
+          "countryLabel": "Country",
           "rolePlaceholder": "e.g., Senior Product Manager",
           "companyPlaceholder": "e.g., Google",
           "linkedinPlaceholder": "https://linkedin.com/in/your-profile"
@@ -135,6 +149,7 @@
           "subheading": "What is your availability and desired hourly rate?",
           "availability": "Weekly Availability",
           "rate": "Desired Hourly Rate (EUR)",
+          "perHour": "per hour",
           "placeholder": "e.g., 75",
           "submit": "Submit Application",
           "submitting": "Submitting...",
@@ -145,7 +160,10 @@
       "common": {
         "back": "Back",
         "continue": "Continue",
-        "loading": "Loading..."
+        "finish": "Finish",
+        "finishing": "Finishing...",
+        "loading": "Loading...",
+        "step": "Step {number}"
       }
     },
     "about": "About Us",

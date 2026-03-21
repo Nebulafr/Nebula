@@ -10,6 +10,8 @@ import {
 import {
   Prisma,
   ProgramStatus,
+  TransactionStatus,
+  TransactionType,
   UserRole,
   UserStatus,
 } from '@/generated/prisma';
@@ -462,23 +464,28 @@ export class AdminService {
   }
 
   async getDashboardStats() {
-    const enrollments = await prisma.enrollment.findMany({
-      where: {
-        paymentStatus: 'PAID',
-      },
-      select: {
-        program: {
-          select: {
-            price: true,
-          },
+    // Calculate total revenue from transactions (Earnings - Refunds)
+    const [earningsAggregate, refundsAggregate] = await Promise.all([
+      prisma.transaction.aggregate({
+        where: {
+          type: TransactionType.EARNING,
+          status: TransactionStatus.COMPLETED,
         },
-      },
-    });
+        _sum: { amount: true },
+      }),
+      prisma.transaction.aggregate({
+        where: {
+          type: TransactionType.REFUND,
+          status: TransactionStatus.COMPLETED,
+        },
+        _sum: { amount: true },
+      }),
+    ]);
 
-    const totalRevenue = enrollments.reduce(
-      (sum, enrollment) => sum + (enrollment.program.price || 0),
-      0,
-    );
+    const totalRevenueCents =
+      (earningsAggregate._sum.amount || 0) -
+      (refundsAggregate._sum.amount || 0);
+    const totalRevenue = totalRevenueCents / 100;
 
     const totalUsers = await prisma.user.count();
 
@@ -544,27 +551,34 @@ export class AdminService {
 
     const coachGrowth = activeCoaches - activeCoachesLastMonth;
 
-    // Calculate revenue growth
-    const enrollmentsLastMonth = await prisma.enrollment.findMany({
-      where: {
-        paymentStatus: 'PAID',
-        createdAt: {
-          lt: lastMonth,
-        },
-      },
-      select: {
-        program: {
-          select: {
-            price: true,
+    // Calculate revenue growth from transactions
+    const [earningsLastMonth, refundsLastMonth] = await Promise.all([
+      prisma.transaction.aggregate({
+        where: {
+          type: TransactionType.EARNING,
+          status: TransactionStatus.COMPLETED,
+          createdAt: {
+            lt: lastMonth,
           },
         },
-      },
-    });
+        _sum: { amount: true },
+      }),
+      prisma.transaction.aggregate({
+        where: {
+          type: TransactionType.REFUND,
+          status: TransactionStatus.COMPLETED,
+          createdAt: {
+            lt: lastMonth,
+          },
+        },
+        _sum: { amount: true },
+      }),
+    ]);
 
-    const revenueLastMonth = enrollmentsLastMonth.reduce(
-      (sum, enrollment) => sum + (enrollment.program.price || 0),
-      0,
-    );
+    const revenueLastMonthCents =
+      (earningsLastMonth._sum.amount || 0) -
+      (refundsLastMonth._sum.amount || 0);
+    const revenueLastMonth = revenueLastMonthCents / 100;
 
     const revenueGrowthPercent =
       revenueLastMonth > 0
@@ -575,7 +589,10 @@ export class AdminService {
       {
         stats: {
           revenue: {
-            value: `€${totalRevenue.toLocaleString()}`,
+            value: `€${totalRevenue.toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}`,
             change: `${
               revenueGrowthPercent >= 0 ? '+' : ''
             }${revenueGrowthPercent.toFixed(1)}% from last month`,

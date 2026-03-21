@@ -81,39 +81,75 @@ export class CoachDashboardService {
       },
     });
 
-    // Calculate revenue (this month) - Use Transaction records
-    const revenueThisMonthAggregate = await prisma.transaction.aggregate({
-      where: {
-        userId: userId,
-        type: TransactionType.EARNING,
-        status: TransactionStatus.COMPLETED,
-        createdAt: {
-          gte: startOfMonth,
-          lte: endOfMonth,
+    // Calculate revenue (this month) - Use Transaction records (Earnings - Refunds)
+    const [revenueThisMonthEarning, revenueThisMonthRefund] = await Promise.all([
+      prisma.transaction.aggregate({
+        where: {
+          userId: userId,
+          type: TransactionType.EARNING,
+          status: TransactionStatus.COMPLETED,
+          createdAt: {
+            gte: startOfMonth,
+            lte: endOfMonth,
+          },
         },
-      },
-      _sum: {
-        amount: true,
-      },
-    });
-    const revenueThisMonth = revenueThisMonthAggregate._sum.amount || 0;
+        _sum: {
+          amount: true,
+        },
+      }),
+      prisma.transaction.aggregate({
+        where: {
+          userId: userId,
+          type: TransactionType.REFUND,
+          status: TransactionStatus.COMPLETED,
+          createdAt: {
+            gte: startOfMonth,
+            lte: endOfMonth,
+          },
+        },
+        _sum: {
+          amount: true,
+        },
+      }),
+    ]);
+    const revenueThisMonth =
+      (revenueThisMonthEarning._sum.amount || 0) -
+      (revenueThisMonthRefund._sum.amount || 0);
 
-    // Calculate revenue (last month) - Use Transaction records
-    const revenueLastMonthAggregate = await prisma.transaction.aggregate({
-      where: {
-        userId: userId,
-        type: TransactionType.EARNING,
-        status: TransactionStatus.COMPLETED,
-        createdAt: {
-          gte: startOfLastMonth,
-          lte: endOfLastMonth,
+    // Calculate revenue (last month) - Use Transaction records (Earnings - Refunds)
+    const [revenueLastMonthEarning, revenueLastMonthRefund] = await Promise.all([
+      prisma.transaction.aggregate({
+        where: {
+          userId: userId,
+          type: TransactionType.EARNING,
+          status: TransactionStatus.COMPLETED,
+          createdAt: {
+            gte: startOfLastMonth,
+            lte: endOfLastMonth,
+          },
         },
-      },
-      _sum: {
-        amount: true,
-      },
-    });
-    const revenueLastMonth = revenueLastMonthAggregate._sum.amount || 0;
+        _sum: {
+          amount: true,
+        },
+      }),
+      prisma.transaction.aggregate({
+        where: {
+          userId: userId,
+          type: TransactionType.REFUND,
+          status: TransactionStatus.COMPLETED,
+          createdAt: {
+            gte: startOfLastMonth,
+            lte: endOfLastMonth,
+          },
+        },
+        _sum: {
+          amount: true,
+        },
+      }),
+    ]);
+    const revenueLastMonth =
+      (revenueLastMonthEarning._sum.amount || 0) -
+      (revenueLastMonthRefund._sum.amount || 0);
 
     // Calculate percentage changes
     const revenueChange =
@@ -597,18 +633,18 @@ export class CoachDashboardService {
       throw new NotFoundException("Coach profile not found");
     }
 
-    // Get last 6 months of earnings
+    // Get last 6 months of earnings and refunds
     const now = new Date();
     const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
 
-    const earningTransactions = await prisma.transaction.findMany({
+    const transactions = await prisma.transaction.findMany({
       where: {
         userId: coach.userId,
-        type: TransactionType.EARNING,
+        type: { in: [TransactionType.EARNING, TransactionType.REFUND] },
         status: TransactionStatus.COMPLETED,
         createdAt: { gte: sixMonthsAgo },
       },
-      select: { amount: true, createdAt: true },
+      select: { amount: true, createdAt: true, type: true },
     });
 
     // Initialize map for last 6 months
@@ -619,11 +655,20 @@ export class CoachDashboardService {
       monthlyData.set(monthName, 0);
     }
 
-    // Aggregate Transactions
-    earningTransactions.forEach((t) => {
-      const monthName = new Date(t.createdAt).toLocaleString("default", { month: "short" });
+    // Aggregate Transactions (Earnings - Refunds)
+    transactions.forEach((t) => {
+      const monthName = new Date(t.createdAt).toLocaleString("default", {
+        month: "short",
+      });
       if (monthlyData.has(monthName)) {
-        monthlyData.set(monthName, (monthlyData.get(monthName) || 0) + (t.amount || 0) / 100);
+        const currentAmount = monthlyData.get(monthName) || 0;
+        const transactionAmountEuro = (t.amount || 0) / 100;
+
+        if (t.type === TransactionType.EARNING) {
+          monthlyData.set(monthName, currentAmount + transactionAmountEuro);
+        } else if (t.type === TransactionType.REFUND) {
+          monthlyData.set(monthName, currentAmount - transactionAmountEuro);
+        }
       }
     });
 
@@ -675,7 +720,7 @@ export class CoachDashboardService {
     );
   }
 
-  private async getTotalEarningBalance(userId: string): Promise<number> {
+  public async getTotalEarningBalance(userId: string): Promise<number> {
     const earningsAggregate = await prisma.transaction.aggregate({
       where: {
         userId,

@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Settings, Loader2 } from "lucide-react";
+import { Settings, Loader2, Plus, Trash2, Clock } from "lucide-react";
 import {
   useCoachAvailability,
   useSaveCoachAvailability,
@@ -91,16 +91,26 @@ export function AvailabilitySettings({
   // Initialize from prop (onboarding mode)
   useEffect(() => {
     if (initialAvailability) {
-      setAvailability(initialAvailability);
+      // Use stringify to check for actual changes to avoid infinite loops
+      const currentStr = JSON.stringify(availability);
+      const incomingStr = JSON.stringify(initialAvailability);
+      if (currentStr !== incomingStr) {
+        setAvailability(initialAvailability);
+      }
     }
   }, [initialAvailability]);
 
   // Notify parent of changes (onboarding mode)
   useEffect(() => {
     if (onAvailabilityChange) {
-      onAvailabilityChange(availability);
+      // Only notify if different from initialAvailability to prevent loops
+      const currentStr = JSON.stringify(availability);
+      const initialStr = JSON.stringify(initialAvailability);
+      if (currentStr !== initialStr) {
+        onAvailabilityChange(availability);
+      }
     }
-  }, [availability, onAvailabilityChange]);
+  }, [availability, onAvailabilityChange, initialAvailability]);
 
   const handleToggleDay = (day: string) => {
     if (disabled) return;
@@ -233,59 +243,69 @@ export function AvailabilitySettings({
                     size="sm"
                     onClick={() => handleAddInterval(key)}
                     disabled={disabled || (showSaveButton && saving)}
-                    className="h-8"
+                    className="h-9 rounded-xl border-dashed border-2 hover:border-primary hover:bg-primary/5 transition-all group"
                   >
-                    + Add Slot
+                    <Plus className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
+                    Add Slot
                   </Button>
                 )}
 
                 {!availability[key as keyof CoachAvailability].enabled && (
-                  <span className="text-sm text-muted-foreground">
+                  <span className="text-sm text-muted-foreground font-medium bg-muted/50 px-3 py-1 rounded-full">
                     {t("notAvailable")}
                   </span>
                 )}
               </div>
 
               {availability[key as keyof CoachAvailability].enabled && (
-                <div className="flex flex-col gap-2 pl-14">
+                <div className="flex flex-col gap-3 pl-10 animate-in fade-in slide-in-from-top-2 duration-300">
                   {(availability[key as keyof CoachAvailability].intervals || []).map((interval, index) => (
-                    <div key={index} className="flex items-center gap-2 group">
-                      <div className="flex items-center gap-2 text-sm">
-                        <input
-                          type="time"
-                          value={interval.startTime}
-                          onChange={(e) =>
-                            handleTimeChange(key, index, "startTime", e.target.value)
-                          }
-                          className="border rounded px-2 py-1 text-sm bg-background"
+                    <div key={index} className="flex items-center gap-3">
+                      <div className="flex flex-1 items-center gap-2 p-1.5 bg-muted/30 rounded-xl border border-border/50 transition-all focus-within:border-primary/50 focus-within:ring-4 focus-within:ring-primary/5 group/interval">
+                        <div className="flex flex-1 items-center gap-2 px-2 py-1.5 bg-background rounded-lg border shadow-sm min-w-[110px]">
+                          <Clock className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                          <input
+                            type="time"
+                            value={interval.startTime}
+                            onChange={(e) =>
+                              handleTimeChange(key, index, "startTime", e.target.value)
+                            }
+                            className="bg-transparent border-none focus:ring-0 text-sm font-medium w-full appearance-none outline-none"
+                            disabled={disabled || (showSaveButton && saving)}
+                          />
+                        </div>
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase px-1 shrink-0">
+                          {t("to")}
+                        </span>
+                        <div className="flex flex-1 items-center gap-2 px-2 py-1.5 bg-background rounded-lg border shadow-sm min-w-[110px]">
+                          <Clock className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                          <input
+                            type="time"
+                            value={interval.endTime}
+                            onChange={(e) =>
+                              handleTimeChange(key, index, "endTime", e.target.value)
+                            }
+                            className="bg-transparent border-none focus:ring-0 text-sm font-medium w-full appearance-none outline-none"
+                            disabled={disabled || (showSaveButton && saving)}
+                          />
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleRemoveInterval(key, index)}
                           disabled={disabled || (showSaveButton && saving)}
-                        />
-                        <span className="text-muted-foreground">{t("to")}</span>
-                        <input
-                          type="time"
-                          value={interval.endTime}
-                          onChange={(e) =>
-                            handleTimeChange(key, index, "endTime", e.target.value)
-                          }
-                          className="border rounded px-2 py-1 text-sm bg-background"
-                          disabled={disabled || (showSaveButton && saving)}
-                        />
+                          className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors ml-1"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleRemoveInterval(key, index)}
-                        disabled={disabled || (showSaveButton && saving)}
-                        className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
-                      >
-                        ×
-                      </Button>
                     </div>
                   ))}
                   {(!availability[key as keyof CoachAvailability].intervals || availability[key as keyof CoachAvailability].intervals.length === 0) && (
-                    <span className="text-sm text-muted-foreground italic">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground italic bg-muted/20 p-3 rounded-xl border border-dashed">
+                      <Settings className="h-4 w-4 opacity-50" />
                       No time slots added.
-                    </span>
+                    </div>
                   )}
                 </div>
               )}

@@ -75,6 +75,7 @@ export const QUERY_KEYS = {
   ADMIN_RECENT_SIGNUPS: "admin-recent-signups",
   ADMIN_PLATFORM_ACTIVITY: "admin-platform-activity",
   ADMIN_EVENTS: "admin-events",
+  ADMIN_TRANSACTIONS: "admin-transactions",
 
   // Schedule (coach dashboard)
   COACH_SESSIONS: "coach-sessions",

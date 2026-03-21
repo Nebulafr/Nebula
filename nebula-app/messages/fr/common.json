@@ -41,6 +41,7 @@
           "welcome": "Bienvenue sur Nebula !",
           "description": "Personnalisons votre expérience. Pour commencer, quel programme vous intéresse ?",
           "categoriesLoading": "Chargement des catégories...",
+          "selectCategory": "Sélectionnez une catégorie",
           "explore": "Explorer les programmes en {category}"
         },
         "step2": {
@@ -48,6 +49,7 @@
           "subtitle": "Cela nous aide à adapter votre expérience au bon niveau.",
           "heading": "Quel est votre niveau de compétence ?",
           "description": "Cela nous aidera à vous mettre en relation avec les bons coachs et contenus.",
+          "selectSkillLevel": "Sélectionnez votre niveau de compétence",
           "beginner": {
             "title": "Débutant",
             "description": "Débutant, 0-2 ans d'expérience."
@@ -66,6 +68,7 @@
           "subtitle": "Dites-nous combien de temps vous pouvez consacrer à votre progression.",
           "heading": "Combien de temps pouvez-vous consacrer ?",
           "description": "Cela nous aidera à trouver le moment idéal pour vos sessions de coaching.",
+          "selectAvailability": "Sélectionnez votre disponibilité",
           "finish": "Terminer",
           "creatingProfile": "Création du profil...",
           "availability": {
@@ -87,14 +90,25 @@
         }
       },
       "coach": {
+        "stepper": {
+          "basicInfo": "Infos de base",
+          "specialties": "Spécialités",
+          "motivation": "Motivation",
+          "style": "Style",
+          "final": "Final"
+        },
         "step1": {
           "title": "Étape 1 : Votre parcours professionnel",
           "description": "Commençons par votre rôle actuel et votre présence professionnelle.",
           "heading": "Votre rôle et profil",
           "subheading": "Quel est votre rôle professionnel actuel ? Veuillez également partager votre profil LinkedIn.",
           "role": "Rôle actuel",
+          "roleLabel": "Rôle actuel",
           "company": "Entreprise",
+          "companyLabel": "Entreprise",
           "linkedin": "URL du profil LinkedIn",
+          "linkedinLabel": "URL du profil LinkedIn",
+          "countryLabel": "Pays",
           "rolePlaceholder": "ex : Product Manager Senior",
           "companyPlaceholder": "ex : Google",
           "linkedinPlaceholder": "https://linkedin.com/in/votre-profil"
@@ -135,6 +149,7 @@
           "subheading": "Quelle est votre disponibilité et votre tarif horaire souhaité ?",
           "availability": "Disponibilité hebdomadaire",
           "rate": "Tarif horaire souhaité (EUR)",
+          "perHour": "par heure",
           "placeholder": "ex : 75",
           "submit": "Soumettre la candidature",
           "submitting": "Envoi en cours...",
@@ -145,7 +160,10 @@
       "common": {
         "back": "Retour",
         "continue": "Continuer",
-        "loading": "Chargement..."
+        "finish": "Terminer",
+        "finishing": "Finalisation...",
+        "loading": "Chargement...",
+        "step": "Étape {number}"
       }
     },
     "about": "À propos",

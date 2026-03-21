@@ -3,13 +3,11 @@ import { useState } from "react";
 import { EarningsChart } from "./components/earnings-chart";
 import { AccountBalance } from "./components/account-balance";
 import { PayoutHistory } from "./components/payout-history";
-import { StripeConnect } from "./components/stripe-connect";
 import { useTranslations } from "next-intl";
 import { useStripeBalance, useCoachEarnings, useCoachPayouts } from "@/hooks/use-coach-queries";
 
 export default function PayoutsPage() {
   const t = useTranslations("dashboard.coach.payouts");
-  const [isConnected, setIsConnected] = useState(false);
 
   const { data: balanceData, isLoading: balanceLoading } = useStripeBalance();
   const { data: earningsData, isLoading: earningsLoading } = useCoachEarnings();
@@ -31,7 +29,6 @@ export default function PayoutsPage() {
             <AccountBalance
               balance={balanceData?.available || 0}
               loading={balanceLoading}
-              disabled={!isConnected}
             />
           </div>
         </div>

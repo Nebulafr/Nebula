@@ -2,6 +2,7 @@ import { stripe } from '@/lib/stripe';
 import { prisma } from '@/lib/prisma';
 import { NotFoundException } from '../utils/http-exception';
 import { sendSuccess } from '../utils/send-response';
+import { coachDashboardService } from './coach-dashboard.service';
 
 export class StripeAccountService {
   /**
@@ -229,29 +230,41 @@ export class StripeAccountService {
     }
 
     try {
-      const balance = await stripe.balance.retrieve({
-        stripeAccount: user.stripeAccountId,
-      });
+      // Use system data for balance
+      const balanceInCents = await coachDashboardService.getTotalEarningBalance(userId);
+      const available = balanceInCents / 100;
 
-      const available = balance.available.reduce(
-        (acc, b) => acc + b.amount / 100,
-        0,
-      );
+      // We can still fetch Stripe balance for comparison or internal logging if needed,
+      // but the response to the frontend will now prioritize our system data.
+      let stripeAvailable = 0;
+      let stripePending = 0;
 
-      const pending = balance.pending.reduce(
-        (acc, b) => acc + b.amount / 100,
-        0,
-      );
+      if (user.stripeAccountId) {
+        try {
+          const stripeBalance = await stripe.balance.retrieve({
+            stripeAccount: user.stripeAccountId,
+          });
+          stripeAvailable = stripeBalance.available.reduce((acc, b) => acc + b.amount / 100, 0);
+          stripePending = stripeBalance.pending.reduce((acc, b) => acc + b.amount / 100, 0);
+        } catch (sError) {
+          console.warn('Could not fetch Stripe balance for comparison:', sError);
+        }
+      }
 
       return sendSuccess(
-        { available, pending },
-        'Stripe balance retrieved successfully',
+        {
+          available,
+          pending: stripePending, // Keep pending from Stripe as we don't track pending as closely
+          systemBalance: available,
+          stripeAvailable
+        },
+        'Account balance retrieved successfully from system data',
       );
     } catch (error: any) {
-      console.error('Stripe Balance Retrieval error:', error);
+      console.error('Balance Retrieval error:', error);
       return sendSuccess(
-        { available: [], pending: [] },
-        'Could not retrieve Stripe balance',
+        { available: 0, pending: 0 },
+        'Could not retrieve account balance',
       );
     }
   }

@@ -14,14 +14,13 @@ interface AccountBalanceProps {
 }
 
 export function AccountBalance({
-  balance,
+  balance = 0,
   currency = "€",
   onRequestPayout,
   loading = false,
   disabled = false,
 }: AccountBalanceProps) {
   const t = useTranslations("dashboard.coach.payouts");
-  console.log({ balance })
 
   if (loading) {
     return (
@@ -46,7 +45,7 @@ export function AccountBalance({
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-4xl font-bold">
-          {currency}{balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          {currency}{(Number(balance) || 0).toFixed(2)}
         </p>
         <Button
           className="w-full"

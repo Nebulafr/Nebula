@@ -108,6 +108,7 @@ export default function AdminLayout({
 }) {
   const pathname = usePathname();
   const t = useTranslations("common");
+  const td = useTranslations("dashboard.admin");
   const { signOut, profile } = useAuth();
 
   const handleLogout = async () => {
@@ -198,6 +199,20 @@ export default function AdminLayout({
                   <div>
                     <Star />
                     <span>{t("reviews")}</span>
+                  </div>
+                </SidebarMenuButton>
+              </Link>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <Link href="/admin/transactions">
+                <SidebarMenuButton
+                  tooltip={td("transactionManagement")}
+                  isActive={pathname.startsWith("/admin/transactions")}
+                  asChild
+                >
+                  <div>
+                    <Banknote />
+                    <span>{td("transactionManagement")}</span>
                   </div>
                 </SidebarMenuButton>
               </Link>

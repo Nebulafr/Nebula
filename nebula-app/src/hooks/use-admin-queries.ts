@@ -8,6 +8,7 @@ export const ADMIN_DASHBOARD_STATS_QUERY_KEY = "admin-dashboard-stats";
 export const ADMIN_RECENT_SIGNUPS_QUERY_KEY = "admin-recent-signups";
 export const ADMIN_PLATFORM_ACTIVITY_QUERY_KEY = "admin-platform-activity";
 export const ADMIN_EVENTS_QUERY_KEY = "admin-events";
+export const ADMIN_TRANSACTIONS_QUERY_KEY = "admin-transactions";
 
 export interface AdminReview {
   id: string;
@@ -269,6 +270,26 @@ export interface AdminEvent {
   };
 }
 
+export interface AdminTransaction {
+  id: string;
+  userId: string;
+  amount: number;
+  currency: string;
+  type: "EARNING" | "PAYOUT" | "REFUND";
+  status: "PENDING" | "COMPLETED" | "FAILED";
+  sourceType: "ENROLLMENT" | "SESSION" | "EVENT" | "PAYOUT" | "OTHER";
+  sourceId: string;
+  description?: string;
+  createdAt: string;
+  updatedAt: string;
+  user: {
+    id: string;
+    fullName: string;
+    email: string;
+    avatarUrl?: string;
+  };
+}
+
 export function useAdminEvents(params?: {
   search?: string;
   eventType?: string;
@@ -321,5 +342,39 @@ export function useDeleteReview() {
     onError: (error: any) => {
       handleAndToastError(error, "Failed to delete review.");
     },
+  });
+}
+
+export function useAdminTransactions(params?: {
+  search?: string;
+  type?: string;
+  status?: string;
+  sourceType?: string;
+  page?: number;
+  limit?: number;
+}) {
+  return useQuery({
+    queryKey: [ADMIN_TRANSACTIONS_QUERY_KEY, params],
+    queryFn: async () => {
+      const queryParams = new URLSearchParams();
+      if (params?.search) queryParams.append("search", params.search);
+      if (params?.type) queryParams.append("type", params.type);
+      if (params?.status) queryParams.append("status", params.status);
+      if (params?.sourceType) queryParams.append("sourceType", params.sourceType);
+      if (params?.page) queryParams.append("page", params.page.toString());
+      if (params?.limit) queryParams.append("limit", params.limit.toString());
+
+      const url = `/admin/transactions${
+        queryParams.toString() ? `?${queryParams.toString()}` : ""
+      }`;
+      const response = await makeRequest(url, "GET");
+
+      if (!response.success) {
+        throw new Error(response.message || "Failed to fetch transactions");
+      }
+
+      return response.data;
+    },
+    staleTime: 2 * 60 * 1000, // 2 minutes
   });
 }

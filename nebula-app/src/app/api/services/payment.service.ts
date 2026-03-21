@@ -54,7 +54,7 @@ export class PaymentService {
                 await prisma.transaction.create({
                     data: {
                         userId: updatedEnrollment.program.coach.userId,
-                        amount: updatedEnrollment.program.price,
+                        amount: Math.round(updatedEnrollment.program.price * 100),
                         type: TransactionType.EARNING,
                         status: TransactionStatus.COMPLETED,
                         sourceType: TransactionSourceType.ENROLLMENT,
@@ -84,7 +84,7 @@ export class PaymentService {
             await prisma.transaction.create({
                 data: {
                     userId: newEnrollment.program.coach.userId,
-                    amount: newEnrollment.program.price,
+                    amount: Math.round(newEnrollment.program.price * 100),
                     type: TransactionType.EARNING,
                     status: TransactionStatus.COMPLETED,
                     sourceType: TransactionSourceType.ENROLLMENT,
@@ -135,7 +135,7 @@ export class PaymentService {
                 await prisma.transaction.create({
                     data: {
                         userId: updatedRegistration.event.organizerId,
-                        amount: updatedRegistration.event.price,
+                        amount: Math.round(updatedRegistration.event.price * 100),
                         type: TransactionType.EARNING,
                         status: TransactionStatus.COMPLETED,
                         sourceType: TransactionSourceType.EVENT,
@@ -162,7 +162,7 @@ export class PaymentService {
             await prisma.transaction.create({
                 data: {
                     userId: newRegistration.event.organizerId,
-                    amount: newRegistration.event.price,
+                    amount: Math.round(newRegistration.event.price * 100),
                     type: TransactionType.EARNING,
                     status: TransactionStatus.COMPLETED,
                     sourceType: TransactionSourceType.EVENT,
@@ -219,7 +219,7 @@ export class PaymentService {
                     await prisma.transaction.create({
                         data: {
                             userId: enrollment.program.coach.userId,
-                            amount: enrollment.program.price,
+                            amount: Math.round(enrollment.program.price * 100),
                             type: TransactionType.REFUND,
                             status: TransactionStatus.COMPLETED,
                             sourceType: TransactionSourceType.ENROLLMENT,
@@ -242,7 +242,7 @@ export class PaymentService {
                     await prisma.transaction.create({
                         data: {
                             userId: session.coach.userId,
-                            amount: session.price,
+                            amount: Math.round(session.price * 100),
                             type: TransactionType.REFUND,
                             status: TransactionStatus.COMPLETED,
                             sourceType: TransactionSourceType.SESSION,
@@ -265,7 +265,7 @@ export class PaymentService {
                     await prisma.transaction.create({
                         data: {
                             userId: attendee.event.organizerId,
-                            amount: attendee.event.price,
+                            amount: Math.round(attendee.event.price * 100),
                             type: TransactionType.REFUND,
                             status: TransactionStatus.COMPLETED,
                             sourceType: TransactionSourceType.EVENT,

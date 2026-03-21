@@ -144,6 +144,8 @@ export class SessionService {
       }
     }
 
+    const sessionPrice = Math.round((coach.hourlyRate * duration) / 60);
+
     const session = await prisma.session.create({
       data: {
         coachId,
@@ -153,6 +155,7 @@ export class SessionService {
         description: `1-on-1 Session between ${coach.user.fullName} and ${student.user.fullName}`,
         status: SessionStatus.SCHEDULED,
         paymentStatus: PaymentStatus.PAID,
+        price: sessionPrice,
         stripeSessionId,
         meetLink,
         googleEventId,
@@ -172,7 +175,7 @@ export class SessionService {
       await prisma.transaction.create({
         data: {
           userId: session.coach.userId,
-          amount: session.price,
+          amount: Math.round(session.price * 100),
           type: TransactionType.EARNING,
           status: TransactionStatus.COMPLETED,
           sourceType: TransactionSourceType.SESSION,

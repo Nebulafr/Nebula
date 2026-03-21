@@ -23,8 +23,7 @@ export class PaymentController {
             throw new UnauthorizedException("Authentication required");
         }
 
-        // TODO: Add Authorization check (e.g. only Admin or the user themselves depending on policy)
-        // For now, allow logged in users to trigger (dangerous in prod, should be restricted)
+
 
         const { type, id } = refundSchema.parse(body);
         await paymentService.processRefund(type, id);
