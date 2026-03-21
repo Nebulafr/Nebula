@@ -16,10 +16,12 @@ import {
   type StudentOnboardingStep1Data,
 } from "@/lib/validations";
 import { getDefaultCategoryImage } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
 import { CountrySelect } from "@/components/ui/country-select";
+
+import { useStudentOnboarding } from "@/contexts/student-onboarding-context";
 
 const categoryColors: Record<string, string> = {
   "Career Prep": "bg-primary/10",
@@ -36,9 +38,10 @@ export default function OnboardingStep1() {
   const categories = categoriesResponse?.data?.categories || [];
   const router = useRouter();
   const { profile } = useAuth();
+  const { data: onboardingData, updateData } = useStudentOnboarding();
 
-  const [country, setCountry] = useState("");
-  const [countryIso, setCountryIso] = useState("");
+  const [country, setCountry] = useState(onboardingData.country || "");
+  const [countryIso, setCountryIso] = useState(onboardingData.countryIso || "");
   const [countryError, setCountryError] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -52,10 +55,20 @@ export default function OnboardingStep1() {
     resolver: zodResolver(studentOnboardingStep1Schema),
     mode: "onChange",
     defaultValues: {
-      interestedCategoryId: "",
+      interestedCategoryId: onboardingData.interestedCategoryId || "",
     },
   });
-  // eslint-disable-next-line react-hooks/incompatible-library
+
+  // Update country if context changes (e.g. from back button)
+  useEffect(() => {
+    if (onboardingData.country && !country) {
+      setCountry(onboardingData.country);
+    }
+    if (onboardingData.countryIso && !countryIso) {
+      setCountryIso(onboardingData.countryIso);
+    }
+  }, [onboardingData.country, onboardingData.countryIso, country, countryIso]);
+
   const selectedCategoryId = watch("interestedCategoryId");
   const image = PlaceHolderImages.find((img) => img.id === "about-story");
 
@@ -68,7 +81,12 @@ export default function OnboardingStep1() {
     setSaving(true);
 
     try {
-      router.push(`/onboarding/step-2?categoryId=${encodeURIComponent(selectedCategoryId || "")}&country=${encodeURIComponent(country)}&countryIso=${encodeURIComponent(countryIso)}`);
+      updateData({
+        interestedCategoryId: selectedCategoryId,
+        country: country,
+        countryIso: countryIso,
+      });
+      router.push(`/onboarding/step-2`);
     } catch {
       setSaving(false);
     }
@@ -86,7 +104,7 @@ export default function OnboardingStep1() {
   }
 
   return (
-    <div className="w-full min-h-screen lg:grid lg:grid-cols-5 bg-background">
+    <div className="w-full h-screen lg:grid lg:grid-cols-5 bg-background overflow-hidden">
       <div className="relative hidden h-full bg-muted lg:col-span-3 lg:block overflow-hidden">
         {image && (
           <Image
@@ -107,17 +125,17 @@ export default function OnboardingStep1() {
           </p>
         </div>
       </div>
-      <div className="flex h-full flex-col py-12 lg:col-span-2 relative overflow-hidden">
+      <div className="h-full lg:col-span-2 relative overflow-y-auto custom-scrollbar">
         <div className="absolute top-0 right-0 -z-10 h-64 w-64 rounded-full bg-primary/5 blur-3xl opacity-50" />
         <div className="absolute bottom-0 left-0 -z-10 h-64 w-64 rounded-full bg-secondary/5 blur-3xl opacity-50" />
 
-        <div className="mx-auto flex w-full max-w-md flex-col h-full gap-8 px-6">
+        <div className="min-h-full flex flex-col justify-center py-12 px-6 mx-auto w-full max-w-md gap-8">
           <div className="space-y-2">
             <Progress value={33} className="h-1.5 bg-muted transition-all duration-500" />
-            <div className="flex justify-between text-[10px] text-muted-foreground uppercase tracking-widest font-semibold">
-              <span className="text-primary">Step 1</span>
-              <span>Step 2</span>
-              <span>Step 3</span>
+            <div className="flex justify-between text-[10px] text-muted-foreground uppercase tracking-widest font-semibold font-sans">
+              <span className="text-primary font-bold">{tCommon("step", { number: 1 })}</span>
+              <span>{tCommon("step", { number: 2 })}</span>
+              <span>{tCommon("step", { number: 3 })}</span>
             </div>
           </div>
 
@@ -125,24 +143,39 @@ export default function OnboardingStep1() {
             <h1 className="font-headline text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
               {t("welcome")}
             </h1>
-            <p className="mt-4 text-lg text-muted-foreground">
+            <p className="mt-4 text-lg text-muted-foreground leading-relaxed">
               {t("description")}{" "}
-              <span className="text-destructive">*</span>
+              <span className="text-destructive font-bold text-xl leading-none">*</span>
             </p>
           </div>
 
-          <div className="flex-1 overflow-y-auto min-h-0 max-h-[400px] scroll-smooth pr-2 custom-scrollbar animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300">
+          <div
+            className="flex-1 overflow-y-auto min-h-0 max-h-[400px] scroll-smooth pr-2 custom-scrollbar space-y-4"
+            role="radiogroup"
+            aria-label={t("selectCategory")}
+          >
             <div className="grid grid-cols-1 gap-4 pb-4">
               {categories.map((category: any, idx: number) => (
                 <Card
                   key={category.id}
-                  className={`group cursor-pointer rounded-2xl border-2 p-1 transition-all duration-300 hover:scale-[1.01] active:scale-[0.99] ${selectedCategoryId === category.id
+                  role="radio"
+                  aria-checked={selectedCategoryId === category.id}
+                  tabIndex={0}
+                  aria-label={category.name}
+                  className={`group cursor-pointer rounded-2xl border-2 p-1 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] animate-in fade-in slide-in-from-bottom-4 fill-mode-both ${selectedCategoryId === category.id
                     ? "border-primary bg-primary/5 shadow-xl shadow-primary/10"
                     : "border-transparent bg-card hover:border-primary/20 hover:shadow-md"
                     }`}
+                  style={{ animationDelay: `${idx * 50 + 300}ms` }}
                   onClick={() =>
                     setValue("interestedCategoryId", category.id, { shouldValidate: true })
                   }
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setValue("interestedCategoryId", category.id, { shouldValidate: true });
+                    }
+                  }}
                 >
                   <CardContent className="flex items-center gap-5 p-5">
                     <div
@@ -151,6 +184,7 @@ export default function OnboardingStep1() {
                     >
                       <Image
                         src={
+                          category.assetUrl ||
                           getDefaultCategoryImage(category.name) ||
                           "/custom-images/skills-assessment.svg"
                         }
@@ -164,7 +198,7 @@ export default function OnboardingStep1() {
                       <h3 className="font-headline text-xl font-bold tracking-tight truncate">
                         {category.name}
                       </h3>
-                      <p className="mt-1 text-sm text-muted-foreground font-medium line-clamp-2">
+                      <p className="mt-1 text-sm text-muted-foreground font-medium line-clamp-2 leading-snug">
                         {t("explore", { category: category.name.toLowerCase() })}
                       </p>
                     </div>
@@ -183,24 +217,27 @@ export default function OnboardingStep1() {
           </div>
 
           {errors.interestedCategoryId && (
-            <p className="text-sm font-medium text-destructive text-center animate-bounce">
+            <p className="text-sm font-medium text-destructive text-center animate-in fade-in">
               {errors.interestedCategoryId.message}
             </p>
           )}
 
           {needsCountry && (
-            <div className="grid gap-2 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-400">
-              <label className="text-sm font-semibold text-foreground">
-                Where are you based? <span className="text-destructive">*</span>
+            <div className="grid gap-3 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-400 group">
+              <label className="text-sm font-semibold text-foreground group-focus-within:text-primary transition-colors">
+                Where are you based? <span className="text-destructive font-bold">*</span>
               </label>
-              <CountrySelect
-                value={country}
-                onChange={(val) => { setCountry(val); setCountryError(""); }}
-                onIsoChange={setCountryIso}
-                disabled={saving}
-              />
+              <div className="rounded-2xl border-2 border-muted-foreground/10 bg-card/50 backdrop-blur-sm p-1 focus-within:border-primary transition-all">
+                <CountrySelect
+                  value={country}
+                  onChange={(val) => { setCountry(val); setCountryError(""); }}
+                  onIsoChange={setCountryIso}
+                  disabled={saving}
+                  className="h-auto border-none focus:ring-0"
+                />
+              </div>
               {countryError && (
-                <p className="text-sm font-medium text-destructive">{countryError}</p>
+                <p className="text-sm font-medium text-destructive animate-in fade-in">{countryError}</p>
               )}
             </div>
           )}
@@ -210,7 +247,7 @@ export default function OnboardingStep1() {
               size="lg"
               disabled={!isValid || saving}
               onClick={handleContinue}
-              className="px-10 rounded-full h-14 text-lg font-semibold shadow-lg shadow-primary/20 transition-all active:scale-95 disabled:grayscale"
+              className="px-12 rounded-full h-14 text-lg font-bold shadow-xl shadow-primary/20 transition-all hover:scale-105 active:scale-95 bg-primary hover:bg-primary/90"
             >
               {saving ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : null}
               {tCommon("continue")} <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />

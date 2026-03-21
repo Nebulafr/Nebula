@@ -8,7 +8,7 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/images/placeholder-images";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { createStudent } from "@/actions/student";
 import { toast } from "react-toastify";
@@ -20,40 +20,40 @@ import {
   type StudentOnboardingStep3Data,
 } from "@/lib/validations";
 
-const availabilities = [
+const availabilityOptions = [
   {
+    id: "short",
     icon: <Clock className="h-5 w-5 text-yellow-500" />,
-    title: "30 mins / week",
-    description: "A quick check-in.",
+    titleKey: "availability.short.title",
+    descriptionKey: "availability.short.description",
     color: "bg-yellow-500/10",
   },
   {
+    id: "standard",
     icon: <Clock className="h-5 w-5 text-blue-500" />,
-    title: "1 hour / week",
-    description: "A standard session.",
+    titleKey: "availability.standard.title",
+    descriptionKey: "availability.standard.description",
     color: "bg-blue-500/10",
   },
   {
+    id: "long",
     icon: <Zap className="h-5 w-5 text-purple-500" />,
-    title: "2+ hours / week",
-    description: "Ready to dive deep.",
+    titleKey: "availability.long.title",
+    descriptionKey: "availability.long.description",
     color: "bg-purple-500/10",
   },
 ];
+
+import { useStudentOnboarding } from "@/contexts/student-onboarding-context";
 
 function OnboardingStep3Content() {
   const t = useTranslations("common.onboarding.student.step3");
   const tCommon = useTranslations("common.onboarding.common");
   const [isLoading, setIsLoading] = useState(false);
   const image = PlaceHolderImages.find((img) => img.id === "benefit-schedule");
-  const searchParams = useSearchParams();
   const router = useRouter();
   const { profile, refreshUser } = useAuth();
-
-  const categoryId = searchParams.get("categoryId");
-  const skillLevel = searchParams.get("skillLevel");
-  const country = searchParams.get("country");
-  const countryIso = searchParams.get("countryIso");
+  const { data: onboardingData, updateData, resetData } = useStudentOnboarding();
 
   const {
     setValue,
@@ -63,14 +63,16 @@ function OnboardingStep3Content() {
     resolver: zodResolver(studentOnboardingStep3Schema),
     mode: "onChange",
     defaultValues: {
-      availability: "",
+      availability: onboardingData.availability || "",
     },
   });
 
   const selectedAvailability = watch("availability");
 
   const handleFinish = async () => {
-    if (!profile || !categoryId || !skillLevel || !selectedAvailability) {
+    const { interestedCategoryId, skillLevel, country, countryIso } = onboardingData;
+
+    if (!profile || !interestedCategoryId || !skillLevel || !selectedAvailability) {
       toast.error(t("missingInfo"));
       return;
     }
@@ -82,8 +84,8 @@ function OnboardingStep3Content() {
         userId: profile.id,
         email: profile.email as string,
         fullName: profile.fullName as string,
-        interestedCategoryId: categoryId,
-        skillLevel: skillLevel,
+        interestedCategoryId,
+        skillLevel,
         commitment: selectedAvailability,
         timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         country: country || undefined,
@@ -94,6 +96,7 @@ function OnboardingStep3Content() {
         throw new Error(result.message || "Failed to create student profile");
       }
 
+      resetData();
       await refreshUser();
       setTimeout(() => {
         router.replace("/dashboard");
@@ -107,7 +110,7 @@ function OnboardingStep3Content() {
   };
 
   return (
-    <div className="w-full min-h-screen lg:grid lg:grid-cols-5 bg-background">
+    <div className="w-full h-screen lg:grid lg:grid-cols-5 bg-background overflow-hidden">
       <div className="relative hidden h-full bg-muted lg:col-span-3 lg:block overflow-hidden">
         {image && (
           <Image
@@ -123,73 +126,85 @@ function OnboardingStep3Content() {
         <div className="absolute inset-0 bg-gradient-to-tr from-black/80 via-black/40 to-transparent" />
         <div className="absolute bottom-12 left-12 text-white z-10 animate-in fade-in slide-in-from-bottom-8 duration-700">
           <h2 className="text-5xl font-bold tracking-tight">{t("title")}</h2>
-          <p className="mt-4 max-w-lg text-lg text-white/80 leading-relaxed font-light">
+          <p className="mt-4 max-w-lg text-lg text-white/80 leading-relaxed font-light font-sans">
             {t("subtitle")}
           </p>
         </div>
       </div>
 
-      <div className="flex h-full flex-col justify-center py-12 lg:col-span-2 relative overflow-hidden">
-        <div className="absolute top-0 right-0 -z-10 h-64 w-64 rounded-full bg-primary/5 blur-3xl" />
-        <div className="absolute bottom-0 left-0 -z-10 h-64 w-64 rounded-full bg-secondary/5 blur-3xl" />
+      <div className="h-full lg:col-span-2 relative overflow-y-auto custom-scrollbar">
+        <div className="absolute top-0 right-0 -z-10 h-64 w-64 rounded-full bg-primary/5 blur-3xl opacity-50" />
+        <div className="absolute bottom-0 left-0 -z-10 h-64 w-64 rounded-full bg-secondary/5 blur-3xl opacity-50" />
 
-        <div className="mx-auto grid w-full max-w-md gap-6 px-6">
-          {/* Progress */}
+        <div className="min-h-full flex flex-col justify-center py-12 px-6 mx-auto w-full max-w-md gap-6">
           <div className="space-y-2">
             <Progress value={100} className="h-1.5 bg-muted transition-all duration-500" />
-            <div className="flex justify-between text-[10px] text-muted-foreground uppercase tracking-widest font-semibold">
-              <span>Step 1</span>
-              <span>Step 2</span>
-              <span className="text-primary">Step 3</span>
+            <div className="flex justify-between text-[10px] text-muted-foreground uppercase tracking-widest font-semibold font-sans">
+              <span>{tCommon("step", { number: 1 })}</span>
+              <span>{tCommon("step", { number: 2 })}</span>
+              <span className="text-primary font-bold">{tCommon("step", { number: 3 })}</span>
             </div>
           </div>
 
-          {/* Heading */}
           <div className="text-left animate-in fade-in slide-in-from-bottom-4 duration-500 delay-150">
             <h1 className="font-headline text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
               {t("heading")}
             </h1>
-            <p className="mt-4 text-lg text-muted-foreground">
-              {t("description")} <span className="text-destructive">*</span>
+            <p className="mt-4 text-lg text-muted-foreground leading-relaxed">
+              {t("description")} <span className="text-destructive font-bold text-xl leading-none">*</span>
             </p>
           </div>
 
-          {/* Availability cards */}
-          <div className="grid grid-cols-1 gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300">
-            {availabilities.map((availability) => (
+          <div 
+            className="grid grid-cols-1 gap-4"
+            role="radiogroup"
+            aria-label={t("selectAvailability")}
+          >
+            {availabilityOptions.map((option, idx) => (
               <Card
-                key={availability.title}
-                className={`group cursor-pointer rounded-2xl border-2 p-1 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] ${selectedAvailability === availability.title
+                key={option.id}
+                role="radio"
+                aria-checked={selectedAvailability === option.id}
+                tabIndex={0}
+                aria-label={t(option.titleKey as any)}
+                className={`group cursor-pointer rounded-2xl border-2 p-1 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] animate-in fade-in slide-in-from-bottom-4 fill-mode-both ${selectedAvailability === option.id
                   ? "border-primary bg-primary/5 shadow-xl shadow-primary/10"
                   : "border-transparent bg-card hover:border-primary/20 hover:shadow-md"
                   }`}
+                style={{ animationDelay: `${idx * 100 + 300}ms` }}
                 onClick={() =>
-                  setValue("availability", availability.title, { shouldValidate: true })
+                  setValue("availability", option.id, { shouldValidate: true })
                 }
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setValue("availability", option.id, { shouldValidate: true });
+                  }
+                }}
               >
                 <CardContent className="flex items-center gap-5 p-5">
                   <div
-                    className={`flex h-14 w-14 items-center justify-center rounded-2xl transition-transform duration-500 group-hover:rotate-6 ${availability.color} shadow-inner backdrop-blur-sm`}
+                    className={`flex h-14 w-14 items-center justify-center rounded-2xl transition-transform duration-500 group-hover:rotate-6 ${option.color} shadow-inner backdrop-blur-sm`}
                   >
-                    {React.cloneElement(availability.icon as React.ReactElement, {
-                      className: "h-7 w-7",
+                    {React.cloneElement(option.icon as React.ReactElement, {
+                      className: "h-7 w-7 transition-transform duration-300 group-hover:scale-110",
                     })}
                   </div>
                   <div className="flex-1">
                     <h3 className="font-headline text-xl font-bold tracking-tight">
-                      {availability.title}
+                      {t(option.titleKey as any)}
                     </h3>
-                    <p className="mt-1 text-sm text-muted-foreground font-medium">
-                      {availability.description}
+                    <p className="mt-1 text-sm text-muted-foreground font-medium line-clamp-2 leading-snug">
+                      {t(option.descriptionKey as any)}
                     </p>
                   </div>
                   <div
-                    className={`h-6 w-6 rounded-full border-2 transition-all duration-300 flex items-center justify-center ${selectedAvailability === availability.title
+                    className={`h-6 w-6 rounded-full border-2 transition-all duration-300 flex items-center justify-center ${selectedAvailability === option.id
                       ? "border-primary bg-primary"
                       : "border-muted group-hover:border-primary/50"
                       }`}
                   >
-                    {selectedAvailability === availability.title && (
+                    {selectedAvailability === option.id && (
                       <div className="h-2 w-2 rounded-full bg-white" />
                     )}
                   </div>
@@ -199,11 +214,11 @@ function OnboardingStep3Content() {
           </div>
 
           {errors.availability && (
-            <p className="text-sm font-medium text-destructive text-center animate-bounce">
+            <p className="text-sm font-medium text-destructive text-center animate-in fade-in">
               {errors.availability.message}
             </p>
           )}
-          {/* Navigation */}
+
           <div className="flex items-center justify-between gap-4 pt-2 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-500">
             <Button
               size="lg"
@@ -211,9 +226,7 @@ function OnboardingStep3Content() {
               asChild
               className="px-0 hover:bg-transparent text-muted-foreground hover:text-foreground transition-colors group"
             >
-              <Link
-                href={`/onboarding/step-2?categoryId=${encodeURIComponent(categoryId || "")}&country=${encodeURIComponent(country || "")}&countryIso=${encodeURIComponent(countryIso || "")}`}
-              >
+              <Link href="/onboarding/step-2">
                 <ArrowLeft className="mr-2 h-5 w-5 transition-transform group-hover:-translate-x-1" />
                 {tCommon("back")}
               </Link>
@@ -222,7 +235,7 @@ function OnboardingStep3Content() {
               size="lg"
               onClick={handleFinish}
               disabled={!isValid || isLoading}
-              className="px-8 rounded-full h-14 text-lg font-semibold shadow-lg shadow-primary/20 transition-all active:scale-95 disabled:grayscale"
+              className="px-12 rounded-full h-14 text-lg font-bold shadow-xl shadow-primary/20 transition-all hover:scale-105 active:scale-95 bg-primary hover:bg-primary/90"
             >
               {isLoading ? (
                 <>
@@ -232,7 +245,7 @@ function OnboardingStep3Content() {
               ) : (
                 <>
                   {t("finish")}
-                  <CheckCircle className="ml-2 h-5 w-5" />
+                  <CheckCircle className="ml-2 h-5 w-5 transition-transform group-hover:scale-110" />
                 </>
               )}
             </Button>
