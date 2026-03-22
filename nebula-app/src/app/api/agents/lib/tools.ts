@@ -19,9 +19,7 @@ export const searchCoachesTool = tool(
         limit: 5,
       } as any);
 
-      const result = await response.json();
-
-      return result.data?.coaches || [];
+      return response.coaches || [];
     } catch (error: any) {
       return {
         error: `Error searching coaches: ${error.message}`,
@@ -53,9 +51,7 @@ export const searchProgramsTool = tool(
         limit: 5,
       });
 
-      const result = await response.json();
-
-      return result.data?.programs || [];
+      return response.programs || [];
     } catch (error: any) {
       return {
         error: `Error searching programs: ${error.message}`,
@@ -85,9 +81,7 @@ export const searchEventsTool = tool(
         limit: 5,
       });
 
-      const result = await response.json();
-
-      return result.data?.events || [];
+      return response.events || [];
     } catch (error: any) {
       return {
         error: `Error searching events: ${error.message}`,

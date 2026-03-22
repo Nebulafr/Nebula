@@ -3,6 +3,7 @@ import { type AuthenticatedRequest } from "@/types";
 import { eventService } from "../services/event.service";
 import { createEventSchema, updateEventSchema } from "@/lib/validations";
 import { BadRequestException } from "../utils/http-exception";
+import { sendSuccess } from "../utils/send-response";
 
 class EventController {
   async createEvent(request: NextRequest) {
@@ -10,7 +11,8 @@ class EventController {
     const body = createEventSchema.parse(payload);
     const user = (request as unknown as any).user;
 
-    return await eventService.create(user.id, user.role, body);
+    const result = await eventService.create(user.id, user.role, body);
+    return sendSuccess(result, "Event created successfully", 201);
   }
 
   async getEvents(request: NextRequest) {
@@ -24,21 +26,24 @@ class EventController {
       offset: searchParams.get("offset") ? parseInt(searchParams.get("offset")!) : undefined,
       isPublic: searchParams.get("isPublic") === "true" ? true : searchParams.get("isPublic") === "false" ? false : undefined,
     };
-    return await eventService.find(params);
+    const result = await eventService.find(params);
+    return sendSuccess(result, "Events fetched successfully");
   }
 
   async getEvent(id: string) {
     if (!id) {
       throw new BadRequestException("Event ID is required");
     }
-    return await eventService.findById(id);
+    const result = await eventService.findById(id);
+    return sendSuccess(result, "Event fetched successfully");
   }
 
   async getEventBySlug(slug: string) {
     if (!slug) {
       throw new BadRequestException("Event Slug is required");
     }
-    return await eventService.findBySlug(slug);
+    const result = await eventService.findBySlug(slug);
+    return sendSuccess(result, "Event fetched successfully");
   }
 
   async updateEvent(request: NextRequest, id: string) {
@@ -51,7 +56,8 @@ class EventController {
     const body = updateEventSchema.parse(payload);
     const user = (request as unknown as any).user;
 
-    return await eventService.update(user.id, user.role, id, body);
+    const result = await eventService.update(user.id, user.role, id, body);
+    return sendSuccess(result, "Event updated successfully");
   }
 
   async deleteEvent(request: NextRequest, id: string) {
@@ -59,7 +65,9 @@ class EventController {
       throw new BadRequestException("Event ID is required");
     }
     const user = (request as unknown as any).user;
-    return await eventService.remove(user.id, user.role, id);
+    const result = await eventService.remove(user.id, user.role, id);
+    const message = (result as any)?.message || "Event deleted successfully";
+    return sendSuccess(result, message);
   }
 
   async registerForEvent(request: NextRequest, eventId: string) {
@@ -67,7 +75,8 @@ class EventController {
     if (!user) {
       throw new BadRequestException("Authentication required");
     }
-    return await eventService.registerForEvent(user.id, eventId);
+    const result = await eventService.registerForEvent(user.id, eventId);
+    return sendSuccess(result, "Successfully registered for event", 201);
   }
 
   async unregisterFromEvent(request: NextRequest, eventId: string) {
@@ -75,7 +84,8 @@ class EventController {
     if (!user) {
       throw new BadRequestException("Authentication required");
     }
-    return await eventService.unregisterFromEvent(user.id, eventId);
+    const result = await eventService.unregisterFromEvent(user.id, eventId);
+    return sendSuccess(result, "Successfully unregistered from event");
   }
 }
 

@@ -6,13 +6,11 @@ import {
 } from "../utils/http-exception";
 import { createProgramSchema, updateProgramSchema } from "@/lib/validations";
 import { prisma } from "@/lib/prisma";
-import { sendSuccess } from "../utils/send-response";
 import { generateSlug } from "@/lib/utils";
 import { extractUserFromRequest } from "../utils/extract-user";
 import { emailService } from "./email.service";
 import { uploadService } from "./upload.service";
 import { Program, Prisma, ProgramReview, User } from "@/generated/prisma";
-import { AuthenticatedRequest } from "@/types";
 type ProgramReviewWithUser = ProgramReview & { user?: User };
 type ProgramWithRelations = Program & {
   modules?: any[];
@@ -181,14 +179,10 @@ export class ProgramService {
       // Don't fail the program creation if email fails
     }
 
-    return sendSuccess(
-      {
-        programId: program.id,
-        program: program,
-      },
-      "Program created successfully",
-      201,
-    );
+    return {
+      programId: program.id,
+      program: program,
+    };
   }
 
   transformProgramData(program: any) {
@@ -236,8 +230,16 @@ export class ProgramService {
     search?: string;
     limit?: number;
     offset?: number;
+    interestedCategoryIds?: string[];
   }) {
-    const { coachId, category, search, limit = 10, offset = 0 } = params;
+    const {
+      coachId,
+      category,
+      search,
+      limit = 10,
+      offset = 0,
+      interestedCategoryIds,
+    } = params;
 
     const whereClause: Prisma.ProgramWhereInput = {};
 
@@ -252,8 +254,17 @@ export class ProgramService {
       whereClause.categoryId = category;
     }
 
+    if (interestedCategoryIds && interestedCategoryIds.length > 0) {
+      whereClause.OR = [
+        {
+          categoryId: { in: interestedCategoryIds },
+        },
+      ];
+    }
+
     if (search) {
       whereClause.OR = [
+        ...(whereClause.OR || []),
         { title: { contains: search, mode: "insensitive" } },
         { description: { contains: search, mode: "insensitive" } },
         { category: { name: { contains: search, mode: "insensitive" } } },
@@ -284,6 +295,7 @@ export class ProgramService {
             },
           },
           enrollments: {
+            take: 5,
             select: {
               student: {
                 select: {
@@ -333,7 +345,7 @@ export class ProgramService {
     const { transformedPrograms, totalCount, limit, offset } =
       await this.fetchProgramsData(params);
 
-    return sendSuccess({
+    return {
       programs: transformedPrograms,
       pagination: {
         total: totalCount,
@@ -341,7 +353,7 @@ export class ProgramService {
         offset,
         hasMore: offset + transformedPrograms.length < totalCount,
       },
-    });
+    };
   }
 
   async getGroupedPrograms(params: any) {
@@ -399,6 +411,7 @@ export class ProgramService {
               },
             },
             enrollments: {
+              take: 5,
               select: {
                 student: {
                   select: {
@@ -440,9 +453,9 @@ export class ProgramService {
       ),
     }));
 
-    return sendSuccess({
+    return {
       groupedPrograms: formattedGroups,
-    });
+    };
   }
 
   async getBySlug(slug: string, authenticatedUserId?: string) {
@@ -471,6 +484,7 @@ export class ProgramService {
           include: {
             user: true,
           },
+          take: 4
         },
         cohorts: {
           where: {
@@ -507,7 +521,7 @@ export class ProgramService {
       hasUserReviewed,
     };
 
-    return sendSuccess({ program: transformedProgram });
+    return { program: transformedProgram };
   }
 
   async getById(id: string) {
@@ -548,7 +562,7 @@ export class ProgramService {
       throw new NotFoundException("Program not found");
     }
 
-    return sendSuccess({ program });
+    return { program };
   }
 
   async updateById(coachId: string, coachRole: string, id: string, body: any) {
@@ -595,6 +609,10 @@ export class ProgramService {
       slug: string;
       isActive: boolean;
     } | null;
+
+
+
+
     if (category) {
       categoryRecord = await prisma.category.findUnique({
         where: { id: category },
@@ -603,6 +621,8 @@ export class ProgramService {
         throw new BadRequestException(`Category "${category}" not found`);
       }
     }
+
+
 
     const result = await prisma.$transaction(async (tx) => {
       // Handle co-coaches
@@ -734,7 +754,7 @@ export class ProgramService {
       });
     });
 
-    return sendSuccess({ program: result }, "Program updated successfully");
+    return { program: result };
   }
 
   async checkUserReview(
@@ -881,7 +901,7 @@ export class ProgramService {
       },
     });
 
-    return sendSuccess({ program: updatedProgram });
+    return { program: updatedProgram };
   }
 
   async deleteProgram(coachId: string, coachRole: string, slug: string) {
@@ -936,10 +956,13 @@ export class ProgramService {
       where: { id: program.id },
     });
 
-    return sendSuccess(null, "Program deleted successfully");
+    return null;
   }
 
-  async getRecommendedPrograms(studentId: string, interestedCategoryId: string | null) {
+  async getRecommendedPrograms(
+    studentId: string,
+    interestedCategoryIds: string[],
+  ) {
 
 
     const includeOptions = {
@@ -990,12 +1013,12 @@ export class ProgramService {
 
     let programs: ProgramWithRelations[] = [];
 
-    if (interestedCategoryId) {
+    if (interestedCategoryIds && interestedCategoryIds.length > 0) {
       programs = await prisma.program.findMany({
         where: {
           isActive: true,
           status: "ACTIVE",
-          categoryId: interestedCategoryId,
+          categoryId: { in: interestedCategoryIds },
         },
         include: includeOptions,
         orderBy: {
@@ -1027,7 +1050,7 @@ export class ProgramService {
       this.transformProgramData(program),
     );
 
-    return sendSuccess({ programs: transformedPrograms });
+    return { programs: transformedPrograms };
   }
 
   async getPopularPrograms(params: { limit?: number; offset?: number }) {
@@ -1114,18 +1137,15 @@ export class ProgramService {
       this.transformProgramData(program),
     );
 
-    return sendSuccess(
-      {
-        programs: transformedPrograms,
-        pagination: {
-          total: totalCount,
-          limit,
-          offset,
-          hasMore: offset + programs.length < totalCount,
-        },
+    return {
+      programs: transformedPrograms,
+      pagination: {
+        total: totalCount,
+        limit,
+        offset,
+        hasMore: offset + programs.length < totalCount,
       },
-      "Popular programs fetched successfully",
-    );
+    };
   }
 
   // Cohort Management
@@ -1140,7 +1160,7 @@ export class ProgramService {
       orderBy: { startDate: "asc" },
     });
 
-    return sendSuccess({ cohorts });
+    return { cohorts };
   }
 
   async createCohort(coachId: string, coachRole: string, programId: string, body: any) {
@@ -1171,7 +1191,7 @@ export class ProgramService {
       },
     });
 
-    return sendSuccess({ cohort }, "Cohort created successfully", 201);
+    return { cohort };
   }
 
   async updateCohort(coachId: string, coachRole: string, cohortId: string, body: any) {
@@ -1201,10 +1221,7 @@ export class ProgramService {
       },
     });
 
-    return sendSuccess(
-      { cohort: updatedCohort },
-      "Cohort updated successfully",
-    );
+    return { cohort: updatedCohort };
   }
 
   async deleteCohort(coachId: string, coachRole: string, cohortId: string) {
@@ -1234,7 +1251,7 @@ export class ProgramService {
       where: { id: cohortId },
     });
 
-    return sendSuccess(null, "Cohort deleted successfully");
+    return null;
   }
 
   async submitProgram(coachId: string, coachRole: string, programId: string) {
@@ -1281,10 +1298,7 @@ export class ProgramService {
       },
     });
 
-    return sendSuccess(
-      { program: updatedProgram },
-      "Program submitted for publishing successfully",
-    );
+    return { program: updatedProgram };
   }
 }
 

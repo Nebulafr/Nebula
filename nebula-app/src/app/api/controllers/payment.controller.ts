@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { paymentService } from "../services/payment.service";
 import { BadRequestException, UnauthorizedException } from "../utils/http-exception";
 import { z } from "zod";
+import { sendSuccess } from "../utils/send-response";
 
 const refundSchema = z.object({
     type: z.enum(["PROGRAM", "SESSION", "EVENT"]),
@@ -26,10 +27,10 @@ export class PaymentController {
 
 
         const { type, id } = refundSchema.parse(body);
-        await paymentService.processRefund(type, id);
-
-        return NextResponse.json({ success: true, message: "Refund processed successfully" });
+        const result = await paymentService.processRefund(type, id);
+        return sendSuccess(result, "Refund processed successfully");
     }
+
 }
 
 export const paymentController = new PaymentController();

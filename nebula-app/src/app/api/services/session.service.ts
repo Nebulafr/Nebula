@@ -1,9 +1,8 @@
 import { prisma } from "@/lib/prisma";
-import { PaymentStatus, SessionStatus, Coach, User, Student, Session, Prisma, TransactionType, TransactionSourceType, TransactionStatus } from "@/generated/prisma";
+import { PaymentStatus, SessionStatus, Prisma, TransactionType, TransactionSourceType, TransactionStatus } from "@/generated/prisma";
 import { createCalendarEvent } from "@/lib/google-api";
 import { emailService } from "./email.service";
 import { paymentService } from "./payment.service";
-import { sendSuccess } from "../utils/send-response";
 import {
   NotFoundException,
   BadRequestException,
@@ -299,10 +298,7 @@ export class SessionService {
       null,
     );
 
-    return sendSuccess(
-      { session: this.transformSession(session) },
-      "Session booked successfully",
-    );
+    return { session: this.transformSession(session) };
   }
 
   async approveSession(sessionId: string) {
@@ -465,10 +461,7 @@ export class SessionService {
       );
     }
 
-    return sendSuccess(
-      { session: this.transformSession(updatedSession) },
-      "Session approved successfully",
-    );
+    return { session: this.transformSession(updatedSession) };
   }
 
   async rejectSession(sessionId: string) {
@@ -508,10 +501,7 @@ export class SessionService {
         }
       });
 
-      return sendSuccess(
-        { session: this.transformSession(updatedSession as any) },
-        "Session rejected and refunded successfully",
-      );
+      return { session: this.transformSession(updatedSession as any) };
     }
 
     const updatedSession = await prisma.session.update({
@@ -525,10 +515,7 @@ export class SessionService {
     // For now we'll just use the existing cancellation logic or a new one
     // TODO: Add specialized rejection email
 
-    return sendSuccess(
-      { session: this.transformSession(updatedSession as any) },
-      "Session rejected successfully",
-    );
+    return { session: this.transformSession(updatedSession as any) };
   }
 
   private async verifyCoachAvailability(
@@ -681,7 +668,7 @@ export class SessionService {
     student: any,
     sessionDateTime: moment.Moment,
     sessionEndTime: moment.Moment,
-     
+
     duration: number,
   ) {
     const eventTitle = `Coaching Session with ${student.user?.fullName || "Student"}`;
@@ -830,10 +817,7 @@ export class SessionService {
       },
     });
 
-    return sendSuccess(
-      { sessions: this.transformSessions(sessions as any) },
-      "Sessions retrieved successfully",
-    );
+    return { sessions: this.transformSessions(sessions as any) };
   }
 
   async getStudentSessions(
@@ -920,10 +904,7 @@ export class SessionService {
       },
     });
 
-    return sendSuccess(
-      { sessions: this.transformSessions(sessions as any) },
-      "Sessions retrieved successfully",
-    );
+    return { sessions: this.transformSessions(sessions as any) };
   }
 
   async updateSession(
@@ -1005,10 +986,7 @@ export class SessionService {
       },
     });
 
-    return sendSuccess(
-      { session: this.transformSession(updatedSession as any) },
-      "Session updated successfully",
-    );
+    return { session: this.transformSession(updatedSession as any) };
   }
 
   async cancelSession(
@@ -1139,10 +1117,7 @@ export class SessionService {
       );
     }
 
-    return sendSuccess(
-      { session: this.transformSession(cancelledSession) },
-      "Session cancelled successfully",
-    );
+    return { session: this.transformSession(cancelledSession) };
   }
 
   private async deleteGoogleCalendarEvent(coach: any, eventId: string) {
@@ -1330,10 +1305,7 @@ export class SessionService {
       );
     }
 
-    return sendSuccess(
-      { session: this.transformSession(updatedSession as any) },
-      "Session rescheduled successfully",
-    );
+    return { session: this.transformSession(updatedSession as any) };
   }
 
   private async updateGoogleCalendarEvent(

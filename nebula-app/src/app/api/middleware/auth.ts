@@ -57,7 +57,11 @@ export function isAuthenticated(fn: Function) {
       },
       include: {
         coach: true,
-        student: true,
+        student: {
+          include: {
+            interestedCategories: true,
+          },
+        },
       },
     });
 

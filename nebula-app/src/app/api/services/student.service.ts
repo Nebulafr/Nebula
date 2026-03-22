@@ -2,7 +2,6 @@ import { prisma } from "@/lib/prisma";
 import { ExperienceLevel } from "@/generated/prisma";
 import { UpdateStudentData } from "@/lib/validations";
 import { NotFoundException } from "../utils/http-exception";
-import { sendSuccess } from "../utils/send-response";
 
 export class StudentService {
   private mapSkillLevelToEnum(skillLevel: string): ExperienceLevel {
@@ -22,6 +21,13 @@ export class StudentService {
   async findByUserId(userId: string) {
     return prisma.student.findUnique({
       where: { userId },
+      include: {
+        interestedCategories: {
+          include: {
+            category: true,
+          },
+        },
+      },
     });
   }
 
@@ -52,7 +58,7 @@ export class StudentService {
 
       student = await this.create({
         userId,
-        interestedCategoryId: data.interestedCategoryId,
+        interestedCategoryIds: data.interestedCategoryIds,
         skillLevel: mappedSkillLevel,
         commitment: data.commitment,
         timeZone: data.timeZone || "UTC",
@@ -60,7 +66,7 @@ export class StudentService {
       });
     } else {
       student = await this.update(student.id, {
-        interestedCategoryId: data.interestedCategoryId,
+        interestedCategoryIds: data.interestedCategoryIds,
         skillLevel: mappedSkillLevel,
         commitment: data.commitment,
         timeZone: data.timeZone || student.timeZone || "UTC",
@@ -68,7 +74,7 @@ export class StudentService {
       });
     }
 
-    return sendSuccess(student, "Student profile updated successfully");
+    return student;
   }
 
   async getProfile(userId: string) {
@@ -77,12 +83,17 @@ export class StudentService {
       throw new NotFoundException("Student profile not found");
     }
 
-    return sendSuccess(student, "Student profile fetched successfully");
+    const transformedStudent = {
+      ...student,
+      interestedCategoryIds: student.interestedCategories.map((ic: { categoryId: string }) => ic.categoryId),
+    };
+
+    return transformedStudent;
   }
 
   async create(data: {
     userId: string;
-    interestedCategoryId: string;
+    interestedCategoryIds: string[];
     skillLevel: ExperienceLevel;
     commitment: string;
     timeZone?: string;
@@ -91,12 +102,24 @@ export class StudentService {
     return prisma.student.create({
       data: {
         userId: data.userId,
-        interestedCategoryId: data.interestedCategoryId,
+        interestedCategoryId: data.interestedCategoryIds[0] || null,
+        interestedCategories: {
+          create: data.interestedCategoryIds.map((categoryId) => ({
+            categoryId,
+          })),
+        },
         skillLevel: data.skillLevel,
         commitment: data.commitment,
         timeZone: data.timeZone || "UTC",
         learningGoals: data.learningGoals || [],
         currentLevel: "BEGINNER",
+      },
+      include: {
+        interestedCategories: {
+          include: {
+            category: true,
+          },
+        },
       },
     });
   }
@@ -104,16 +127,36 @@ export class StudentService {
   async update(
     id: string,
     data: {
-      interestedCategoryId?: string;
+      interestedCategoryIds?: string[];
       skillLevel?: ExperienceLevel;
       commitment?: string;
       timeZone?: string;
       learningGoals?: string[];
     }
   ) {
+    const { interestedCategoryIds, ...rest } = data;
+
     return prisma.student.update({
       where: { id },
-      data,
+      data: {
+        ...rest,
+        ...(interestedCategoryIds && {
+          interestedCategoryId: interestedCategoryIds[0] || null,
+          interestedCategories: {
+            deleteMany: {},
+            create: interestedCategoryIds.map((categoryId) => ({
+              categoryId,
+            })),
+          },
+        }),
+      },
+      include: {
+        interestedCategories: {
+          include: {
+            category: true,
+          },
+        },
+      },
     });
   }
 }

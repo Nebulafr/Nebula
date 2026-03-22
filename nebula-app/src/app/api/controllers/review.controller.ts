@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { type AuthenticatedRequest } from "@/types";
 import { reviewService } from "../services/review.service";
 import { targetReviewSchema, reviewQuerySchema } from "@/lib/validations/review";
+import { sendSuccess } from "../utils/send-response";
 
 export class ReviewController {
   async createReview(
@@ -19,20 +20,22 @@ export class ReviewController {
     });
 
     if (targetType === "COACH") {
-      return await reviewService.createCoachReview({
+      const result = await reviewService.createCoachReview({
         reviewerId: user.id,
         targetId: payload.targetId,
         rating: payload.rating,
         content: payload.content,
         sessionId: payload.sessionId,
       });
+      return sendSuccess(result, "Coach review submitted successfully", 201);
     } else {
-      return await reviewService.createProgramReview({
+      const result = await reviewService.createProgramReview({
         reviewerId: user.id,
         targetId: payload.targetId,
         rating: payload.rating,
         content: payload.content,
       });
+      return sendSuccess(result, "Program review submitted successfully", 201);
     }
   }
 
@@ -51,21 +54,23 @@ export class ReviewController {
     });
 
     if (targetType === "PROGRAM") {
-      return await reviewService.createProgramReviewBySlug({
+      const result = await reviewService.createProgramReviewBySlug({
         reviewerId: user.id,
         slug,
         rating: payload.rating,
         content: payload.content,
       });
+      return sendSuccess(result, "Program review submitted successfully", 201);
     } else {
       // For COACH type, slug is the coach targetId
-      return await reviewService.createCoachReview({
+      const result = await reviewService.createCoachReview({
         reviewerId: user.id,
         targetId: slug,
         rating: payload.rating,
         content: payload.content,
         sessionId: payload.sessionId,
       });
+      return sendSuccess(result, "Coach review submitted successfully", 201);
     }
   }
 
@@ -87,9 +92,11 @@ export class ReviewController {
     };
 
     if (targetType === "COACH") {
-      return await reviewService.getCoachReviews(targetId, sortOptions);
+      const result = await reviewService.getCoachReviews(targetId, sortOptions);
+      return sendSuccess(result, "Coach reviews fetched successfully");
     } else {
-      return await reviewService.getProgramReviews(targetId, sortOptions);
+      const result = await reviewService.getProgramReviews(targetId, sortOptions);
+      return sendSuccess(result, "Program reviews fetched successfully");
     }
   }
 
@@ -116,9 +123,11 @@ export class ReviewController {
 
     if (targetType === "COACH") {
       // For coaches, slug is the coachId
-      return await reviewService.getCoachReviews(slug, sortOptions);
+      const result = await reviewService.getCoachReviews(slug, sortOptions);
+      return sendSuccess(result, "Coach reviews fetched successfully");
     } else {
-      return await reviewService.getProgramReviewsBySlug(slug, sortOptions);
+      const result = await reviewService.getProgramReviewsBySlug(slug, sortOptions);
+      return sendSuccess(result, "Program reviews fetched successfully");
     }
   }
 }

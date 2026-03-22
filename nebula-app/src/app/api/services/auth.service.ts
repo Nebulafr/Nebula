@@ -13,7 +13,6 @@ import HttpException, {
   NotFoundException,
 } from "../utils/http-exception";
 import { RESPONSE_CODE } from "@/types";
-import { sendSuccess } from "../utils/send-response";
 import { emailService } from "./email.service";
 import { uploadService } from "./upload.service";
 import crypto from "crypto";
@@ -91,11 +90,7 @@ export class AuthService {
     );
 
 
-    return sendSuccess(
-      { user },
-      "Account created. Please check your email to verify your account.",
-      201,
-    );
+    return { user };
   }
 
   async signin(data: SigninData) {
@@ -128,7 +123,7 @@ export class AuthService {
     const { hashedPassword, verificationToken, ...userWithoutPassword } = user;
     void hashedPassword;
     void verificationToken;
-    return sendSuccess({ accessToken, user: userWithoutPassword }, "Signed in successfully");
+    return { accessToken, user: userWithoutPassword };
   }
 
   async verifyEmail(token: string) {
@@ -169,10 +164,7 @@ export class AuthService {
     void hashedPassword;
     void verificationToken;
 
-    return sendSuccess(
-      { user: userWithoutPassword },
-      "Email verified successfully. You can now sign in.",
-    );
+    return { user: userWithoutPassword };
   }
 
   async googleAuth(data: GoogleAuthData) {
@@ -195,7 +187,7 @@ export class AuthService {
       const { hashedPassword, verificationToken, ...userWithoutPassword } = user;
       void hashedPassword;
       void verificationToken;
-      return sendSuccess({ accessToken, user: userWithoutPassword }, "Signed in successfully");
+      return { accessToken, user: userWithoutPassword };
     }
 
     user = await this.findUserByEmail(email);
@@ -213,10 +205,7 @@ export class AuthService {
       const { hashedPassword, verificationToken, ...userWithoutPassword } = user;
       void hashedPassword;
       void verificationToken;
-      return sendSuccess(
-        { accessToken, user: userWithoutPassword },
-        "Account linked and signed in successfully",
-      );
+      return { accessToken, user: userWithoutPassword };
     }
 
     user = await prisma.user.create({
@@ -239,16 +228,11 @@ export class AuthService {
     const accessToken = this.generateAccessToken(user.id);
 
     const { hashedPassword, verificationToken, ...userWithoutPassword } = user;
-    return sendSuccess(
-      { accessToken, user: userWithoutPassword },
-      "Account created successfully",
-      201,
-    );
+    return { accessToken, user: userWithoutPassword };
   }
 
   async getProfile(userId: string) {
     const user = await this.getUserProfile(userId);
-    console.log({ user });
     if (!user) {
       throw new NotFoundException("User profile not found in database");
     }
@@ -259,9 +243,13 @@ export class AuthService {
         ...user.coach,
         specialties: user.coach.specialties.map(s => s.category.name),
       } : null,
+      student: user.student ? {
+        ...user.student,
+        interestedCategoryIds: user.student.interestedCategories?.map(ic => ic.categoryId) || [],
+      } : null,
     };
 
-    return sendSuccess({ user: transformedUser }, "Profile fetched successfully");
+    return { user: transformedUser };
   }
 
   async findUserByEmail(email: string) {
@@ -297,7 +285,15 @@ export class AuthService {
             },
           },
         },
-        student: true,
+        student: {
+          include: {
+            interestedCategories: {
+              include: {
+                category: true,
+              },
+            },
+          },
+        },
       },
     });
   }
@@ -322,12 +318,30 @@ export class AuthService {
         updateData.avatarUrl = uploadResult.url;
       }
 
-      if (Object.keys(updateData).length === 0) {
+      if (Object.keys(updateData).length === 0 && !data.interestedCategoryIds) {
         throw new HttpException(
           RESPONSE_CODE.VALIDATION_ERROR,
           "No valid fields provided for update",
           400,
         );
+      }
+
+      // Update interested categories if provided (for students)
+      if (data.interestedCategoryIds && Array.isArray(data.interestedCategoryIds)) {
+        const student = await prisma.student.findUnique({ where: { id: userId } });
+        if (student) {
+          await prisma.$transaction([
+            prisma.interestedCategory.deleteMany({
+              where: { studentId: userId },
+            }),
+            prisma.interestedCategory.createMany({
+              data: (data.interestedCategoryIds as string[]).map((categoryId) => ({
+                studentId: userId,
+                categoryId,
+              })),
+            }),
+          ]);
+        }
       }
 
       const updatedUser = await prisma.user.update({
@@ -346,7 +360,7 @@ export class AuthService {
         } as any,
       });
 
-      return sendSuccess({ user: updatedUser }, "Profile updated successfully");
+      return { user: updatedUser };
     } catch (error: unknown) {
       if (error instanceof HttpException) {
         throw error;
@@ -402,7 +416,7 @@ export class AuthService {
         data: { hashedPassword },
       });
 
-      return sendSuccess(null, "Password changed successfully");
+      return null;
     } catch (error: unknown) {
       if (error instanceof HttpException) {
         throw error;
@@ -439,10 +453,7 @@ export class AuthService {
       );
     }
 
-    return sendSuccess(
-      null,
-      "If an account exists with that email, we've sent instructions to reset your password.",
-    );
+    return null;
   }
 
   async resetPassword(token: string, data: { newPassword: string }) {
@@ -472,10 +483,7 @@ export class AuthService {
       },
     });
 
-    return sendSuccess(
-      null,
-      "Password successfully reset. You can now sign in with your new password.",
-    );
+    return null;
   }
 }
 

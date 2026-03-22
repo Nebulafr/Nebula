@@ -11,7 +11,6 @@ import {
   NotFoundException,
   BadRequestException,
 } from "../utils/http-exception";
-import { sendSuccess } from "../utils/send-response";
 import { generateSlug } from "@/lib/utils";
 import { paymentService } from "./payment.service";
 import { uploadService } from "./upload.service";
@@ -117,11 +116,7 @@ export class EventService {
       updatedAt: event.updatedAt.toISOString(),
     };
 
-    return sendSuccess(
-      { event: transformedEvent },
-      "Event created successfully",
-      201,
-    );
+    return { event: transformedEvent };
   };
 
   find = async (params: {
@@ -186,6 +181,7 @@ export class EventService {
             },
           },
           attendees: {
+            take: 5,
             where: {
               status: {
                 in: ["REGISTERED", "CONFIRMED", "ATTENDED"],
@@ -261,7 +257,7 @@ export class EventService {
       }),
     );
 
-    return sendSuccess({
+    return {
       events: transformedEvents,
       pagination: {
         total,
@@ -269,7 +265,7 @@ export class EventService {
         offset,
         hasMore: offset + limit < total,
       },
-    });
+    };
   };
 
   findById = async (id: string) => {
@@ -286,6 +282,7 @@ export class EventService {
           },
         },
         attendees: {
+          take: 5,
           where: {
             status: {
               in: ["REGISTERED", "CONFIRMED", "ATTENDED"],
@@ -360,7 +357,7 @@ export class EventService {
       updatedAt: event.updatedAt.toISOString(),
     };
 
-    return sendSuccess({ event: transformedEvent });
+    return { event: transformedEvent };
   };
 
   findBySlug = async (slug: string) => {
@@ -459,7 +456,7 @@ export class EventService {
       updatedAt: event.updatedAt.toISOString(),
     };
 
-    return sendSuccess({ event: transformedEvent });
+    return { event: transformedEvent };
   };
 
   update = async (userId: string, userRole: string, id: string, data: UpdateEventData) => {
@@ -552,10 +549,7 @@ export class EventService {
       updatedAt: event!.updatedAt.toISOString(),
     };
 
-    return sendSuccess(
-      { event: transformedEvent },
-      "Event updated successfully",
-    );
+    return { event: transformedEvent };
   };
 
   remove = async (userId: string, userRole: string, id: string) => {
@@ -565,11 +559,7 @@ export class EventService {
     });
 
     if (!existingEvent) {
-      return sendSuccess(
-        { event: null },
-        "Event already deleted or not found",
-        200,
-      );
+      return { event: null, message: "Event already deleted or not found" };
     }
 
     if (userRole !== "ADMIN" && existingEvent.organizerId !== userId) {
@@ -618,7 +608,7 @@ export class EventService {
       },
     });
 
-    return sendSuccess({ event: null }, "Event deleted successfully", 200);
+    return { event: null };
   };
 
   registerForEvent = async (userId: string, eventId: string) => {
@@ -682,18 +672,14 @@ export class EventService {
         },
       });
 
-      return sendSuccess(
-        {
-          message: "Successfully registered for event",
-          registration: {
-            id: registration.id,
-            eventId: registration.eventId,
-            registeredAt: registration.registeredAt,
-          },
+      return {
+        message: "Successfully registered for event",
+        registration: {
+          id: registration.id,
+          eventId: registration.eventId,
+          registeredAt: registration.registeredAt,
         },
-        "Successfully registered for event",
-        201,
-      );
+      };
     });
   };
 
@@ -733,10 +719,7 @@ export class EventService {
       },
     });
 
-    return sendSuccess(
-      { message: "Successfully unregistered from event" },
-      "Successfully unregistered from event",
-    );
+    return { message: "Successfully unregistered from event" };
   };
 }
 

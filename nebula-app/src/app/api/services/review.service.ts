@@ -1,6 +1,5 @@
 import { prisma } from "@/lib/prisma";
 import { ReviewTargetType, Prisma } from "@/generated/prisma";
-import { sendSuccess } from "../utils/send-response";
 import {
   NotFoundException,
   BadRequestException,
@@ -92,13 +91,9 @@ export class ReviewService {
       return review;
     });
 
-    return sendSuccess(
-      {
-        reviewId: result.id,
-      },
-      "Coach review submitted successfully",
-      201
-    );
+    return {
+      reviewId: result.id,
+    };
   }
 
   async createProgramReviewBySlug(data: Omit<CreateReviewBySlugData, "targetType" | "targetId">) {
@@ -174,13 +169,9 @@ export class ReviewService {
       return review;
     });
 
-    return sendSuccess(
-      {
-        reviewId: result.id,
-      },
-      "Program review submitted successfully",
-      201
-    );
+    return {
+      reviewId: result.id,
+    };
   }
 
   async deleteCoachReview(id: string) {
@@ -215,7 +206,7 @@ export class ReviewService {
       });
     });
 
-    return sendSuccess(null, "Coach review deleted successfully");
+    return null;
   }
 
   async deleteProgramReview(id: string) {
@@ -248,7 +239,7 @@ export class ReviewService {
       });
     });
 
-    return sendSuccess(null, "Program review deleted successfully");
+    return null;
   }
 
   async getProgramReviewsBySlug(
@@ -307,28 +298,25 @@ export class ReviewService {
     const targetEntity = await this.getCoachEntityInfo(targetId);
     const totalPages = Math.ceil(totalCount / limit);
 
-    return sendSuccess(
-      {
-        reviews: reviews.map((review) => ({
-          ...review,
-          reviewerId: review.userId,
-          targetType: "COACH" as const,
-          content: review.comment,
-          reviewer: review.user,
-        })),
-        targetEntity,
-        ratingDistribution,
-        pagination: {
-          currentPage: page,
-          totalPages,
-          totalReviews: totalCount,
-          hasNextPage: page < totalPages,
-          hasPreviousPage: page > 1,
-          limit,
-        },
+    return {
+      reviews: reviews.map((review) => ({
+        ...review,
+        reviewerId: review.userId,
+        targetType: "COACH" as const,
+        content: review.comment,
+        reviewer: review.user,
+      })),
+      targetEntity,
+      ratingDistribution,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalReviews: totalCount,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+        limit,
       },
-      "Coach reviews fetched successfully"
-    );
+    };
   }
 
   async getProgramReviews(
@@ -372,28 +360,25 @@ export class ReviewService {
     const targetEntity = await this.getProgramEntityInfo(targetId);
     const totalPages = Math.ceil(totalCount / limit);
 
-    return sendSuccess(
-      {
-        reviews: reviews.map((review) => ({
-          ...review,
-          reviewerId: review.userId,
-          targetType: "PROGRAM" as const,
-          content: review.comment,
-          reviewer: review.user,
-        })),
-        targetEntity,
-        ratingDistribution,
-        pagination: {
-          currentPage: page,
-          totalPages,
-          totalReviews: totalCount,
-          hasNextPage: page < totalPages,
-          hasPreviousPage: page > 1,
-          limit,
-        },
+    return {
+      reviews: reviews.map((review) => ({
+        ...review,
+        reviewerId: review.userId,
+        targetType: "PROGRAM" as const,
+        content: review.comment,
+        reviewer: review.user,
+      })),
+      targetEntity,
+      ratingDistribution,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalReviews: totalCount,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+        limit,
       },
-      "Program reviews fetched successfully"
-    );
+    };
   }
 
   private async validateCoachReview(

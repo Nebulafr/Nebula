@@ -4,7 +4,6 @@ import { NotFoundException } from "../utils/http-exception";
 import { CheckoutProgramData, CheckoutSessionData, CheckoutEventData } from "@/lib/validations/checkout";
 import { paymentService } from "./payment.service";
 import { sessionService } from "./session.service";
-import { sendSuccess } from "../utils/send-response";
 
 export class CheckoutService {
     async createProgramCheckout(userId: string, email: string, data: CheckoutProgramData) {
@@ -20,7 +19,7 @@ export class CheckoutService {
 
         if (program.price === 0) {
             await paymentService.handleProgramEnrollment(programId, userId, null, cohortId);
-            return sendSuccess({ url: data.successUrl });
+            return { url: data.successUrl };
         }
 
         const session = await stripe.checkout.sessions.create({
@@ -50,7 +49,7 @@ export class CheckoutService {
             },
         });
 
-        return sendSuccess({ url: session.url });
+        return { url: session.url };
     }
 
     async createSessionCheckout(userId: string, email: string, data: CheckoutSessionData) {
@@ -96,7 +95,7 @@ export class CheckoutService {
             },
         });
 
-        return sendSuccess({ url: session.url });
+        return { url: session.url };
     }
 
     async createEventCheckout(userId: string, email: string, data: CheckoutEventData) {
@@ -112,7 +111,7 @@ export class CheckoutService {
 
         if (event.price === 0) {
             await paymentService.handleEventRegistration(eventId, userId, null);
-            return sendSuccess({ url: data.successUrl });
+            return { url: data.successUrl };
         }
 
         const session = await stripe.checkout.sessions.create({
@@ -141,7 +140,7 @@ export class CheckoutService {
             },
         });
 
-        return sendSuccess({ url: session.url });
+        return { url: session.url };
     }
 }
 

@@ -28,11 +28,12 @@ export class StripeAccountController {
         return sendError('Missing returnUrl or refreshUrl', 400);
       }
 
-      return await stripeAccountService.createAccountLink(
+      const result = await stripeAccountService.createAccountLink(
         user.id,
         returnUrl,
         refreshUrl,
       );
+      return sendSuccess(result, 'Onboarding link generated');
     } catch (error: any) {
       console.error('Stripe Onboarding error:', error);
       return sendError(
@@ -45,7 +46,8 @@ export class StripeAccountController {
   async getStatus(request: NextRequest) {
     try {
       const user = (request as unknown as AuthenticatedRequest).user;
-      return await stripeAccountService.getAccountStatus(user.id);
+      const result = await stripeAccountService.getAccountStatus(user.id);
+      return sendSuccess(result, 'Stripe account status retrieved');
     } catch (error: any) {
       console.error('Stripe Status error:', error);
       return sendError(
@@ -58,7 +60,8 @@ export class StripeAccountController {
   async getBalance(request: NextRequest) {
     try {
       const user = (request as unknown as AuthenticatedRequest).user;
-      return await stripeAccountService.getBalance(user.id);
+      const result = await stripeAccountService.getBalance(user.id);
+      return sendSuccess(result, 'Account balance retrieved successfully');
     } catch (error: any) {
       console.error('Stripe Balance error:', error);
       return sendError(
@@ -78,7 +81,8 @@ export class StripeAccountController {
         return sendError('Invalid amount', 400);
       }
 
-      return await coachDashboardService.requestPayout(user.id, amount);
+      const result = await coachDashboardService.requestPayout(user.id, amount);
+      return sendSuccess(result, 'Payout request submitted successfully');
     } catch (error: any) {
       console.error('Payout request error:', error);
       return sendError(error.message || 'Failed to submit payout request', 500);

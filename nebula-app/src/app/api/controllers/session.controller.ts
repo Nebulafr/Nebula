@@ -10,6 +10,7 @@ import {
   UnauthorizedException,
 } from "../utils/http-exception";
 import { SessionFilter } from "../services/types/coach-dashboard.types";
+import { sendSuccess } from "../utils/send-response";
 
 export class SessionController {
   async bookSession(
@@ -40,7 +41,7 @@ export class SessionController {
       coachId,
     });
 
-    return await sessionService.bookSession({
+    const result = await sessionService.bookSession({
       coachId,
       date: payload.date,
       startTime: payload.startTime,
@@ -48,6 +49,7 @@ export class SessionController {
       studentUserId: user.id,
       timezone: payload.timezone,
     });
+    return sendSuccess(result, "Session booked successfully", 201);
   }
 
   async getCoachSessions(request: NextRequest) {
@@ -64,7 +66,8 @@ export class SessionController {
     const { searchParams } = new URL(request.url);
     const filter = searchParams.get("filter") || "upcoming";
 
-    return await sessionService.getCoachSessions(user.id, filter as SessionFilter);
+    const result = await sessionService.getCoachSessions(user.id, filter as SessionFilter);
+    return sendSuccess(result, "Sessions retrieved successfully");
   }
 
   async getStudentSessions(request: NextRequest) {
@@ -81,7 +84,8 @@ export class SessionController {
     const { searchParams } = new URL(request.url);
     const filter = searchParams.get("filter") || "upcoming";
 
-    return await sessionService.getStudentSessions(user.id, filter as SessionFilter);
+    const result = await sessionService.getStudentSessions(user.id, filter as SessionFilter);
+    return sendSuccess(result, "Sessions retrieved successfully");
   }
 
   async updateSession(
@@ -103,12 +107,13 @@ export class SessionController {
 
     const { sessionId } = await context.params;
 
-    return await sessionService.updateSession(
+    const result = await sessionService.updateSession(
       sessionId,
       body,
       user.id,
       user.role,
     );
+    return sendSuccess(result, "Session updated successfully");
   }
 
   async cancelSession(
@@ -130,12 +135,13 @@ export class SessionController {
 
     const { sessionId } = await context.params;
 
-    return await sessionService.cancelSession(
+    const result = await sessionService.cancelSession(
       sessionId,
       user.id,
       user.role,
       body.reason,
     );
+    return sendSuccess(result, "Session cancelled successfully");
   }
 
   async rescheduleSession(
@@ -159,7 +165,7 @@ export class SessionController {
 
     const { sessionId } = await context.params;
 
-    return await sessionService.rescheduleSession({
+    const result = await sessionService.rescheduleSession({
       sessionId,
       date: payload.date,
       startTime: payload.startTime,
@@ -167,6 +173,7 @@ export class SessionController {
       userRole: user.role,
       timezone: payload.timezone,
     });
+    return sendSuccess(result, "Session rescheduled successfully");
   }
 
   async approveSession(
@@ -185,7 +192,8 @@ export class SessionController {
 
     const { sessionId } = await context.params;
 
-    return await sessionService.approveSession(sessionId);
+    const result = await sessionService.approveSession(sessionId);
+    return sendSuccess(result, "Session approved successfully");
   }
 
   async rejectSession(
@@ -204,7 +212,8 @@ export class SessionController {
 
     const { sessionId } = await context.params;
 
-    return await sessionService.rejectSession(sessionId);
+    const result = await sessionService.rejectSession(sessionId);
+    return sendSuccess(result, "Session rejected successfully");
   }
 }
 

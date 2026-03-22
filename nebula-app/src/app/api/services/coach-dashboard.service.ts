@@ -1,6 +1,5 @@
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma";
-import { sendSuccess } from "../utils/send-response";
 import { BadRequestException, NotFoundException } from "../utils/http-exception";
 import {
   CoachDashboardStats,
@@ -180,7 +179,7 @@ export class CoachDashboardService {
       studentsCoached: coach.studentsCoached || 0,
     };
 
-    return sendSuccess(stats, "Coach stats fetched successfully");
+    return stats;
   }
 
   async getSessions(
@@ -280,10 +279,7 @@ export class CoachDashboardService {
       })
     );
 
-    return sendSuccess(
-      { sessions: transformedSessions },
-      "Sessions fetched successfully"
-    );
+    return { sessions: transformedSessions };
   }
 
   async createSession(
@@ -384,7 +380,7 @@ export class CoachDashboardService {
       return newSession;
     });
 
-    return sendSuccess({ session }, "Session created successfully", 201);
+    return { session };
   }
 
   async getPrograms(userId: string, status: string = "all") {
@@ -461,10 +457,7 @@ export class CoachDashboardService {
       })
     );
 
-    return sendSuccess(
-      { programs: transformedPrograms },
-      "Programs fetched successfully"
-    );
+    return { programs: transformedPrograms };
   }
 
   async getStudents(
@@ -609,18 +602,15 @@ export class CoachDashboardService {
       };
     });
 
-    return sendSuccess(
-      {
-        students: formattedStudents,
-        pagination: {
-          total: totalCount,
-          page,
-          limit,
-          totalPages: Math.ceil(totalCount / limit),
-        },
+    return {
+      students: formattedStudents,
+      pagination: {
+        total: totalCount,
+        page,
+        limit,
+        totalPages: Math.ceil(totalCount / limit),
       },
-      "Students fetched successfully"
-    );
+    };
   }
 
   async getEarnings(userId: string) {
@@ -677,7 +667,7 @@ export class CoachDashboardService {
       earnings: Math.round(amount * 100) / 100,
     }));
 
-    return sendSuccess(earnings, "Earnings data fetched successfully");
+    return earnings;
   }
 
   async getRecentPayouts(userId: string, limit: number = 5) {
@@ -714,10 +704,7 @@ export class CoachDashboardService {
       date: p.date.toISOString(),
     }));
 
-    return sendSuccess(
-      { payouts: formattedPayouts, payoutsThisMonth },
-      "Recent payouts fetched successfully"
-    );
+    return { payouts: formattedPayouts, payoutsThisMonth };
   }
 
   public async getTotalEarningBalance(userId: string): Promise<number> {
@@ -789,7 +776,7 @@ export class CoachDashboardService {
       }
     });
 
-    return sendSuccess(payout, "Payout request submitted successfully");
+    return payout;
   }
 }
 

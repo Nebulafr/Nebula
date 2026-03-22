@@ -13,6 +13,7 @@ import {
   BadRequestException,
   UnauthorizedException,
 } from "../utils/http-exception";
+import { sendSuccess } from "../utils/send-response";
 
 export class AuthController {
   async register(request: NextRequest) {
@@ -25,7 +26,8 @@ export class AuthController {
 
     const payload = signupSchema.parse(body);
 
-    return await authService.register(payload);
+    const result = await authService.register(payload);
+    return sendSuccess(result, "Account created. Please check your email to verify your account.", 201);
   }
 
   async signin(request: NextRequest) {
@@ -38,7 +40,8 @@ export class AuthController {
 
     const payload = signinSchema.parse(body);
 
-    return await authService.signin(payload);
+    const result = await authService.signin(payload);
+    return sendSuccess(result, "Signed in successfully");
   }
 
   async googleAuth(request: NextRequest) {
@@ -51,7 +54,9 @@ export class AuthController {
 
     const payload = googleAuthSchema.parse(body);
 
-    return await authService.googleAuth(payload);
+    const result = await authService.googleAuth(payload);
+    const message = (result as any).isNewUser ? "Account created successfully" : "Signed in successfully";
+    return sendSuccess(result, message);
   }
 
   async getProfile(request: NextRequest) {
@@ -61,7 +66,8 @@ export class AuthController {
       throw new UnauthorizedException("Authentication required");
     }
 
-    return await authService.getProfile(user.id);
+    const result = await authService.getProfile(user.id);
+    return sendSuccess(result, "Profile fetched successfully");
   }
 
   async updateProfile(request: NextRequest) {
@@ -78,7 +84,8 @@ export class AuthController {
       throw new BadRequestException("Invalid JSON body");
     }
 
-    return await authService.updateProfile(user.id, body);
+    const result = await authService.updateProfile(user.id, body);
+    return sendSuccess(result, "Profile updated successfully");
   }
 
   async changePassword(request: NextRequest) {
@@ -97,7 +104,8 @@ export class AuthController {
 
     const payload = changePasswordSchema.parse(body);
 
-    return await authService.changePassword(user.id, payload);
+    const result = await authService.changePassword(user.id, payload);
+    return sendSuccess(result, "Password changed successfully");
   }
 
   async verifyEmail(request: NextRequest) {
@@ -108,7 +116,8 @@ export class AuthController {
       throw new BadRequestException("Verification token is required");
     }
 
-    return await authService.verifyEmail(token);
+    const result = await authService.verifyEmail(token);
+    return sendSuccess(result, "Email verified successfully. You can now sign in.");
   }
 
   async forgotPassword(request: NextRequest) {
@@ -121,7 +130,8 @@ export class AuthController {
 
     const payload = forgotPasswordSchema.parse(body);
 
-    return await authService.forgotPassword(payload.email);
+    const result = await authService.forgotPassword(payload.email);
+    return sendSuccess(result, "If an account exists with that email, we've sent instructions to reset your password.");
   }
 
   async resetPassword(request: NextRequest) {
@@ -141,7 +151,8 @@ export class AuthController {
 
     const payload = resetPasswordSchema.parse(body);
 
-    return await authService.resetPassword(token, payload);
+    const result = await authService.resetPassword(token, payload);
+    return sendSuccess(result, "Password successfully reset. You can now sign in with your new password.");
   }
 }
 

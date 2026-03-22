@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { checkoutService } from "../services/checkout.service";
 import { checkoutProgramSchema, checkoutSessionSchema, checkoutEventSchema } from "@/lib/validations/checkout";
 import { BadRequestException, UnauthorizedException } from "../utils/http-exception";
+import { sendSuccess } from "../utils/send-response";
 
 export class CheckoutController {
     async createProgramCheckout(request: NextRequest) {
@@ -22,7 +23,8 @@ export class CheckoutController {
         }
 
         const payload = checkoutProgramSchema.parse(body);
-        return await checkoutService.createProgramCheckout(user.id, user.email, payload);
+        const result = await checkoutService.createProgramCheckout(user.id, user.email, payload);
+        return sendSuccess(result, "Checkout session created");
     }
 
     async createSessionCheckout(request: NextRequest) {
@@ -43,7 +45,8 @@ export class CheckoutController {
         }
 
         const payload = checkoutSessionSchema.parse(body);
-        return await checkoutService.createSessionCheckout(user.id, user.email, payload);
+        const result = await checkoutService.createSessionCheckout(user.id, user.email, payload);
+        return sendSuccess(result, "Checkout session created");
     }
 
     async createEventCheckout(request: NextRequest) {
@@ -60,7 +63,8 @@ export class CheckoutController {
         }
 
         const payload = checkoutEventSchema.parse(body);
-        return await checkoutService.createEventCheckout(user.id, user.email, payload);
+        const result = await checkoutService.createEventCheckout(user.id, user.email, payload);
+        return sendSuccess(result, "Checkout session created");
     }
 }
 

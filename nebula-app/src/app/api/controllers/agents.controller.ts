@@ -3,6 +3,7 @@ import { agentsService } from "../services/agents.service";
 import { agentsSchema } from "@/lib/validations";
 import { BadRequestException } from "../utils/http-exception";
 import { UserRole } from "@/enums";
+import { sendSuccess } from "../utils/send-response";
 
 class AgentsController {
   async processAgentRequest(request: NextRequest) {
@@ -16,7 +17,8 @@ class AgentsController {
 
     const payload = agentsSchema.parse(body);
 
-    return await agentsService.processAgentRequest({ ...payload, userId: user.id, userRole: user.role });
+    const result = await agentsService.processAgentRequest({ ...payload, userId: user.id, userRole: user.role });
+    return sendSuccess(result, "Agent response");
   }
 }
 

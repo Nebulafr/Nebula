@@ -7,6 +7,7 @@ import {
 import { BadRequestException } from "../utils/http-exception";
 import { reviewService } from "../services/review.service";
 import { prisma } from "@/lib/prisma";
+import { sendSuccess } from "../utils/send-response";
 
 export class AdminController {
   async getPrograms(request: NextRequest) {
@@ -21,7 +22,8 @@ export class AdminController {
     };
 
     const payload = adminProgramQuerySchema.parse(queryParams);
-    return await adminService.getPrograms(payload);
+    const result = await adminService.getPrograms(payload);
+    return sendSuccess(result, "Programs fetched successfully");
   }
 
   async updateProgramStatus(request: NextRequest, programId: string) {
@@ -32,7 +34,8 @@ export class AdminController {
     const body = await request.json();
     const payload = programActionSchema.parse(body);
 
-    return await adminService.updateProgramStatus(programId, payload);
+    const result = await adminService.updateProgramStatus(programId, payload);
+    return sendSuccess(result, "Program status updated successfully");
   }
 
   async getUsers(request: NextRequest) {
@@ -48,7 +51,8 @@ export class AdminController {
 
     const { adminUserQuerySchema } = await import("@/lib/validations");
     const payload = adminUserQuerySchema.parse(queryParams);
-    return await adminService.getUsers(payload);
+    const result = await adminService.getUsers(payload);
+    return sendSuccess(result, "Users fetched successfully");
   }
 
   async getReviews(request: NextRequest) {
@@ -65,25 +69,29 @@ export class AdminController {
 
     const { adminReviewQuerySchema } = await import("@/lib/validations");
     const payload = adminReviewQuerySchema.parse(queryParams);
-    return await adminService.getReviews(payload);
+    const result = await adminService.getReviews(payload);
+    return sendSuccess(result, "Reviews fetched successfully");
   }
 
   async getDashboardStats() {
-    return await adminService.getDashboardStats();
+    const result = await adminService.getDashboardStats();
+    return sendSuccess(result, "Dashboard stats fetched successfully");
   }
 
   async getRecentSignups(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get("limit") || "5");
 
-    return await adminService.getRecentSignups(limit);
+    const result = await adminService.getRecentSignups(limit);
+    return sendSuccess(result, "Recent signups fetched successfully");
   }
 
   async getPlatformActivity(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get("limit") || "10");
 
-    return await adminService.getPlatformActivity(limit);
+    const result = await adminService.getPlatformActivity(limit);
+    return sendSuccess(result, "Platform activity fetched successfully");
   }
 
   async getEvents(request: NextRequest) {
@@ -99,7 +107,8 @@ export class AdminController {
 
     const { adminEventQuerySchema } = await import("@/lib/validations");
     const payload = adminEventQuerySchema.parse(queryParams);
-    return await adminService.getEvents(payload);
+    const result = await adminService.getEvents(payload);
+    return sendSuccess(result, "Events fetched successfully");
   }
 
   async updateCohort(request: NextRequest, cohortId: string) {
@@ -108,7 +117,8 @@ export class AdminController {
     }
 
     const body = await request.json();
-    return await adminService.updateCohort(cohortId, body);
+    const result = await adminService.updateCohort(cohortId, body);
+    return sendSuccess(result, "Cohort updated successfully");
   }
 
   async getCohortsByProgram(request: NextRequest) {
@@ -119,7 +129,8 @@ export class AdminController {
       throw new BadRequestException("Program ID is required");
     }
 
-    return await adminService.getCohortsByProgram(programId);
+    const result = await adminService.getCohortsByProgram(programId);
+    return sendSuccess(result, "Cohorts fetched successfully");
   }
 
   async createCohort(request: NextRequest) {
@@ -130,11 +141,12 @@ export class AdminController {
       throw new BadRequestException("Program ID is required");
     }
 
-    return await adminService.createCohort(programId, {
+    const result = await adminService.createCohort(programId, {
       name,
       startDate,
       maxStudents,
     });
+    return sendSuccess(result, "Cohort created successfully", 201);
   }
 
   async deleteReview(request: NextRequest, id: string) {
@@ -159,9 +171,11 @@ export class AdminController {
     }
 
     if (targetType === "COACH") {
-      return await reviewService.deleteCoachReview(id);
+      const result = await reviewService.deleteCoachReview(id);
+      return sendSuccess(result, "Review deleted successfully");
     } else if (targetType === "PROGRAM") {
-      return await reviewService.deleteProgramReview(id);
+      const result = await reviewService.deleteProgramReview(id);
+      return sendSuccess(result, "Review deleted successfully");
     } else {
       throw new BadRequestException("Could not determine review type");
     }
@@ -181,7 +195,17 @@ export class AdminController {
 
     const { adminTransactionQuerySchema } = await import("@/lib/validations");
     const payload = adminTransactionQuerySchema.parse(queryParams);
-    return await adminService.getTransactions(payload);
+    const result = await adminService.getTransactions(payload);
+    return sendSuccess(result, "Transactions fetched successfully");
+  }
+
+  async deleteUser(request: NextRequest, userId: string) {
+    if (!userId) {
+      throw new BadRequestException("User ID is required");
+    }
+
+    const result = await adminService.deleteUser(userId);
+    return sendSuccess(result, "User deleted successfully");
   }
 }
 

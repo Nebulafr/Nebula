@@ -1,13 +1,15 @@
 import { NextRequest } from "next/server";
 import { programService } from "../services/program.service";
 import { BadRequestException } from "../utils/http-exception";
+import { sendSuccess } from "../utils/send-response";
 
 export class ProgramController {
   async createProgram(request: NextRequest) {
     const body = await request.json();
     const user = (request as unknown as any).user;
     const coachId = user?.coach?.id;
-    return await programService.createProgram(coachId, user.role, body);
+    const result = await programService.createProgram(coachId, user.role, body);
+    return sendSuccess(result, "Program created successfully", 201);
   }
 
   async getPrograms(request: NextRequest) {
@@ -19,7 +21,8 @@ export class ProgramController {
       limit: searchParams.get("limit") ? parseInt(searchParams.get("limit")!) : undefined,
       offset: searchParams.get("offset") ? parseInt(searchParams.get("offset")!) : undefined,
     };
-    return await programService.getPrograms(params);
+    const result = await programService.getPrograms(params);
+    return sendSuccess(result, "Programs fetched successfully");
   }
 
   async getGroupedPrograms(request: NextRequest) {
@@ -31,7 +34,8 @@ export class ProgramController {
       limit: searchParams.get("limit") ? parseInt(searchParams.get("limit")!) : undefined,
       page: searchParams.get("page") ? parseInt(searchParams.get("page")!) : 1,
     };
-    return await programService.getGroupedPrograms(params);
+    const result = await programService.getGroupedPrograms(params);
+    return sendSuccess(result, "Programs grouped by category fetched successfully");
   }
 
   async getRecommendedPrograms(request: NextRequest) {
@@ -39,7 +43,15 @@ export class ProgramController {
     if (!user?.student) {
       throw new BadRequestException("User is not a student");
     }
-    return await programService.getRecommendedPrograms(user.student.id, user.student.interestedCategoryId);
+
+    const interestedCategoryIds =
+      user.student.interestedCategories?.map((ic: any) => ic.categoryId) || [];
+
+    const result = await programService.getRecommendedPrograms(
+      user.student.id,
+      interestedCategoryIds,
+    );
+    return sendSuccess(result, "Recommended programs fetched successfully");
   }
 
   async getPopularPrograms(request: NextRequest) {
@@ -48,7 +60,8 @@ export class ProgramController {
       limit: searchParams.get("limit") ? parseInt(searchParams.get("limit")!) : undefined,
       offset: searchParams.get("offset") ? parseInt(searchParams.get("offset")!) : undefined,
     };
-    return await programService.getPopularPrograms(params);
+    const result = await programService.getPopularPrograms(params);
+    return sendSuccess(result, "Popular programs fetched successfully");
   }
 
   async getBySlug(request: NextRequest, slug: string) {
@@ -57,7 +70,8 @@ export class ProgramController {
     }
     const { extractUserFromRequest } = await import("../utils/extract-user");
     const user = await extractUserFromRequest(request);
-    return await programService.getBySlug(slug, user?.id);
+    const result = await programService.getBySlug(slug, user?.id);
+    return sendSuccess(result, "Program fetched successfully");
   }
 
   async updateProgram(request: NextRequest, slug: string) {
@@ -67,7 +81,8 @@ export class ProgramController {
     const body = await request.json();
     const user = (request as unknown as any).user;
     const coachId = user?.coach?.id;
-    return await programService.updateProgram(coachId, user.role, slug, body);
+    const result = await programService.updateProgram(coachId, user.role, slug, body);
+    return sendSuccess(result, "Program updated successfully");
   }
 
   async deleteProgram(request: NextRequest, slug: string) {
@@ -76,7 +91,8 @@ export class ProgramController {
     }
     const user = (request as unknown as any).user;
     const coachId = user?.coach?.id;
-    return await programService.deleteProgram(coachId, user.role, slug);
+    const result = await programService.deleteProgram(coachId, user.role, slug);
+    return sendSuccess(result, "Program deleted successfully");
   }
 
   async submitProgram(request: NextRequest, programId: string) {
@@ -85,14 +101,16 @@ export class ProgramController {
     }
     const user = (request as unknown as any).user;
     const coachId = user?.coach?.id;
-    return await programService.submitProgram(coachId, user.role, programId);
+    const result = await programService.submitProgram(coachId, user.role, programId);
+    return sendSuccess(result, "Program submitted for review successfully");
   }
 
   async getById(request: NextRequest, id: string) {
     if (!id) {
       throw new BadRequestException("Program ID is required");
     }
-    return await programService.getById(id);
+    const result = await programService.getById(id);
+    return sendSuccess(result, "Program fetched successfully");
   }
 
   async updateById(request: NextRequest, id: string) {
@@ -102,7 +120,8 @@ export class ProgramController {
     const body = await request.json();
     const user = (request as unknown as any).user;
     const coachId = user?.coach?.id;
-    return await programService.updateById(coachId, user.role, id, body);
+    const result = await programService.updateById(coachId, user.role, id, body);
+    return sendSuccess(result, "Program updated successfully");
   }
 
   async deleteById(request: NextRequest, id: string) {
@@ -111,7 +130,8 @@ export class ProgramController {
     }
     const user = (request as unknown as any).user;
     const coachId = user?.coach?.id;
-    return await programService.deleteById(coachId, user.role, id);
+    const result = await programService.deleteById(coachId, user.role, id);
+    return sendSuccess(result, "Program deleted successfully");
   }
 }
 

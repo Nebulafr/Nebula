@@ -10,6 +10,7 @@ import {
   BadRequestException,
   UnauthorizedException,
 } from "../utils/http-exception";
+import { sendSuccess } from "../utils/send-response";
 
 export class CoachController {
   async getAll(request: NextRequest) {
@@ -28,13 +29,15 @@ export class CoachController {
 
     const payload = coachQuerySchema.parse(queryParams);
 
-    return await coachService.getCoaches(payload);
+    const result = await coachService.getCoaches(payload);
+    return sendSuccess(result, "Coaches retrieved successfully");
   }
 
   async getProfile(request: NextRequest) {
     const user = (request as unknown as AuthenticatedRequest).user;
 
-    return await coachService.getProfile(user.id);
+    const result = await coachService.getProfile(user.id);
+    return sendSuccess(result, "Coach profile fetched successfully");
   }
 
   async createCoach(request: NextRequest) {
@@ -49,7 +52,8 @@ export class CoachController {
 
     const payload = createCoachSchema.parse(body);
 
-    return await coachService.createCoach(user.id, payload);
+    const result = await coachService.createCoach(user.id, payload);
+    return sendSuccess(result, "Coach profile created successfully", 201);
   }
 
   async updateCoach(request: NextRequest) {
@@ -64,7 +68,8 @@ export class CoachController {
 
     const payload = updateCoachProfileSchema.parse(body);
 
-    return await coachService.updateCoach(user.id, payload);
+    const result = await coachService.updateCoach(user.id, payload);
+    return sendSuccess(result, "Coach profile updated successfully");
   }
 
   async getById(coachId?: string, request?: NextRequest) {
@@ -79,7 +84,8 @@ export class CoachController {
       userId = user?.id;
     }
 
-    return await coachService.getCoachById(coachId, userId);
+    const result = await coachService.getCoachById(coachId, userId);
+    return sendSuccess(result, "Coach profile fetched successfully");
   }
 
   async getSuggestedCoaches(request: NextRequest) {
@@ -88,7 +94,8 @@ export class CoachController {
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get("limit") || "4");
 
-    return await coachService.getSuggestedCoaches(user.id, limit);
+    const result = await coachService.getSuggestedCoaches(user.id, limit);
+    return sendSuccess(result, "Suggested coaches fetched successfully");
   }
 
   async connectGoogleCalendar(request: NextRequest) {
@@ -106,22 +113,25 @@ export class CoachController {
       throw new BadRequestException("Google Calendar access token is required");
     }
 
-    return await coachService.connectGoogleCalendar(
+    await coachService.connectGoogleCalendar(
       user.id,
       googleCalendarAccessToken,
       googleCalendarRefreshToken,
     );
+    return sendSuccess(null, "Google Calendar connected successfully");
   }
 
   async getAvailability(request: NextRequest) {
     const user = (request as unknown as AuthenticatedRequest).user;
-    return await coachService.getAvailability(user.id);
+    const result = await coachService.getAvailability(user.id);
+    return sendSuccess(result, "Availability fetched successfully");
   }
 
   async updateAvailability(request: NextRequest) {
     const user = (request as unknown as AuthenticatedRequest).user;
     const body = await request.json();
-    return await coachService.updateAvailability(user.id, body.availability);
+    const result = await coachService.updateAvailability(user.id, body.availability);
+    return sendSuccess(result, "Availability updated successfully");
   }
 }
 

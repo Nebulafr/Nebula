@@ -10,7 +10,6 @@ import {
 } from "../utils/http-exception";
 import { RESPONSE_CODE } from "@/types";
 import HttpException from "../utils/http-exception";
-import { sendSuccess } from "../utils/send-response";
 import { generateSlug } from "@/lib/utils";
 import { uploadService } from "./upload.service";
 
@@ -76,7 +75,7 @@ export class CategoryService {
         where,
         orderBy: { name: "asc" },
       });
-      return sendSuccess({ categories });
+      return { categories };
     }
 
     const skip = (page - 1) * limit;
@@ -93,18 +92,15 @@ export class CategoryService {
 
     const totalPages = Math.ceil(total / limit);
 
-    return sendSuccess(
-      {
-        categories,
-        pagination: {
-          total,
-          page,
-          limit,
-          totalPages,
-        },
+    return {
+      categories,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages,
       },
-      "Categories fetched successfully"
-    );
+    };
   }
 
   async getById(id: string) {
@@ -131,7 +127,7 @@ export class CategoryService {
       throw new NotFoundException("Category not found");
     }
 
-    return sendSuccess({ category }, "Category fetched successfully");
+    return { category };
   }
 
   async create(data: CreateCategoryData) {
@@ -161,11 +157,7 @@ export class CategoryService {
       },
     });
 
-    return sendSuccess(
-      { category },
-      `Category "${name}" created successfully`,
-      201
-    );
+    return { category };
   }
 
   async update(id: string, data: UpdateCategoryData) {
@@ -201,7 +193,7 @@ export class CategoryService {
       },
     });
 
-    return sendSuccess({ category }, "Category updated successfully");
+    return { category };
   }
 
   async delete(id: string) {
@@ -238,10 +230,7 @@ export class CategoryService {
       },
     });
 
-    return sendSuccess(
-      null,
-      `Category "${existingCategory.name}" deleted successfully`
-    );
+    return null;
   }
 }
 

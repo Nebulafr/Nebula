@@ -7,6 +7,7 @@ import {
   markMessageReadSchema,
 } from "@/lib/validations";
 import { BadRequestException } from "../utils/http-exception";
+import { sendSuccess } from "../utils/send-response";
 
 export class MessagingController {
   async getConversations(request: NextRequest) {
@@ -18,18 +19,22 @@ export class MessagingController {
       throw new BadRequestException("User ID is required");
     }
 
-    return await messagingService.getUserConversations(userId, limit);
+    const result = await messagingService.getUserConversations(userId, limit);
+    return sendSuccess(result, "Conversations fetched successfully");
   }
 
   async createConversation(request: NextRequest) {
     const body = await request.json();
     const payload = conversationCreateSchema.parse(body);
 
-    return await messagingService.createConversation(
+    const result = await messagingService.createConversation(
       payload.participants,
       payload.type,
       payload.title,
     );
+    const message = (result as any).isNew ? "Conversation created successfully" : "Conversation already exists";
+    const status = (result as any).isNew ? 201 : 200;
+    return sendSuccess(result, message, status);
   }
 
   async getMessages(request: NextRequest, conversationId: string) {
@@ -46,12 +51,13 @@ export class MessagingController {
       throw new BadRequestException("User ID is required");
     }
 
-    return await messagingService.getConversationMessages(
+    const result = await messagingService.getConversationMessages(
       conversationId,
       userId,
       page,
       limit,
     );
+    return sendSuccess(result, "Messages fetched successfully");
   }
 
   async sendMessage(request: NextRequest, conversationId: string) {
@@ -62,12 +68,13 @@ export class MessagingController {
     const body = await request.json();
     const payload = messageSendSchema.parse(body);
 
-    return await messagingService.sendMessage(
+    const result = await messagingService.sendMessage(
       conversationId,
       payload.senderId,
       payload.content,
       payload.type,
     );
+    return sendSuccess(result, "Message sent successfully", 201);
   }
 
   async markRead(request: NextRequest, conversationId: string) {
@@ -88,7 +95,8 @@ export class MessagingController {
       }
     }
 
-    return await messagingService.markMessagesAsRead(conversationId, userId);
+    const result = await messagingService.markMessagesAsRead(conversationId, userId);
+    return sendSuccess(result, "Messages marked as read successfully");
   }
 }
 

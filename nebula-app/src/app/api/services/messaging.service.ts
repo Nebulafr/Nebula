@@ -1,6 +1,5 @@
 import { prisma } from "@/lib/prisma";
 import { MessageType, ConversationType, Prisma } from "@/generated/prisma";
-import { sendSuccess } from "../utils/send-response";
 import {
   UnauthorizedException,
 } from "../utils/http-exception";
@@ -88,10 +87,7 @@ export class MessagingService {
       };
     });
 
-    return sendSuccess(
-      formattedConversations,
-      "Conversations fetched successfully"
-    );
+    return formattedConversations;
   }
 
   async createConversation(
@@ -125,13 +121,10 @@ export class MessagingService {
         existingConversation &&
         existingConversation.participants.length === 2
       ) {
-        return sendSuccess(
-          {
-            id: existingConversation.id,
-            isNew: false,
-          },
-          "Conversation already exists"
-        );
+        return {
+          id: existingConversation.id,
+          isNew: false,
+        };
       }
     }
 
@@ -148,14 +141,10 @@ export class MessagingService {
       },
     });
 
-    return sendSuccess(
-      {
-        id: conversation.id,
-        isNew: true,
-      },
-      "Conversation created successfully",
-      201
-    );
+    return {
+      id: conversation.id,
+      isNew: true,
+    };
   }
 
   async getConversationMessages(
@@ -210,13 +199,10 @@ export class MessagingService {
       attachments: message.attachments,
     }));
 
-    return sendSuccess(
-      {
-        messages: formattedMessages,
-        hasMore: messages.length === limit,
-      },
-      "Messages fetched successfully"
-    );
+    return {
+      messages: formattedMessages,
+      hasMore: messages.length === limit,
+    };
   }
 
   async sendMessage(
@@ -273,13 +259,9 @@ export class MessagingService {
         },
       });
 
-      return sendSuccess(
-        {
-          id: message.id,
-        },
-        "Message sent successfully",
-        201
-      );
+      return {
+        id: message.id,
+      };
     });
   }
 
@@ -307,7 +289,7 @@ export class MessagingService {
         },
       });
 
-      return sendSuccess(null, "Messages marked as read successfully");
+      return null;
     });
   }
 

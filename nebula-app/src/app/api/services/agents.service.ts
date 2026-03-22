@@ -1,7 +1,6 @@
 import { agent } from "../agents/lib";
 import { AgentInput } from "@/lib/validations";
 import { HumanMessage } from "langchain";
-import { sendSuccess } from "../utils/send-response";
 
 class AgentsService {
   async processAgentRequest(payload: AgentInput) {
@@ -15,7 +14,7 @@ class AgentsService {
       }
     })
     console.log("Agent response:", response.messages.at(-1)?.content);
-    return sendSuccess({ data: response.messages.at(-1)?.content }, "Agent response", 200);
+    return { data: response.messages.at(-1)?.content };
   }
 }
 

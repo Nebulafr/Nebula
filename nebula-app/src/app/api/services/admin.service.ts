@@ -15,7 +15,6 @@ import {
   UserRole,
   UserStatus,
 } from '@/generated/prisma';
-import { sendSuccess } from '../utils/send-response';
 import {
   NotFoundException,
   BadRequestException,
@@ -110,18 +109,15 @@ export class AdminService {
       programService.transformProgramData(program),
     );
 
-    return sendSuccess(
-      {
-        programs: formattedPrograms,
-        pagination: {
-          total: totalCount,
-          page,
-          limit,
-          totalPages: Math.ceil(totalCount / limit),
-        },
+    return {
+      programs: formattedPrograms,
+      pagination: {
+        total: totalCount,
+        page,
+        limit,
+        totalPages: Math.ceil(totalCount / limit),
       },
-      'Programs fetched successfully',
-    );
+    };
   }
 
   async updateProgramStatus(programId: string, data: ProgramActionData) {
@@ -254,10 +250,7 @@ export class AdminService {
       }
     }
 
-    return sendSuccess(
-      { program: result.updatedProgram },
-      `Program ${result.action}ed successfully`,
-    );
+    return { program: result.updatedProgram };
   }
 
   async getUsers(params?: AdminUserQueryData) {
@@ -332,18 +325,15 @@ export class AdminService {
       prisma.user.count({ where: whereClause }),
     ]);
 
-    return sendSuccess(
-      {
-        users,
-        pagination: {
-          total: totalCount,
-          page,
-          limit,
-          totalPages: Math.ceil(totalCount / limit),
-        },
+    return {
+      users,
+      pagination: {
+        total: totalCount,
+        page,
+        limit,
+        totalPages: Math.ceil(totalCount / limit),
       },
-      'Users fetched successfully',
-    );
+    };
   }
 
   async getReviews(params?: AdminReviewQueryData) {
@@ -386,8 +376,8 @@ export class AdminService {
           skip,
           take: limit,
           include: {
-            user: true,
-            coach: { include: { user: true } },
+            user: { select: { id: true, fullName: true, email: true, avatarUrl: true } },
+            coach: { include: { user: { select: { id: true, fullName: true, avatarUrl: true } } } },
           },
           orderBy: { createdAt: 'desc' },
         }),
@@ -401,8 +391,8 @@ export class AdminService {
           skip,
           take: limit,
           include: {
-            user: true,
-            program: true,
+            user: { select: { id: true, fullName: true, email: true, avatarUrl: true } },
+            program: { select: { id: true, title: true } },
           },
           orderBy: { createdAt: 'desc' },
         }),
@@ -413,14 +403,20 @@ export class AdminService {
       const [pReviews, pCount, cReviews, cCount] = await Promise.all([
         prisma.programReview.findMany({
           where: programWhere,
-          include: { user: true, program: true },
+          include: {
+            user: { select: { id: true, fullName: true, email: true, avatarUrl: true } },
+            program: { select: { id: true, title: true } },
+          },
           orderBy: { createdAt: 'desc' },
           take: skip + limit,
         }),
         prisma.programReview.count({ where: programWhere }),
         prisma.coachReview.findMany({
           where: coachWhere,
-          include: { user: true, coach: { include: { user: true } } },
+          include: {
+            user: { select: { id: true, fullName: true, email: true, avatarUrl: true } },
+            coach: { include: { user: { select: { id: true, fullName: true, avatarUrl: true } } } },
+          },
           orderBy: { createdAt: 'desc' },
           take: skip + limit,
         }),
@@ -436,36 +432,54 @@ export class AdminService {
       totalCount = pCount + cCount;
     }
 
-    return sendSuccess(
-      {
-        reviews: reviews.map((r: any) => ({
-          id: r.id,
-          rating: r.rating,
-          content: r.comment,
-          targetType: r.targetType,
-          createdAt: r.createdAt,
-          reviewer: {
-            id: r.user.id,
-            fullName: r.user.fullName,
-            email: r.user.email,
-            avatarUrl: r.user.avatarUrl,
-          },
-          target: r.targetType === 'PROGRAM' ? r.program : r.coach,
-        })),
-        pagination: {
-          total: totalCount,
-          page,
-          limit,
-          totalPages: Math.ceil(totalCount / limit),
+    return {
+      reviews: reviews.map((r: any) => ({
+        id: r.id,
+        rating: r.rating,
+        content: r.comment,
+        targetType: r.targetType,
+        createdAt: r.createdAt,
+        reviewer: {
+          id: r.user.id,
+          fullName: r.user.fullName,
+          email: r.user.email,
+          avatarUrl: r.user.avatarUrl,
         },
+        target: r.targetType === 'PROGRAM' ? r.program : r.coach,
+      })),
+      pagination: {
+        total: totalCount,
+        page,
+        limit,
+        totalPages: Math.ceil(totalCount / limit),
       },
-      'Reviews fetched successfully',
-    );
+    };
   }
 
   async getDashboardStats() {
     // Calculate total revenue from transactions (Earnings - Refunds)
-    const [earningsAggregate, refundsAggregate] = await Promise.all([
+    const lastMonth = new Date();
+    lastMonth.setMonth(lastMonth.getMonth() - 1);
+
+    const thisMonth = new Date();
+    thisMonth.setDate(1);
+    thisMonth.setHours(0, 0, 0, 0);
+
+    const lastMonthStart = new Date(thisMonth);
+    lastMonthStart.setMonth(lastMonthStart.getMonth() - 1);
+
+    const [
+      earningsAggregate,
+      refundsAggregate,
+      totalUsers,
+      usersLastMonth,
+      newSignupsThisMonth,
+      newSignupsLastMonth,
+      activeCoaches,
+      activeCoachesLastMonth,
+      earningsLastMonth,
+      refundsLastMonth,
+    ] = await Promise.all([
       prisma.transaction.aggregate({
         where: {
           type: TransactionType.EARNING,
@@ -480,52 +494,53 @@ export class AdminService {
         },
         _sum: { amount: true },
       }),
+      prisma.user.count(),
+      prisma.user.count({
+        where: { createdAt: { lt: lastMonth } },
+      }),
+      prisma.user.count({
+        where: { createdAt: { gte: thisMonth } },
+      }),
+      prisma.user.count({
+        where: {
+          createdAt: {
+            gte: lastMonthStart,
+            lt: thisMonth,
+          },
+        },
+      }),
+      prisma.coach.count({
+        where: { isActive: true },
+      }),
+      prisma.coach.count({
+        where: {
+          isActive: true,
+          createdAt: { lt: lastMonth },
+        },
+      }),
+      prisma.transaction.aggregate({
+        where: {
+          type: TransactionType.EARNING,
+          status: TransactionStatus.COMPLETED,
+          createdAt: { lt: lastMonth },
+        },
+        _sum: { amount: true },
+      }),
+      prisma.transaction.aggregate({
+        where: {
+          type: TransactionType.REFUND,
+          status: TransactionStatus.COMPLETED,
+          createdAt: { lt: lastMonth },
+        },
+        _sum: { amount: true },
+      }),
     ]);
 
     const totalRevenueCents =
-      (earningsAggregate._sum.amount || 0) -
-      (refundsAggregate._sum.amount || 0);
+      (earningsAggregate._sum.amount || 0) - (refundsAggregate._sum.amount || 0);
     const totalRevenue = totalRevenueCents / 100;
 
-    const totalUsers = await prisma.user.count();
-
-    const lastMonth = new Date();
-    lastMonth.setMonth(lastMonth.getMonth() - 1);
-
-    const usersLastMonth = await prisma.user.count({
-      where: {
-        createdAt: {
-          lt: lastMonth,
-        },
-      },
-    });
-
     const userGrowth = totalUsers - usersLastMonth;
-
-    // Get new signups this month
-    const thisMonth = new Date();
-    thisMonth.setDate(1);
-    thisMonth.setHours(0, 0, 0, 0);
-
-    const newSignupsThisMonth = await prisma.user.count({
-      where: {
-        createdAt: {
-          gte: thisMonth,
-        },
-      },
-    });
-
-    const lastMonthStart = new Date(thisMonth);
-    lastMonthStart.setMonth(lastMonthStart.getMonth() - 1);
-
-    const newSignupsLastMonth = await prisma.user.count({
-      where: {
-        createdAt: {
-          gte: lastMonthStart,
-          lt: thisMonth,
-        },
-      },
-    });
 
     const signupGrowthPercent =
       newSignupsLastMonth > 0
@@ -533,51 +548,10 @@ export class AdminService {
           100
         : 0;
 
-    // Get active coaches count
-    const activeCoaches = await prisma.coach.count({
-      where: {
-        isActive: true,
-      },
-    });
-
-    const activeCoachesLastMonth = await prisma.coach.count({
-      where: {
-        isActive: true,
-        createdAt: {
-          lt: lastMonth,
-        },
-      },
-    });
-
     const coachGrowth = activeCoaches - activeCoachesLastMonth;
 
-    // Calculate revenue growth from transactions
-    const [earningsLastMonth, refundsLastMonth] = await Promise.all([
-      prisma.transaction.aggregate({
-        where: {
-          type: TransactionType.EARNING,
-          status: TransactionStatus.COMPLETED,
-          createdAt: {
-            lt: lastMonth,
-          },
-        },
-        _sum: { amount: true },
-      }),
-      prisma.transaction.aggregate({
-        where: {
-          type: TransactionType.REFUND,
-          status: TransactionStatus.COMPLETED,
-          createdAt: {
-            lt: lastMonth,
-          },
-        },
-        _sum: { amount: true },
-      }),
-    ]);
-
     const revenueLastMonthCents =
-      (earningsLastMonth._sum.amount || 0) -
-      (refundsLastMonth._sum.amount || 0);
+      (earningsLastMonth._sum.amount || 0) - (refundsLastMonth._sum.amount || 0);
     const revenueLastMonth = revenueLastMonthCents / 100;
 
     const revenueGrowthPercent =
@@ -585,40 +559,38 @@ export class AdminService {
         ? ((totalRevenue - revenueLastMonth) / revenueLastMonth) * 100
         : 0;
 
-    return sendSuccess(
-      {
-        stats: {
-          revenue: {
-            value: `€${totalRevenue.toLocaleString(undefined, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}`,
-            change: `${
-              revenueGrowthPercent >= 0 ? '+' : ''
-            }${revenueGrowthPercent.toFixed(1)}% from last month`,
-          },
-          users: {
-            value: totalUsers.toLocaleString(),
-            change: `${
-              userGrowth >= 0 ? '+' : ''
-            }${userGrowth} from last month`,
-          },
-          signups: {
-            value: `+${newSignupsThisMonth}`,
-            change: `${
-              signupGrowthPercent >= 0 ? '+' : ''
-            }${signupGrowthPercent.toFixed(1)}% from last month`,
-          },
-          coaches: {
-            value: activeCoaches.toString(),
-            change: `${
-              coachGrowth >= 0 ? '+' : ''
-            }${coachGrowth} since last month`,
-          },
+
+    return {
+      stats: {
+        revenue: {
+          value: `€${totalRevenue.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}`,
+          change: `${
+            revenueGrowthPercent >= 0 ? '+' : ''
+          }${revenueGrowthPercent.toFixed(1)}% from last month`,
+        },
+        users: {
+          value: totalUsers.toLocaleString(),
+          change: `${
+            userGrowth >= 0 ? '+' : ''
+          }${userGrowth} from last month`,
+        },
+        signups: {
+          value: `+${newSignupsThisMonth}`,
+          change: `${
+            signupGrowthPercent >= 0 ? '+' : ''
+          }${signupGrowthPercent.toFixed(1)}% from last month`,
+        },
+        coaches: {
+          value: activeCoaches.toString(),
+          change: `${
+            coachGrowth >= 0 ? '+' : ''
+          }${coachGrowth} since last month`,
         },
       },
-      'Dashboard stats fetched successfully',
-    );
+    };
   }
 
   async getRecentSignups(limit: number = 5) {
@@ -650,7 +622,7 @@ export class AdminService {
       joined: user.createdAt.toISOString(),
     }));
 
-    return sendSuccess({ signups }, 'Recent signups fetched successfully');
+    return { signups };
   }
 
   async getPlatformActivity(limit: number = 10) {
@@ -746,10 +718,7 @@ export class AdminService {
         return rest;
       });
 
-    return sendSuccess(
-      { activities: sortedActivities },
-      'Platform activity fetched successfully',
-    );
+    return { activities: sortedActivities };
   }
 
   async getEvents(params?: AdminEventQueryData) {
@@ -815,18 +784,15 @@ export class AdminService {
       prisma.event.count({ where: whereClause }),
     ]);
 
-    return sendSuccess(
-      {
-        events,
-        pagination: {
-          total: totalCount,
-          page,
-          limit,
-          totalPages: Math.ceil(totalCount / limit),
-        },
+    return {
+      events,
+      pagination: {
+        total: totalCount,
+        page,
+        limit,
+        totalPages: Math.ceil(totalCount / limit),
       },
-      'Events fetched successfully',
-    );
+    };
   }
 
   async updateCohort(
@@ -866,10 +832,7 @@ export class AdminService {
       },
     });
 
-    return sendSuccess(
-      { cohort: updatedCohort },
-      'Cohort updated successfully',
-    );
+    return { cohort: updatedCohort };
   }
 
   async getCohortsByProgram(programId: string) {
@@ -883,7 +846,7 @@ export class AdminService {
       orderBy: { startDate: 'asc' },
     });
 
-    return sendSuccess({ cohorts }, 'Cohorts fetched successfully');
+    return { cohorts };
   }
 
   async createCohort(
@@ -913,7 +876,7 @@ export class AdminService {
       },
     });
 
-    return sendSuccess({ cohort }, 'Cohort created successfully', 201);
+    return { cohort };
   }
 
   async getTransactions(params: AdminTransactionQueryData) {
@@ -975,18 +938,32 @@ export class AdminService {
       prisma.transaction.count({ where: whereClause }),
     ]);
 
-    return sendSuccess(
-      {
-        transactions,
-        pagination: {
-          total: totalCount,
-          page,
-          limit,
-          totalPages: Math.ceil(totalCount / limit),
-        },
+    return {
+      transactions,
+      pagination: {
+        total: totalCount,
+        page,
+        limit,
+        totalPages: Math.ceil(totalCount / limit),
       },
-      'Transactions fetched successfully',
-    );
+    };
+  }
+
+  async deleteUser(userId: string) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Cascade delete is handled by Prisma schema definitions
+    await prisma.user.delete({
+      where: { id: userId },
+    });
+
+    return { success: true };
   }
 }
 

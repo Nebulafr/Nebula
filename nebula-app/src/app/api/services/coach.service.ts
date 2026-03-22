@@ -7,27 +7,25 @@ import {
   CreateCoachData,
 } from "@/lib/validations";
 import { NotFoundException } from "../utils/http-exception";
-import { sendSuccess } from "../utils/send-response";
-import { extractUserFromRequest } from "../utils/extract-user";
 import { stripeAccountService } from "./stripe-account.service";
 
-type CoachWithUserAndSpecialties = Prisma.CoachGetPayload<{
-  include: {
-    user: {
-      select: {
-        fullName: true;
-        email: true;
-        avatarUrl: true;
-        role: true;
-      };
-    };
-    specialties: {
-      include: {
-        category: true;
-      };
-    };
-  };
-}>;
+// type CoachWithUserAndSpecialties = Prisma.CoachGetPayload<{
+//   include: {
+//     user: {
+//       select: {
+//         fullName: true;
+//         email: true;
+//         avatarUrl: true;
+//         role: true;
+//       };
+//     };
+//     specialties: {
+//       include: {
+//         category: true;
+//       };
+//     };
+//   };
+// }>;
 
 export class CoachService {
   async findByUserId(userId: string) {
@@ -47,19 +45,15 @@ export class CoachService {
 
     const { coaches, totalCount } = await this.fetchTransformedCoaches(params);
     const totalPages = Math.ceil(totalCount / limit);
-
-    return sendSuccess(
-      {
-        coaches,
-        pagination: {
-          totalCount,
-          totalPages,
-          currentPage: page,
-          limit,
-        },
+    return {
+      coaches,
+      pagination: {
+        totalCount,
+        totalPages,
+        currentPage: page,
+        limit,
       },
-      "Coaches retrieved successfully",
-    );
+    };
   }
 
 
@@ -204,7 +198,7 @@ export class CoachService {
       console.error("Failed to create Stripe account in coach service:", err);
     });
 
-    return sendSuccess(newProfile, "Coach profile created successfully", 201);
+    return newProfile;
   }
 
   async updateCoach(userId: string, data: CoachUpdateData) {
@@ -217,7 +211,7 @@ export class CoachService {
       return coach;
     }, { timeout: 10000 });
 
-    return sendSuccess(updatedProfile, "Coach profile updated successfully");
+    return updatedProfile;
   }
 
   private async updateUserProfile(tx: any, userId: string, data: any) {
@@ -279,10 +273,7 @@ export class CoachService {
       throw new NotFoundException("Coach profile not found");
     }
 
-    return sendSuccess(
-      { coach: this.mapCoachToTransformed(coach) },
-      "Coach profile fetched successfully",
-    );
+    return { coach: this.mapCoachToTransformed(coach) };
   }
 
   async findCoachIdBySlug(slug: string) {
@@ -344,10 +335,7 @@ export class CoachService {
       hasUserReviewed: hasUserReviewed || false,
     };
 
-    return sendSuccess(
-      { coach: transformedCoach },
-      "Coach fetched successfully",
-    );
+    return { coach: transformedCoach };
   }
 
   async fetchCoachPrograms(coachId: string) {
@@ -465,9 +453,8 @@ export class CoachService {
     // Get the student's profile to understand their interests
     const student = await prisma.student.findUnique({
       where: { userId },
-      select: {
-        interestedCategoryId: true,
-        learningGoals: true,
+      include: {
+        interestedCategories: true,
       },
     });
 
@@ -489,14 +476,17 @@ export class CoachService {
 
     let coaches;
 
-    // If student has an interested category, try to find coaches with that specialty
-    if (student?.interestedCategoryId) {
+    const interestedCategoryIds =
+      student?.interestedCategories?.map((ic) => ic.categoryId) || [];
+
+    // If student has interested categories, try to find coaches with those specialties
+    if (interestedCategoryIds.length > 0) {
       coaches = await prisma.coach.findMany({
         where: {
           isActive: true,
           specialties: {
             some: {
-              categoryId: student.interestedCategoryId,
+              categoryId: { in: interestedCategoryIds },
             },
           },
         },
@@ -519,12 +509,9 @@ export class CoachService {
     }
 
     // Transform coaches to match the expected format
-    return sendSuccess(
-      {
-        coaches: coaches.map((coach) => this.mapCoachToTransformed(coach)),
-      },
-      "Suggested coaches retrieved successfully",
-    );
+    return {
+      coaches: coaches.map((coach) => this.mapCoachToTransformed(coach)),
+    };
   }
 
   async connectGoogleCalendar(
@@ -546,7 +533,7 @@ export class CoachService {
       },
     });
 
-    return sendSuccess(null, "Google Calendar connected successfully");
+    return null;
   }
 
   async getAvailability(userId: string) {
@@ -560,7 +547,7 @@ export class CoachService {
     }
 
     const availability = this.parseAvailability(coach.availability);
-    return sendSuccess({ availability }, "Availability fetched successfully");
+    return { availability };
   }
 
   async updateAvailability(userId: string, availability: Record<string, unknown>) {
@@ -584,7 +571,7 @@ export class CoachService {
       },
     });
 
-    return sendSuccess({ availability }, "Availability updated successfully");
+    return { availability };
   }
 }
 

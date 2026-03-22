@@ -1,7 +1,6 @@
 import { stripe } from '@/lib/stripe';
 import { prisma } from '@/lib/prisma';
 import { NotFoundException } from '../utils/http-exception';
-import { sendSuccess } from '../utils/send-response';
 import { coachDashboardService } from './coach-dashboard.service';
 
 export class StripeAccountService {
@@ -123,7 +122,7 @@ export class StripeAccountService {
       },
     });
 
-    return sendSuccess({ url: accountLink.url }, 'Onboarding link generated');
+    return { url: accountLink.url };
   }
 
   /**
@@ -150,10 +149,7 @@ export class StripeAccountService {
       type: 'account_update',
     });
 
-    return sendSuccess(
-      { url: accountLink.url },
-      'Account update link generated',
-    );
+    return { url: accountLink.url };
   }
 
   /**
@@ -166,21 +162,18 @@ export class StripeAccountService {
     });
 
     if (!user || !user.stripeAccountId) {
-      return sendSuccess(
-        {
-          isConnected: false,
-          detailsSubmitted: false,
-          chargesEnabled: false,
-          payoutsEnabled: false,
-          requirements: {
-            currentlyDue: [],
-            eventuallyDue: [],
-            pastDue: [],
-          },
-          capabilities: {},
+      return {
+        isConnected: false,
+        detailsSubmitted: false,
+        chargesEnabled: false,
+        payoutsEnabled: false,
+        requirements: {
+          currentlyDue: [],
+          eventuallyDue: [],
+          pastDue: [],
         },
-        'Stripe account not found',
-      );
+        capabilities: {},
+      };
     }
 
     const account = await stripe.accounts.retrieve(user.stripeAccountId);
@@ -210,7 +203,7 @@ export class StripeAccountService {
       status.isConnected = true;
     }
 
-    return sendSuccess(status, 'Stripe account status retrieved');
+    return status;
   }
 
   /**
@@ -223,10 +216,7 @@ export class StripeAccountService {
     });
 
     if (!user || !user.stripeAccountId) {
-      return sendSuccess(
-        { available: [], pending: [] },
-        'Stripe account not found',
-      );
+      return { available: [], pending: [] };
     }
 
     try {
@@ -251,21 +241,15 @@ export class StripeAccountService {
         }
       }
 
-      return sendSuccess(
-        {
-          available,
-          pending: stripePending, // Keep pending from Stripe as we don't track pending as closely
-          systemBalance: available,
-          stripeAvailable
-        },
-        'Account balance retrieved successfully from system data',
-      );
+      return {
+        available,
+        pending: stripePending, // Keep pending from Stripe as we don't track pending as closely
+        systemBalance: available,
+        stripeAvailable
+      };
     } catch (error: any) {
       console.error('Balance Retrieval error:', error);
-      return sendSuccess(
-        { available: 0, pending: 0 },
-        'Could not retrieve account balance',
-      );
+      return { available: 0, pending: 0 };
     }
   }
 
@@ -297,7 +281,7 @@ export class StripeAccountService {
       user.stripeAccountId,
     );
 
-    return sendSuccess({ url: loginLink.url }, 'Login link generated');
+    return { url: loginLink.url };
   }
 }
 
