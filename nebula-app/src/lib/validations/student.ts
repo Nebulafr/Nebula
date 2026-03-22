@@ -2,7 +2,7 @@ import { z } from "zod";
 import { ExperienceLevel } from "@/generated/prisma";
 
 export const updateStudentSchema = z.object({
-  interestedCategoryId: z.string().min(1, "Interested category is required"),
+  interestedCategoryIds: z.array(z.string()).min(1, "At least one category is required"),
   skillLevel: z.nativeEnum(ExperienceLevel),
   commitment: z.string().min(1, "Commitment level is required"),
   timeZone: z.string().optional(),
@@ -12,7 +12,7 @@ export const updateStudentSchema = z.object({
 });
 
 export const studentOnboardingStep1Schema = z.object({
-  interestedCategoryId: z.string().min(1, "Please select an area of interest"),
+  interestedCategoryIds: z.array(z.string()).min(1, "Please select at least one area of interest"),
 });
 
 export const studentOnboardingStep2Schema = z.object({

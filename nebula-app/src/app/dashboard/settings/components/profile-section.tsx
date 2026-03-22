@@ -20,6 +20,9 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { CountrySelect } from "@/components/ui/country-select";
+import { TagInputField } from "@/components/ui/tag-input-field";
+import { useCategories } from "@/hooks/use-categories-queries";
+import { useMemo } from "react";
 
 interface ProfileSectionProps {
   user: {
@@ -30,6 +33,7 @@ interface ProfileSectionProps {
     avatarUrl?: string;
     country?: string;
     countryIso?: string;
+    interestedCategoryIds?: string[];
   };
   previewUrl?: string | null;
   onSave: (data: UpdateProfileData) => Promise<void>;
@@ -62,8 +66,12 @@ export function ProfileSection({
       email: user.email,
       country: user.country,
       countryIso: user.countryIso,
+      interestedCategoryIds: user.interestedCategoryIds || [],
     },
   });
+
+  const { data: categoriesData } = useCategories();
+  const categories = useMemo(() => (categoriesData as any)?.data?.categories || [], [categoriesData]);
 
   const { isDirty } = form.formState;
 
@@ -213,6 +221,21 @@ export function ProfileSection({
                       </FormControl>
                       <FormMessage />
                     </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="interestedCategoryIds"
+                  render={({ field }) => (
+                    <TagInputField
+                      label={t("interests") || "Interests"}
+                      description={t("interestsDescription") || "Choose topics you're interested in"}
+                      tags={field.value || []}
+                      onTagsChange={field.onChange}
+                      placeholder={t("addInterest") || "Add an interest..."}
+                      options={categories.map((c: any) => ({ id: c.id, name: c.name }))}
+                    />
                   )}
                 />
 

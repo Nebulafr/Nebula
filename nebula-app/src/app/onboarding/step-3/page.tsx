@@ -70,9 +70,9 @@ function OnboardingStep3Content() {
   const selectedAvailability = watch("availability");
 
   const handleFinish = async () => {
-    const { interestedCategoryId, skillLevel, country, countryIso } = onboardingData;
+    const { interestedCategoryIds, skillLevel, country, countryIso } = onboardingData;
 
-    if (!profile || !interestedCategoryId || !skillLevel || !selectedAvailability) {
+    if (!profile || !interestedCategoryIds || interestedCategoryIds.length === 0 || !skillLevel || !selectedAvailability) {
       toast.error(t("missingInfo"));
       return;
     }
@@ -84,7 +84,7 @@ function OnboardingStep3Content() {
         userId: profile.id,
         email: profile.email as string,
         fullName: profile.fullName as string,
-        interestedCategoryId,
+        interestedCategoryIds,
         skillLevel,
         commitment: selectedAvailability,
         timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,

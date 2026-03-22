@@ -7,6 +7,8 @@ import { updateUserProfile, uploadUserAvatar, changePassword } from "@/actions/u
 import { toast } from "react-toastify";
 import { ProfileSection } from "./components/profile-section";
 import { SecuritySection } from "./components/security-section";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { User, Shield, CreditCard } from "lucide-react";
 import { type UpdateProfileData, type ChangePasswordData } from "@/lib/validations";
 import { useTranslations } from "next-intl";
 
@@ -95,12 +97,13 @@ export default function StudentSettingsPage() {
       const response = await updateUserProfile(data);
 
       if (response.success) {
+        toast.success(t("profile.success") || "Profile updated successfully");
         await refreshUser();
       } else {
-        toast.error(response.message || "Failed to update profile");
+        toast.error(response.message || t("profile.error") || "Failed to update profile");
       }
     } catch (error) {
-      toast.error("An unexpected error occurred");
+      toast.error(t("errorUnexpected") || "An unexpected error occurred");
     } finally {
       setIsLoading(false);
     }
@@ -112,12 +115,12 @@ export default function StudentSettingsPage() {
       const response = await changePassword(data);
 
       if (response.success) {
-        // Password changed successfully
+        toast.success(t("security.passwordSuccess") || "Password changed successfully");
       } else {
-        toast.error(response.message || "Failed to change password");
+        toast.error(response.message || t("security.errorPassword") || "Failed to change password");
       }
     } catch (error: any) {
-      toast.error(error.message || "An unexpected error occurred");
+      toast.error(error.message || t("errorUnexpected") || "An unexpected error occurred");
     } finally {
       setIsPasswordLoading(false);
     }
@@ -127,7 +130,7 @@ export default function StudentSettingsPage() {
     return (
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="text-center">
-          <p className="text-muted-foreground">Loading...</p>
+          <p className="text-muted-foreground">{t("loading") || "Loading..."}</p>
         </div>
       </div>
     );
@@ -146,11 +149,11 @@ export default function StudentSettingsPage() {
   }
 
   return (
-    <div className="flex-1 space-y-4 p-4 md:p-8">
+    <div className="flex-1 space-y-6 p-4 md:p-8">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">Settings</h2>
+        <h2 className="text-3xl font-bold tracking-tight">{t("title")}</h2>
         <p className="text-muted-foreground">
-          Manage your account settings and preferences
+          {t("subtitle")}
         </p>
       </div>
 
@@ -162,30 +165,48 @@ export default function StudentSettingsPage() {
         style={{ display: "none" }}
       />
 
-      <ProfileSection
-        user={{
-          firstName: firstName || "",
-          lastName: lastName || "",
-          fullName: profile.fullName || "",
-          email: profile.email,
-          avatarUrl: profile.avatarUrl || undefined,
-          country: profile.country || undefined,
-          countryIso: profile.countryIso || undefined,
-        }}
-        previewUrl={previewUrl}
-        onSave={handleSaveProfile}
-        onChangePhoto={handleChangePhoto}
-        onConfirmUpload={handleConfirmUpload}
-        onCancelPreview={handleCancelPreview}
-        isLoading={isLoading}
-        isUploadingAvatar={isUploadingAvatar}
-      />
+      <Tabs defaultValue="profile" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="profile" className="gap-2">
+            <User className="h-4 w-4" />
+            {t("tabs.profile")}
+          </TabsTrigger>
+          <TabsTrigger value="security" className="gap-2">
+            <Shield className="h-4 w-4" />
+            {t("tabs.security")}
+          </TabsTrigger>
+        </TabsList>
 
-      <SecuritySection
-        onChangePassword={handleChangePassword}
-        isLoading={isPasswordLoading}
-        isGoogleUser={isGoogleUser}
-      />
+        <TabsContent value="profile" className="space-y-6">
+          <ProfileSection
+            user={{
+              firstName: firstName || "",
+              lastName: lastName || "",
+              fullName: profile.fullName || "",
+              email: profile.email,
+              avatarUrl: profile.avatarUrl || undefined,
+              country: profile.country || undefined,
+              countryIso: profile.countryIso || undefined,
+              interestedCategoryIds: (profile as any).student?.interestedCategoryIds || [],
+            }}
+            previewUrl={previewUrl}
+            onSave={handleSaveProfile}
+            onChangePhoto={handleChangePhoto}
+            onConfirmUpload={handleConfirmUpload}
+            onCancelPreview={handleCancelPreview}
+            isLoading={isLoading}
+            isUploadingAvatar={isUploadingAvatar}
+          />
+        </TabsContent>
+
+        <TabsContent value="security" className="max-w-2xl">
+          <SecuritySection
+            onChangePassword={handleChangePassword}
+            isLoading={isPasswordLoading}
+            isGoogleUser={isGoogleUser}
+          />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

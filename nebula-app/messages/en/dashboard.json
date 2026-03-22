@@ -2,6 +2,8 @@
   "dashboard": {
     "welcome": "Welcome back, {name}!",
     "settings": {
+      "title": "Settings",
+      "subtitle": "Manage your account settings and preferences",
       "security": {
         "title": "Security",
         "passwordLabel": "Password",
@@ -34,7 +36,14 @@
         "save": "Save Profile",
         "saving": "Saving...",
         "success": "Profile updated successfully",
-        "error": "Failed to update profile"
+        "error": "Failed to update profile",
+        "interests": "Your Interests",
+        "interestsDescription": "Choose topics you're interested in to get better recommendations.",
+        "addInterest": "Add an interest..."
+      },
+      "tabs": {
+        "profile": "Profile",
+        "security": "Security"
       }
     },
     "student": {
@@ -562,6 +571,7 @@
       "reviewManagement": "Review Management",
       "categoryManagement": "Category Management",
       "viewAllUsers": "View All Users",
+      "recentSignupsDescription": "Newest members of the platform.",
       "userList": "User List",
       "userListDescription": "A list of all the users in the system.",
       "noUsersFound": "No users found matching your criteria.",
@@ -600,6 +610,12 @@
       "statusSuspended": "Suspended",
       "statusInactive": "Inactive",
       "statusUnknown": "Unknown",
+      "totalRevenue": "Total Revenue",
+      "users": "Users",
+      "activeCoaches": "Active Coaches",
+      "deleteUser": "Delete User",
+      "confirmDeleteUser": "Are you sure you want to delete user {name}? This action cannot be undone.",
+      "userDeletedSuccessfully": "User deleted successfully",
       "transactionManagement": "Transactions",
       "transactionList": "Transaction List",
       "transactionListDescription": "A list of all transactions on the platform.",

@@ -69,25 +69,25 @@ export function StatsCards({ stats, loading }: StatsCardsProps) {
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">{t("totalRevenue")}</CardTitle>
+          <CardTitle className="text-sm font-medium">{td("totalRevenue")}</CardTitle>
           <CreditCard className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{stats.revenue.value}</div>
           <p className="text-xs text-muted-foreground">
-            {t("fromLastMonth", { change: stats.revenue.change.split("%")[0].replace("+", "") })}
+            {stats.revenue.change}
           </p>
         </CardContent>
       </Card>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">{tc("users")}</CardTitle>
+          <CardTitle className="text-sm font-medium">{td("users")}</CardTitle>
           <Users className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{stats.users.value}</div>
           <p className="text-xs text-muted-foreground">
-            {t("fromLastMonth", { change: stats.users.change.split(" ")[0].replace("+", "") })}
+            {stats.users.change}
           </p>
         </CardContent>
       </Card>
@@ -99,21 +99,21 @@ export function StatsCards({ stats, loading }: StatsCardsProps) {
         <CardContent>
           <div className="text-2xl font-bold">{stats.signups.value}</div>
           <p className="text-xs text-muted-foreground">
-            {t("fromLastMonth", { change: stats.signups.change.split("%")[0].replace("+", "") })}
+            {stats.signups.change}
           </p>
         </CardContent>
       </Card>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">
-            {tc("activeCoaches")}
+            {td("activeCoaches")}
           </CardTitle>
           <GraduationCap className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{stats.coaches.value}</div>
           <p className="text-xs text-muted-foreground">
-            {t("sinceLastMonth", { count: stats.coaches.change.split(" ")[0].replace("+", "") })}
+            {stats.coaches.change}
           </p>
         </CardContent>
       </Card>

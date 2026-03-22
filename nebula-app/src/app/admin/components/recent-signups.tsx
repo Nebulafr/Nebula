@@ -6,6 +6,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  CardDescription,
 } from "@/components/ui/card";
 import {
   Table,
@@ -44,9 +45,10 @@ export function RecentSignups({ signups, loading, onUserAction }: RecentSignupsP
 
   if (loading) {
     return (
-      <Card className="col-span-3">
+      <Card className="col-span-full lg:col-span-3">
         <CardHeader>
           <CardTitle>{t("recentSignups")}</CardTitle>
+          <CardDescription>{t("recentSignupsDescription")}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-8">
@@ -79,9 +81,10 @@ export function RecentSignups({ signups, loading, onUserAction }: RecentSignupsP
   }
 
   return (
-    <Card className="col-span-3">
+    <Card className="col-span-full lg:col-span-3">
       <CardHeader>
         <CardTitle>{t("recentSignups")}</CardTitle>
+        <CardDescription>{t("recentSignupsDescription")}</CardDescription>
       </CardHeader>
       <CardContent>
         {signups.length === 0 ? (

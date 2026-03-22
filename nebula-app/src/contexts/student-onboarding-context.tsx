@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 
 export interface StudentOnboardingData {
-  interestedCategoryId: string;
+  interestedCategoryIds: string[];
   skillLevel?: string;
   country: string;
   countryIso: string;
@@ -19,7 +19,7 @@ interface StudentOnboardingContextType {
 const STORAGE_KEY = "nebula_student_onboarding_data";
 
 const defaultData: StudentOnboardingData = {
-  interestedCategoryId: "",
+  interestedCategoryIds: [],
   country: "",
   countryIso: "",
 };

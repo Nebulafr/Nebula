@@ -6,9 +6,10 @@ import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { UserFilters } from "./components/user-filters";
 import { UsersTable } from "./components/users-table";
 import { AddUserDialog } from "./components/add-user-dialog";
-import { useAdminUsers, useCreateUser } from "@/hooks";
+import { useAdminUsers, useCreateUser, useDeleteUser } from "@/hooks";
 import { toast } from "react-toastify";
 import { useTranslations } from "next-intl";
+import { ConfirmModal } from "@/components/shared/confirm-modal";
 
 export default function UserManagementPage() {
   const t = useTranslations("dashboard.admin");
@@ -16,6 +17,8 @@ export default function UserManagementPage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const [page, setPage] = useState(1);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<any>(null);
   const limit = 10;
 
   const {
@@ -33,6 +36,7 @@ export default function UserManagementPage() {
   const pagination = usersResponse?.pagination;
 
   const createUserMutation = useCreateUser();
+  const deleteUserMutation = useDeleteUser();
 
   // Debounce search term and reset page
   React.useEffect(() => {
@@ -51,6 +55,7 @@ export default function UserManagementPage() {
 
   // Transform users to match the table interface
   const transformedUsers = users.map((user: any) => ({
+    id: user.id,
     name: user.fullName || user.email,
     email: user.email,
     avatar: user.avatarUrl,
@@ -69,9 +74,29 @@ export default function UserManagementPage() {
   }) => {
     return await createUserMutation.mutateAsync(userData);
   };
-  const handleUserAction = (user: any, action: string) => {
-    console.log(`User ${action}:`, user);
-    // TODO: Implement user action logic
+
+  const handleUserAction = async (user: any, action: string) => {
+    if (action === "delete") {
+      setUserToDelete(user);
+      setIsDeleteModalOpen(true);
+    } else {
+      console.log(`User ${action}:`, user);
+      // TODO: Implement other user action logic
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!userToDelete) return;
+
+    try {
+      await deleteUserMutation.mutateAsync(userToDelete.id);
+      toast.success(t("userDeletedSuccessfully"));
+    } catch (error) {
+      // Error handled by mutation hook
+    } finally {
+      setIsDeleteModalOpen(false);
+      setUserToDelete(null);
+    }
   };
 
   return (
@@ -103,6 +128,18 @@ export default function UserManagementPage() {
           />
         </TabsContent>
       </Tabs>
+
+      <ConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+        title={t("deleteUser")}
+        description={t("confirmDeleteUser", { name: userToDelete?.name })}
+        confirmText={t("delete")}
+        cancelText={t("cancel")}
+        variant="destructive"
+        isLoading={deleteUserMutation.isPending}
+      />
     </div>
   );
 }

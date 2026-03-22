@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
-import { TagInputField } from './tag-input-field';
+import { TagInputField } from '@/components/ui/tag-input-field';
 import {
   Form,
   FormControl,

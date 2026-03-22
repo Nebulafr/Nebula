@@ -378,3 +378,25 @@ export function useAdminTransactions(params?: {
     staleTime: 2 * 60 * 1000, // 2 minutes
   });
 }
+
+export function useDeleteUser() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (userId: string) => {
+      const response = await makeRequest(`/admin/users/${userId}`, "DELETE");
+
+      if (!response.success) {
+        throw new Error(response.message || "Failed to delete user");
+      }
+
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [ADMIN_USERS_QUERY_KEY] });
+    },
+    onError: (error: any) => {
+      handleAndToastError(error, "Failed to delete user.");
+    },
+  });
+}

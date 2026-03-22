@@ -55,7 +55,7 @@ export default function OnboardingStep1() {
     resolver: zodResolver(studentOnboardingStep1Schema),
     mode: "onChange",
     defaultValues: {
-      interestedCategoryId: onboardingData.interestedCategoryId || "",
+      interestedCategoryIds: onboardingData.interestedCategoryIds || [],
     },
   });
 
@@ -69,7 +69,7 @@ export default function OnboardingStep1() {
     }
   }, [onboardingData.country, onboardingData.countryIso, country, countryIso]);
 
-  const selectedCategoryId = watch("interestedCategoryId");
+  const selectedCategoryIds = watch("interestedCategoryIds") || [];
   const image = PlaceHolderImages.find((img) => img.id === "about-story");
 
   const handleContinue = async () => {
@@ -82,7 +82,7 @@ export default function OnboardingStep1() {
 
     try {
       updateData({
-        interestedCategoryId: selectedCategoryId,
+        interestedCategoryIds: selectedCategoryIds,
         country: country,
         countryIso: countryIso,
       });
@@ -159,21 +159,33 @@ export default function OnboardingStep1() {
                 <Card
                   key={category.id}
                   role="radio"
-                  aria-checked={selectedCategoryId === category.id}
+                  aria-checked={selectedCategoryIds.includes(category.id)}
                   tabIndex={0}
                   aria-label={category.name}
-                  className={`group cursor-pointer rounded-2xl border-2 p-1 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] animate-in fade-in slide-in-from-bottom-4 fill-mode-both ${selectedCategoryId === category.id
+                  className={`group cursor-pointer rounded-2xl border-2 p-1 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] animate-in fade-in slide-in-from-bottom-4 fill-mode-both ${selectedCategoryIds.includes(category.id)
                     ? "border-primary bg-primary/5 shadow-xl shadow-primary/10"
                     : "border-transparent bg-card hover:border-primary/20 hover:shadow-md"
                     }`}
                   style={{ animationDelay: `${idx * 50 + 300}ms` }}
-                  onClick={() =>
-                    setValue("interestedCategoryId", category.id, { shouldValidate: true })
-                  }
+                  onClick={() => {
+                    const currentIds = selectedCategoryIds;
+                    const newIds = currentIds.includes(category.id)
+                      ? currentIds.filter((id: string) => id !== category.id)
+                      : [...currentIds, category.id];
+                    setValue("interestedCategoryIds", newIds, {
+                      shouldValidate: true,
+                    });
+                  }}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" || e.key === " ") {
                       e.preventDefault();
-                      setValue("interestedCategoryId", category.id, { shouldValidate: true });
+                      const currentIds = selectedCategoryIds;
+                      const newIds = currentIds.includes(category.id)
+                        ? currentIds.filter((id: string) => id !== category.id)
+                        : [...currentIds, category.id];
+                      setValue("interestedCategoryIds", newIds, {
+                        shouldValidate: true,
+                      });
                     }
                   }}
                 >
@@ -202,12 +214,15 @@ export default function OnboardingStep1() {
                         {t("explore", { category: category.name.toLowerCase() })}
                       </p>
                     </div>
-                    <div className={`h-6 w-6 rounded-full border-2 transition-all duration-300 flex items-center justify-center ${selectedCategoryId === category.id
-                      ? "border-primary bg-primary"
-                      : "border-muted group-hover:border-primary/50"
-                      }`}>
-                      {selectedCategoryId === category.id && (
-                        <div className="h-2 w-2 rounded-full bg-white" />
+                    <div
+                      className={`h-6 w-6 rounded-full border-2 transition-all duration-300 flex items-center justify-center ${
+                        selectedCategoryIds.includes(category.id)
+                          ? "border-primary bg-primary"
+                          : "border-muted group-hover:border-primary/50"
+                      }`}
+                    >
+                      {selectedCategoryIds.includes(category.id) && (
+                        <div className="h-2 w-2 rounded-full bg-white transition-transform scale-100" />
                       )}
                     </div>
                   </CardContent>
@@ -216,9 +231,9 @@ export default function OnboardingStep1() {
             </div>
           </div>
 
-          {errors.interestedCategoryId && (
+          {errors.interestedCategoryIds && (
             <p className="text-sm font-medium text-destructive text-center animate-in fade-in">
-              {errors.interestedCategoryId.message}
+              {errors.interestedCategoryIds.message}
             </p>
           )}
 

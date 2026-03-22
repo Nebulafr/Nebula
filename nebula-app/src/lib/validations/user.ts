@@ -8,6 +8,7 @@ export const updateProfileSchema = z.object({
   avatarUrl: z.string().optional(),
   country: z.string().optional(),
   countryIso: z.string().optional(),
+  interestedCategoryIds: z.array(z.string()).optional(),
 });
 
 export const changePasswordSchema = z.object({

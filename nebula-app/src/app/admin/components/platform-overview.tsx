@@ -55,7 +55,7 @@ export function PlatformOverview({ activities, loading = false }: PlatformOvervi
   const t = useTranslations("dashboard.admin");
   if (loading) {
     return (
-      <Card className="col-span-4 lg:col-span-3">
+      <Card className="col-span-full lg:col-span-4">
         <CardHeader>
           <CardTitle>{t("platformOverview")}</CardTitle>
           <CardDescription>{t("recentPlatformActivity")}</CardDescription>
@@ -78,7 +78,7 @@ export function PlatformOverview({ activities, loading = false }: PlatformOvervi
   }
 
   return (
-    <Card className="col-span-4 lg:col-span-3">
+    <Card className="col-span-full lg:col-span-4">
       <CardHeader>
         <CardTitle>{t("platformOverview")}</CardTitle>
         <CardDescription>{t("recentPlatformActivity")}</CardDescription>
