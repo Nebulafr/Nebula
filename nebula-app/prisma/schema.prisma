@@ -46,17 +46,18 @@ model User {
 }
 
 model Category {
-  id                 String          @id @default(cuid())
-  name               String          @unique
-  slug               String          @unique
-  isActive           Boolean         @default(true) @map("is_active")
-  assetUrl           String?         @map("asset_url")
-  description        String?
-  createdAt          DateTime        @default(now()) @map("created_at")
-  updatedAt          DateTime        @updatedAt @map("updated_at")
-  coachCategories    CoachCategory[]
-  programs           Program[]
-  interestedStudents Student[]
+  id                   String               @id @default(cuid())
+  name                 String               @unique
+  slug                 String               @unique
+  isActive             Boolean              @default(true) @map("is_active")
+  assetUrl             String?              @map("asset_url")
+  description          String?
+  createdAt            DateTime             @default(now()) @map("created_at")
+  updatedAt            DateTime             @updatedAt @map("updated_at")
+  coachCategories      CoachCategory[]
+  programs             Program[]
+  interestedStudents   Student[]
+  interestedCategories InterestedCategory[]
 
   @@index([isActive])
   @@map("categories")
@@ -119,7 +120,7 @@ model Session {
   stripeSessionId String?             @map("stripe_session_id")
   notes           String?
   attendance      SessionAttendance[]
-  coach           Coach               @relation(fields: [coachId], references: [id])
+  coach           Coach               @relation(fields: [coachId], references: [id], onDelete: Cascade)
 
   @@index([coachId])
   @@index([scheduledTime])
@@ -156,26 +157,37 @@ model CoachCategory {
 }
 
 model Student {
-  id                   String              @id @default(cuid())
-  userId               String              @unique @map("user_id")
-  interestedCategoryId String?             @map("interested_category_id")
+  id                   String               @id @default(cuid())
+  userId               String               @unique @map("user_id")
+  interestedCategoryId String?              @map("interested_category_id")
   skillLevel           ExperienceLevel?
   commitment           String?
-  learningGoals        String[]            @map("learning_goals")
-  currentLevel         String?             @map("current_level")
-  timeZone             String?             @map("time_zone")
-  createdAt            DateTime            @default(now()) @map("created_at")
-  updatedAt            DateTime            @updatedAt @map("updated_at")
+  learningGoals        String[]             @map("learning_goals")
+  currentLevel         String?              @map("current_level")
+  timeZone             String?              @map("time_zone")
+  createdAt            DateTime             @default(now()) @map("created_at")
+  updatedAt            DateTime             @updatedAt @map("updated_at")
   enrollments          Enrollment[]
   eventAttendances     EventAttendee[]
   sessions             SessionAttendance[]
   preferences          StudentPreferences?
-  interestedCategory   Category?           @relation(fields: [interestedCategoryId], references: [id])
-  user                 User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  interestedCategory   Category?            @relation(fields: [interestedCategoryId], references: [id])
+  user                 User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  interestedCategories InterestedCategory[]
 
   @@index([interestedCategoryId])
   @@index([skillLevel])
   @@map("students")
+}
+
+model InterestedCategory {
+  id         String   @id @default(cuid())
+  studentId  String   @map("student_id")
+  categoryId String   @map("category_id")
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  student    Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@map("interested_categories")
 }
 
 model StudentPreferences {
@@ -203,6 +215,7 @@ model ProgramReview {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([programId, userId])
+  @@index([createdAt])
   @@map("program_reviews")
 }
 
@@ -218,6 +231,7 @@ model CoachReview {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([coachId, userId])
+  @@index([createdAt])
   @@map("coach_reviews")
 }
 
@@ -249,7 +263,7 @@ model Program {
   cohorts            Cohort[]
   reviews            ProgramReview[]
   category           Category          @relation(fields: [categoryId], references: [id])
-  coach              Coach             @relation(fields: [coachId], references: [id])
+  coach              Coach             @relation(fields: [coachId], references: [id], onDelete: Cascade)
 
   @@index([categoryId])
   @@index([coachId])
@@ -332,7 +346,7 @@ model Enrollment {
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
   stripeSessionId String?          @map("stripe_session_id")
-  coach           Coach            @relation(fields: [coachId], references: [id])
+  coach           Coach            @relation(fields: [coachId], references: [id], onDelete: Cascade)
   cohort          Cohort?          @relation(fields: [cohortId], references: [id])
   program         Program          @relation(fields: [programId], references: [id], onDelete: Cascade)
   student         Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
@@ -393,7 +407,7 @@ model Message {
   attachments    MessageAttachment[]
   reactions      MessageReaction[]
   conversation   Conversation        @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  sender         User                @relation(fields: [senderId], references: [id])
+  sender         User                @relation(fields: [senderId], references: [id], onDelete: Cascade)
 
   @@index([conversationId, createdAt])
   @@index([conversationId, isRead])
@@ -453,7 +467,7 @@ model Event {
   updatedAt      DateTime        @updatedAt @map("updated_at")
   price          Int             @default(0)
   attendees      EventAttendee[]
-  organizer      User            @relation("EventOrganizer", fields: [organizerId], references: [id])
+  organizer      User            @relation("EventOrganizer", fields: [organizerId], references: [id], onDelete: Cascade)
 
   @@index([slug])
   @@index([organizerId])
@@ -581,7 +595,7 @@ model Payout {
   date      DateTime     @default(now())
   createdAt DateTime     @default(now()) @map("created_at")
   updatedAt DateTime     @updatedAt @map("updated_at")
-  coach     Coach        @relation(fields: [coachId], references: [id])
+  coach     Coach        @relation(fields: [coachId], references: [id], onDelete: Cascade)
 
   @@index([coachId])
   @@index([status])
@@ -607,11 +621,14 @@ model Transaction {
   description String?
   createdAt   DateTime              @default(now()) @map("created_at")
   updatedAt   DateTime              @updatedAt @map("updated_at")
-  user        User                  @relation(fields: [userId], references: [id])
+  user        User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([userId, type])
   @@index([sourceId, sourceType])
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
   @@map("transactions")
 }
 
