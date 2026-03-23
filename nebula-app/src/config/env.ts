@@ -6,7 +6,6 @@ const serverEnvSchema = z.object({
   ACCESS_TOKEN_SECRET: z.string().min(1),
   REFRESH_TOKEN_SECRET: z.string().min(1),
   NEXTAUTH_URL: z.string().url().optional(),
-  JWT_SECRET: z.string().min(1).optional(),
   GOOGLE_CLIENT_ID: z.string().min(1).optional(),
   GOOGLE_CLIENT_SECRET: z.string().min(1).optional(),
   ZEPTOMAIL_API_KEY: z.string().min(1).optional(),
@@ -78,6 +77,6 @@ export const env = {
 } as z.infer<typeof mergedSchema>;
 
 /** Public Client-only env (typed) */
-export const publicEnv = clientParsed.success 
-  ? clientParsed.data 
+export const publicEnv = clientParsed.success
+  ? clientParsed.data
   : clientEnvSchema.parse(clientEnvValues);
