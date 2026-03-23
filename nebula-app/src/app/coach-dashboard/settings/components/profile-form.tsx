@@ -302,6 +302,7 @@ export function ProfileForm({
                     <FormLabel>{t('country') || 'Country'}</FormLabel>
                     <FormControl>
                       <CountrySelect
+                        variant="settings"
                         value={field.value || ''}
                         onChange={(name) => field.onChange(name)}
                         onIsoChange={(iso) =>

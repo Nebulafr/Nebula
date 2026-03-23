@@ -1,5 +1,4 @@
 "use client";
-
 import React from "react";
 import Select, { SingleValue, StylesConfig } from "react-select";
 import { getCountries } from "@/actions/location";
@@ -17,28 +16,34 @@ interface CountrySelectProps {
   disabled?: boolean;
   placeholder?: string;
   className?: string;
+  variant?: "onboarding" | "settings";
 }
 
-const customStyles: StylesConfig<CountryOption, false> = {
+const getCustomStyles = (variant: "onboarding" | "settings"): StylesConfig<CountryOption, false> => ({
   control: (base, state) => ({
     ...base,
     backgroundColor: "hsl(var(--background))",
     borderColor: state.isFocused ? "hsl(var(--primary))" : "hsl(var(--input))",
-    borderRadius: "1rem", // 2xl
-    height: "3.5rem", // h-14
-    paddingLeft: "0.5rem",
+    borderRadius: variant === "onboarding" ? "1rem" : "0.5rem",
+    height: variant === "onboarding" ? "3.5rem" : "2.5rem", // h-14 vs h-10
+    minHeight: variant === "onboarding" ? "3.5rem" : "2.5rem",
+    paddingLeft: variant === "onboarding" ? "0.5rem" : "0.25rem",
     boxShadow: state.isFocused ? "0 0 0 4px hsla(var(--primary), 0.1)" : "none",
     "&:hover": {
       borderColor: "hsl(var(--primary) / 0.5)",
     },
     transition: "all 0.2s ease",
-    fontSize: "1.125rem", // text-lg
+    fontSize: variant === "onboarding" ? "1.125rem" : "0.875rem", // text-lg vs text-sm
+  }),
+  valueContainer: (base) => ({
+    ...base,
+    padding: variant === "onboarding" ? "2px 8px" : "0 8px",
   }),
   menu: (base) => ({
     ...base,
     backgroundColor: "hsl(var(--popover))",
-    borderRadius: "1rem",
-    padding: "0.5rem",
+    borderRadius: "0.5rem",
+    padding: "0.25rem",
     zIndex: 50,
     border: "1px solid hsl(var(--border))",
     boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
@@ -53,9 +58,11 @@ const customStyles: StylesConfig<CountryOption, false> = {
     color: state.isSelected
       ? "hsl(var(--primary-foreground))"
       : "hsl(var(--foreground))",
-    borderRadius: "0.5rem",
-    margin: "2px 0",
+    borderRadius: "0.375rem",
+    margin: "1px 0",
     cursor: "pointer",
+    fontSize: variant === "onboarding" ? "1rem" : "0.875rem",
+    padding: variant === "onboarding" ? "10px 12px" : "6px 12px",
     "&:active": {
       backgroundColor: "hsl(var(--primary) / 0.8)",
     },
@@ -72,7 +79,7 @@ const customStyles: StylesConfig<CountryOption, false> = {
     ...base,
     color: "hsl(var(--muted-foreground))",
   }),
-};
+});
 
 export function CountrySelect({
   value,
@@ -81,6 +88,7 @@ export function CountrySelect({
   disabled,
   placeholder = "Select your country…",
   className,
+  variant = "onboarding",
 }: CountrySelectProps) {
   const [countries, setCountries] = React.useState<CountryOption[]>([]);
 
@@ -109,6 +117,8 @@ export function CountrySelect({
       if (onIsoChange) onIsoChange("");
     }
   };
+
+  const customStyles = React.useMemo(() => getCustomStyles(variant), [variant]);
 
   return (
     <div className={className}>
