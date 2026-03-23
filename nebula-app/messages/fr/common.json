@@ -90,14 +90,14 @@
         }
       },
       "coach": {
-        "stepper": {
-          "basicInfo": "Infos de base",
-          "specialties": "Spécialités",
-          "motivation": "Motivation",
-          "style": "Style",
-          "final": "Final"
-        },
         "step1": {
+          "stepper": {
+            "basicInfo": "Infos de base",
+            "specialties": "Spécialités",
+            "motivation": "Motivation",
+            "style": "Style",
+            "final": "Final"
+          },
           "title": "Étape 1 : Votre parcours professionnel",
           "description": "Commençons par votre rôle actuel et votre présence professionnelle.",
           "heading": "Votre rôle et profil",
@@ -114,6 +114,13 @@
           "linkedinPlaceholder": "https://linkedin.com/in/votre-profil"
         },
         "step2": {
+          "stepper": {
+            "basicInfo": "Infos de base",
+            "specialties": "Spécialités",
+            "motivation": "Motivation",
+            "style": "Style",
+            "final": "Final"
+          },
           "title": "Étape 2 : Domaines d'expertise",
           "description": "Aidez les étudiants à vous trouver en listant vos spécialités.",
           "heading": "Votre expertise",
@@ -125,6 +132,13 @@
           "loading": "Chargement des catégories..."
         },
         "step3": {
+          "stepper": {
+            "basicInfo": "Infos de base",
+            "specialties": "Spécialités",
+            "motivation": "Motivation",
+            "style": "Style",
+            "final": "Final"
+          },
           "title": "Étape 3 : Votre motivation",
           "description": "Aidez-nous à comprendre ce qui vous pousse à aider les autres à réussir.",
           "heading": "Votre « Pourquoi »",
@@ -134,6 +148,13 @@
           "charCount": "{count}/1000 caractères (min : 50)"
         },
         "step4": {
+          "stepper": {
+            "basicInfo": "Infos de base",
+            "specialties": "Spécialités",
+            "motivation": "Motivation",
+            "style": "Style",
+            "final": "Final"
+          },
           "title": "Étape 4 : Votre style de coaching",
           "description": "Comment abordez-vous l'accompagnement de vos étudiants ?",
           "heading": "Votre approche",
@@ -143,6 +164,13 @@
           "charCount": "{count}/1000 caractères (min : 50)"
         },
         "step5": {
+          "stepper": {
+            "basicInfo": "Infos de base",
+            "specialties": "Spécialités",
+            "motivation": "Motivation",
+            "style": "Style",
+            "final": "Final"
+          },
           "title": "Étape 5 : Disponibilité et tarifs",
           "description": "Enfin, définissons votre disponibilité et vos attentes en matière de rémunération.",
           "heading": "Logistique",

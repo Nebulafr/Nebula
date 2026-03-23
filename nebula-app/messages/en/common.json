@@ -90,14 +90,14 @@
         }
       },
       "coach": {
-        "stepper": {
-          "basicInfo": "Basic Info",
-          "specialties": "Specialties",
-          "motivation": "Motivation",
-          "style": "Style",
-          "final": "Final"
-        },
         "step1": {
+          "stepper": {
+            "basicInfo": "Basic Info",
+            "specialties": "Specialties",
+            "motivation": "Motivation",
+            "style": "Style",
+            "final": "Final"
+          },
           "title": "Step 1: Your Professional Background",
           "description": "Let's start with your current role and professional presence.",
           "heading": "Your Role & Profile",
@@ -114,6 +114,13 @@
           "linkedinPlaceholder": "https://linkedin.com/in/your-profile"
         },
         "step2": {
+          "stepper": {
+            "basicInfo": "Basic Info",
+            "specialties": "Specialties",
+            "motivation": "Motivation",
+            "style": "Style",
+            "final": "Final"
+          },
           "title": "Step 2: Areas of Expertise",
           "description": "Help students find you by listing your specialties.",
           "heading": "Your Expertise",
@@ -125,6 +132,13 @@
           "loading": "Loading categories..."
         },
         "step3": {
+          "stepper": {
+            "basicInfo": "Basic Info",
+            "specialties": "Specialties",
+            "motivation": "Motivation",
+            "style": "Style",
+            "final": "Final"
+          },
           "title": "Step 3: Your Motivation",
           "description": "Help us understand what drives you to help others succeed.",
           "heading": "Your \"Why\"",
@@ -134,6 +148,13 @@
           "charCount": "{count}/1000 characters (min: 50)"
         },
         "step4": {
+          "stepper": {
+            "basicInfo": "Basic Info",
+            "specialties": "Specialties",
+            "motivation": "Motivation",
+            "style": "Style",
+            "final": "Final"
+          },
           "title": "Step 4: Your Coaching Style",
           "description": "How do you approach guiding your students?",
           "heading": "Your Approach",
@@ -143,6 +164,13 @@
           "charCount": "{count}/1000 characters (min: 50)"
         },
         "step5": {
+          "stepper": {
+            "basicInfo": "Basic Info",
+            "specialties": "Specialties",
+            "motivation": "Motivation",
+            "style": "Style",
+            "final": "Final"
+          },
           "title": "Step 5: Availability & Rates",
           "description": "Finally, let's set your availability and compensation expectations.",
           "heading": "Logistics",
