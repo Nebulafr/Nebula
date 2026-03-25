@@ -15,6 +15,7 @@ import { PlaceHolderImages } from "@/lib/images/placeholder-images";
 import { ArrowLeft, Eye, EyeOff, Mail } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { UserRole } from "@/generated/prisma";
 import { toast } from "react-toastify";
 import { AuthPageGuard } from "@/components/auth/protected-route";
@@ -79,10 +80,14 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [isSignedUp, setIsSignedUp] = useState(false);
   const { signUp, signInWithGoogle } = useAuthActions();
+  const searchParams = useSearchParams();
   const t = useTranslations("auth.signup");
   const f = useTranslations("auth.fields");
   const c = useTranslations("common");
   const tLogin = useTranslations("auth.login");
+
+  const roleParam = searchParams.get("role")?.toUpperCase();
+  const initialRole = roleParam === "COACH" ? UserRole.COACH : UserRole.STUDENT;
 
   const form = useForm<SignupFormValues>({
     resolver: zodResolver(signupFormSchema),
@@ -92,7 +97,7 @@ export default function SignupPage() {
       confirmPassword: "",
       firstName: "",
       lastName: "",
-      role: UserRole.STUDENT,
+      role: initialRole,
     },
   });
 
@@ -107,7 +112,7 @@ export default function SignupPage() {
         password: values.password,
         firstName: values.firstName,
         lastName: values.lastName,
-        role: UserRole.STUDENT,
+        role: values.role as UserRole,
       });
 
       setIsSignedUp(true);
@@ -130,7 +135,7 @@ export default function SignupPage() {
     setLoading(true);
 
     try {
-      await signInWithGoogle(UserRole.STUDENT);
+      await signInWithGoogle(initialRole);
     } catch (error: unknown) {
       if (error instanceof Error && error.message !== "Redirecting to Google sign-in...") {
         toast.error(t("googleSignupFailed"));
