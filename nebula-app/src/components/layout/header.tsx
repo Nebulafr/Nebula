@@ -1,4 +1,4 @@
- 
+
 "use client";
 
 import Image from "next/image";
@@ -115,11 +115,8 @@ export function Header() {
             </>
           ) : (
             <>
-              <Button variant="ghost" asChild>
-                <Link href="/login">{t("login")}</Link>
-              </Button>
               <Button asChild>
-                <Link href="/signup">{t("signup")}</Link>
+                <Link href="/login">{t("login")}</Link>
               </Button>
             </>
           )}

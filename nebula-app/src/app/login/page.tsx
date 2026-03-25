@@ -253,8 +253,12 @@ export default function LoginPage() {
             </Card>
             <div className="mt-4 text-center text-sm">
               {t("noAccount")}{" "}
-              <Link href="/signup" className="underline">
-                {useTranslations("common")("signup")}
+              <Link href="/signup" className="underline hover:text-primary transition-colors">
+                {t("signupAsStudent")}
+              </Link>
+              {" or "}
+              <Link href="/become-a-coach" className="underline hover:text-primary transition-colors">
+                {t("signupAsCoach")}
               </Link>
             </div>
           </div>
