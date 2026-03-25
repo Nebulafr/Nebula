@@ -1,10 +1,12 @@
 import Cookies from "universal-cookie";
 import { env } from "@/config/env";
+import jwt from "jsonwebtoken";
 
+/* --- Constants --- */
 export const AUTH_TOKEN_KEY = "accessToken";
 export const USER_DATA_KEY = "userData";
 export const GOOGLE_ACCESS_TOKEN_KEY = "googleAccessToken";
-const GOOGLE_REFRESH_TOKEN_KEY = "googleRefreshToken";
+export const GOOGLE_REFRESH_TOKEN_KEY = "googleRefreshToken";
 
 const cookies = new Cookies();
 
@@ -15,6 +17,8 @@ const cookieOptions = {
   maxAge: 60 * 60 * 24 * 7, // 7 days
   path: "/",
 };
+
+/* --- Storage Utilities (Shared/Client) --- */
 
 export function storeAccessToken(token: string): void {
   cookies.set(AUTH_TOKEN_KEY, token, cookieOptions);
@@ -37,14 +41,12 @@ export function isAuthenticated(): boolean {
 
 export function storeAuthData(authResponse: {
   accessToken: string;
-   
   user: any;
 }): void {
   storeAccessToken(authResponse.accessToken);
   cookies.set(USER_DATA_KEY, JSON.stringify(authResponse.user), cookieOptions);
 }
 
- 
 export function getStoredUserData(): any | null {
   const userData = cookies.get(USER_DATA_KEY);
   return userData
@@ -87,3 +89,20 @@ export function clearAuthData(): void {
     sessionStorage.removeItem("pendingGoogleSignInRole");
   }
 }
+
+/* --- JWT Utilities (Server-side) --- */
+
+const ACCESS_SECRET = env.ACCESS_TOKEN_SECRET!;
+const REFRESH_SECRET = env.REFRESH_TOKEN_SECRET!;
+
+export const signAccessToken = (payload: object) =>
+  jwt.sign(payload, ACCESS_SECRET, { expiresIn: "15m" });
+
+export const signRefreshToken = (payload: object) =>
+  jwt.sign(payload, REFRESH_SECRET, { expiresIn: "7d" });
+
+export const verifyAccessToken = (token: string) =>
+  jwt.verify(token, ACCESS_SECRET);
+
+export const verifyRefreshToken = (token: string) =>
+  jwt.verify(token, REFRESH_SECRET);

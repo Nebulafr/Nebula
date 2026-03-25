@@ -1,23 +1,47 @@
-"use server";
-/**
- * @fileoverview Service for interacting with Google APIs, specifically Google Calendar.
- */
-
 import { google, calendar_v3 } from "googleapis";
 import { env } from "@/config/env";
 
-/**
- * Creates a Google Calendar event with a Google Meet link.
- * @param {string} title - The title of the event.
- * @param {string} description - The description of the event.
- * @param {string} startTime - The start time of the event in ISO 8601 format.
- * @param {string} endTime - The end time of the event in ISO 8601 format.
- * @param {string[]} attendees - An array of attendee email addresses.
- * @param {string} accessToken - Google OAuth2 access token.
- * @param {string} refreshToken - Google OAuth2 refresh token (optional).
- * @returns {Promise<{ meetLink: string; eventId: string; newAccessToken?: string }>} - The Google Meet link, event ID, and optionally a new access token.
- * @throws {Error} - If environment variables are not set or API call fails.
- */
+/* --- Token Store (Development) --- */
+
+// Simple in-memory token storage (in production, use Redis or database)
+const tokenStore = new Map<string, { accessToken: string; refreshToken?: string; expiryDate?: number }>();
+
+export function storeGoogleTokens(userId: string, accessToken: string, refreshToken?: string, expiryDate?: number) {
+  tokenStore.set(userId, { accessToken, refreshToken, expiryDate });
+}
+
+export function getGoogleTokens(userId: string) {
+  return tokenStore.get(userId);
+}
+
+export function clearGoogleTokens(userId: string) {
+  tokenStore.delete(userId);
+}
+
+/* --- Auth Utilities --- */
+
+export function getGoogleAuthUrl() {
+  if (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET) {
+    throw new Error("Missing Google credentials");
+  }
+
+  const oauth2Client = new google.auth.OAuth2(
+    env.GOOGLE_CLIENT_ID,
+    env.GOOGLE_CLIENT_SECRET,
+    `${env.NEXTAUTH_URL}/api/auth/google-calendar`
+  );
+
+  return oauth2Client.generateAuthUrl({
+    access_type: "offline",
+    scope: [
+      "https://www.googleapis.com/auth/calendar",
+      "https://www.googleapis.com/auth/calendar.events"
+    ],
+    prompt: "consent"
+  });
+}
+
+/* --- Calendar Utilities --- */
 
 export async function createCalendarEvent(
   title: string,
@@ -28,40 +52,23 @@ export async function createCalendarEvent(
   accessToken: string,
   refreshToken?: string
 ): Promise<{ meetLink: string; eventId: string; newAccessToken?: string }> {
-  // Check for required environment variables
   if (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET) {
-    throw new Error(
-      "GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be set in environment variables"
-    );
+    throw new Error("GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be set");
   }
 
-  // Create OAuth2 client credentials
   const auth = new google.auth.OAuth2(
     env.GOOGLE_CLIENT_ID,
     env.GOOGLE_CLIENT_SECRET,
     `${env.NEXTAUTH_URL}/api/auth/google-calendar`
   );
 
-  // Set the credentials
   auth.setCredentials({
     access_token: accessToken,
     refresh_token: refreshToken,
   });
 
-  // Set up automatic token refresh
-  auth.on('tokens', (tokens) => {
-    if (tokens.refresh_token) {
-      console.log('Refresh token received:', tokens.refresh_token);
-    }
-    if (tokens.access_token) {
-      console.log('New access token received');
-    }
-  });
-
-  // Create calendar client with authentication
   const calendar = google.calendar({ version: "v3", auth });
 
-  // Define the event with proper typing
   const event: calendar_v3.Schema$Event = {
     summary: title,
     description: description,
@@ -98,10 +105,9 @@ export async function createCalendarEvent(
     const eventId = createdEvent.id;
 
     if (!meetLink || !eventId) {
-      throw new Error("Failed to create Google Meet link for the event.");
+      throw new Error("Failed to create Google Meet link.");
     }
 
-    // Check if we got new credentials (after refresh)
     const credentials = auth.credentials;
     const newAccessToken = credentials.access_token !== accessToken ? credentials.access_token : undefined;
 
@@ -110,57 +116,24 @@ export async function createCalendarEvent(
       eventId,
       newAccessToken: newAccessToken as string | undefined
     };
-  } catch (error: unknown) {
-    console.error("Error creating Google Calendar event:", error);
-
-    const err = error as { code?: number };
-    // If it's an auth error and we have a refresh token, try to get new credentials
-    if (err.code === 401 && refreshToken) {
-      try {
-        console.log("Access token expired, attempting to refresh...");
-        await auth.refreshAccessToken();
-
-        // Retry the calendar event creation with new credentials
-        const retryResponse = await calendar.events.insert({
-          calendarId: "primary",
-          requestBody: event,
-          conferenceDataVersion: 1,
-        });
-
-        const retryEvent = retryResponse.data;
-        const retryMeetLink =
-          retryEvent.hangoutLink ||
-          retryEvent.conferenceData?.entryPoints?.[0]?.uri;
-        const retryEventId = retryEvent.id;
-
-        if (!retryMeetLink || !retryEventId) {
-          throw new Error("Failed to create Google Meet link for the event after token refresh.");
-        }
-
-        const newCredentials = auth.credentials;
-        return {
-          meetLink: retryMeetLink,
-          eventId: retryEventId,
-          newAccessToken: newCredentials.access_token as string
-        };
-      } catch (refreshError) {
-        console.error("Failed to refresh token:", refreshError);
-        throw new Error("Google Calendar access token expired and refresh failed. Please reconnect your calendar.");
-      }
+  } catch (error: any) {
+    if (error.code === 401 && refreshToken) {
+      await auth.refreshAccessToken();
+      const retryResponse = await calendar.events.insert({
+        calendarId: "primary",
+        requestBody: event,
+        conferenceDataVersion: 1,
+      });
+      return {
+        meetLink: retryResponse.data.hangoutLink!,
+        eventId: retryResponse.data.id!,
+        newAccessToken: auth.credentials.access_token as string
+      };
     }
-
     throw new Error("Failed to create Google Calendar event.");
   }
 }
-/**
- * Updates an existing Google Calendar event.
- * @param {string} eventId - The ID of the event to update.
- * @param {string} startTime - The new start time in ISO 8601 format.
- * @param {string} endTime - The new end time in ISO 8601 format.
- * @param {string} accessToken - Google OAuth2 access token.
- * @param {string} refreshToken - Google OAuth2 refresh token (optional).
- * @returns {Promise<{ newAccessToken?: string }>} - Optionally a new access token if refreshed.
- */
+
 export async function updateCalendarEvent(
   eventId: string,
   startTime: string,
@@ -193,12 +166,9 @@ export async function updateCalendarEvent(
 
     const credentials = auth.credentials;
     const newAccessToken = credentials.access_token !== accessToken ? credentials.access_token : undefined;
-
     return { newAccessToken: newAccessToken as string | undefined };
-  } catch (error: unknown) {
-    console.error("Error updating Google Calendar event:", error);
-    const err = error as { code?: number };
-    if (err.code === 401 && refreshToken) {
+  } catch (error: any) {
+    if (error.code === 401 && refreshToken) {
       await auth.refreshAccessToken();
       await calendar.events.patch({
         calendarId: "primary",
@@ -214,13 +184,6 @@ export async function updateCalendarEvent(
   }
 }
 
-/**
- * Deletes an existing Google Calendar event.
- * @param {string} eventId - The ID of the event to delete.
- * @param {string} accessToken - Google OAuth2 access token.
- * @param {string} refreshToken - Google OAuth2 refresh token (optional).
- * @returns {Promise<{ newAccessToken?: string }>} - Optionally a new access token if refreshed.
- */
 export async function deleteCalendarEvent(
   eventId: string,
   accessToken: string,
@@ -247,12 +210,9 @@ export async function deleteCalendarEvent(
 
     const credentials = auth.credentials;
     const newAccessToken = credentials.access_token !== accessToken ? credentials.access_token : undefined;
-
     return { newAccessToken: newAccessToken as string | undefined };
-  } catch (error: unknown) {
-    console.error("Error deleting Google Calendar event:", error);
-    const err = error as { code?: number };
-    if (err.code === 401 && refreshToken) {
+  } catch (error: any) {
+    if (error.code === 401 && refreshToken) {
       await auth.refreshAccessToken();
       await calendar.events.delete({
         calendarId: "primary",

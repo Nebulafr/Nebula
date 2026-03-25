@@ -2,14 +2,19 @@ import { ApiResponse } from "@/types";
 import { clsx, type ClassValue } from "clsx";
 import { v4 as uuidv4 } from "uuid";
 import { twMerge } from "tailwind-merge";
-import { getAccessToken } from "./auth-storage";
+import { getAccessToken } from "./auth";
+import React from 'react';
+import { Book, Presentation, StickyNote, File, Video } from "lucide-react";
+import { toast } from "react-toastify";
 
-/** UI Styling */
+/* --- UI Styling --- */
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-/** Routing */
+/* --- Routing --- */
+
 export const protectedRoutes = {
   "/dashboard": "student",
   "/coach-dashboard": "coach",
@@ -26,7 +31,8 @@ export const publicRoutes = [
   "/terms-of-service", "/careers", "/nebula-ai"
 ];
 
-/** API Request Helpers */
+/* --- API Request Helpers --- */
+
 interface RequestOptions {
   body?: any;
   headers?: Record<string, string>;
@@ -143,7 +149,8 @@ export const apiPut = <T = unknown>(endpoint: string, body?: unknown, options?: 
 export const apiPatch = <T = unknown>(endpoint: string, body?: unknown, options?: RequestOptions) => makeRequest<T>(endpoint, "PATCH", { ...options, body });
 export const apiDelete = <T = unknown>(endpoint: string, options?: RequestOptions) => makeRequest<T>(endpoint, "DELETE", options);
 
-/** String Manipulation */
+/* --- String Manipulation --- */
+
 export const capitalize = (str: string) => str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 
 export const formatUserName = (name: string | null | undefined): string => {
@@ -176,7 +183,8 @@ export function truncateText(text: string | null | undefined, maxLength: number)
   return cleanText.substring(0, maxLength - 3).trim() + "...";
 }
 
-/** Date utilities */
+/* --- Date Utilities --- */
+
 export const getStartOfWeek = (date: Date): Date => {
   const d = new Date(date);
   const day = d.getDay();
@@ -206,7 +214,8 @@ export function formatChatTime(date: string | Date | null | undefined): string {
   } catch { return ""; }
 }
 
-/** Avatar / Image Utilities */
+/* --- Avatar / Image Utilities --- */
+
 const avatarColors = ["0EA5E9", "8B5CF6", "EC4899", "F97316", "22C55E", "06B6D4", "EAB308", "EF4444", "6366F1", "14B8A6"];
 
 function getAvatarColor(str: string): string {
@@ -229,7 +238,8 @@ export function getUserAvatar(name?: string | null, size: number = 128): string 
   return `https://ui-avatars.com/api/?name=${encodeURIComponent(initials)}&size=${size}&background=${color}&color=ffffff&bold=true&format=png`;
 }
 
-/** Chat Specific Utilities */
+/* --- Chat Specific Utilities --- */
+
 export interface ChatHeaderInfo {
   displayName: string;
   displayRole: string;
@@ -259,10 +269,12 @@ export function formatMessagePreview(message: string | null | undefined, maxLeng
 }
 
 export function getMessageInputPlaceholder(userRole: string, recipientRole: string): string {
-  return `Type a message to your ${formatUserRole(recipientRole).toLowerCase()}...`;
+  const recipientName = formatUserRole(recipientRole).toLowerCase();
+  return `Type a message to your ${recipientName}...`;
 }
 
-/** Event Backgrounds & Assets */
+/* --- Event Backgrounds & Assets --- */
+
 export const backgroundColors = ["bg-yellow-50", "bg-blue-50", "bg-purple-50"];
 export const gradientBackgrounds = [
   "bg-gradient-to-br from-blue-100 to-blue-200", "bg-gradient-to-br from-purple-100 to-purple-200",
@@ -334,3 +346,69 @@ export function getDefaultBanners(count: number): string[] {
 }
 
 export const getAccessTypeText = (type?: string) => type?.toLowerCase() === "free" ? "Free" : "Premium";
+
+/* --- Material Normalization & Icons --- */
+
+export interface Material {
+  fileName?: string;
+  name?: string;
+  url?: string;
+  link?: string;
+  fileType?: string;
+  type?: string;
+  fileSize?: number;
+}
+
+export function normalizeMaterial(mat: string | Material) {
+  const isString = typeof mat === "string";
+  const name = isString ? mat.split("/").pop()! : (mat.fileName || mat.name || "document");
+  const link = isString ? mat : (mat.url || mat.link || "#");
+  let type = isString ? (mat.endsWith(".pdf") ? "pdf" : "doc") : (mat.fileType || mat.type || "");
+
+  // Normalize type
+  const typeLower = type.toLowerCase();
+  if (typeLower.includes("pdf")) type = "pdf";
+  else if (typeLower.includes("video")) type = "video";
+  else if (typeLower.includes("word") || typeLower.includes("officedocument") || typeLower.includes("doc")) type = "doc";
+  else if (typeLower.includes("presentation") || typeLower.includes("powerpoint") || typeLower.includes("ppt")) type = "ppt";
+  else type = "file";
+
+  const sizeDisplay = !isString && mat.fileSize ?
+    (mat.fileSize > 1024 * 1024 ? `${(mat.fileSize / (1024 * 1024)).toFixed(2)} MB` : `${(mat.fileSize / 1024).toFixed(2)} KB`)
+    : null;
+
+  return { name, link, type, sizeDisplay };
+}
+
+export const getMaterialIcon = (type: string, size: number = 5) => {
+  const className = `h-${size} w-${size}`;
+  switch (type) {
+    case "pdf":
+      return React.createElement(Book, { className: `${className} text-red-500` });
+    case "ppt":
+      return React.createElement(Presentation, { className: `${className} text-orange-500` });
+    case "doc":
+      return React.createElement(StickyNote, { className: `${className} text-blue-500` });
+    case "video":
+      return React.createElement(Video, { className: `${className} text-blue-500` });
+    default:
+      return React.createElement(File, { className: `${className} text-muted-foreground` });
+  }
+};
+
+/* --- Error Handling --- */
+
+export function handleAndToastError(error: unknown, defaultMessage: string) {
+  let errorMessage = defaultMessage;
+
+  if (error && typeof error === "object" && "message" in error) {
+    errorMessage = (error as { message: string }).message;
+  } else if (error instanceof Error) {
+    errorMessage = error.message;
+  } else if (typeof error === "string") {
+    errorMessage = error;
+  }
+
+  console.error("Error caught:", error);
+  toast.error(errorMessage);
+}

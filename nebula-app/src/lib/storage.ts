@@ -1,29 +1,22 @@
-/**
- * Server-side Cloudinary utilities (Node.js only)
- * Only import this file in API routes, server actions, or server components
- */
 import { v2 as cloudinary } from "cloudinary";
 import { env } from "@/config/env";
+import { UploadResult } from "./storage-utils";
 
-cloudinary.config({
-  cloud_name: env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
-  api_key: env.CLOUDINARY_API_KEY,
-  api_secret: env.CLOUDINARY_API_SECRET,
-});
+/* --- Configuration (Server-side) --- */
+
+if (typeof window === "undefined") {
+  cloudinary.config({
+    cloud_name: env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+    api_key: env.CLOUDINARY_API_KEY,
+    api_secret: env.CLOUDINARY_API_SECRET,
+  });
+}
 
 export { cloudinary };
 
-interface UploadResult {
-  url: string;
-  publicId: string;
-  fileName: string;
-  fileType: string;
-  fileSize: number;
-}
+/* --- Server Utilities --- */
 
-/**
- * Upload an image to Cloudinary (server-side)
- */
+/** Upload an image to Cloudinary */
 export const uploadImage = async (
   file: Buffer | string,
   options?: {
@@ -53,9 +46,7 @@ export const uploadImage = async (
   };
 };
 
-/**
- * Upload any file to Cloudinary (server-side)
- */
+/** Upload any file to Cloudinary */
 export const uploadFile = async (
   file: Buffer | string,
   options?: {
@@ -84,9 +75,7 @@ export const uploadFile = async (
   };
 };
 
-/**
- * Upload avatar image to Cloudinary (server-side)
- */
+/** Upload avatar image to Cloudinary */
 export const uploadAvatar = async (
   file: Buffer | string,
   userId?: string,
@@ -103,9 +92,7 @@ export const uploadAvatar = async (
   });
 };
 
-/**
- * Delete a file from Cloudinary
- */
+/** Delete a file from Cloudinary */
 export const deleteFile = async (
   publicId: string,
   resourceType: "image" | "video" | "raw" = "image",
@@ -116,9 +103,7 @@ export const deleteFile = async (
   return result.result === "ok";
 };
 
-/**
- * Generate a signed upload URL for client-side uploads
- */
+/** Generate a signed upload URL for client-side uploads */
 export const generateSignedUploadUrl = (
   folder: string = "nebula-uploads",
 ): {
@@ -141,9 +126,7 @@ export const generateSignedUploadUrl = (
   };
 };
 
-/**
- * Get optimized image URL with transformations
- */
+/** Get optimized image URL with transformations */
 export const getOptimizedUrl = (
   publicId: string,
   options?: {
@@ -164,9 +147,7 @@ export const getOptimizedUrl = (
   });
 };
 
-/**
- * Get download URL for a file (forces download)
- */
+/** Get download URL for a file (forces download) */
 export const getDownloadUrl = (
   publicId: string,
   resourceType: "image" | "video" | "raw" = "raw",
