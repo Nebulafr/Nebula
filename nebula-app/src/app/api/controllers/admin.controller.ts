@@ -4,6 +4,7 @@ import {
   adminProgramQuerySchema,
   programActionSchema,
   adminCreateUserSchema,
+  adminUpdateUserSchema,
 } from "@/lib/validations";
 import { BadRequestException } from "../utils/http-exception";
 import { reviewService } from "../services/review.service";
@@ -215,6 +216,15 @@ export class AdminController {
 
     const result = await adminService.createUser(payload);
     return sendSuccess(result, "User created successfully", 201);
+  }
+
+  async updateUser(request: NextRequest, { params }: { params: { id: string } }) {
+    const userId = params.id;
+    const body = await request.json();
+    const payload = adminUpdateUserSchema.parse(body);
+
+    const result = await adminService.updateUser(userId, payload);
+    return sendSuccess(result, "User updated successfully");
   }
 }
 

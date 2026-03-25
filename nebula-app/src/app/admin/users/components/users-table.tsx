@@ -31,6 +31,9 @@ import { useTranslations } from "next-intl";
 import { AdminPagination } from "../../components/admin-pagination";
 
 interface User {
+  id: string;
+  firstName?: string;
+  lastName?: string;
   name: string;
   email: string;
   avatar?: string;

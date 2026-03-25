@@ -42,8 +42,17 @@ export const adminCreateUserSchema = z.object({
   password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
+export const adminUpdateUserSchema = z.object({
+  firstName: z.string().min(1, "First name is required").optional(),
+  lastName: z.string().min(1, "Last name is required").optional(),
+  email: z.string().email("Invalid email address").optional(),
+  role: z.string().optional(),
+  status: z.enum(["ACTIVE", "SUSPENDED", "INACTIVE"]).optional(),
+});
+
 export type AdminUserQueryData = z.infer<typeof adminUserQuerySchema>;
 export type AdminReviewQueryData = z.infer<typeof adminReviewQuerySchema>;
 export type AdminEventQueryData = z.infer<typeof adminEventQuerySchema>;
 export type AdminTransactionQueryData = z.infer<typeof adminTransactionQuerySchema>;
 export type AdminCreateUserData = z.infer<typeof adminCreateUserSchema>;
+export type AdminUpdateUserData = z.infer<typeof adminUpdateUserSchema>;

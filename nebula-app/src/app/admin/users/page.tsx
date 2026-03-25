@@ -6,7 +6,8 @@ import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { UserFilters } from "./components/user-filters";
 import { UsersTable } from "./components/users-table";
 import { AddUserDialog } from "./components/add-user-dialog";
-import { useAdminUsers, useCreateUser, useDeleteUser } from "@/hooks";
+import { EditUserDialog } from "./components/edit-user-dialog";
+import { useAdminUsers, useCreateUser, useDeleteUser, useUpdateUser } from "@/hooks";
 import { toast } from "react-toastify";
 import { useTranslations } from "next-intl";
 import { ConfirmModal } from "@/components/shared/confirm-modal";
@@ -18,7 +19,9 @@ export default function UserManagementPage() {
   const [activeTab, setActiveTab] = useState("all");
   const [page, setPage] = useState(1);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<any>(null);
+  const [userToEdit, setUserToEdit] = useState<any>(null);
   const limit = 10;
 
   const {
@@ -37,6 +40,7 @@ export default function UserManagementPage() {
 
   const createUserMutation = useCreateUser();
   const deleteUserMutation = useDeleteUser();
+  const updateUserMutation = useUpdateUser();
 
   // Debounce search term and reset page
   React.useEffect(() => {
@@ -56,6 +60,8 @@ export default function UserManagementPage() {
   // Transform users to match the table interface
   const transformedUsers = users.map((user: any) => ({
     id: user.id,
+    firstName: user.firstName,
+    lastName: user.lastName,
     name: user.fullName || user.email,
     email: user.email,
     avatar: user.avatarUrl,
@@ -76,13 +82,35 @@ export default function UserManagementPage() {
     return await createUserMutation.mutateAsync(userData);
   };
 
+  const handleUpdateUser = async (userId: string, userData: any) => {
+    await updateUserMutation.mutateAsync({ userId, userData });
+    toast.success(t("userUpdatedSuccessfully") || "User updated successfully");
+  };
+
   const handleUserAction = async (user: any, action: string) => {
     if (action === "delete") {
       setUserToDelete(user);
       setIsDeleteModalOpen(true);
+    } else if (action === "edit") {
+      setUserToEdit(user);
+      setIsEditModalOpen(true);
+    } else if (action === "suspend") {
+      const newStatus = user.status === "ACTIVE" ? "SUSPENDED" : "ACTIVE";
+      try {
+        await updateUserMutation.mutateAsync({
+          userId: user.id,
+          userData: { status: newStatus },
+        });
+        toast.success(
+          newStatus === "SUSPENDED"
+            ? t("userSuspendedSuccessfully") || "User suspended successfully"
+            : t("userActivatedSuccessfully") || "User activated successfully"
+        );
+      } catch (error) {
+        // Error handled by mutation
+      }
     } else {
       console.log(`User ${action}:`, user);
-      // TODO: Implement other user action logic
     }
   };
 
@@ -129,6 +157,14 @@ export default function UserManagementPage() {
           />
         </TabsContent>
       </Tabs>
+
+      <EditUserDialog
+        user={userToEdit}
+        isOpen={isEditModalOpen}
+        onOpenChange={setIsEditModalOpen}
+        onUpdateUser={handleUpdateUser}
+        loading={updateUserMutation.isPending}
+      />
 
       <ConfirmModal
         isOpen={isDeleteModalOpen}
