@@ -34,7 +34,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { EventType, INewEvent } from "@/types/event";
 import { UserSelect, UserSelectValue } from "@/components/ui/user-select";
-import { fileToBase64 } from "@/lib/upload";
+import { fileToBase64 } from "@/lib/storage-utils";
 import { useTranslations } from "next-intl";
 import moment from "moment";
 import { UserRole } from "@/enums";

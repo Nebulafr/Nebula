@@ -1,8 +1,8 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/providers";
 import { PaymentStatus, SessionStatus, EnrollmentStatus, EventAttendeeStatus, TransactionType, TransactionSourceType, TransactionStatus } from "@/generated/prisma";
 import Stripe from "stripe";
 import { NotFoundException, BadRequestException } from "../utils/http-exception";
-import { stripe } from "@/lib/stripe";
+import { stripe } from "@/lib/providers";
 import { emailService } from "./email.service";
 import { sessionService } from "./session.service";
 

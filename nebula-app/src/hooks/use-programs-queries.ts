@@ -16,7 +16,7 @@ import {
 import { ProgramResponse, AdminProgramsResponse } from "@/types/program";
 import { ProgramsResponse } from "@/types";
 import { CreateProgramData } from "@/lib/validations";
-import { handleAndToastError } from "@/lib/error-handler";
+import { handleAndToastError } from "@/lib/utils";
 
 export const PROGRAMS_QUERY_KEY = "programs";
 export const GROUPED_PROGRAMS_QUERY_KEY = "grouped-programs";

@@ -10,7 +10,7 @@ import {
   registerForEvent,
   unregisterFromEvent,
 } from "@/actions/events";
-import { handleAndToastError } from "@/lib/error-handler";
+import { handleAndToastError } from "@/lib/utils";
 import { ADMIN_EVENTS_QUERY_KEY } from "./use-admin-queries";
 import { CreateEventData, UpdateEventData, EventsResponse, EventResponse } from "@/types/event";
 

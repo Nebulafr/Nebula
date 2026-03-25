@@ -4,7 +4,7 @@ import {
   createEventSchema,
   UpdateEventData,
 } from "@/lib/validations";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/providers";
 import { Event, User, Prisma } from "@/generated/prisma";
 import {
   UnauthorizedException,

@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { fileToBase64 } from "@/lib/upload";
+import { fileToBase64 } from "@/lib/storage-utils";
 
 interface ImageUploadProps {
   images: string[];

@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/providers";
 import { Prisma } from "@/generated/prisma";
 import { BadRequestException, NotFoundException } from "../utils/http-exception";
 import {

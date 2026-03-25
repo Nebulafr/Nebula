@@ -1,6 +1,6 @@
 import HttpException from "../utils/http-exception";
 import { RESPONSE_CODE } from "@/types";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/providers";
 import { NextRequest } from "next/server";
 import { UserRole } from "@/generated/prisma";
 import jwt from "jsonwebtoken";

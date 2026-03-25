@@ -3,10 +3,11 @@ import { adminService } from "../services/admin.service";
 import {
   adminProgramQuerySchema,
   programActionSchema,
+  adminCreateUserSchema,
 } from "@/lib/validations";
 import { BadRequestException } from "../utils/http-exception";
 import { reviewService } from "../services/review.service";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/providers";
 import { sendSuccess } from "../utils/send-response";
 
 export class AdminController {
@@ -206,6 +207,14 @@ export class AdminController {
 
     const result = await adminService.deleteUser(userId);
     return sendSuccess(result, "User deleted successfully");
+  }
+
+  async createUser(request: NextRequest) {
+    const body = await request.json();
+    const payload = adminCreateUserSchema.parse(body);
+
+    const result = await adminService.createUser(payload);
+    return sendSuccess(result, "User created successfully", 201);
   }
 }
 

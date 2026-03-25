@@ -30,7 +30,8 @@ interface AddUserDialogProps {
 }
 
 interface NewUserData {
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   role: string;
   password: string;
@@ -41,7 +42,8 @@ export function AddUserDialog({ onAddUser, loading = false }: AddUserDialogProps
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<NewUserData>({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
     role: '',
     password: '',
@@ -49,11 +51,11 @@ export function AddUserDialog({ onAddUser, loading = false }: AddUserDialogProps
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (formData.name && formData.email && formData.role && formData.password) {
+    if (formData.firstName && formData.lastName && formData.email && formData.role && formData.password) {
       setIsSubmitting(true);
       try {
         await onAddUser?.(formData);
-        setFormData({ name: '', email: '', role: '', password: '' });
+        setFormData({ firstName: '', lastName: '', email: '', role: '', password: '' });
         setIsOpen(false);
       } catch (error) {
         console.error("Error submitting form:", error);
@@ -64,7 +66,7 @@ export function AddUserDialog({ onAddUser, loading = false }: AddUserDialogProps
     }
   };
 
-  const isFormValid = formData.name && formData.email && formData.role && formData.password;
+  const isFormValid = formData.firstName && formData.lastName && formData.email && formData.role && formData.password;
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => {
@@ -72,7 +74,7 @@ export function AddUserDialog({ onAddUser, loading = false }: AddUserDialogProps
         setIsOpen(open);
         if (!open) {
           // Reset form when closing
-          setFormData({ name: '', email: '', role: '', password: '' });
+          setFormData({ firstName: '', lastName: '', email: '', role: '', password: '' });
         }
       }
     }}>
@@ -92,15 +94,29 @@ export function AddUserDialog({ onAddUser, loading = false }: AddUserDialogProps
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="name" className="text-right">
-                {t("name")}
+              <Label htmlFor="firstName" className="text-right">
+                {t("firstName") || "First Name"}
               </Label>
               <Input
-                id="name"
-                placeholder="John Doe"
+                id="firstName"
+                placeholder="John"
                 className="col-span-3"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                value={formData.firstName}
+                onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                disabled={isSubmitting}
+                required
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="lastName" className="text-right">
+                {t("lastName") || "Last Name"}
+              </Label>
+              <Input
+                id="lastName"
+                placeholder="Doe"
+                className="col-span-3"
+                value={formData.lastName}
+                onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
                 disabled={isSubmitting}
                 required
               />

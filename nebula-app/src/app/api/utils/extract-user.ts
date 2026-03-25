@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/providers";
 import jwt from "jsonwebtoken";
 import { env } from "@/config/env";
 

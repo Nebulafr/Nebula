@@ -1,6 +1,6 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/providers";
 import { PaymentStatus, SessionStatus, Prisma, TransactionType, TransactionSourceType, TransactionStatus } from "@/generated/prisma";
-import { createCalendarEvent } from "@/lib/google-api";
+import { createCalendarEvent } from "@/lib/google";
 import { emailService } from "./email.service";
 import { paymentService } from "./payment.service";
 import {
@@ -1121,7 +1121,7 @@ export class SessionService {
   }
 
   private async deleteGoogleCalendarEvent(coach: any, eventId: string) {
-    const { deleteCalendarEvent } = await import("@/lib/google-api");
+    const { deleteCalendarEvent } = await import("@/lib/google");
     const result = await deleteCalendarEvent(
       eventId,
       coach.googleCalendarAccessToken!,
@@ -1314,7 +1314,7 @@ export class SessionService {
     startTime: moment.Moment,
     endTime: moment.Moment,
   ) {
-    const { updateCalendarEvent } = await import("@/lib/google-api");
+    const { updateCalendarEvent } = await import("@/lib/google");
     const result = await updateCalendarEvent(
       eventId,
       startTime.toISOString(),

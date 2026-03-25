@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/providers";
 import { ReviewTargetType, Prisma } from "@/generated/prisma";
 import {
   NotFoundException,

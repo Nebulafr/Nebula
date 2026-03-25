@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/providers";
 import { MessageType, ConversationType, Prisma } from "@/generated/prisma";
 import {
   UnauthorizedException,
@@ -185,7 +185,7 @@ export class MessagingService {
 
     const formattedMessages = messages.reverse().map((message) => ({
       id: message.id,
-      sender: message.sender.fullName || "Unknown",
+      sender: message.sender?.fullName || "Nebula AI",
       text: message.content,
       timestamp: new Date(message.createdAt).toLocaleTimeString([], {
         hour: "2-digit",

@@ -9,7 +9,7 @@ import {
 } from "@/actions/coaches";
 import { CoachesResponse, CoachDetailResponse } from "@/types/coach";
 import { CoachUpdateData, CreateCoachData } from "@/lib/validations";
-import { handleAndToastError } from "@/lib/error-handler";
+import { handleAndToastError } from "@/lib/utils";
 
 export const COACHES_QUERY_KEY = "coaches";
 export const COACH_BY_SLUG_QUERY_KEY = "coach-by-slug";

@@ -9,8 +9,8 @@ import {
 import { signInWithGoogle } from "@/firebase/auth";
 import { SignupData, SigninData } from "@/lib/validations";
 import { UserRole } from "@/generated/prisma";
-import { storeAuthData, clearAuthData } from "@/lib/auth-storage";
-import { handleAndToastError } from "@/lib/error-handler";
+import { storeAuthData, clearAuthData } from "@/lib/auth";
+import { handleAndToastError } from "@/lib/utils";
 
 export const USER_PROFILE_QUERY_KEY = "user-profile";
 

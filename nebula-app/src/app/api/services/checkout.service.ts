@@ -1,5 +1,5 @@
-import { prisma } from "@/lib/prisma";
-import { stripe } from "@/lib/stripe";
+import { prisma } from "@/lib/providers";
+import { stripe } from "@/lib/providers";
 import { NotFoundException } from "../utils/http-exception";
 import { CheckoutProgramData, CheckoutSessionData, CheckoutEventData } from "@/lib/validations/checkout";
 import { paymentService } from "./payment.service";

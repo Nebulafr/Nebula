@@ -3,7 +3,7 @@
 import React from "react";
 import { Download, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { normalizeMaterial, getMaterialIcon, Material } from "@/lib/material-utils";
+import { normalizeMaterial, getMaterialIcon, Material } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 interface MaterialItemProps {

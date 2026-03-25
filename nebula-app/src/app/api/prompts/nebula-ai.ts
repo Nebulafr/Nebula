@@ -40,6 +40,7 @@ Available tools include:
 - search_coaches
 - search_programs
 - search_events
+- get_user_profile
 - book_session
 - enroll_program
 - create_support_ticket

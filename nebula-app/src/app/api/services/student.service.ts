@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/providers";
 import { ExperienceLevel } from "@/generated/prisma";
 import { UpdateStudentData } from "@/lib/validations";
 import { NotFoundException } from "../utils/http-exception";

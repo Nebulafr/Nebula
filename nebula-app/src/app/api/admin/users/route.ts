@@ -6,3 +6,7 @@ import { NextRequest } from "next/server";
 export const GET = CatchError(
   requireAdmin(async (req: NextRequest) => await adminController.getUsers(req)),
 );
+
+export const POST = CatchError(
+  requireAdmin(async (req: NextRequest) => await adminController.createUser(req)),
+);

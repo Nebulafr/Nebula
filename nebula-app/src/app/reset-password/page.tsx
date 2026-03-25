@@ -24,7 +24,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useAuthActions } from "@/hooks/use-auth";
-import { handleAndToastError } from "@/lib/error-handler";
+import { handleAndToastError } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";

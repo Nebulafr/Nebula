@@ -1,7 +1,7 @@
 
 "use client";
 import { createContext, useEffect, useState, useCallback } from "react";
-import { storeAuthData, clearAuthData } from "@/lib/auth-storage";
+import { storeAuthData, clearAuthData } from "@/lib/auth";
 import { makeRequest, publicRoutes } from "@/lib/utils";
 import { UserRole } from "@/generated/prisma";
 import { UserProfile, AuthState, AuthResponse, ApiResponse } from "@/types";

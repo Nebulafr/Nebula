@@ -3,7 +3,7 @@
 import { useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
-import { getAccessToken } from "@/lib/auth-storage";
+import { getAccessToken } from "@/lib/auth";
 import { useMessaging } from "@/hooks/use-messaging";
 import { useTranslations } from "next-intl";
 

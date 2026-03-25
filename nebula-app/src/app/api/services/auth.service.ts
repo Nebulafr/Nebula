@@ -1,7 +1,7 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/providers";
 import { env } from "@/config/env";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+import { signAccessToken } from "@/lib/auth";
 import {
   type RegisterData,
   type SigninData,
@@ -18,10 +18,7 @@ import { uploadService } from "./upload.service";
 import crypto from "crypto";
 
 export class AuthService {
-  generateAccessToken(userId: string): string {
-    const secret = env.ACCESS_TOKEN_SECRET || "ACCESS_TOKEN_SECRET";
-    return jwt.sign({ userId, type: "access" }, secret, { expiresIn: "7d" });
-  }
+// --- generateAccessToken moved to signup/signin calls, or kept as wrapper ---
 
   async hashPassword(password: string): Promise<string> {
     return bcrypt.hash(password, 12);
@@ -119,7 +116,7 @@ export class AuthService {
       throw new UnauthorizedException("Your account is not active");
     }
 
-    const accessToken = this.generateAccessToken(user.id);
+    const accessToken = signAccessToken({ userId: user.id, type: "access" });
     const { hashedPassword, verificationToken, ...userWithoutPassword } = user;
     void hashedPassword;
     void verificationToken;
@@ -183,7 +180,7 @@ export class AuthService {
     let user = await this.findUserByGoogleId(googleId);
 
     if (user) {
-      const accessToken = this.generateAccessToken(user.id);
+      const accessToken = signAccessToken({ userId: user.id, type: "access" });
       const { hashedPassword, verificationToken, ...userWithoutPassword } = user;
       void hashedPassword;
       void verificationToken;
@@ -201,7 +198,7 @@ export class AuthService {
         },
       });
 
-      const accessToken = this.generateAccessToken(user.id);
+      const accessToken = signAccessToken({ userId: user.id, type: "access" });
       const { hashedPassword, verificationToken, ...userWithoutPassword } = user;
       void hashedPassword;
       void verificationToken;
@@ -225,7 +222,7 @@ export class AuthService {
       },
     });
 
-    const accessToken = this.generateAccessToken(user.id);
+    const accessToken = signAccessToken({ userId: user.id, type: "access" });
 
     const { hashedPassword, verificationToken, ...userWithoutPassword } = user;
     return { accessToken, user: userWithoutPassword };

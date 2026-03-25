@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiGet, apiPatch, apiPost } from "@/lib/utils";
-import { handleAndToastError } from "@/lib/error-handler";
+import { handleAndToastError } from "@/lib/utils";
 import { Cohort, CohortsResponse } from "@/types/cohort";
 
 export const ADMIN_COHORTS_QUERY_KEY = "admin-cohorts";

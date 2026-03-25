@@ -5,7 +5,7 @@ import {
   getCoachReviews,
   getProgramReviews,
 } from "@/actions/reviews";
-import { handleAndToastError } from "@/lib/error-handler";
+import { handleAndToastError } from "@/lib/utils";
 
 export const COACH_REVIEWS_QUERY_KEY = "coach-reviews";
 export const PROGRAM_REVIEWS_QUERY_KEY = "program-reviews";

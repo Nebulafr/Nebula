@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from "../utils/http-exception";
 import { createProgramSchema, updateProgramSchema } from "@/lib/validations";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/providers";
 import { generateSlug } from "@/lib/utils";
 import { extractUserFromRequest } from "../utils/extract-user";
 import { emailService } from "./email.service";

@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
-import { stripe } from "@/lib/stripe";
+import { stripe } from "@/lib/providers";
 import { paymentService } from "../../services/payment.service";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/providers";
 import Stripe from "stripe";
 import { env } from "@/config/env";
 

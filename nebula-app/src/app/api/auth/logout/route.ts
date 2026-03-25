@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { AUTH_TOKEN_KEY, USER_DATA_KEY } from "@/lib/auth-storage";
+import { AUTH_TOKEN_KEY, USER_DATA_KEY } from "@/lib/auth";
 
  
 export async function POST(request: NextRequest) {

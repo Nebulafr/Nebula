@@ -1,10 +1,11 @@
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/providers';
 import {
   AdminEventQueryData,
   AdminProgramQueryData,
   AdminReviewQueryData,
   AdminUserQueryData,
   AdminTransactionQueryData,
+  AdminCreateUserData,
   ProgramActionData,
 } from '@/lib/validations';
 import {
@@ -19,6 +20,7 @@ import {
   NotFoundException,
   BadRequestException,
 } from '../utils/http-exception';
+import bcrypt from 'bcryptjs';
 
 export class AdminService {
   async getPrograms(params: AdminProgramQueryData) {
@@ -226,10 +228,10 @@ export class AdminService {
           updatedProgram,
           emailData: emailTemplate
             ? {
-                email: program.coach.user.email,
-                template: emailTemplate,
-                fullName: program.coach.user.fullName || 'Coach',
-              }
+              email: program.coach.user.email,
+              template: emailTemplate,
+              fullName: program.coach.user.fullName || 'Coach',
+            }
             : null,
           action,
         };
@@ -258,11 +260,7 @@ export class AdminService {
     const skip = (page - 1) * limit;
 
     // Build where clause for Prisma query
-    const whereClause: Prisma.UserWhereInput = {
-      role: {
-        in: ['COACH', 'STUDENT'],
-      },
-    };
+    const whereClause: Prisma.UserWhereInput = {};
 
     // Apply role filter at database level
     if (role && role !== 'all') {
@@ -320,7 +318,7 @@ export class AdminService {
             },
           },
         },
-        orderBy: [{ role: 'asc' }, { fullName: 'asc' }],
+        orderBy: [{ createdAt: 'desc' }],
       }),
       prisma.user.count({ where: whereClause }),
     ]);
@@ -545,7 +543,7 @@ export class AdminService {
     const signupGrowthPercent =
       newSignupsLastMonth > 0
         ? ((newSignupsThisMonth - newSignupsLastMonth) / newSignupsLastMonth) *
-          100
+        100
         : 0;
 
     const coachGrowth = activeCoaches - activeCoachesLastMonth;
@@ -567,27 +565,23 @@ export class AdminService {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           })}`,
-          change: `${
-            revenueGrowthPercent >= 0 ? '+' : ''
-          }${revenueGrowthPercent.toFixed(1)}% from last month`,
+          change: `${revenueGrowthPercent >= 0 ? '+' : ''
+            }${revenueGrowthPercent.toFixed(1)}% from last month`,
         },
         users: {
           value: totalUsers.toLocaleString(),
-          change: `${
-            userGrowth >= 0 ? '+' : ''
-          }${userGrowth} from last month`,
+          change: `${userGrowth >= 0 ? '+' : ''
+            }${userGrowth} from last month`,
         },
         signups: {
           value: `+${newSignupsThisMonth}`,
-          change: `${
-            signupGrowthPercent >= 0 ? '+' : ''
-          }${signupGrowthPercent.toFixed(1)}% from last month`,
+          change: `${signupGrowthPercent >= 0 ? '+' : ''
+            }${signupGrowthPercent.toFixed(1)}% from last month`,
         },
         coaches: {
           value: activeCoaches.toString(),
-          change: `${
-            coachGrowth >= 0 ? '+' : ''
-          }${coachGrowth} since last month`,
+          change: `${coachGrowth >= 0 ? '+' : ''
+            }${coachGrowth} since last month`,
         },
       },
     };
@@ -680,9 +674,8 @@ export class AdminService {
     recentCoaches.forEach((coach) => {
       activities.push({
         type: 'New Coach',
-        description: `${
-          coach.user.fullName || 'A new coach'
-        } has been approved as a new coach.`,
+        description: `${coach.user.fullName || 'A new coach'
+          } has been approved as a new coach.`,
         time: getRelativeTime(coach.createdAt),
         timestamp: coach.createdAt,
       });
@@ -700,9 +693,8 @@ export class AdminService {
     recentStudents.forEach((student) => {
       activities.push({
         type: 'New Student',
-        description: `${
-          student.user.fullName || student.user.email
-        } signed up as a new student.`,
+        description: `${student.user.fullName || student.user.email
+          } signed up as a new student.`,
         time: getRelativeTime(student.createdAt),
         timestamp: student.createdAt,
       });
@@ -964,6 +956,44 @@ export class AdminService {
     });
 
     return { success: true };
+  }
+
+  async createUser(data: AdminCreateUserData) {
+    const { email, firstName, lastName, role, password } = data;
+    const fullName = `${firstName} ${lastName}`.trim();
+
+    const existingUser = await prisma.user.findUnique({ where: { email } });
+    if (existingUser) {
+      throw new BadRequestException("An account with this email already exists");
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    const user = await prisma.user.create({
+      data: {
+        email,
+        hashedPassword,
+        firstName,
+        lastName,
+        fullName,
+        role: role.toUpperCase() as UserRole,
+        status: "ACTIVE",
+        emailVerified: new Date(),
+      },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        fullName: true,
+        role: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    return { user };
   }
 }
 

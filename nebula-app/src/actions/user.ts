@@ -1,5 +1,5 @@
 import { apiGet, apiPut, apiPost } from "@/lib/utils";
-import { fileToBase64 } from "@/lib/upload";
+import { fileToBase64 } from "@/lib/storage-utils";
 import { ChangePasswordData, UpdateProfileData } from "@/lib/validations";
 import { UserProfile } from "@/types";
 

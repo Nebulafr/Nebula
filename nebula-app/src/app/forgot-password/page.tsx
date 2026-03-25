@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { ArrowLeft, Mail } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/hooks/use-auth";
-import { handleAndToastError } from "@/lib/error-handler";
+import { handleAndToastError } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 
 export default function ForgotPasswordPage() {

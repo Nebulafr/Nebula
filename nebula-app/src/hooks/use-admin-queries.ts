@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { makeRequest } from "@/lib/utils";
-import { handleAndToastError } from "@/lib/error-handler";
+import { handleAndToastError } from "@/lib/utils";
 
 export const ADMIN_REVIEWS_QUERY_KEY = "admin-reviews";
 export const ADMIN_USERS_QUERY_KEY = "admin-users";
@@ -129,31 +129,27 @@ export function useCreateUser() {
 
   return useMutation({
     mutationFn: async (userData: {
-      name: string;
+      firstName: string;
+      lastName: string;
       email: string;
       role: string;
       password: string;
     }) => {
-      const response = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+      const response = await makeRequest("/admin/users", "POST", {
+        body: {
           email: userData.email,
           password: userData.password,
-          fullName: userData.name,
+          firstName: userData.firstName,
+          lastName: userData.lastName,
           role: userData.role.toUpperCase(),
-        }),
+        },
       });
 
-      const result = await response.json();
-
-      if (!result.success) {
-        throw new Error(result.message || "Failed to create user");
+      if (!response.success) {
+        throw new Error(response.message || "Failed to create user");
       }
 
-      return result;
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [ADMIN_USERS_QUERY_KEY] });

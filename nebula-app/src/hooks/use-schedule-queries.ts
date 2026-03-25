@@ -14,7 +14,7 @@ import {
   CoachAvailability,
 } from "@/actions/session";
 import { CoachSessionsResponse, CoachStatsResponse, CoachAvailabilityResponse } from "@/types/coach";
-import { handleAndToastError } from "@/lib/error-handler";
+import { handleAndToastError } from "@/lib/utils";
 
 export const COACH_SESSIONS_QUERY_KEY = "coach-sessions";
 export const COACH_STATS_QUERY_KEY = "coach-stats";

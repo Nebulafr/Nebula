@@ -10,7 +10,7 @@ import {
   useEffect,
   useState,
 } from "react";
-import { handleAndToastError } from "@/lib/error-handler";
+import { handleAndToastError } from "@/lib/utils";
 
 interface ProgramsParams {
   coachId?: string;

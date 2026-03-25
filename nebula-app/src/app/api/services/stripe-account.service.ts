@@ -1,5 +1,5 @@
-import { stripe } from '@/lib/stripe';
-import { prisma } from '@/lib/prisma';
+import { stripe } from '@/lib/providers';
+import { prisma } from '@/lib/providers';
 import { NotFoundException } from '../utils/http-exception';
 import { coachDashboardService } from './coach-dashboard.service';
 

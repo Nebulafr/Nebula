@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/providers";
 import { EnrollmentStatus, Prisma } from "@/generated/prisma";
 import moment from "moment";
 import {

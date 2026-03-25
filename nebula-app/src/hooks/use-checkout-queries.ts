@@ -4,7 +4,7 @@ import {
     createSessionCheckout,
     createEventCheckout,
 } from "@/actions/checkout";
-import { handleAndToastError } from "@/lib/error-handler";
+import { handleAndToastError } from "@/lib/utils";
 import { CheckoutProgramData, CheckoutSessionData, CheckoutEventData } from "@/lib/validations/checkout";
 
 

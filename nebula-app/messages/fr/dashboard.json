@@ -593,6 +593,8 @@
       "addUser": "Ajouter un utilisateur",
       "addNewUser": "Ajouter un nouvel utilisateur",
       "addUserDescription": "Remplissez les détails ci-dessous pour créer un nouveau compte utilisateur.",
+      "firstName": "Prénom",
+      "lastName": "Nom de famille",
       "email": "Email",
       "password": "Mot de passe",
       "selectRole": "Sélectionner un rôle",

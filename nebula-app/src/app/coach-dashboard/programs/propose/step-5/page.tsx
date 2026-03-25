@@ -11,7 +11,7 @@ import { Stepper } from '../components/stepper';
 import { useProposeProgramContext } from '../context/propose-program-context';
 import { useCreateProgram } from '@/hooks';
 import { useRouter } from 'next/navigation';
-import { fileToBase64 } from '@/lib/upload';
+import { fileToBase64 } from '@/lib/storage-utils';
 import { toast } from 'react-toastify';
 import { useTranslations } from 'next-intl';
 

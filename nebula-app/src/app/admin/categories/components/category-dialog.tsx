@@ -25,7 +25,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useTranslations } from "next-intl";
 import { Loader2, Upload, X, Image as ImageIcon } from "lucide-react";
-import { fileToBase64 } from "@/lib/upload";
+import { fileToBase64 } from "@/lib/storage-utils";
 import { cn } from "@/lib/utils";
 
 interface CategoryDialogProps {

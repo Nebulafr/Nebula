@@ -6,7 +6,7 @@ import {
   updateCategory,
   deleteCategory,
 } from "@/actions/categories";
-import { handleAndToastError } from "@/lib/error-handler";
+import { handleAndToastError } from "@/lib/utils";
 import { CategoriesResponse } from "@/types";
 
 export const CATEGORIES_QUERY_KEY = "categories";

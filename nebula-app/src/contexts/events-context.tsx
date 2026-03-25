@@ -16,7 +16,7 @@ import {
   deleteEvent,
 } from "@/actions/events";
 import { Event } from "@/types/event";
-import { handleAndToastError } from "@/lib/error-handler";
+import { handleAndToastError } from "@/lib/utils";
 
 interface EventsParams {
   search?: string;

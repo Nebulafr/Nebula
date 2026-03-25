@@ -1,4 +1,4 @@
-import * as cloudinaryServer from "@/lib/cloudinary";
+import * as cloudinaryServer from "@/lib/storage";
 
 export interface UploadResult {
     url: string;

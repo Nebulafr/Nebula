@@ -26,7 +26,7 @@ import { UserSelect, UserSelectValue } from "@/components/ui/user-select";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiPut } from "@/lib/utils";
 import { toast } from "react-toastify";
-import { handleAndToastError } from "@/lib/error-handler";
+import { handleAndToastError } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 import { useProgramById } from "@/hooks/use-programs-queries";
 

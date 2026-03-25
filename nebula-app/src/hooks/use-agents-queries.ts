@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { sendAgentMessage } from "@/actions/agents";
-import { handleAndToastError } from "@/lib/error-handler";
+import { handleAndToastError } from "@/lib/utils";
 import { AgentInput } from "@/lib/validations";
 
 export function useSendAgentMessage() {
