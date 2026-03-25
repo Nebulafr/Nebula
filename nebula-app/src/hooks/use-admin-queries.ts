@@ -45,6 +45,8 @@ export interface AdminReview {
 
 export interface AdminUser {
   id: string;
+  firstName: string;
+  lastName: string;
   fullName: string;
   email: string;
   role: "COACH" | "STUDENT" | "ADMIN";
@@ -393,6 +395,42 @@ export function useDeleteUser() {
     },
     onError: (error: any) => {
       handleAndToastError(error, "Failed to delete user.");
+    },
+  });
+}
+
+export function useUpdateUser() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      userId,
+      userData,
+    }: {
+      userId: string;
+      userData: {
+        firstName?: string;
+        lastName?: string;
+        email?: string;
+        role?: string;
+        status?: string;
+      };
+    }) => {
+      const response = await makeRequest(`/admin/users/${userId}`, "PATCH", {
+        body: userData,
+      });
+
+      if (!response.success) {
+        throw new Error(response.message || "Failed to update user");
+      }
+
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [ADMIN_USERS_QUERY_KEY] });
+    },
+    onError: (error: any) => {
+      handleAndToastError(error, "Failed to update user.");
     },
   });
 }

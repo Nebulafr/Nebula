@@ -6,6 +6,7 @@ import {
   AdminUserQueryData,
   AdminTransactionQueryData,
   AdminCreateUserData,
+  AdminUpdateUserData,
   ProgramActionData,
 } from '@/lib/validations';
 import {
@@ -306,6 +307,8 @@ export class AdminService {
         select: {
           id: true,
           email: true,
+          firstName: true,
+          lastName: true,
           fullName: true,
           role: true,
           status: true,
@@ -980,6 +983,57 @@ export class AdminService {
         status: "ACTIVE",
         emailVerified: new Date(),
       },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        fullName: true,
+        role: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    return { user };
+  }
+
+  async updateUser(userId: string, data: AdminUpdateUserData) {
+    const { email, firstName, lastName, role, status } = data;
+    
+    // Check if user exists
+    const existingUser = await prisma.user.findUnique({ where: { id: userId } });
+    if (!existingUser) {
+      throw new NotFoundException("User not found");
+    }
+
+    // Check if email is being changed and if new email already exists
+    if (email && email !== existingUser.email) {
+      const emailExists = await prisma.user.findUnique({ where: { email } });
+      if (emailExists) {
+        throw new BadRequestException("An account with this email already exists");
+      }
+    }
+
+    // Build update data
+    const updateData: Prisma.UserUpdateInput = {};
+    if (email) updateData.email = email;
+    if (firstName) updateData.firstName = firstName;
+    if (lastName) updateData.lastName = lastName;
+    
+    if (firstName || lastName) {
+      const newFirstName = firstName ?? existingUser.firstName ?? '';
+      const newLastName = lastName ?? existingUser.lastName ?? '';
+      updateData.fullName = `${newFirstName} ${newLastName}`.trim();
+    }
+    
+    if (role) updateData.role = role.toUpperCase() as UserRole;
+    if (status) updateData.status = status as UserStatus;
+
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: updateData,
       select: {
         id: true,
         email: true,
