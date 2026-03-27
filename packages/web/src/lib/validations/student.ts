@@ -1,0 +1,31 @@
+import { z } from "zod";
+import { ExperienceLevel } from "@/types";
+
+export const updateStudentSchema = z.object({
+  interestedCategoryIds: z.array(z.string()).min(1, "At least one category is required"),
+  skillLevel: z.nativeEnum(ExperienceLevel),
+  commitment: z.string().min(1, "Commitment level is required"),
+  timeZone: z.string().optional(),
+  learningGoals: z.array(z.string()).optional(),
+  country: z.string().min(1, "Country is required"),
+  countryIso: z.string().min(2, "Country ISO is required"),
+});
+
+export const studentOnboardingStep1Schema = z.object({
+  interestedCategoryIds: z.array(z.string()).min(1, "Please select at least one area of interest"),
+});
+
+export const studentOnboardingStep2Schema = z.object({
+  skillLevel: z.enum([ExperienceLevel.BEGINNER, ExperienceLevel.INTERMEDIATE, ExperienceLevel.ADVANCED], {
+    errorMap: () => ({ message: "Please select a skill level" }),
+  }),
+});
+
+export const studentOnboardingStep3Schema = z.object({
+  availability: z.string().min(1, "Please select your time commitment"),
+});
+
+export type UpdateStudentData = z.infer<typeof updateStudentSchema>;
+export type StudentOnboardingStep1Data = z.infer<typeof studentOnboardingStep1Schema>;
+export type StudentOnboardingStep2Data = z.infer<typeof studentOnboardingStep2Schema>;
+export type StudentOnboardingStep3Data = z.infer<typeof studentOnboardingStep3Schema>;

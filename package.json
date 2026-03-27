@@ -1,23 +1,27 @@
 {
-  "name": "nebula-monorepo",
+  "name": "nebula",
   "private": true,
   "workspaces": [
-    "nebula-app",
-    "nebula-messaging"
+    "packages/web",
+    "packages/database",
+    "packages/chat-server",
+    "packages/integrations"
   ],
   "scripts": {
-    "dev:app": "npm run dev -w nebula-app",
-    "dev:messaging": "npm run dev -w nebula-messaging",
-    "build:app": "npm run build -w nebula-app",
-    "build:messaging": "npm run build -w nebula-messaging",
-    "build": "npm run build -ws",
-    "dev": "concurrently \"npm run dev:app\" \"npm run dev:messaging\"",
-    "start:app": "npm run start -w nebula-app",
-    "start:messaging": "npm run start -w nebula-messaging",
-    "start": "concurrently \"npm run start:app\" \"npm run start:messaging\"",
-    "install:app": "npm install -w nebula-app",
-    "install:messaging": "npm install -w nebula-messaging",
-    "install:all": "npm install -ws"
+    "dev:web": "npm --workspace @nebula/web run dev",
+    "dev:chat": "npm --workspace @nebula/chat-server run dev",
+    "dev": "concurrently \"npm run dev:web\" \"npm run dev:chat\"",
+    "build": "npm run db:generate && npm --workspaces run build",
+    "db:generate": "npm --workspace @nebula/database run db:generate",
+    "db:push": "npm --workspace @nebula/database run db:push",
+    "db:studio": "npm --workspace @nebula/database run db:studio",
+    "seed:admin": "npm --workspace @nebula/database run seed:admin",
+    "seed:categories": "npm --workspace @nebula/database run seed:categories",
+    "type-check": "npm --workspaces run type-check",
+    "lint": "npm --workspaces run lint",
+    "start:web": "npm --workspace @nebula/web run start",
+    "start:chat": "npm --workspace @nebula/chat-server run start",
+    "start": "concurrently \"npm run start:web\" \"npm run start:chat\""
   },
   "devDependencies": {
     "concurrently": "^9.2.1"
