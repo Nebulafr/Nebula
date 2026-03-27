@@ -10,6 +10,7 @@
   "scripts": {
     "dev:web": "npm --workspace @nebula/web run dev",
     "dev:chat": "npm --workspace @nebula/chat-server run dev",
+    "predev": "npm run db:generate",
     "dev": "concurrently \"npm run dev:web\" \"npm run dev:chat\"",
     "build": "npm run db:generate && npm --workspaces run build",
     "db:generate": "npm --workspace @nebula/database run db:generate",

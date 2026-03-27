@@ -164,6 +164,7 @@ export default function ContactPage() {
                 src={contactImage.imageUrl}
                 alt={contactImage.description}
                 fill
+                sizes="(max-width: 1024px) 100vw, 50vw"
                 quality={85}
                 className="object-cover"
                 data-ai-hint={contactImage.imageHint}

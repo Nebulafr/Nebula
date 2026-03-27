@@ -158,6 +158,7 @@ export default function SignupPage() {
               quality={85}
               className="object-cover"
               data-ai-hint={signupImage.imageHint}
+              priority
             />
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />

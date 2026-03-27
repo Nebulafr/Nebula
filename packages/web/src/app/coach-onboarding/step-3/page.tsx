@@ -61,6 +61,7 @@ function CoachOnboardingStep3Content() {
             src={image.imageUrl}
             alt={image.description}
             fill
+            sizes="(max-width: 1024px) 100vw, 60vw"
             quality={85}
             className="object-cover scale-105 transition-transform duration-1000 hover:scale-110"
             data-ai-hint={image.imageHint}

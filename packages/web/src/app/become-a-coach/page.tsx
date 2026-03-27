@@ -109,6 +109,7 @@ export default function BecomeACoachPage() {
               quality={85}
               className="w-full rounded-[30px] object-cover"
               data-ai-hint={heroImage.imageHint}
+              priority
             />
           )}
         </section>

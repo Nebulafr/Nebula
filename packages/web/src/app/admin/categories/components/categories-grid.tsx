@@ -47,6 +47,7 @@ export function CategoriesGrid({
                 src={category.assetUrl}
                 alt={category.name}
                 fill
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
                 className="object-cover"
                 unoptimized // Use unoptimized if the source is not always among the configured remotePatterns
               />

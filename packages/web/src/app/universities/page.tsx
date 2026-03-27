@@ -114,6 +114,7 @@ export default function UniversitiesPage() {
                     width={120}
                     height={40}
                     className="object-contain"
+                    style={{ height: "auto" }}
                   />
                 </div>
               ))}

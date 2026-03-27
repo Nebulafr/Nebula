@@ -132,6 +132,7 @@ export default function LoginPage() {
               quality={85}
               className="object-cover"
               data-ai-hint={loginImage.imageHint}
+              priority
             />
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
