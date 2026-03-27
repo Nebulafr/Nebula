@@ -1,5 +1,6 @@
 "use client";
 
+import { Loading } from "@/components/shared/loading";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -88,7 +89,6 @@ function CoachOnboardingStep5Content() {
         linkedinUrl: onboardingData.linkedin || "",
         availability: JSON.stringify(availability),
         hourlyRate: Number(rate) || 0,
-        experience: onboardingData.motivation || "",
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         languages: ["English"],
         qualifications: [],
@@ -258,7 +258,7 @@ function CoachOnboardingStep5Content() {
 
 export default function CoachOnboardingStep5() {
   return (
-    <React.Suspense fallback={<div>Loading...</div>}>
+    <React.Suspense fallback={<Loading fullPage />}>
       <CoachOnboardingStep5Content />
     </React.Suspense>
   );

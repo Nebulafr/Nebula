@@ -72,6 +72,30 @@ export class CoachController {
     return sendSuccess(result, "Coach profile updated successfully");
   }
 
+  async updateExperiences(request: NextRequest) {
+    const user = (request as unknown as AuthenticatedRequest).user;
+
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      throw new BadRequestException("Invalid JSON body");
+    }
+
+    const { updateCoachExperiencesSchema } = await import("@/lib/validations");
+    const payload = updateCoachExperiencesSchema.parse(body);
+
+    const result = await coachService.updateCoachExperiences(user.id, payload.experiences);
+    return sendSuccess(result, "Coach experiences updated successfully");
+  }
+
+  async getExperiences(request: NextRequest) {
+    const user = (request as unknown as AuthenticatedRequest).user;
+
+    const result = await coachService.getCoachExperiences(user.id);
+    return sendSuccess(result, "Coach experiences fetched successfully");
+  }
+
   async getById(coachId?: string, request?: NextRequest) {
     if (!coachId) {
       throw new BadRequestException("Coach ID is required");

@@ -280,6 +280,11 @@ export class AuthService {
                 category: true,
               },
             },
+            experiences: {
+              orderBy: {
+                startDate: 'desc',
+              },
+            },
           },
         },
         student: {

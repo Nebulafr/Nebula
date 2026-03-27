@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSearchParams } from "next/navigation";
+import { Loading } from "@/components/shared/loading";
 import React from "react";
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
@@ -321,10 +322,7 @@ function CoachesPageContent() {
           </div>
 
           {loading ? (
-            <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
-              <Loader2 className="h-10 w-10 animate-spin mb-4 text-primary" />
-              <p className="text-lg font-medium">{t("loading")}</p>
-            </div>
+            <Loading message={t("loading")} className="py-20" />
           ) : filteredCoaches.length > 0 ? (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {filteredCoaches.map((coach) => (
@@ -364,11 +362,7 @@ function CoachesPageContent() {
 export default function CoachesPage() {
   return (
     <React.Suspense
-      fallback={
-        <div className="min-h-screen flex items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin" />
-        </div>
-      }
+      fallback={<Loading fullPage />}
     >
       <CoachesPageContent />
     </React.Suspense>

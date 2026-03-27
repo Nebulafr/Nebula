@@ -8,17 +8,16 @@ import { Loader2, CheckCircle2, AlertCircle, ExternalLink } from "lucide-react";
 import { toast } from "react-toastify";
 import { useTranslations } from "next-intl";
 import { onboardStripeAccount } from "@/actions/stripe";
-import { useAuth } from "@/hooks";
 import { useStripeStatus } from "@/hooks/use-coach-queries";
 
 interface StripeConnectProps {
   onStatusChange?: (connected: boolean) => void;
+  profile: any;
 }
 
-export function StripeConnect({ onStatusChange }: StripeConnectProps) {
+export function StripeConnect({ onStatusChange, profile }: StripeConnectProps) {
   const t = useTranslations("dashboard.coach.payouts");
-  const { profile } = useAuth();
-  
+
   const { data: status, isLoading: loading } = useStripeStatus();
   const [onboardingLoading, setOnboardingLoading] = useState(false);
 

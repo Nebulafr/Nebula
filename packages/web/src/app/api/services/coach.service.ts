@@ -5,8 +5,9 @@ import {
   CoachUpdateData,
   CreateCoachData,
 } from "@/lib/validations";
-import { NotFoundException } from "../utils/http-exception";
+import HttpException, { NotFoundException } from "../utils/http-exception";
 import { stripeAccountService } from "./stripe-account.service";
+import { RESPONSE_CODE } from "@/types";
 
 // type CoachWithUserAndSpecialties = Prisma.CoachGetPayload<{
 //   include: {
@@ -36,6 +37,11 @@ export class CoachService {
             category: true,
           },
         },
+        experiences: {
+          orderBy: {
+            startDate: 'desc'
+          }
+        }
       },
     });
   }
@@ -78,6 +84,7 @@ export class CoachService {
             select: { fullName: true, email: true, avatarUrl: true, role: true },
           },
           specialties: { include: { category: true } },
+          experiences: { orderBy: { startDate: 'desc' } },
         },
       }),
       prisma.coach.count({ where: whereClause }),
@@ -165,7 +172,7 @@ export class CoachService {
       isVerified: coach.isVerified,
       slug: coach.slug,
       qualifications: coach.qualifications,
-      experience: coach.experience,
+      experiences: coach.experiences || [],
       timezone: coach.timezone,
       languages: coach.languages,
       createdAt: coach.createdAt instanceof Date ? coach.createdAt.toISOString() : coach.createdAt,
@@ -190,6 +197,7 @@ export class CoachService {
       await this.updateUserProfile(tx, userId, data);
       const coach = await this.upsertCoachProfile(tx, userId, { ...data, slug });
       await this.handleCoachSpecialties(tx, coach.id, specialtiesData);
+      await this.handleCoachExperiences(tx, coach.id, data.experiences || []);
       return coach;
     }, { timeout: 10000 });
 
@@ -201,17 +209,26 @@ export class CoachService {
   }
 
   async updateCoach(userId: string, data: CoachUpdateData) {
-    const specialtiesData = await this.resolveSpecialties(data.specialties || []);
-
     const updatedProfile = await prisma.$transaction(async (tx) => {
       await this.updateUserProfile(tx, userId, data);
       const coach = await this.upsertCoachProfile(tx, userId, data);
-      await this.handleCoachSpecialties(tx, coach.id, specialtiesData);
+
+      const operations = [];
+      if (data.specialties !== undefined) {
+        const specialtiesData = await this.resolveSpecialties(data.specialties);
+        operations.push(this.handleCoachSpecialties(tx, coach.id, specialtiesData));
+      }
+
+      if (operations.length > 0) {
+        await Promise.all(operations);
+      }
+
       return coach;
     }, { timeout: 10000 });
 
     return updatedProfile;
   }
+
 
   private async updateUserProfile(tx: any, userId: string, data: any) {
     const userData: any = {
@@ -239,7 +256,6 @@ export class CoachService {
       linkedinUrl: data.linkedinUrl || null,
       availability: typeof data.availability === 'object' ? JSON.stringify(data.availability) : data.availability,
       qualifications: data.qualifications || [],
-      experience: data.experience || null,
       timezone: data.timezone || null,
       languages: data.languages || [],
       updatedAt: new Date(),
@@ -262,6 +278,81 @@ export class CoachService {
       await tx.coachCategory.createMany({
         data: specialties.map(s => ({ ...s, coachId })),
       });
+    }
+  }
+
+  async updateCoachExperiences(userId: string, experiences: any[]) {
+    const coach = await this.findCoachByUserId(userId);
+
+    return await prisma.$transaction(async (tx) => {
+      // Delete existing experiences
+      await tx.coachExperience.deleteMany({
+        where: { coachId: coach.id },
+      });
+
+      // Create new experiences
+      if (experiences.length > 0) {
+        await tx.coachExperience.createMany({
+          data: experiences.map((exp) => ({
+            ...exp,
+            coachId: coach.id,
+            startDate: new Date(exp.startDate),
+            endDate: exp.endDate ? new Date(exp.endDate) : null,
+          })),
+        });
+      }
+
+      return await tx.coachExperience.findMany({
+        where: { coachId: coach.id },
+        orderBy: { startDate: "desc" },
+      });
+    });
+  }
+
+  async getCoachExperiences(userId: string) {
+    const coach = await this.findCoachByUserId(userId);
+
+    const experiences = await prisma.coachExperience.findMany({
+      where: { coachId: coach.id },
+      orderBy: { startDate: "desc" },
+    });
+
+    return experiences;
+  }
+
+  private async findCoachByUserId(userId: string) {
+    const coach = await prisma.coach.findUnique({
+      where: { userId },
+    });
+
+    if (!coach) {
+      throw new HttpException(
+        RESPONSE_CODE.NOT_FOUND,
+        "Coach profile not found",
+        404,
+      );
+    }
+
+    return coach;
+  }
+
+
+  private async handleCoachExperiences(tx: any, coachId: string, experiences: any[]) {
+    // If we have experiences in the input, we replace the existing ones
+    if (experiences && Array.isArray(experiences)) {
+      await tx.coachExperience.deleteMany({ where: { coachId } });
+      if (experiences.length > 0) {
+        await tx.coachExperience.createMany({
+          data: experiences.map(exp => ({
+            coachId,
+            role: exp.role,
+            company: exp.company,
+            startDate: new Date(exp.startDate),
+            endDate: exp.endDate ? new Date(exp.endDate) : null,
+            description: exp.description || null,
+          })),
+        });
+      }
     }
   }
 
@@ -312,6 +403,11 @@ export class CoachService {
             category: true,
           },
         },
+        experiences: {
+          orderBy: {
+            startDate: 'desc'
+          }
+        }
       },
     });
 

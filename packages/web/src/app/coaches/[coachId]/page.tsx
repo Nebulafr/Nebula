@@ -26,27 +26,6 @@ import { BookingSidebar } from "./components/BookingSidebar";
 import { BookingModal } from "./components/BookingModal";
 import { Button } from "@/components/ui/button";
 
-const getExperienceList = (coach: any) => {
-  if (!coach.experience) return [];
-  try {
-    const trimmedExp = coach.experience.trim();
-    if (trimmedExp.startsWith("[")) {
-      return JSON.parse(trimmedExp);
-    }
-  } catch (e) {
-    console.error("Failed to parse experience JSON", e);
-  }
-
-  // Default to a single list item if not JSON or parsing fails
-  return [
-    {
-      role: coach.title,
-      company: coach.pastCompanies?.[0] || "Previous Company",
-      duration: "Past",
-      description: coach.experience,
-    },
-  ];
-};
 
 const getAvailabilityData = (coach: any) => {
   if (!coach.availability) return {};
@@ -254,7 +233,7 @@ export default function CoachDetailPage() {
   }
 
   // Parse data using helper functions
-  const experienceList = getExperienceList(coach);
+  const experienceList = coach.experiences || [];
   const availabilityData = getAvailabilityData(coach);
 
   return (

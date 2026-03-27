@@ -1,17 +1,19 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
+import { Loading } from '@/components/shared/loading';
 import { ProfileAvatar } from './components/profile-avatar';
 import { ProfileForm, ProfileFormData } from './components/profile-form';
+import { ResumeForm } from './components/resume-form';
 import { StripeConnect } from '../payouts/components/stripe-connect';
-import { updateCoachProfile } from '@/actions/coaches';
+import { updateCoachProfile, updateCoachExperiences } from '@/actions/coaches';
 import { uploadUserAvatar, changePassword } from '@/actions/user';
 import { toast } from 'react-toastify';
 import { useAuth } from '@/hooks/use-auth';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { User, CreditCard, Shield } from 'lucide-react';
 import { SecuritySection } from '@/app/dashboard/settings/components/security-section';
-import { type ChangePasswordData } from '@/lib/validations';
+import { type ChangePasswordData, type UpdateCoachExperiencesData } from '@/lib/validations';
 import { useTranslations } from 'next-intl';
 
 export default function CoachSettingsPage() {
@@ -37,7 +39,6 @@ export default function CoachSettingsPage() {
     availability: '',
     hourlyRate: 0,
     qualifications: [],
-    experience: '',
     timezone: '',
     languages: ['English'],
     country: '',
@@ -47,10 +48,10 @@ export default function CoachSettingsPage() {
   useEffect(() => {
     if (profile && profile.coach) {
       const coachProfile = profile.coach;
-      
+
       let firstName = profile.firstName;
       let lastName = profile.lastName;
-      
+
       // Fallback: extract from fullName if firstName or lastName are missing
       if ((!firstName || !lastName) && profile.fullName) {
         const parts = profile.fullName.trim().split(/\s+/);
@@ -71,7 +72,6 @@ export default function CoachSettingsPage() {
         availability: coachProfile.availability || '',
         hourlyRate: coachProfile.hourlyRate || 0,
         qualifications: coachProfile.qualifications || [],
-        experience: coachProfile.experience || '',
         timezone: coachProfile.timezone || 'UTC',
         languages: coachProfile.languages || ['English'],
         country: profile.country || '',
@@ -79,9 +79,6 @@ export default function CoachSettingsPage() {
       });
     }
   }, [profile]);
-  const handleFormDataChange = (data: Partial<ProfileFormData>) => {
-    setFormData((prev) => ({ ...prev, ...data }));
-  };
 
   const handleChangePhoto = () => {
     fileInputRef.current?.click();
@@ -163,14 +160,33 @@ export default function CoachSettingsPage() {
       const response = await updateCoachProfile(data);
 
       if (response.success) {
-        // Profile updated successfully
         toast.success(t('profile.saveSuccess') || 'Profile updated');
-        await refreshUser(); // Refresh user to get updated coach data
+        await refreshUser();
       } else {
         toast.error(response.message || t('profile.errorUpdate'));
       }
     } catch (error) {
       toast.error(t('profile.errorUnexpected') || t('errorUnexpected'));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResumeSave = async (data: UpdateCoachExperiencesData) => {
+    if (!profile) return;
+
+    setIsLoading(true);
+    try {
+      const response = await updateCoachExperiences(data.experiences);
+
+      if (response.success) {
+        toast.success(t('resume.saveSuccess') || 'Resume updated');
+        await refreshUser();
+      } else {
+        toast.error(response.message || t('resume.errorUpdate'));
+      }
+    } catch (error) {
+      toast.error(t('resume.errorUnexpected') || t('errorUnexpected'));
     } finally {
       setIsLoading(false);
     }
@@ -182,7 +198,6 @@ export default function CoachSettingsPage() {
       const response = await changePassword(data);
 
       if (response.success) {
-        // Password changed successfully
         toast.success(t('security.passwordSuccess') || 'Password changed');
       } else {
         toast.error(response.message || t('security.errorPassword'));
@@ -195,7 +210,7 @@ export default function CoachSettingsPage() {
   };
 
   if (!profile) {
-    return <div>{t('loading')}</div>;
+    return <Loading fullPage message={t('loading')} />;
   }
 
   const isGoogleUser = !profile.hashedPassword && !!profile.googleId;
@@ -216,6 +231,10 @@ export default function CoachSettingsPage() {
           <TabsTrigger value="payout" className="gap-2">
             <CreditCard className="h-4 w-4" />
             {t('tabs.payout')}
+          </TabsTrigger>
+          <TabsTrigger value="resume" className="gap-2">
+            <User className="h-4 w-4" />
+            {t('tabs.resume')}
           </TabsTrigger>
           <TabsTrigger value="security" className="gap-2">
             <Shield className="h-4 w-4" />
@@ -258,8 +277,16 @@ export default function CoachSettingsPage() {
 
         <TabsContent value="payout">
           <div className="max-w-2xl">
-            <StripeConnect />
+            <StripeConnect profile={profile} />
           </div>
+        </TabsContent>
+
+        <TabsContent value="resume" className="space-y-6">
+          <ResumeForm
+            initialData={{ experiences: profile?.coach?.experiences || [] }}
+            onSave={handleResumeSave}
+            isLoading={isLoading}
+          />
         </TabsContent>
 
         <TabsContent value="security">

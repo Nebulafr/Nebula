@@ -43,7 +43,10 @@
       },
       "tabs": {
         "profile": "Profil",
-        "security": "Sécurité"
+        "security": "Sécurité",
+        "resume": "CV / Expérience",
+        "account": "Paramètres du compte",
+        "payout": "Informations de paiement"
       }
     },
     "student": {
@@ -439,6 +442,7 @@
         "tabs": {
           "account": "Paramètres du compte",
           "payout": "Informations de paiement",
+          "resume": "CV / Expérience",
           "security": "Sécurité"
         },
         "avatar": {
@@ -469,8 +473,6 @@
           "stylePlaceholder": "ex: Pratique, Mentorat, Stratégique",
           "linkedin": "URL LinkedIn",
           "linkedinPlaceholder": "https://linkedin.com/in/votreprofil",
-          "experience": "Résumé de l'expérience",
-          "experiencePlaceholder": "Bref aperçu de votre expérience professionnelle...",
           "specialties": "Spécialités",
           "specialtiesDesc": "Ajoutez des mots-clés décrivant votre expertise.",
           "addSpecialty": "Ajouter une spécialité...",
@@ -490,6 +492,26 @@
           "saveSuccess": "Profil mis à jour avec succès",
           "errorUpdate": "Échec de la mise à jour du profil",
           "errorUnexpected": "Une erreur inattendue s'est produite"
+        },
+        "resume": {
+          "title": "CV & Expérience",
+          "description": "Gérez votre historique professionnel. Ces informations seront affichées sur votre profil public.",
+          "addExperience": "Ajouter une expérience",
+          "role": "Rôle / Poste",
+          "rolePlaceholder": "ex: Consultant Senior",
+          "company": "Entreprise / Organisation",
+          "companyPlaceholder": "ex: Boston Consulting Group (BCG)",
+          "startDate": "Date de début",
+          "endDate": "Date de fin",
+          "present": "Présent",
+          "workDescription": "Description",
+          "workDescriptionPlaceholder": "Décrivez vos responsabilités et vos réalisations...",
+          "save": "Enregistrer le CV",
+          "saving": "Enregistrement du CV...",
+          "saveSuccess": "CV mis à jour avec succès",
+          "errorSave": "Échec de la mise à jour du CV",
+          "errorUnexpected": "Une erreur inattendue s'est produite",
+          "remove": "Supprimer"
         },
         "payout": {
           "title": "Informations de paiement",

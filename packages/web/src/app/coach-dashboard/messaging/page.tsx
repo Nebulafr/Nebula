@@ -3,6 +3,7 @@
 import { useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
+import { Loading } from "@/components/shared/loading";
 import { getAccessToken } from "@/lib/auth";
 import { useMessaging } from "@/hooks/use-messaging";
 import { useTranslations } from "next-intl";
@@ -46,11 +47,7 @@ function CoachMessagingPageContent() {
   };
 
   if (loading && conversations.length === 0) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <div className="text-muted-foreground">{t("loading")}</div>
-      </div>
-    );
+    return <Loading fullPage message={t("loading")} />;
   }
 
   const showTypingIndicator =
@@ -103,11 +100,7 @@ export default function CoachMessagingPage() {
   const t = useTranslations("dashboard.coach.messaging");
   return (
     <Suspense
-      fallback={
-        <div className="flex h-full items-center justify-center">
-          <div className="text-lg">{t("loading")}</div>
-        </div>
-      }
+      fallback={<Loading fullPage message={t("loading")} />}
     >
       <CoachMessagingPageContent />
     </Suspense>

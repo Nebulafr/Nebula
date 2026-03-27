@@ -3,6 +3,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
+import { Loading } from "@/components/shared/loading";
 import { updateUserProfile, uploadUserAvatar, changePassword } from "@/actions/user";
 import { toast } from "react-toastify";
 import { ProfileSection } from "./components/profile-section";
@@ -127,13 +128,7 @@ export default function StudentSettingsPage() {
   };
 
   if (!profile) {
-    return (
-      <div className="flex-1 flex items-center justify-center p-8">
-        <div className="text-center">
-          <p className="text-muted-foreground">{t("loading") || "Loading..."}</p>
-        </div>
-      </div>
-    );
+    return <Loading fullPage message={t("loading")} />;
   }
 
   const isGoogleUser = !profile.hashedPassword && !!profile.googleId;

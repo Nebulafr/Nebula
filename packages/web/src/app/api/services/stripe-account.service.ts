@@ -82,8 +82,6 @@ export class StripeAccountService {
           },
         })
         .catch((err) => {
-          // Person creation might fail if account already has one
-          // Log but don't fail the overall account creation
           console.log('Person creation (optional) failed:', err.message);
         });
     }

@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect, use } from "react";
 import Link from "next/link";
+import { Loading } from "@/components/shared/loading";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -279,14 +280,7 @@ export default function EditProgramPage({
   };
 
   if (isLoading) {
-    return (
-      <div className="flex-1 space-y-4 p-4 md:p-8">
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-6 w-6 animate-spin mr-2" />
-          <span>{t("loading")}</span>
-        </div>
-      </div>
-    );
+    return <Loading fullPage message={t("loading")} />;
   }
 
   if (!program) {

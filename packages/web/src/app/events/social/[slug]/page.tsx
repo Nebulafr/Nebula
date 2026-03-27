@@ -20,6 +20,7 @@ import {
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
 import { useEventBySlug, useEventCheckout, useAuth } from "@/hooks";
+import { Loading } from "@/components/shared/loading";
 import { useTranslations, useLocale } from "next-intl";
 import {
   getDefaultAvatar,
@@ -81,12 +82,7 @@ export default function SocialEventPage() {
       <div className="flex min-h-screen flex-col bg-background">
         <Header />
         <main className="flex-1">
-          <div className="flex items-center justify-center h-64">
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Loader2 className="h-6 w-6 animate-spin" />
-              {t("loading")}
-            </div>
-          </div>
+          <Loading message={t("loading")} className="h-64" />
         </main>
         <Footer />
       </div>

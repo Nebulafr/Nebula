@@ -202,37 +202,37 @@ export type CheckoutResponse = ApiResponse<{
 export * from "./cohort";
 
 import { NextRequest } from "next/server";
-import type { Coach as DBCoach, Student as DBStudent, User as DBUser } from "@nebula/database/types";
-import { 
-  UserRole, 
-  ProgramStatus, 
-  ExperienceLevel, 
-  EnrollmentStatus, 
-  CohortStatus, 
-  PaymentStatus, 
-  SessionStatus, 
-  MessageType, 
-  ConversationType, 
-  ReviewTargetType, 
-  TransactionType, 
-  TransactionStatus, 
-  TransactionSourceType 
+import type { Coach, Coach as DBCoach, Student as DBStudent, User as DBUser, Student, User } from "@nebula/database/types";
+import {
+  UserRole,
+  ProgramStatus,
+  ExperienceLevel,
+  EnrollmentStatus,
+  CohortStatus,
+  PaymentStatus,
+  SessionStatus,
+  MessageType,
+  ConversationType,
+  ReviewTargetType,
+  TransactionType,
+  TransactionStatus,
+  TransactionSourceType
 } from "@nebula/database/types";
 
-export { 
-  UserRole, 
-  ProgramStatus, 
-  ExperienceLevel, 
-  EnrollmentStatus, 
-  CohortStatus, 
-  PaymentStatus, 
-  SessionStatus, 
-  MessageType, 
-  ConversationType, 
-  ReviewTargetType, 
-  TransactionType, 
-  TransactionStatus, 
-  TransactionSourceType 
+export {
+  UserRole,
+  ProgramStatus,
+  ExperienceLevel,
+  EnrollmentStatus,
+  CohortStatus,
+  PaymentStatus,
+  SessionStatus,
+  MessageType,
+  ConversationType,
+  ReviewTargetType,
+  TransactionType,
+  TransactionStatus,
+  TransactionSourceType
 };
 export type { DBCoach as Coach, DBStudent as Student, DBUser as User };
 
@@ -242,9 +242,19 @@ export type AuthState =
   | "AUTHENTICATED_NO_PROFILE"
   | "AUTHENTICATED_WITH_PROFILE";
 
-export interface UserProfile extends DBUser {
-  coach: (DBCoach & { specialties: string[] }) | null;
-  student: DBStudent | null;
+export interface CoachExperience {
+  id: string;
+  coachId: string;
+  role: string;
+  company: string;
+  startDate: string | Date;
+  endDate: string | Date | null;
+  description: string | null;
+}
+
+export interface UserProfile extends User {
+  coach: (Coach & { specialties: string[]; experiences: CoachExperience[] }) | null;
+  student: Student | null;
 }
 
 export interface AuthResponse {

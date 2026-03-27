@@ -77,7 +77,6 @@ model Coach {
   isVerified                 Boolean         @default(false) @map("is_verified")
   slug                       String?         @unique
   qualifications             String[]
-  experience                 String?
   timezone                   String?
   languages                  String[]
   googleCalendarAccessToken  String?         @map("google_calendar_access_token")
@@ -96,6 +95,7 @@ model Coach {
   programs                   Program[]
   sessions                   Session[]
   payouts                    Payout[]
+  experiences                CoachExperience[]
 
   @@index([isActive, isVerified])
   @@index([createdAt])
@@ -602,6 +602,20 @@ model Payout {
   @@index([coachId])
   @@index([status])
   @@map("payouts")
+}
+
+model CoachExperience {
+  id          String    @id @default(cuid())
+  coachId     String    @map("coach_id")
+  role        String
+  company     String
+  startDate   DateTime  @map("start_date")
+  endDate     DateTime? @map("end_date")
+  description String?
+  coach       Coach     @relation(fields: [coachId], references: [id], onDelete: Cascade)
+
+  @@index([coachId])
+  @@map("coach_experiences")
 }
 
 enum PayoutStatus {

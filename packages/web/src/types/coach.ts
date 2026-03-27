@@ -1,6 +1,6 @@
 import { SessionStatus } from "@nebula/database/types";
 export { SessionStatus };
-import { ApiResponse } from "./index";
+import { ApiResponse, CoachExperience } from "./index";
 
 export interface CoachProgram {
   id: string;
@@ -103,6 +103,7 @@ export interface CoachWithRelations {
   category: string;
   qualifications: string[];
   experience?: string;
+  experiences?: CoachExperience[];
   timezone?: string;
   languages: string[];
   createdAt: string;
@@ -172,6 +173,7 @@ export interface ApiCoach {
   category: string;
   qualifications: string[];
   experience?: string;
+  experiences?: CoachExperience[];
   timezone?: string;
   languages: string[];
   createdAt: string;

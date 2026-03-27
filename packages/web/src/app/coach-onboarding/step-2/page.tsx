@@ -1,5 +1,6 @@
 "use client";
 
+import { Loading } from "@/components/shared/loading";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -59,14 +60,7 @@ function CoachOnboardingStep2Content() {
   };
 
   if (loading) {
-    return (
-      <div className="w-full min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p className="text-lg font-medium">{t("loading")}</p>
-        </div>
-      </div>
-    );
+    return <Loading fullPage message={t("loading")} />;
   }
 
   const addCategoryAsSpecialty = (categoryId: string) => {
@@ -213,7 +207,7 @@ function CoachOnboardingStep2Content() {
 
 export default function CoachOnboardingStep2() {
   return (
-    <React.Suspense fallback={<div>Loading...</div>}>
+    <React.Suspense fallback={<Loading fullPage />}>
       <CoachOnboardingStep2Content />
     </React.Suspense>
   );

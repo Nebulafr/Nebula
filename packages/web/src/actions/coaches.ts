@@ -59,6 +59,14 @@ export async function updateCoachProfile(coachData: CoachUpdateData) {
   return apiPut("/coaches/profile", coachData, { throwOnError: true });
 }
 
+export async function updateCoachExperiences(experiences: any[]) {
+  return apiPut("/coaches/profile/resume", { experiences }, { throwOnError: true });
+}
+
+export async function getCoachExperiences() {
+  return apiGet<any[]>("/coaches/profile/resume", { requireAuth: true });
+}
+
 export async function getSuggestedCoaches(limit?: number): Promise<CoachesResponse> {
   const params = new URLSearchParams();
 

@@ -43,7 +43,10 @@
       },
       "tabs": {
         "profile": "Profile",
-        "security": "Security"
+        "security": "Security",
+        "resume": "Resume/Experience",
+        "account": "Account Settings",
+        "payout": "Payout Information"
       }
     },
     "student": {
@@ -439,6 +442,7 @@
         "tabs": {
           "account": "Account Settings",
           "payout": "Payout Information",
+          "resume": "Resume / Experience",
           "security": "Security"
         },
         "avatar": {
@@ -469,8 +473,6 @@
           "stylePlaceholder": "e.g., Hands-on, Mentoring, Strategic",
           "linkedin": "LinkedIn URL",
           "linkedinPlaceholder": "https://linkedin.com/in/yourprofile",
-          "experience": "Experience Summary",
-          "experiencePlaceholder": "Brief overview of your professional experience...",
           "specialties": "Specialties",
           "specialtiesDesc": "Add tags that describe your expertise.",
           "addSpecialty": "Add a specialty...",
@@ -490,6 +492,26 @@
           "saveSuccess": "Profile updated successfully",
           "errorUpdate": "Failed to update profile",
           "errorUnexpected": "An unexpected error occurred"
+        },
+        "resume": {
+          "title": "Resume & Experience",
+          "description": "Manage your professional work history. This information will be displayed on your public profile.",
+          "addExperience": "Add Experience",
+          "role": "Role / Position",
+          "rolePlaceholder": "e.g., Senior Consultant",
+          "company": "Company / Organization",
+          "companyPlaceholder": "e.g., Boston Consulting Group (BCG)",
+          "startDate": "Start Date",
+          "endDate": "End Date",
+          "present": "Present",
+          "workDescription": "Description",
+          "workDescriptionPlaceholder": "Describe your responsibilities and achievements...",
+          "save": "Save Resume",
+          "saving": "Saving Resume...",
+          "saveSuccess": "Resume updated successfully",
+          "errorSave": "Failed to update resume",
+          "errorUnexpected": "An unexpected error occurred",
+          "remove": "Remove"
         },
         "payout": {
           "title": "Payout Information",

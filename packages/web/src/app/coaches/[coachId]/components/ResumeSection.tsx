@@ -6,6 +6,14 @@ interface ResumeSectionProps {
     experienceList: any[];
 }
 
+const formatDate = (date: any) => {
+    if (!date) return "Present";
+    const d = new Date(date);
+    // Check if date is valid
+    if (isNaN(d.getTime())) return date;
+    return d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+};
+
 export function ResumeSection({ experienceList }: ResumeSectionProps) {
     const t = useTranslations("coachDetails");
     if (experienceList.length === 0) return null;
@@ -23,23 +31,26 @@ export function ResumeSection({ experienceList }: ResumeSectionProps) {
             </div>
 
             <div className="space-y-12">
-                {experienceList.map((exp: any, i: number) => (
-                    <div key={i} className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <div className="md:col-span-1">
-                            <span className="text-sm font-medium text-muted-foreground">
-                                {exp.duration}
-                            </span>
+                {experienceList.map((exp: any, i: number) => {
+                    const duration = exp.duration || `${formatDate(exp.startDate)} — ${formatDate(exp.endDate)}`;
+                    return (
+                        <div key={i} className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div className="md:col-span-1">
+                                <span className="text-sm font-medium text-muted-foreground">
+                                    {duration}
+                                </span>
+                            </div>
+                            <div className="md:col-span-3">
+                                <h3 className="font-bold text-lg mb-1">
+                                    {exp.role} {exp.company ? `${t("at")} ${exp.company}` : ""}
+                                </h3>
+                                <p className="text-sm text-muted-foreground leading-relaxed">
+                                    {exp.description}
+                                </p>
+                            </div>
                         </div>
-                        <div className="md:col-span-3">
-                            <h3 className="font-bold text-lg mb-1">
-                                {exp.role} {exp.company ? `${t("at")} ${exp.company}` : ""}
-                            </h3>
-                            <p className="text-sm text-muted-foreground leading-relaxed">
-                                {exp.description}
-                            </p>
-                        </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
         </div>
     );
