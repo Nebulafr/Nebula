@@ -10,8 +10,10 @@ export function CompanyLogosSection() {
   const t = useTranslations("companies");
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [isReady, setIsReady] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const scroller = scrollerRef.current;
     if (!scroller) return;
 
@@ -41,26 +43,29 @@ export function CompanyLogosSection() {
           ref={scrollerRef}
           className="relative mt-8 overflow-hidden [mask-image:linear-gradient(to_right,transparent,white_10%,white_90%,transparent)]"
         >
-          <div
-            className={`scroller-inner flex items-center gap-8 w-max ${isReady ? "animate-scroll" : ""
-              }`}
-            style={{
-              willChange: "transform",
-            }}
-          >
-            {companyList.map((company, index) => (
-              <div key={index} className="flex-shrink-0 px-4">
-                <Image
-                  src={company.logo}
-                  alt={company.name}
-                  width={100}
-                  height={40}
-                  style={{ width: "auto" }}
-                  className="object-contain rounded transition-all duration-300"
-                />
-              </div>
-            ))}
-          </div>
+          {mounted && (
+            <div
+              className={`scroller-inner flex items-center gap-8 w-max ${isReady ? "animate-scroll" : ""
+                }`}
+              style={{
+                willChange: "transform",
+              }}
+            >
+              {companyList.map((company, index) => (
+                <div key={index} className="flex-shrink-0 px-8">
+                  <div className="relative h-10 w-32">
+                    <Image
+                      src={company.logo}
+                      alt={company.name}
+                      fill
+                      className="object-contain transition-all duration-300"
+                      sizes="128px"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 

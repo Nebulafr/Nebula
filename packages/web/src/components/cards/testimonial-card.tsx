@@ -29,6 +29,7 @@ export function TestimonialCard({
           fill
           quality={85}
           className="object-cover transition-transform duration-300 ease-in-out group-hover:scale-105"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           data-ai-hint={avatar.imageHint}
         />
       )}
