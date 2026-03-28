@@ -9,7 +9,7 @@
     "dev": "tsx watch src/server.ts",
     "prebuild": "npm run db:generate",
     "build": "npm run clean && npm run build:js && npm run build:types",
-    "build:js": "esbuild src/server.ts --bundle --platform=node --format=esm --outfile=dist/src/server.js --sourcemap --packages=external",
+    "build:js": "esbuild src/server.ts --bundle --platform=node --format=esm --outfile=dist/src/server.js --sourcemap --packages=external --external:@nebula/database --external:@nebula/integrations",
     "build:types": "tsc -p tsconfig.json --emitDeclarationOnly --declaration",
     "build:watch": "tsc -p tsconfig.json --watch",
     "db:generate": "npm --workspace @nebula/database run db:generate",
