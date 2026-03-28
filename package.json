@@ -10,7 +10,8 @@
   "scripts": {
     "dev:web": "npm --workspace @nebula/web run dev",
     "dev:chat": "npm --workspace @nebula/chat-server run dev",
-    "predev": "npm run db:generate",
+    "postinstall": "npm --workspace @nebula/database run db:generate",
+    "prepare": "npm run postinstall",
     "dev": "concurrently \"npm run dev:web\" \"npm run dev:chat\"",
     "build": "npm --workspace @nebula/database run build && npm --workspace @nebula/integrations run build && npm --workspace @nebula/chat-server run build && npm --workspace @nebula/web run build",
     "db:generate": "npm --workspace @nebula/database run db:generate",
