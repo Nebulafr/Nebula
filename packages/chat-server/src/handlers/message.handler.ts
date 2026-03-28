@@ -8,7 +8,7 @@ import type {
   LoadMessagesData,
   ConversationUpdateEmit,
   TypingIndicator,
-} from "../types";
+} from "../types/index";
 
 const extractMessageData = (data: MessageData) => ({
   conversationId: data.conversationId,

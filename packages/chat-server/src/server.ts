@@ -30,7 +30,7 @@ const registerEventHandlers = (socket: AuthenticatedSocket, io: Server) => {
 
 const initializeServer = () => {
   const app = express();
-  
+
   app.get("/", (req, res) => {
     res.json({
       status: "ok",

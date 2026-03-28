@@ -1,6 +1,6 @@
 import { prisma } from "../lib/prisma";
-import { formatConversation } from "../lib";
-import type { FormattedConversation } from "../types";
+import { formatConversation } from "../lib/index";
+import type { FormattedConversation } from "../types/index";
 
 const formatConversations = (
   conversations: any[],

@@ -1,6 +1,6 @@
 import * as ConversationService from "../services/conversation.service";
 import { requireAuth, getUserId } from "../middleware/auth.middleware";
-import type { AuthenticatedSocket } from "../types";
+import type { AuthenticatedSocket } from "../types/index";
 
 const handleError = (
   socket: AuthenticatedSocket,

@@ -1,18 +1,19 @@
 {
   "name": "@nebula/database",
   "version": "1.0.0",
-  "main": "./index.ts",
-  "types": "./index.ts",
+  "type": "module",
+  "main": "./dist/src/index.js",
+  "types": "./dist/src/index.d.ts",
   "exports": {
-    ".": "./index.ts",
-    "./types": "./types.ts"
+    ".": "./src/index.ts",
+    "./types": "./src/types.ts"
   },
   "scripts": {
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "seed:admin": "tsx scripts/seed-admin.ts",
     "seed:categories": "tsx scripts/seed-categories.ts",
-    "build": "npm run db:generate",
+    "build": "tsc -p tsconfig.json && npm run db:generate",
     "lint": "echo 'No linting for database package'",
     "type-check": "tsc --noEmit"
   },

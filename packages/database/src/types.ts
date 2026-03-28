@@ -25,7 +25,7 @@ export type {
   EventAttendee,
   Payout,
   Transaction,
-} from './generated/prisma';
+} from '../generated/prisma/index-browser';
 
 export {
   UserRole,
@@ -44,6 +44,6 @@ export {
   TransactionType,
   TransactionStatus,
   TransactionSourceType,
-} from './generated/prisma';
+} from '../generated/prisma/index-browser';
 
-export { Prisma } from './generated/prisma';
+export type { Prisma } from '../generated/prisma/index-browser';

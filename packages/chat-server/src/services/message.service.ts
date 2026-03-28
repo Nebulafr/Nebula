@@ -5,12 +5,12 @@ import {
   formatMessage,
   hasMoreMessages,
   transformToNewMessageEmit,
-} from "../lib";
+} from "../lib/index";
 import {
   FormattedMessage,
   MessagesLoadedResponse,
   NewMessageEmit,
-} from "../types";
+} from "../types/index";
 
 const formatMessages = (
   messages: any[],

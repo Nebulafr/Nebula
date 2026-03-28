@@ -1,4 +1,4 @@
-import { FormattedConversation, FormattedMessage, NewMessageEmit } from "../types";
+import { FormattedConversation, FormattedMessage, NewMessageEmit } from "../types/index";
 import { formatTime, formatTimestamp } from "./date";
 
 export const findOtherParticipant = (participants: any[], userId: string) => {

@@ -7,10 +7,8 @@ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 const nextConfig: NextConfig = {
   turbopack: {
     root: path.resolve(__dirname, "../.."),
-    resolveAlias: {
-      "@/generated/prisma": "./generated/prisma",
-    },
   },
+  // transpilePackages: ["@nebula/database", "@nebula/integrations"],
   images: {
     minimumCacheTTL: 60 * 60 * 24 * 7, // Cache images for 7 days
     qualities: [75, 85],

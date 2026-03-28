@@ -1,5 +1,5 @@
 import type { Server } from "socket.io";
-import type { SocketData } from "../types";
+import type { SocketData } from "../types/index";
 
 export const getSocketServer = (): Server<any, any, any, SocketData> => {
   if (!global.socketServer) {

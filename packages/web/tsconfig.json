@@ -25,18 +25,13 @@
     "paths": {
       "@/*": [
         "./src/*"
-      ],
-      "@/generated/prisma": [
-        "./generated/prisma"
       ]
     }
   },
   "include": [
+    "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    "next-env.d.ts",
-    "src/interfaces/**/*.d.ts",
-    "src/types/**/*.d.ts",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],
