@@ -9,7 +9,7 @@
     "dev": "tsx watch src/server.ts",
     "prebuild": "npm run db:generate",
     "build": "npm run clean && npm run build:js && npm run build:types",
-    "build:js": "npx esbuild src/server.ts --bundle --platform=node --format=esm --outfile=dist/src/server.js --sourcemap --packages=external",
+    "build:js": "esbuild src/server.ts --bundle --platform=node --format=esm --outfile=dist/src/server.js --sourcemap --packages=external",
     "build:types": "tsc -p tsconfig.json --emitDeclarationOnly --declaration",
     "build:watch": "tsc -p tsconfig.json --watch",
     "db:generate": "npm --workspace @nebula/database run db:generate",
@@ -30,7 +30,7 @@
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "^22.10.1",
-    "esbuild": "^0.27.2",
+    "esbuild": "^0.27.4",
     "tsx": "^4.19.2",
     "typescript": "^5.6.3"
   },
