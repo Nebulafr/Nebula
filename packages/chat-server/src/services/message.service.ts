@@ -1,5 +1,5 @@
 import { prisma } from "../lib/prisma";
-import type { MessageType } from "../lib/prisma";
+import { MessageType } from "../lib/prisma";
 import {
   calculatePagination,
   formatMessage,

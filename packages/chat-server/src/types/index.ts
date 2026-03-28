@@ -1,4 +1,4 @@
-import { User } from "../lib/prisma";
+import type { User } from "../lib/prisma";
 import { Socket, Server } from "socket.io";
 
 export interface SocketData {

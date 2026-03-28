@@ -1,6 +1,6 @@
 import { createServer } from "node:http";
 import { Server } from "socket.io";
-import express from "express";
+import express, { Request, Response } from "express";
 import { prisma } from "./lib/prisma";
 import { env } from "./config/env";
 import { createAuthMiddleware } from "./middleware/auth.middleware";
@@ -31,7 +31,7 @@ const registerEventHandlers = (socket: AuthenticatedSocket, io: Server) => {
 const initializeServer = () => {
   const app = express();
 
-  app.get("/", (req, res) => {
+  app.get("/", (req: Request, res: Response) => {
     res.json({
       status: "ok",
       service: "Nebula Messaging",
