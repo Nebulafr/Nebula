@@ -1,4 +1,4 @@
-import { prisma } from "../lib/prisma.js";
+import { prisma } from "@nebula/database";
 import { formatConversation } from "../lib/index.js";
 import type { FormattedConversation } from "../types/index.js";
 

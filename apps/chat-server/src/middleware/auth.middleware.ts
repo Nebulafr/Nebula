@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { prisma } from "../lib/prisma.js";
+import { prisma } from "@nebula/database";
 import { env } from "../config/env.js";
 import type { AuthenticatedSocket, JwtPayload } from "../types/index.js";
 

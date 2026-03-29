@@ -1,7 +1,7 @@
 import { createServer } from "node:http";
 import { Server } from "socket.io";
 import express, { Request, Response } from "express";
-import { prisma } from "./lib/prisma.js";
+import { prisma } from "@nebula/database";
 import { env } from "./config/env.js";
 import { createAuthMiddleware } from "./middleware/auth.middleware.js";
 import * as ConversationHandler from "./handlers/conversation.handler.js";

@@ -1,4 +1,4 @@
-import type { User } from "../lib/prisma.js";
+import type { User } from "@nebula/database/types";
 import { Socket, Server } from "socket.io";
 
 export interface SocketData {

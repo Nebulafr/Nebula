@@ -1,5 +1,5 @@
-import { prisma } from "../lib/prisma.js";
-import { MessageType } from "../lib/prisma.js";
+import { prisma } from "@nebula/database";
+import { MessageType } from "@nebula/database";
 import {
   calculatePagination,
   formatMessage,
