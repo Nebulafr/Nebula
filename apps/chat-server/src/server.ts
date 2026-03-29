@@ -1,12 +1,12 @@
 import { createServer } from "node:http";
 import { Server } from "socket.io";
 import express, { Request, Response } from "express";
-import { prisma } from "./lib/prisma";
-import { env } from "./config/env";
-import { createAuthMiddleware } from "./middleware/auth.middleware";
-import * as ConversationHandler from "./handlers/conversation.handler";
-import * as MessageHandler from "./handlers/message.handler";
-import type { AuthenticatedSocket } from "./types";
+import { prisma } from "./lib/prisma.js";
+import { env } from "./config/env.js";
+import { createAuthMiddleware } from "./middleware/auth.middleware.js";
+import * as ConversationHandler from "./handlers/conversation.handler.js";
+import * as MessageHandler from "./handlers/message.handler.js";
+import type { AuthenticatedSocket } from "./types/index.js";
 
 const registerEventHandlers = (socket: AuthenticatedSocket, io: Server) => {
   // Conversations

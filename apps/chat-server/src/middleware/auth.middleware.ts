@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
-import { prisma } from "../lib/prisma";
-import { env } from "../config/env";
-import type { AuthenticatedSocket, JwtPayload } from "../types/index";
+import { prisma } from "../lib/prisma.js";
+import { env } from "../config/env.js";
+import type { AuthenticatedSocket, JwtPayload } from "../types/index.js";
 
 const validateJwtToken = (token: string): JwtPayload | null => {
   try {

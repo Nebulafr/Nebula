@@ -1,13 +1,13 @@
 {
   "name": "@nebula/chat-server",
   "version": "1.0.0",
+  "type": "module",
   "main": "./dist/src/server.js",
   "types": "./dist/src/server.d.ts",
   "scripts": {
     "start": "node dist/src/server.js",
     "dev": "tsx watch src/server.ts",
-    "build": "npm run clean && npm run build:js",
-    "build:js": "npx esbuild src/server.ts --bundle --platform=node --format=cjs --outfile=dist/src/server.js --sourcemap --packages=external --external:@nebula/database --external:@nebula/integrations",
+    "build": "npm run clean && tsc -p tsconfig.json",
     "build:watch": "tsc -p tsconfig.json --watch",
     "type-check": "tsc --noEmit",
     "lint": "echo 'No linting for chat-server package'",
@@ -16,7 +16,6 @@
   "dependencies": {
     "@nebula/database": "*",
     "@nebula/integrations": "*",
-    "esbuild": "^0.27.4",
     "dotenv": "^16.6.1",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.0",

@@ -1,16 +1,16 @@
-import { prisma } from "../lib/prisma";
-import { MessageType } from "../lib/prisma";
+import { prisma } from "../lib/prisma.js";
+import { MessageType } from "../lib/prisma.js";
 import {
   calculatePagination,
   formatMessage,
   hasMoreMessages,
   transformToNewMessageEmit,
-} from "../lib/index";
+} from "../lib/index.js";
 import {
   FormattedMessage,
   MessagesLoadedResponse,
   NewMessageEmit,
-} from "../types/index";
+} from "../types/index.js";
 
 const formatMessages = (
   messages: any[],

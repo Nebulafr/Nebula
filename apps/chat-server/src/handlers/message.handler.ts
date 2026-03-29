@@ -1,14 +1,14 @@
 import type { Server } from "socket.io";
-import * as MessageService from "../services/message.service";
-import * as ConversationService from "../services/conversation.service";
-import { requireAuth, getUserId } from "../middleware/auth.middleware";
+import * as MessageService from "../services/message.service.js";
+import * as ConversationService from "../services/conversation.service.js";
+import { requireAuth, getUserId } from "../middleware/auth.middleware.js";
 import type {
   AuthenticatedSocket,
   MessageData,
   LoadMessagesData,
   ConversationUpdateEmit,
   TypingIndicator,
-} from "../types/index";
+} from "../types/index.js";
 
 const extractMessageData = (data: MessageData) => ({
   conversationId: data.conversationId,

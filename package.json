@@ -17,8 +17,9 @@
     "seed:admin": "turbo run seed:admin",
     "seed:categories": "turbo run seed:categories",
     "start": "turbo run start",
-    "postinstall": "turbo run db:generate",
-    "prepare": "turbo run db:generate"
+    "prepare": "turbo run db:generate",
+    "build:chat-server": "npm install && npx turbo run build --filter=@nebula/chat-server",
+    "start:chat-server": "npx turbo run start --filter=@nebula/chat-server"
   },
   "devDependencies": {
     "turbo": "^2.8.21"

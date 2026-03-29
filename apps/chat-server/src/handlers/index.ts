@@ -1,2 +1,2 @@
-export * from "./conversation.handler";
-export * from "./message.handler";
+export * from "./conversation.handler.js";
+export * from "./message.handler.js";

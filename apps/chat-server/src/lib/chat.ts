@@ -1,5 +1,5 @@
-import { FormattedConversation, FormattedMessage, NewMessageEmit } from "../types/index";
-import { formatTime, formatTimestamp } from "./date";
+import { FormattedConversation, FormattedMessage, NewMessageEmit } from "../types/index.js";
+import { formatTime, formatTimestamp } from "./date.js";
 
 export const findOtherParticipant = (participants: any[], userId: string) => {
   return participants.find((p: any) => p.userId !== userId);

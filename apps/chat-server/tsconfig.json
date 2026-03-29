@@ -1,8 +1,8 @@
 {
   "extends": "@nebula/tsconfig/base.json",
   "compilerOptions": {
-    "module": "esnext",
-    "moduleResolution": "bundler",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "outDir": "dist",
     "rootDir": ".",
     "noEmit": false
