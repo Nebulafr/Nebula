@@ -2,7 +2,7 @@ import { Pinecone } from '@pinecone-database/pinecone';
 import Stripe from "stripe";
 import OpenAI from "openai";
 
-export * from './types';
+export * from './types.js';
 /* --- Pinecone (Vector Store) --- */
 
 export const pinecone = new Pinecone({

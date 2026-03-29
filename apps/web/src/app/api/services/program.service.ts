@@ -1,0 +1,1303 @@
+import { NextRequest } from "next/server";
+import {
+  UnauthorizedException,
+  BadRequestException,
+  NotFoundException,
+} from "../utils/http-exception";
+import { createProgramSchema, updateProgramSchema, CreateProgramData, UpdateProgramData } from "@/lib/validations";
+import { prisma, Program, Prisma, User } from "@nebula/database";
+import { generateSlug } from "@/lib/utils";
+import { extractUserFromRequest } from "../utils/extract-user";
+import { emailService } from "./email.service";
+import { uploadService } from "./upload.service";
+import { ProgramWithRelations, DashboardProgram, ProgramReviewWithUser } from "@/types";
+
+export class ProgramService {
+  async createProgram(coachId: string, coachRole: string, body: any): Promise<{ programId: string; program: DashboardProgram }> {
+    if (coachRole !== "COACH") {
+      throw new UnauthorizedException("Coach access required");
+    }
+
+    const data = createProgramSchema.parse(body) as CreateProgramData;
+    const {
+      title,
+      category,
+      description,
+      objectives,
+      modules,
+      price,
+      duration,
+      difficultyLevel,
+      maxStudents,
+      tags,
+      prerequisites,
+      targetAudience,
+      coCoachIds: coCoachUserIds,
+    } = data;
+
+
+    const slug = generateSlug(title);
+
+    const categoryRecord = await prisma.category.findUnique({
+      where: { id: category },
+    });
+
+    if (!categoryRecord) {
+      throw new BadRequestException(`Category "${category}" not found`);
+    }
+    let validCoCoachIds: string[] = [];
+    if (coCoachUserIds && coCoachUserIds.length > 0) {
+      const validCoaches = await prisma.coach.findMany({
+        where: {
+          OR: [
+            { id: { in: coCoachUserIds } },
+            { userId: { in: coCoachUserIds } },
+          ],
+        },
+        select: { id: true, userId: true },
+      });
+
+      const validCoachIds = validCoaches.map((c) => c.id);
+      const validUserIds = validCoaches.map((c) => c.userId);
+      validCoCoachIds = validCoachIds;
+
+      const invalidIds = coCoachUserIds.filter(
+        (id) => !validCoachIds.includes(id) && !validUserIds.includes(id),
+      );
+      if (invalidIds.length > 0) {
+        throw new BadRequestException(
+          `Invalid co-coach IDs: ${invalidIds.join(", ")}`,
+        );
+      }
+    }
+
+    const program = await prisma.program.create({
+      data: {
+        title,
+        categoryId: categoryRecord.id,
+        description,
+        objectives,
+        coachId: coachId,
+        slug,
+        rating: 0,
+        totalReviews: 0,
+        price: price || 0,
+        duration: duration || "4 weeks",
+        difficultyLevel: difficultyLevel || "BEGINNER",
+        maxStudents: maxStudents || 100,
+        currentEnrollments: 0,
+        isActive: false,
+        status: "PENDING_APPROVAL",
+        tags: tags || [],
+        prerequisites: prerequisites || [],
+        targetAudience: targetAudience || [],
+        modules: {
+          create: await Promise.all(
+            modules?.map(async (module, index) => {
+              const materials = await Promise.all(
+                (module.materials || []).map(async (mat, matIndex) => {
+                  let url = mat.url;
+                  // If it's a base64 string, upload it
+                  if (url && url.startsWith("data:")) {
+                    const result = await uploadService.uploadFile(url, {
+                      folder: `nebula-materials`,
+                    });
+                    url = result.url;
+                  }
+                  return {
+                    fileName: mat.name || "document",
+                    url: url as string,
+                    mimeType: mat.type || "application/pdf",
+                    position: matIndex,
+                  };
+                }),
+              );
+
+              return {
+                title: module.title,
+                week: module.week || index + 1,
+                description: module.description,
+                materials: {
+                  create: materials,
+                },
+              };
+            }) || [],
+          ),
+        },
+        coCoaches:
+          validCoCoachIds.length > 0
+            ? {
+              create: validCoCoachIds.map((coachId) => ({
+                coachId,
+              })),
+            }
+            : undefined,
+      },
+      include: {
+        category: true,
+        coach: {
+          include: {
+            user: true,
+          },
+        },
+        modules: {
+          include: {
+            materials: true,
+          },
+        },
+        coCoaches: {
+          include: {
+            coach: {
+              include: {
+                user: {
+                  select: {
+                    fullName: true,
+                    avatarUrl: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // Send APPLICATION_RECEIVED email to the coach
+    try {
+      await emailService.sendProgramProposalEmail(
+        program!.coach!.user!.email,
+        "APPLICATION_RECEIVED",
+        program!.coach!.user!.fullName || "Coach",
+      );
+    } catch (error) {
+      console.error("Failed to send application received email:", error);
+      // Don't fail the program creation if email fails
+    }
+
+    return {
+      programId: program.id,
+      program: program as any as DashboardProgram,
+    };
+  }
+
+  transformProgramData(program: any) {
+    return {
+      id: program.id,
+      title: program.title,
+      categoryId: program.categoryId,
+      description: program.description,
+      objectives: program.objectives,
+      coachId: program.coachId,
+      slug: program.slug,
+      rating: program.rating,
+      totalReviews: program.totalReviews,
+      price: program.price,
+      duration: program.duration,
+      difficultyLevel: program.difficultyLevel,
+      maxStudents: program.maxStudents,
+      currentEnrollments: program.currentEnrollments,
+      isActive: program.isActive,
+      status: program.status,
+      tags: program.tags,
+      prerequisites: program.prerequisites,
+      attendees:
+        program.enrollments?.map(
+          (e: {
+            student?: {
+              user?: { avatarUrl?: string | null };
+              avatarUrl?: string | null;
+            };
+          }) => e.student?.user?.avatarUrl || e.student?.avatarUrl || null,
+        ) || [],
+      createdAt: program.createdAt.toISOString(),
+      updatedAt: program.updatedAt.toISOString(),
+      category: program.category,
+      coach: program.coach,
+      enrollments: program.enrollments,
+      modules: program.modules,
+      _count: program._count,
+    };
+  }
+
+  private async fetchProgramsData(params: {
+    coachId?: string;
+    category?: string;
+    search?: string;
+    limit?: number;
+    offset?: number;
+    interestedCategoryIds?: string[];
+  }): Promise<any> {
+    const {
+      coachId,
+      category,
+      search,
+      limit = 10,
+      offset = 0,
+      interestedCategoryIds,
+    } = params;
+
+    const whereClause: Prisma.ProgramWhereInput = {};
+
+    if (coachId) {
+      whereClause.coachId = coachId;
+    } else {
+      whereClause.isActive = true;
+      whereClause.status = "ACTIVE";
+    }
+
+    if (category) {
+      whereClause.categoryId = category;
+    }
+
+    if (interestedCategoryIds && interestedCategoryIds.length > 0) {
+      whereClause.OR = [
+        {
+          categoryId: { in: interestedCategoryIds },
+        },
+      ];
+    }
+
+    if (search) {
+      whereClause.OR = [
+        ...(whereClause.OR || []),
+        { title: { contains: search, mode: "insensitive" } },
+        { description: { contains: search, mode: "insensitive" } },
+        { category: { name: { contains: search, mode: "insensitive" } } },
+        {
+          coach: {
+            user: { fullName: { contains: search, mode: "insensitive" } },
+          },
+        },
+        { tags: { has: search } },
+      ];
+    }
+
+    const [programs, totalCount] = await Promise.all([
+      prisma.program.findMany({
+        where: whereClause,
+        include: {
+          category: true,
+          coach: {
+            select: {
+              id: true,
+              title: true,
+              user: {
+                select: {
+                  fullName: true,
+                  avatarUrl: true,
+                },
+              },
+            },
+          },
+          enrollments: {
+            take: 5,
+            select: {
+              student: {
+                select: {
+                  user: {
+                    select: {
+                      avatarUrl: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          modules: {
+            include: {
+              materials: true,
+            },
+          },
+          _count: {
+            select: {
+              enrollments: true,
+              reviews: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        skip: offset,
+        take: limit,
+      }),
+      prisma.program.count({ where: whereClause }),
+    ]);
+
+    const transformedPrograms = programs.map((program) =>
+      this.transformProgramData(program),
+    );
+
+    return {
+      transformedPrograms,
+      totalCount,
+      limit,
+      offset,
+    };
+  }
+
+  async getPrograms(params: any): Promise<any> {
+    const { transformedPrograms, totalCount, limit, offset } =
+      await this.fetchProgramsData(params);
+
+    return {
+      programs: transformedPrograms,
+      pagination: {
+        total: totalCount,
+        limit,
+        offset,
+        hasMore: offset + transformedPrograms.length < totalCount,
+      },
+    };
+  }
+
+  async getGroupedPrograms(params: any): Promise<any> {
+    const { coachId, category: categoryFilter, search, limit, page = 1 } = params;
+    const skip = limit ? (page - 1) * limit : undefined;
+
+    const whereClause: Prisma.ProgramWhereInput = {};
+    if (coachId) {
+      whereClause.coachId = coachId;
+    } else {
+      whereClause.isActive = true;
+      whereClause.status = "ACTIVE";
+    }
+
+    if (categoryFilter) {
+      whereClause.categoryId = categoryFilter;
+    }
+
+    if (search) {
+      whereClause.OR = [
+        { title: { contains: search, mode: "insensitive" } },
+        { description: { contains: search, mode: "insensitive" } },
+        { category: { name: { contains: search, mode: "insensitive" } } },
+        {
+          coach: {
+            user: { fullName: { contains: search, mode: "insensitive" } },
+          },
+        },
+        { tags: { has: search } },
+      ];
+    }
+
+    const categories = await prisma.category.findMany({
+      where: {
+        isActive: true,
+        programs: {
+          some: whereClause,
+        },
+      },
+      include: {
+        programs: {
+          where: whereClause,
+          include: {
+            category: true,
+            coach: {
+              select: {
+                id: true,
+                title: true,
+                user: {
+                  select: {
+                    fullName: true,
+                    avatarUrl: true,
+                  },
+                },
+              },
+            },
+            enrollments: {
+              take: 5,
+              select: {
+                student: {
+                  select: {
+                    user: {
+                      select: {
+                        avatarUrl: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            modules: {
+              include: {
+                materials: true,
+              },
+            },
+            _count: {
+              select: {
+                enrollments: true,
+                reviews: true,
+              },
+            },
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+          take: limit,
+          skip: skip,
+        },
+      },
+    });
+
+    const formattedGroups = categories.map((category) => ({
+      categoryId: category.id,
+      group: category.name,
+      items: category.programs.map((program) =>
+        this.transformProgramData(program),
+      ),
+    }));
+
+    return {
+      groupedPrograms: formattedGroups,
+    };
+  }
+
+  async getBySlug(slug: string, authenticatedUserId?: string): Promise<any> {
+    const userId = authenticatedUserId;
+
+    const program = await prisma.program.findUnique({
+      where: { slug },
+      include: {
+        category: true,
+        coach: {
+          include: {
+            user: true,
+          },
+        },
+        enrollments: {
+          include: {
+            student: true,
+          },
+        },
+        modules: {
+          include: {
+            materials: true,
+          },
+        },
+        reviews: {
+          include: {
+            user: true,
+          },
+          take: 4
+        },
+        cohorts: {
+          where: {
+            status: "UPCOMING",
+            startDate: { gt: new Date() },
+          },
+          orderBy: {
+            startDate: "asc",
+          },
+        },
+      },
+    });
+
+    if (!program) {
+      throw new NotFoundException("Program not found");
+    }
+
+    let hasUserReviewed = false;
+    if (userId) {
+      hasUserReviewed = await this.checkUserReview(
+        program.id,
+        userId,
+        "PROGRAM",
+      );
+    }
+
+    const transformedProgram = {
+      ...program,
+      reviews: program.reviews.map((review: any) => ({
+        id: review.id,
+        content: review.comment,
+        rating: review.rating,
+        createdAt: review.createdAt,
+        user: review.user,
+      })),
+      hasUserReviewed,
+    };
+
+    return { program: transformedProgram };
+  }
+
+  async getById(id: string): Promise<{ program: DashboardProgram }> {
+    const program = await prisma.program.findUnique({
+      where: { id },
+      include: {
+        category: true,
+        coach: {
+          include: {
+            user: true,
+          },
+        },
+        modules: {
+          include: {
+            materials: true,
+          },
+          orderBy: { week: "asc" },
+        },
+        coCoaches: {
+          include: {
+            coach: {
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    fullName: true,
+                    avatarUrl: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!program) {
+      throw new NotFoundException("Program not found");
+    }
+
+    return { program };
+  }
+
+  async updateById(coachId: string, coachRole: string, id: string, body: any): Promise<any> {
+    if (coachRole !== "COACH") {
+      throw new UnauthorizedException("Coach access required");
+    }
+
+    const program = await prisma.program.findUnique({
+      where: { id },
+      include: { modules: true },
+    });
+
+    if (!program) {
+      throw new NotFoundException("Program not found");
+    }
+
+    if (program.coachId !== coachId) {
+      throw new UnauthorizedException(
+        "You are not authorized to update this program",
+      );
+    }
+
+    const {
+      title,
+      category,
+      description,
+      objectives,
+      modules,
+      price,
+      duration,
+      difficultyLevel,
+      maxStudents,
+      tags,
+      prerequisites,
+      targetAudience,
+      coCoachIds,
+    } = body;
+
+    let categoryRecord: {
+      name: string;
+      id: string;
+      createdAt: Date;
+      updatedAt: Date;
+      slug: string;
+      isActive: boolean;
+    } | null;
+
+
+
+
+    if (category) {
+      categoryRecord = await prisma.category.findUnique({
+        where: { id: category },
+      });
+      if (!categoryRecord) {
+        throw new BadRequestException(`Category "${category}" not found`);
+      }
+    }
+
+
+
+    const result = await prisma.$transaction(async (tx) => {
+      // Handle co-coaches
+      if (coCoachIds !== undefined) {
+        await tx.programCoach.deleteMany({
+          where: { programId: program.id },
+        });
+
+        if (coCoachIds.length > 0) {
+          const validCoaches = await tx.coach.findMany({
+            where: { id: { in: coCoachIds } },
+            select: { id: true },
+          });
+
+          const validCoachIds = validCoaches.map((c) => c.id);
+          const invalidIds = coCoachIds.filter(
+            (id: string) => !validCoachIds.includes(id),
+          );
+
+          if (invalidIds.length > 0) {
+            throw new BadRequestException(
+              `Invalid co-coach IDs: ${invalidIds.join(", ")}`,
+            );
+          }
+
+          await tx.programCoach.createMany({
+            data: validCoachIds.map((coachId) => ({
+              programId: program.id,
+              coachId,
+            })),
+          });
+        }
+      }
+
+      // Handle modules update
+      if (modules && modules.length > 0) {
+        // Delete existing modules (materials will be deleted due to Cascade)
+        await tx.module.deleteMany({
+          where: { programId: program.id },
+        });
+
+        // Create new modules with materials
+        for (const [index, mod] of modules.entries()) {
+          const materials = await Promise.all(
+            (mod.materials || []).map(
+              async (
+                mat: { url?: string; name?: string; type?: string },
+                matIndex: number,
+              ) => {
+                let url = mat.url;
+                if (url && url.startsWith("data:")) {
+                  const result = await uploadService.uploadFile(url, {
+                    folder: `nebula-materials`,
+                  });
+                  url = result.url;
+                }
+                return {
+                  fileName: mat.name || "document",
+                  url,
+                  mimeType: mat.type || "application/pdf",
+                  position: matIndex,
+                };
+              },
+            ),
+          );
+
+          await tx.module.create({
+            data: {
+              programId: program.id,
+              title: mod.title,
+              week: mod.week || index + 1,
+              description: mod.description,
+              materials: {
+                create: materials,
+              },
+            },
+          });
+        }
+      }
+
+      // Generate new slug if title changed
+      let newSlug;
+      if (title && title !== program.title) {
+        newSlug = generateSlug(title);
+      }
+
+      return await tx.program.update({
+        where: { id },
+        data: {
+          title,
+          categoryId: categoryRecord?.id,
+          description,
+          objectives,
+          price,
+          duration: duration ? `${duration} weeks` : undefined,
+          difficultyLevel,
+          maxStudents,
+          tags,
+          prerequisites,
+          targetAudience,
+          slug: newSlug,
+        },
+        include: {
+          category: true,
+          coach: {
+            include: { user: true },
+          },
+          modules: {
+            include: {
+              materials: true,
+            },
+            orderBy: { week: "asc" },
+          },
+          coCoaches: {
+            include: {
+              coach: {
+                include: {
+                  user: {
+                    select: {
+                      fullName: true,
+                      avatarUrl: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+    });
+
+    return { program: result };
+  }
+
+  async checkUserReview(
+    targetId: string,
+    userId: string,
+    targetType: "COACH" | "PROGRAM",
+  ): Promise<boolean> {
+    try {
+      const existingReview =
+        targetType === "COACH"
+          ? await prisma.coachReview.findFirst({
+            where: {
+              userId,
+              coachId: targetId,
+            },
+          })
+          : await prisma.programReview.findFirst({
+            where: {
+              userId,
+              programId: targetId,
+            },
+          });
+
+      return !!existingReview;
+    } catch (error) {
+      console.error("Error checking user review:", error);
+      return false;
+    }
+  }
+
+  async updateProgram(coachId: string, coachRole: string, slug: string, body: any): Promise<any> {
+    if (coachRole !== "COACH") {
+      throw new UnauthorizedException("Coach access required");
+    }
+
+    const program = await prisma.program.findUnique({
+      where: { slug },
+    });
+
+    if (!program) {
+      throw new NotFoundException("Program not found");
+    }
+
+    if (program.coachId !== coachId) {
+      throw new UnauthorizedException(
+        "You are not authorized to update this program",
+      );
+    }
+
+    const data = updateProgramSchema.parse(body) as UpdateProgramData;
+    const {
+      title,
+      category,
+      description,
+      objectives,
+      price,
+      duration,
+      difficultyLevel,
+      maxStudents,
+      tags,
+      prerequisites,
+      targetAudience,
+      coCoachIds,
+    } = data;
+
+    let categoryRecord;
+    if (category) {
+      categoryRecord = await prisma.category.findUnique({
+        where: { id: category },
+      });
+      if (!categoryRecord) {
+        throw new BadRequestException(`Category "${category}" not found`);
+      }
+    }
+
+    let validCoCoachIds: string[] = [];
+    if (coCoachIds && coCoachIds.length > 0) {
+      const validCoaches = await prisma.coach.findMany({
+        where: {
+          OR: [{ id: { in: coCoachIds } }, { userId: { in: coCoachIds } }],
+        },
+        select: { id: true, userId: true },
+      });
+      validCoCoachIds = validCoaches.map((c) => c.id);
+      const validUserIds = validCoaches.map((c) => c.userId);
+      const invalidIds = coCoachIds.filter(
+        (id) => !validCoCoachIds.includes(id) && !validUserIds.includes(id),
+      );
+      if (invalidIds.length > 0) {
+        throw new BadRequestException(
+          `Invalid co-coach IDs: ${invalidIds.join(", ")}`,
+        );
+      }
+    }
+    let newSlug;
+    if (title) {
+      newSlug = generateSlug(title as string);
+    }
+    if (coCoachIds !== undefined) {
+      await prisma.programCoach.deleteMany({
+        where: { programId: program.id },
+      });
+
+      if (coCoachIds.length > 0) {
+        await prisma.programCoach.createMany({
+          data: coCoachIds.map((coachId) => ({
+            programId: program.id,
+            coachId,
+          })),
+        });
+      }
+    }
+
+    const updatedProgram = await prisma.program.update({
+      where: { slug },
+      data: {
+        title,
+        categoryId: categoryRecord?.id,
+        description,
+        objectives,
+        price,
+        duration,
+        difficultyLevel,
+        maxStudents,
+        tags,
+        prerequisites,
+        targetAudience: targetAudience as any,
+        slug: newSlug,
+      },
+      include: {
+        coCoaches: {
+          include: {
+            coach: {
+              include: {
+                user: {
+                  select: {
+                    fullName: true,
+                    avatarUrl: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return { program: updatedProgram };
+  }
+
+  async deleteProgram(coachId: string, coachRole: string, slug: string): Promise<any> {
+    if (!slug) {
+      throw new BadRequestException("Program Slug is required");
+    }
+
+    const program = await prisma.program.findUnique({
+      where: { slug },
+      include: {
+        enrollments: {
+          where: {
+            status: { in: ["ACTIVE", "PAUSED"] },
+          },
+        },
+      },
+    });
+
+    return await this.performDeletion(coachId, coachRole, program);
+  }
+
+  async deleteById(coachId: string, coachRole: string, id: string): Promise<any> {
+    if (!id) {
+      throw new BadRequestException("Program ID is required");
+    }
+
+    const program = await prisma.program.findUnique({
+      where: { id },
+    });
+
+    return await this.performDeletion(coachId, coachRole, program);
+  }
+
+  private async performDeletion(coachId: string, coachRole: string, program: any): Promise<any> {
+
+    if (!program) {
+      throw new NotFoundException("Program not found");
+    }
+
+    // Role-based security
+    if (coachRole === "COACH") {
+      if (program.coachId !== coachId) {
+        throw new UnauthorizedException(
+          "You are not authorized to delete this program",
+        );
+      }
+    } else if (coachRole !== "ADMIN") {
+      throw new UnauthorizedException("Unauthorized access");
+    }
+
+    await prisma.program.delete({
+      where: { id: program.id },
+    });
+
+    return null;
+  }
+
+  async getRecommendedPrograms(
+    studentId: string,
+    interestedCategoryIds: string[],
+  ): Promise<any> {
+
+
+    const includeOptions = {
+      category: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+        },
+      },
+      coach: {
+        select: {
+          id: true,
+          title: true,
+          user: {
+            select: {
+              fullName: true,
+              avatarUrl: true,
+            },
+          },
+        },
+      },
+      enrollments: {
+        select: {
+          student: {
+            select: {
+              user: {
+                select: {
+                  avatarUrl: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      modules: {
+        include: {
+          materials: true,
+        },
+      },
+      _count: {
+        select: {
+          enrollments: true,
+          reviews: true,
+        },
+      },
+    };
+
+    let programs: any[] = [];
+
+    if (interestedCategoryIds && interestedCategoryIds.length > 0) {
+      programs = await prisma.program.findMany({
+        where: {
+          isActive: true,
+          status: "ACTIVE",
+          categoryId: { in: interestedCategoryIds },
+        },
+        include: includeOptions,
+        orderBy: {
+          rating: "desc",
+        },
+        take: 6,
+      });
+    }
+
+    if (programs.length < 3) {
+      const remainingSlots = 3 - programs.length;
+      const existingProgramIds = programs.map((p) => p.id);
+
+      const additionalPrograms = await prisma.program.findMany({
+        where: {
+          isActive: true,
+          status: "ACTIVE",
+          id: { notIn: existingProgramIds },
+        },
+        include: includeOptions,
+        orderBy: [{ rating: "desc" }, { currentEnrollments: "desc" }],
+        take: remainingSlots,
+      });
+
+      programs = [...programs, ...additionalPrograms];
+    }
+
+    const transformedPrograms = programs.map((program) =>
+      this.transformProgramData(program),
+    );
+
+    return { programs: transformedPrograms };
+  }
+
+  async getPopularPrograms(params: { limit?: number; offset?: number }): Promise<any> {
+    const limit = params.limit || 6;
+    const offset = params.offset || 0;
+
+    const [programs, totalCount] = await Promise.all([
+      prisma.program.findMany({
+        where: {
+          isActive: true,
+          status: "ACTIVE",
+        },
+        include: {
+          category: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+            },
+          },
+          coach: {
+            select: {
+              id: true,
+              title: true,
+              user: {
+                select: {
+                  fullName: true,
+                  avatarUrl: true,
+                },
+              },
+            },
+          },
+          enrollments: {
+            select: {
+              student: {
+                select: {
+                  user: {
+                    select: {
+                      avatarUrl: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          modules: {
+            include: {
+              materials: true,
+            },
+          },
+          _count: {
+            select: {
+              enrollments: true,
+              reviews: true,
+            },
+          },
+        },
+        orderBy: [
+          {
+            rating: "desc",
+          },
+          {
+            totalReviews: "desc",
+          },
+          {
+            currentEnrollments: "desc",
+          },
+          {
+            createdAt: "desc",
+          },
+        ],
+        skip: offset,
+        take: limit,
+      }),
+      prisma.program.count({
+        where: {
+          isActive: true,
+          status: "ACTIVE",
+        },
+      }),
+    ]);
+
+    const transformedPrograms = programs.map((program) =>
+      this.transformProgramData(program),
+    );
+
+    return {
+      programs: transformedPrograms,
+      pagination: {
+        total: totalCount,
+        limit,
+        offset,
+        hasMore: offset + programs.length < totalCount,
+      },
+    };
+  }
+
+  // Cohort Management
+  async getCohorts(programId: string): Promise<{ cohorts: import("@/types").Cohort[] }> {
+    const cohorts = await prisma.cohort.findMany({
+      where: { programId },
+      include: {
+        _count: {
+          select: { enrollments: true },
+        },
+      },
+      orderBy: { startDate: "asc" },
+    });
+
+    return { cohorts: cohorts as any };
+  }
+
+  async createCohort(coachId: string, coachRole: string, programId: string, body: any): Promise<any> {
+    if (coachRole !== "COACH") {
+      throw new UnauthorizedException("Coach access required");
+    }
+
+    const program = await prisma.program.findUnique({
+      where: { id: programId },
+    });
+
+    if (!program || program.coachId !== coachId) {
+      throw new UnauthorizedException(
+        "Unauthorized to manage cohorts for this program",
+      );
+    }
+
+    const { name, startDate, endDate, maxStudents } = body;
+
+    const cohort = await prisma.cohort.create({
+      data: {
+        programId,
+        name,
+        startDate: new Date(startDate),
+        endDate: endDate ? new Date(endDate) : null,
+        maxStudents: maxStudents || program.maxStudents,
+        status: "UPCOMING",
+      },
+    });
+
+    return { cohort };
+  }
+
+  async updateCohort(coachId: string, coachRole: string, cohortId: string, body: any): Promise<any> {
+    if (coachRole !== "COACH") {
+      throw new UnauthorizedException("Coach access required");
+    }
+
+    const cohort = await prisma.cohort.findUnique({
+      where: { id: cohortId },
+      include: { program: true },
+    });
+
+    if (!cohort || cohort.program.coachId !== coachId) {
+      throw new UnauthorizedException("Unauthorized to update this cohort");
+    }
+
+    const { name, startDate, endDate, maxStudents, status } = body;
+
+    const updatedCohort = await prisma.cohort.update({
+      where: { id: cohortId },
+      data: {
+        name,
+        startDate: startDate ? new Date(startDate) : undefined,
+        endDate: endDate ? new Date(endDate) : undefined,
+        maxStudents,
+        status,
+      },
+    });
+
+    return { cohort: updatedCohort };
+  }
+
+  async deleteCohort(coachId: string, coachRole: string, cohortId: string): Promise<any> {
+    if (coachRole !== "COACH") {
+      throw new UnauthorizedException("Coach access required");
+    }
+
+    const cohort = await prisma.cohort.findUnique({
+      where: { id: cohortId },
+      include: {
+        program: true,
+        _count: { select: { enrollments: true } },
+      },
+    });
+
+    if (!cohort || cohort.program.coachId !== coachId) {
+      throw new UnauthorizedException("Unauthorized to delete this cohort");
+    }
+
+    if (cohort._count.enrollments > 0) {
+      throw new BadRequestException(
+        "Cannot delete cohort with active enrollments",
+      );
+    }
+
+    await prisma.cohort.delete({
+      where: { id: cohortId },
+    });
+
+    return null;
+  }
+
+  async submitProgram(coachId: string, coachRole: string, programId: string): Promise<any> {
+    if (coachRole !== "COACH") {
+      throw new UnauthorizedException("Coach access required");
+    }
+
+    const program = await prisma.program.findUnique({
+      where: { id: programId },
+      include: {
+        coach: {
+          include: { user: true },
+        },
+      },
+    });
+
+    if (!program) {
+      throw new NotFoundException("Program not found");
+    }
+
+    if (program.coachId !== coachId) {
+      throw new UnauthorizedException(
+        "You are not authorized to submit this program",
+      );
+    }
+
+    if (program.status !== "APPROVED") {
+      throw new BadRequestException(
+        "Only approved programs can be submitted for publishing",
+      );
+    }
+
+    const updatedProgram = await prisma.program.update({
+      where: { id: programId },
+      data: {
+        status: "SUBMITTED",
+        updatedAt: new Date(),
+      },
+      include: {
+        category: true,
+        coach: {
+          include: { user: true },
+        },
+      },
+    });
+
+    return { program: updatedProgram };
+  }
+}
+
+export const programService = new ProgramService();

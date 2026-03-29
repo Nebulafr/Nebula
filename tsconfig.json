@@ -12,10 +12,10 @@
     "paths": {
       "@nebula/database": ["packages/database/src"],
       "@nebula/integrations": ["packages/integrations/src"],
-      "@nebula/chat-server": ["packages/chat-server/src"],
-      "@nebula/web": ["packages/web/src"]
+      "@nebula/chat-server": ["apps/chat-server/src"],
+      "@nebula/web": ["apps/web/src"]
     }
   },
-  "include": ["packages/**/*"],
+  "include": ["packages/**/*", "apps/**/*"],
   "exclude": ["node_modules", "**/dist", ".next"]
 }

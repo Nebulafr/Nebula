@@ -1,31 +1,26 @@
 {
   "name": "nebula",
   "private": true,
+  "packageManager": "npm@11.8.0",
   "workspaces": [
-    "packages/web",
-    "packages/database",
-    "packages/chat-server",
-    "packages/integrations"
+    "apps/*",
+    "packages/*"
   ],
   "scripts": {
-    "dev:web": "npm --workspace @nebula/web run dev",
-    "dev:chat": "npm --workspace @nebula/chat-server run dev",
-    "postinstall": "npm --workspace @nebula/database run db:generate",
-    "prepare": "npm run postinstall",
-    "dev": "concurrently \"npm run dev:web\" \"npm run dev:chat\"",
-    "build": "npm --workspace @nebula/database run build && npm --workspace @nebula/integrations run build && npm --workspace @nebula/chat-server run build && npm --workspace @nebula/web run build",
-    "db:generate": "npm --workspace @nebula/database run db:generate",
-    "db:push": "npm --workspace @nebula/database run db:push",
-    "db:studio": "npm --workspace @nebula/database run db:studio",
-    "seed:admin": "npm --workspace @nebula/database run seed:admin",
-    "seed:categories": "npm --workspace @nebula/database run seed:categories",
-    "type-check": "npm --workspaces run type-check",
-    "lint": "npm --workspaces run lint",
-    "start:web": "npm --workspace @nebula/web run start",
-    "start:chat": "npm --workspace @nebula/chat-server run start",
-    "start": "concurrently \"npm run start:web\" \"npm run start:chat\""
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "type-check": "turbo run type-check",
+    "db:generate": "turbo run db:generate",
+    "db:push": "turbo run db:push",
+    "db:studio": "turbo run db:studio",
+    "seed:admin": "turbo run seed:admin",
+    "seed:categories": "turbo run seed:categories",
+    "start": "turbo run start",
+    "postinstall": "turbo run db:generate",
+    "prepare": "turbo run db:generate"
   },
   "devDependencies": {
-    "concurrently": "^9.2.1"
+    "turbo": "^2.8.21"
   }
 }
