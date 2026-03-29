@@ -1,10 +1,11 @@
 import { prisma, MessageType, ConversationType, Prisma } from "@nebula/database";
+import { Conversation, FormattedMessage } from "@/types/messaging";
 import {
   UnauthorizedException,
 } from "../utils/http-exception";
 
 export class MessagingService {
-  async getUserConversations(userId: string, limit: number = 10): Promise<any> {
+  async getUserConversations(userId: string, limit: number = 10): Promise<Conversation[]> {
     const conversations = await prisma.conversation.findMany({
       where: {
         participants: {
@@ -70,9 +71,9 @@ export class MessagingService {
           conversation.title || otherParticipant?.user.fullName || "Unknown",
         avatar: otherParticipant?.user.avatarUrl || null,
         lastMessage: lastMessage?.content || conversation.lastMessage || "",
-        time: conversation.lastMessageTime
-          ? new Date(conversation.lastMessageTime).toLocaleString()
-          : "",
+        lastMessageTime: conversation.lastMessageTime
+          ? new Date(conversation.lastMessageTime).toISOString()
+          : new Date(conversation.updatedAt).toISOString(),
         unread: currentUserParticipant?.unreadCount || 0,
         otherUserId: otherParticipant?.user.id,
         coachId: otherParticipant?.user.coach?.id,
@@ -93,7 +94,7 @@ export class MessagingService {
     participants: string[],
     type: ConversationType = "DIRECT",
     title?: string
-  ): Promise<any> {
+  ): Promise<{ id: string; isNew: boolean }> {
     if (participants.length < 2) {
       throw new Error("At least 2 participants are required");
     }
@@ -103,13 +104,11 @@ export class MessagingService {
       const existingConversation = await prisma.conversation.findFirst({
         where: {
           type: "DIRECT",
-          participants: {
-            every: {
-              userId: {
-                in: participants,
-              },
-            },
-          },
+          AND: [
+            { participants: { some: { userId: participants[0] } } },
+            { participants: { some: { userId: participants[1] } } },
+            { participants: { none: { userId: { notIn: participants } } } },
+          ],
         },
         include: {
           participants: true,
@@ -151,7 +150,7 @@ export class MessagingService {
     userId: string,
     page = 1,
     limit = 50
-  ): Promise<any> {
+  ): Promise<{ messages: FormattedMessage[]; hasMore: boolean }> {
     // Verify user is a participant
     const participant = await this.verifyParticipant(conversationId, userId);
     if (!participant) {
@@ -184,12 +183,11 @@ export class MessagingService {
 
     const formattedMessages = messages.reverse().map((message) => ({
       id: message.id,
+      conversationId: message.conversationId,
       sender: message.sender?.fullName || "Nebula AI",
-      text: message.content,
-      timestamp: new Date(message.createdAt).toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
+      senderId: message.senderId,
+      content: message.content,
+      createdAt: new Date(message.createdAt).toISOString(),
       isMe: message.senderId === userId,
       type: message.type,
       isRead: message.isRead,
@@ -209,7 +207,7 @@ export class MessagingService {
     senderId: string,
     content: string,
     type: MessageType = "TEXT"
-  ): Promise<any> {
+  ): Promise<{ id: string }> {
     return await prisma.$transaction(async (tx) => {
       // Verify user is a participant
       const participant = await this.verifyParticipant(conversationId, senderId, tx);
@@ -264,7 +262,7 @@ export class MessagingService {
     });
   }
 
-  async markMessagesAsRead(conversationId: string, userId: string): Promise<any> {
+  async markMessagesAsRead(conversationId: string, userId: string): Promise<null> {
     return await prisma.$transaction(async (tx) => {
       await tx.conversationParticipant.updateMany({
         where: {

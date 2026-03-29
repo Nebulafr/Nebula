@@ -1,12 +1,24 @@
 import { FormattedConversation, FormattedMessage, NewMessageEmit } from "../types/index.js";
 import { formatTime, formatTimestamp } from "./date.js";
 
-export const findOtherParticipant = (participants: any[], userId: string) => {
-  return participants.find((p: any) => p.userId !== userId);
+type RawParticipant = {
+  userId: string;
+  unreadCount: number;
+  user: {
+    id: string;
+    fullName: string | null;
+    avatarUrl: string | null;
+    role: string;
+    coach?: { id: string } | null;
+  };
 };
 
-export const getUserUnreadCount = (participants: any[], userId: string): number => {
-  return participants.find((p: any) => p.userId === userId)?.unreadCount || 0;
+export const findOtherParticipant = (participants: RawParticipant[], userId: string) => {
+  return participants.find((p) => p.userId !== userId);
+};
+
+export const getUserUnreadCount = (participants: RawParticipant[], userId: string): number => {
+  return participants.find((p) => p.userId === userId)?.unreadCount || 0;
 };
 
 export const formatConversation = (
@@ -36,8 +48,8 @@ export const isMessageFromUser = (senderId: string, userId: string): boolean => 
 export const formatMessage = (msg: any, userId: string): FormattedMessage => ({
   id: msg.id,
   sender: msg.sender.fullName || "Unknown",
-  text: msg.content,
-  timestamp: formatTimestamp(msg.createdAt),
+  content: msg.content,
+  createdAt: new Date(msg.createdAt).toISOString(),
   isMe: isMessageFromUser(msg.senderId, userId),
   type: msg.type,
   isRead: msg.isRead,
@@ -51,5 +63,9 @@ export const transformToNewMessageEmit = (message: any): NewMessageEmit => ({
   content: message.content,
   type: message.type,
   createdAt: message.createdAt,
-  sender: message.sender,
+  sender: {
+    id: message.sender.id,
+    fullName: message.sender.fullName,
+    avatarUrl: message.sender.avatarUrl,
+  },
 });

@@ -1,4 +1,6 @@
+import "dotenv/config";
 import { createServer } from "node:http";
+
 import { Server } from "socket.io";
 import express, { Request, Response } from "express";
 import { prisma } from "@nebula/database";

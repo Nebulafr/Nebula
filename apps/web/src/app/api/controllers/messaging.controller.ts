@@ -32,8 +32,8 @@ export class MessagingController {
       payload.type,
       payload.title,
     );
-    const message = (result as any).isNew ? "Conversation created successfully" : "Conversation already exists";
-    const status = (result as any).isNew ? 201 : 200;
+    const message = result.isNew ? "Conversation created successfully" : "Conversation already exists";
+    const status = result.isNew ? 201 : 200;
     return sendSuccess(result, message, status);
   }
 

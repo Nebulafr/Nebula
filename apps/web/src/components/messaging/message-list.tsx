@@ -4,11 +4,11 @@ import React, { useRef, useEffect } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn, getInitials } from "@/lib/utils";
-import { Message } from "@/types/messaging";
+import { FormattedMessage } from "@/types/messaging";
 import { useAuth } from "@/hooks/use-auth";
 
 interface MessageListProps {
-  messages: Message[];
+  messages: FormattedMessage[];
 }
 
 export function MessageList({ messages }: MessageListProps) {
@@ -28,8 +28,8 @@ export function MessageList({ messages }: MessageListProps) {
     <ScrollArea className="flex-1 p-6" ref={scrollRef}>
       <div className="flex flex-col gap-6 max-w-4xl mx-auto">
         {messages.map((message) => {
-          const isMe = message.senderId === profile?.id;
-          
+          const isMe = message.isMe || message.senderId === profile?.id;
+
           return (
             <div
               key={message.id}
@@ -41,11 +41,11 @@ export function MessageList({ messages }: MessageListProps) {
               {!isMe && (
                 <Avatar className="h-8 w-8 mb-1 flex-shrink-0">
                   <AvatarFallback className="text-xs bg-muted">
-                    {getInitials("U")}
+                    {getInitials(message.sender || "U")}
                   </AvatarFallback>
                 </Avatar>
               )}
-              
+
               <div className="flex flex-col gap-1">
                 <div
                   className={cn(

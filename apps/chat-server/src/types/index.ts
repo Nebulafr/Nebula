@@ -44,8 +44,8 @@ export interface FormattedConversation {
 export interface FormattedMessage {
   id: string;
   sender: string;
-  text: string;
-  timestamp: string;
+  content: string;
+  createdAt: string;
   isMe: boolean;
   type: string;
   isRead: boolean;

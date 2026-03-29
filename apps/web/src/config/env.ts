@@ -61,7 +61,7 @@ const clientParsed = clientEnvSchema.safeParse(clientEnvValues);
 
 if (!serverParsed.success || !clientParsed.success) {
   if (isServer) {
-    console.error("❌ Invalid environment variables:", {
+    console.error("❌ Invalid environment variables in @nebula/web:", {
       ...(serverParsed.success ? {} : (serverParsed as any).error.format()),
       ...(clientParsed.success ? {} : (clientParsed as any).error.format()),
     });

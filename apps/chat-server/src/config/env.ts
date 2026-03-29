@@ -1,7 +1,4 @@
 import { z } from "zod";
-import dotenv from "dotenv";
-
-dotenv.config();
 
 const envSchema = z.object({
   PORT: z.string().transform((val) => parseInt(val, 10)).default("9001"),
@@ -14,7 +11,7 @@ const envSchema = z.object({
 const _env = envSchema.safeParse(process.env);
 
 if (!_env.success) {
-  console.error("❌ Invalid environment variables:", _env.error.format());
+  console.error("❌ Invalid environment variables in @nebula/chat-server:", _env.error.format());
   process.exit(1);
 }
 

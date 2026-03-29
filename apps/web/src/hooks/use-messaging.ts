@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { createAuthenticatedSocket } from "@/lib/socket";
 import { getUserConversations } from "@/actions/messaging";
-import { Conversation, Message } from "@/types/messaging";
+import { Conversation, FormattedMessage } from "@/types/messaging";
 
 interface TypingUser {
   conversationId: string;
@@ -21,10 +21,10 @@ interface MessagingUser {
 export function useMessaging(currentUser: MessagingUser, conversationId: string | null) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
-  const [currentMessages, setCurrentMessages] = useState<Message[]>([]);
+  const [currentMessages, setCurrentMessages] = useState<FormattedMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
-  const [socket, setSocket] = useState<any>(null);
+  const [socket, setSocket] = useState<any>(null); // Still using any for socket as it's complex, but let's try to type others
   const [typingUser, setTypingUser] = useState<TypingUser | null>(null);
 
   // Refs for typing indicator debouncing
@@ -50,7 +50,11 @@ export function useMessaging(currentUser: MessagingUser, conversationId: string 
   }, [currentUser.id]);
 
   // Handle conversation updates from socket
-  const handleConversationUpdate = useCallback((data: any) => {
+  const handleConversationUpdate = useCallback((data: {
+    conversationId: string;
+    lastMessage: string;
+    lastMessageTime: string | Date;
+  }) => {
     setConversations((prev) => {
       const updated = prev.map((c) =>
         c.id === data.conversationId
@@ -72,7 +76,7 @@ export function useMessaging(currentUser: MessagingUser, conversationId: string 
 
   // Handle typing indicator
   const handleTypingIndicator = useCallback(
-    (data: any) => {
+    (data: TypingUser & { isTyping: boolean }) => {
       if (data.userId === currentUser.id) return; // Ignore own typing
 
       if (data.isTyping) {
@@ -115,8 +119,12 @@ export function useMessaging(currentUser: MessagingUser, conversationId: string 
         loadConversations();
       });
 
-      newSocket.on("messages_loaded", (data: any) => {
-        setCurrentMessages(data.messages || []);
+      newSocket.on("messages_loaded", (data: { messages: any[] }) => {
+        setCurrentMessages((data.messages || []).map(msg => ({
+          ...msg,
+          createdAt: new Date(msg.createdAt),
+          updatedAt: msg.updatedAt ? new Date(msg.updatedAt) : undefined,
+        })) as FormattedMessage[]);
       });
 
       newSocket.on("new_message", (message: any) => {
@@ -125,12 +133,13 @@ export function useMessaging(currentUser: MessagingUser, conversationId: string 
           const filtered = prev.filter(
             (m: any) => !m.id?.startsWith("temp-") || m.content !== message.content
           );
-          
-          const newMessage: Message = {
+
+          const newMessage: FormattedMessage = {
             id: message.id,
             senderId: message.senderId,
             conversationId: message.conversationId,
             content: message.content,
+            isMe: message.senderId === currentUser.id,
             type: message.type,
             isAi: message.isAi || false,
             isRead: false,
@@ -150,7 +159,7 @@ export function useMessaging(currentUser: MessagingUser, conversationId: string 
 
       newSocket.on("conversation_updated", handleConversationUpdate);
       newSocket.on("typing_indicator", handleTypingIndicator);
-      newSocket.on("error", (error: any) => {
+      newSocket.on("error", (error: { message: string }) => {
         console.error("Socket error:", error);
       });
 
@@ -209,12 +218,13 @@ export function useMessaging(currentUser: MessagingUser, conversationId: string 
       }
 
       // Optimistic update
-      const optimisticMessage: Message = {
+      const optimisticMessage: FormattedMessage = {
         id: `temp-${Date.now()}`,
         senderId: currentUser.id,
         conversationId: selectedConversation.id,
         content: messageText,
         type: "TEXT",
+        isMe: true,
         isAi: false,
         isRead: false,
         createdAt: new Date(),
@@ -224,7 +234,7 @@ export function useMessaging(currentUser: MessagingUser, conversationId: string 
         isEdited: false,
         isDeleted: false
       };
-      
+
       setCurrentMessages((prev) => [...prev, optimisticMessage]);
 
       socket.emit("send_message", {

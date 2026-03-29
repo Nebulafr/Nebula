@@ -1,11 +1,11 @@
 import * as ConversationService from "../services/conversation.service.js";
 import { requireAuth, getUserId } from "../middleware/auth.middleware.js";
-import type { AuthenticatedSocket } from "../types/index.js";
+import type { AuthenticatedSocket, FormattedConversation } from "../types/index.js";
 
 const handleError = (
   socket: AuthenticatedSocket,
   errorMessage: string,
-  error?: any
+  error?: unknown
 ) => {
   if (error) {
     console.error("Error:", error);
@@ -15,7 +15,7 @@ const handleError = (
 
 const emitConversationsLoaded = (
   socket: AuthenticatedSocket,
-  conversations: any
+  conversations: FormattedConversation[]
 ) => {
   socket.emit("conversations_loaded", conversations);
 };

@@ -1,15 +1,17 @@
 import { Pinecone } from '@pinecone-database/pinecone';
 import Stripe from "stripe";
 import OpenAI from "openai";
+import { env } from './config/env.js';
 
 export * from './types.js';
+
 /* --- Pinecone (Vector Store) --- */
 
 export const pinecone = new Pinecone({
-  apiKey: process.env.PINECONE_API_KEY || '',
+  apiKey: env.PINECONE_API_KEY,
 });
 
-export const PINECONE_INDEX = process.env.PINECONE_INDEX_NAME || 'nebula-ai-index';
+export const PINECONE_INDEX = env.PINECONE_INDEX_NAME;
 
 
 /** Get a reference to a Pinecone index with a specific namespace */
@@ -19,7 +21,7 @@ export const getPineconeIndex = (namespace: string) => {
 
 /* --- Stripe (Payments) --- */
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
+export const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
   apiVersion: "2022-08-01" as any,
   typescript: true,
 });
@@ -27,5 +29,5 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
 /* --- OpenAI (AI Service) --- */
 
 export const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || '',
+  apiKey: env.OPENAI_API_KEY,
 });

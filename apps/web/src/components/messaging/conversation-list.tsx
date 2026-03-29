@@ -17,11 +17,11 @@ import {
 import { Conversation } from "@/types/messaging";
 
 interface ConversationListProps {
-  conversations: any[];
+  conversations: Conversation[];
   selectedConversationId: string | undefined | null;
   searchTerm: string;
   onSearchChange: (value: string) => void;
-  onConversationSelect: (conversation: any) => void;
+  onConversationSelect: (conversation: Conversation) => void;
   loading?: boolean;
   searchPlaceholder?: string;
   noConversationsMessage?: string;
@@ -111,7 +111,7 @@ export function ConversationList({
 }
 
 interface ConversationItemProps {
-  conversation: any;
+  conversation: Conversation;
   isSelected: boolean;
   onClick: () => void;
 }
@@ -123,7 +123,7 @@ function ConversationItem({
 }: ConversationItemProps) {
   const displayName = formatUserName(conversation.name);
   const initials = getInitials(conversation.name);
-  const timeDisplay = formatChatTime(conversation.time);
+  const timeDisplay = formatChatTime(conversation.lastMessageTime);
   const messagePreview = formatMessagePreview(conversation.lastMessage, 15);
   const unreadDisplay = formatUnreadCount(conversation.unread);
 
@@ -137,7 +137,7 @@ function ConversationItem({
     >
       <div className="flex items-center gap-3">
         <Avatar className="h-12 w-12 border-2 border-gray-100">
-          <AvatarImage src={conversation.avatar} />
+          <AvatarImage src={conversation.avatar || undefined} />
           <AvatarFallback className="font-medium text-gray-600 bg-gray-100">
             {initials}
           </AvatarFallback>

@@ -127,7 +127,7 @@ export default function CoachDetailPage() {
 
     try {
       const conversationResult = await createConversation({
-        participants: [profile && profile.id, coach.userId],
+        participants: [profile?.id as string, coach.userId],
         type: "DIRECT",
       });
 

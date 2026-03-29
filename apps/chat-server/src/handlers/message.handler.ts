@@ -8,6 +8,8 @@ import type {
   LoadMessagesData,
   ConversationUpdateEmit,
   TypingIndicator,
+  MessagesLoadedResponse,
+  NewMessageEmit,
 } from "../types/index.js";
 
 const extractMessageData = (data: MessageData) => ({
@@ -25,7 +27,7 @@ const extractLoadMessagesData = (data: LoadMessagesData) => ({
 const handleError = (
   socket: AuthenticatedSocket,
   errorMessage: string,
-  error?: any
+  error?: unknown
 ) => {
   if (error) {
     console.error("Error:", error);
@@ -33,11 +35,11 @@ const handleError = (
   socket.emit("error", { message: errorMessage });
 };
 
-const emitMessagesLoaded = (socket: AuthenticatedSocket, result: any) => {
+const emitMessagesLoaded = (socket: AuthenticatedSocket, result: MessagesLoadedResponse) => {
   socket.emit("messages_loaded", result);
 };
 
-const emitNewMessage = (io: Server, conversationId: string, message: any) => {
+const emitNewMessage = (io: Server, conversationId: string, message: NewMessageEmit) => {
   io.to(conversationId).emit("new_message", message);
 };
 
