@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Injectable, Logger } from '@nestjs/common';
 import { prisma } from '@nebula/database';
 import {
@@ -6,16 +7,13 @@ import {
   hasMoreMessages,
   transformToNewMessageEmit,
 } from './utils.js';
-import {
-  MessagesLoadedResponse,
-  NewMessageEmit,
-} from '../types/index.js';
+import { MessagesLoadedResponse, NewMessageEmit } from '../types/index.js';
 
 @Injectable()
 export class MessageService {
   private readonly logger = new Logger(MessageService.name);
 
-  constructor() {}
+  constructor() { }
 
   async getMessages(
     conversationId: string,
