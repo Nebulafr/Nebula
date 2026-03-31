@@ -5,7 +5,7 @@ import path from 'path';
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
 const nextConfig: NextConfig = {
-  transpilePackages: ['@nebula/database', '@nebula/integrations'],
+  transpilePackages: ['@nebula/database', '@nebula/integrations', '@nebula/tsconfig'],
   turbopack: {
     root: path.resolve(__dirname, '../..'),
   },
