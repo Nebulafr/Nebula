@@ -5,7 +5,6 @@ import {
   FetchResult,
   VectorNamespace,
 } from '../types/vector-store';
-import retry from 'async-retry';
 
 class VectorDbService {
   private async getIndex(namespace?: VectorNamespace) {
@@ -15,12 +14,7 @@ class VectorDbService {
 
   async upsert(records: VectorRecord[], namespace?: VectorNamespace): Promise<void> {
     const index = await this.getIndex(namespace);
-    await retry(
-      async () => {
-        return await index.upsert({ records });
-      },
-      { retries: 3 },
-    );
+    await index.upsert({ records });
   }
 
   async query<T = Record<string, any>>(
@@ -35,17 +29,12 @@ class VectorDbService {
     const { topK = 10, filter, includeMetadata = true, namespace } = options;
     const index = await this.getIndex(namespace);
 
-    const results = await retry(
-      async () => {
-        return await index.query({
-          vector,
-          topK,
-          filter,
-          includeMetadata,
-        });
-      },
-      { retries: 3 },
-    );
+    const results = await index.query({
+      vector,
+      topK,
+      filter,
+      includeMetadata,
+    });
 
     return (
       results.matches?.map((match) => ({
@@ -58,22 +47,12 @@ class VectorDbService {
 
   async deleteById(ids: string[], namespace?: VectorNamespace): Promise<void> {
     const index = await this.getIndex(namespace);
-    await retry(
-      async () => {
-        await index.deleteMany(ids);
-      },
-      { retries: 3 },
-    );
+    await index.deleteMany(ids);
   }
 
   async fetchByIds(ids: string[], namespace?: VectorNamespace): Promise<FetchResult[]> {
     const index = await this.getIndex(namespace);
-    const results = await retry(
-      async () => {
-        return await index.fetch({ ids });
-      },
-      { retries: 3 },
-    );
+    const results = await index.fetch({ ids });
 
     return Object.values(results.records || {}).map((record: any) => ({
       id: record.id,
