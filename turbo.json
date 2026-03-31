@@ -49,6 +49,9 @@
       "cache": true,
       "inputs": [
         "prisma/schema.prisma"
+      ],
+      "outputs": [
+        "src/generated/prisma/**"
       ]
     },
     "db:push": {
