@@ -7,9 +7,9 @@ import { ConfigModule as NestConfigModule } from '@nestjs/config';
     NestConfigModule.forRoot({
       isGlobal: true,
       cache: true,
-      envFilePath: ['.env', '../../.env'],
+      ignoreEnvFile: true,
     }),
   ],
   exports: [NestConfigModule],
 })
-export class AppConfigModule {}
+export class AppConfigModule { }
