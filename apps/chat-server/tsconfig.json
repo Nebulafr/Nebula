@@ -1,21 +1,9 @@
 {
-  "extends": "@nebula/tsconfig/base.json",
+  "extends": "@nebula/tsconfig/nestjs.json",
   "compilerOptions": {
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "outDir": "dist",
-    "rootDir": ".",
-    "noEmit": false
+    "baseUrl": "./",
+    "outDir": "./dist"
   },
-  "include": [
-    "src/**/*"
-  ],
-  "references": [
-    {
-      "path": "../../packages/database"
-    },
-    {
-      "path": "../../packages/integrations"
-    }
-  ]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "test", "**/*spec.ts"]
 }

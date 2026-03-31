@@ -1,9 +1,9 @@
-import type { User } from "@nebula/database/types";
-import { Socket, Server } from "socket.io";
+import { User, ConversationType, MessageType } from '@nebula/database/types';
+import { Socket } from 'socket.io';
 
 export interface SocketData {
   userId?: string;
-  user?: Pick<User, "id" | "fullName" | "role" | "status">;
+  user?: Pick<User, 'id' | 'fullName' | 'role' | 'status'>;
   isAuthenticated: boolean;
 }
 
@@ -19,7 +19,7 @@ export interface JwtPayload {
 export interface MessageData {
   conversationId: string;
   content: string;
-  type?: "TEXT" | "IMAGE" | "FILE" | "LINK";
+  type?: MessageType;
 }
 
 export interface LoadMessagesData {
@@ -28,28 +28,40 @@ export interface LoadMessagesData {
   limit?: number;
 }
 
-export interface FormattedConversation {
+export interface Conversation {
   id: string;
-  type: string;
+  type: ConversationType;
   name: string;
   avatar?: string | null;
-  lastMessage: string;
-  time: string;
+  lastMessage?: string | null;
+  lastMessageTime?: string | Date | null;
   unread: number;
-  role: string;
-  otherUserId: string;
+  otherUserId?: string;
   coachId?: string;
+  role?: string;
+  participants: Array<{
+    id: string;
+    name: string | null;
+    avatar: string | null;
+    role: string;
+  }>;
 }
 
 export interface FormattedMessage {
   id: string;
-  sender: string;
+  conversationId: string;
+  senderId?: string | null;
+  sender?: string;
   content: string;
-  createdAt: string;
-  isMe: boolean;
-  type: string;
+  type: MessageType;
+  isMe?: boolean;
   isRead: boolean;
-  isEdited: boolean;
+  createdAt: string | Date;
+  updatedAt?: string | Date;
+  readAt?: string | Date | null;
+  editedAt?: string | Date | null;
+  isEdited?: boolean;
+  isDeleted?: boolean;
 }
 
 export interface MessagesLoadedResponse {
@@ -58,46 +70,4 @@ export interface MessagesLoadedResponse {
   hasMore: boolean;
 }
 
-export interface NewMessageEmit {
-  id: string;
-  conversationId: string;
-  senderId: string;
-  content: string;
-  type: string;
-  createdAt: Date;
-  sender: {
-    id: string;
-    fullName: string | null;
-    avatarUrl: string | null;
-  };
-}
-
-export interface ServerConfig {
-  port: number;
-  hostname: string;
-  corsOrigins: (string | RegExp)[];
-}
-
-export interface ConversationUpdateEmit {
-  conversationId: string;
-  lastMessage: string;
-  lastMessageTime: Date;
-  senderId: string;
-  senderName: string;
-}
-
-export interface TypingIndicator {
-  conversationId: string;
-  userId: string;
-  userName: string;
-  isTyping: boolean;
-}
-
-export interface GlobalSocketServer {
-  io: Server<any, any, any, SocketData>;
-}
-
-declare global {
-  var socketServer: GlobalSocketServer | undefined;
-}
-
+export type NewMessageEmit = FormattedMessage;

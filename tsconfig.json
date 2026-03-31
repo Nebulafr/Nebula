@@ -13,6 +13,7 @@
       "@nebula/database": ["packages/database/src"],
       "@nebula/integrations": ["packages/integrations/src"],
       "@nebula/chat-server": ["apps/chat-server/src"],
+      "@nebula/chat-server-nest": ["apps/chat-server-nest/src"],
       "@nebula/web": ["apps/web/src"]
     }
   },
