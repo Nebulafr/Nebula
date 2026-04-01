@@ -13,12 +13,13 @@ import { AuthenticatedSocket, JwtPayload } from '../../types/index.js';
 export class WsAuthGuard implements CanActivate {
   private readonly logger = new Logger(WsAuthGuard.name);
 
-  constructor(private readonly configService: ConfigService) { }
+  constructor(private readonly configService: ConfigService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const socket: AuthenticatedSocket = context.switchToWs().getClient();
     let token =
-      socket.handshake.auth?.token || socket.handshake.headers?.authorization;
+      (socket.handshake.auth?.token as string) ||
+      (socket.handshake.headers?.authorization as string);
 
     // Handle Bearer prefix if present
     if (token && typeof token === 'string' && token.startsWith('Bearer ')) {
@@ -37,9 +38,7 @@ export class WsAuthGuard implements CanActivate {
         throw new Error('ACCESS_TOKEN_SECRET not configured');
       }
 
-      // @ts-ignore - handle potential ESM vs CJS gap
-      const verify = jwt.verify || (jwt as any).default?.verify;
-      const decoded = verify(token, secret) as JwtPayload;
+      const decoded = jwt.verify(token, secret) as JwtPayload;
 
       const user = await prisma.user.findUnique({
         where: { id: decoded.userId },
@@ -57,9 +56,10 @@ export class WsAuthGuard implements CanActivate {
         this.logger.warn(`User ${decoded.userId} not found or inactive`);
         socket.data = { ...socket.data, isAuthenticated: false };
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
       this.logger.error(
-        `Socket authentication error for ${socket.id}: ${error.message}`,
+        `Socket authentication error for ${socket.id}: ${message}`,
       );
       socket.data = { ...socket.data, isAuthenticated: false };
     }

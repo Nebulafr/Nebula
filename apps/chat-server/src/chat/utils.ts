@@ -3,6 +3,7 @@ import {
   FormattedMessage,
   NewMessageEmit,
 } from '../types/index.js';
+import { ConversationType, MessageType } from '@nebula/database/types';
 
 export const calculatePagination = (page: number, limit: number) => ({
   skip: (page - 1) * limit,
@@ -24,18 +25,43 @@ export const formatTime = (date?: Date | string | null): string => {
   });
 };
 
-export const findOtherParticipant = (participants: any[], userId: string) => {
-  return participants.find((p: any) => p.userId !== userId);
+interface ConvParticipant {
+  userId: string;
+  unreadCount: number;
+  user: {
+    id: string;
+    fullName: string | null;
+    avatarUrl: string | null;
+    role: string;
+    coach?: { id: string } | null;
+  };
+}
+
+export const findOtherParticipant = (
+  participants: ConvParticipant[],
+  userId: string,
+) => {
+  return participants.find((p) => p.userId !== userId);
 };
 
 export const getUserUnreadCount = (
-  participants: any[],
+  participants: ConvParticipant[],
   userId: string,
 ): number => {
-  return participants.find((p: any) => p.userId === userId)?.unreadCount || 0;
+  return participants.find((p) => p.userId === userId)?.unreadCount || 0;
 };
 
-export const formatConversation = (conv: any, userId: string): Conversation => {
+interface ConvPayload {
+  id: string;
+  type: ConversationType;
+  messages: Array<{ content: string; createdAt: Date | string }>;
+  participants: ConvParticipant[];
+}
+
+export const formatConversation = (
+  conv: ConvPayload,
+  userId: string,
+): Conversation => {
   const otherParticipant = findOtherParticipant(conv.participants, userId);
 
   return {
@@ -49,7 +75,7 @@ export const formatConversation = (conv: any, userId: string): Conversation => {
     role: otherParticipant?.user.role || 'STUDENT',
     otherUserId: otherParticipant?.user.id || '',
     coachId: otherParticipant?.user.coach?.id,
-    participants: conv.participants.map((p: any) => ({
+    participants: conv.participants.map((p) => ({
       id: p.user.id,
       name: p.user.fullName,
       avatar: p.user.avatarUrl,
@@ -58,7 +84,23 @@ export const formatConversation = (conv: any, userId: string): Conversation => {
   };
 };
 
-export const formatMessage = (msg: any, userId: string): FormattedMessage => ({
+interface MsgPayload {
+  id: string;
+  conversationId: string;
+  senderId: string | null;
+  sender?: { fullName: string | null } | null;
+  content: string;
+  createdAt: Date | string;
+  type: MessageType;
+  isRead: boolean;
+  isEdited: boolean;
+  isDeleted: boolean;
+}
+
+export const formatMessage = (
+  msg: MsgPayload,
+  userId: string,
+): FormattedMessage => ({
   id: msg.id,
   conversationId: msg.conversationId,
   senderId: msg.senderId,
@@ -73,6 +115,6 @@ export const formatMessage = (msg: any, userId: string): FormattedMessage => ({
 });
 
 export const transformToNewMessageEmit = (
-  message: any,
+  message: MsgPayload,
   userId: string,
 ): NewMessageEmit => formatMessage(message, userId);

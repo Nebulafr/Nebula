@@ -7,7 +7,7 @@ import { Conversation } from '../types/index.js';
 export class ChatService {
   private readonly logger = new Logger(ChatService.name);
 
-  constructor() { }
+  constructor() {}
 
   async getUserConversations(userId: string): Promise<Conversation[]> {
     try {
@@ -44,9 +44,10 @@ export class ChatService {
       });
 
       return conversations.map((conv) => formatConversation(conv, userId));
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
       this.logger.error(
-        `Error loading conversations for user ${userId}: ${error.message}`,
+        `Error loading conversations for user ${userId}: ${message}`,
       );
       throw new Error('Failed to load conversations');
     }
@@ -61,8 +62,9 @@ export class ChatService {
         where: { conversationId, userId },
       });
       return !!participant;
-    } catch (error: any) {
-      this.logger.error(`Error checking participant status: ${error.message}`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Error checking participant status: ${message}`);
       return false;
     }
   }
@@ -80,9 +82,10 @@ export class ChatService {
           updatedAt: new Date(),
         },
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
       this.logger.error(
-        `Error updating last message for conversation ${conversationId}: ${error.message}`,
+        `Error updating last message for conversation ${conversationId}: ${message}`,
       );
       throw new Error('Failed to update conversation');
     }
@@ -102,8 +105,9 @@ export class ChatService {
           unreadCount: { increment: 1 },
         },
       });
-    } catch (error: any) {
-      this.logger.error(`Error incrementing unread count: ${error.message}`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Error incrementing unread count: ${message}`);
       throw new Error('Failed to update unread count');
     }
   }
@@ -114,8 +118,9 @@ export class ChatService {
         where: { conversationId, userId },
         data: { unreadCount: 0 },
       });
-    } catch (error: any) {
-      this.logger.error(`Error resetting unread count: ${error.message}`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Error resetting unread count: ${message}`);
       throw new Error('Failed to mark conversation as read');
     }
   }
