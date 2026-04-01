@@ -140,3 +140,4 @@ coverage/
 # Temporary folders
 tmp/
 temp/
+.turbo

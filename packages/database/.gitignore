@@ -1,0 +1,11 @@
+node_modules/
+src/generated/prisma
+.turbo
+dist/
+*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+

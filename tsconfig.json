@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "baseUrl": ".",
+    "paths": {
+      "@nebula/database": ["packages/database/src"],
+      "@nebula/integrations": ["packages/integrations/src"],
+      "@nebula/chat-server": ["apps/chat-server/src"],
+      "@nebula/chat-server-nest": ["apps/chat-server-nest/src"],
+      "@nebula/web": ["apps/web/src"]
+    }
+  },
+  "include": ["packages/**/*", "apps/**/*"],
+  "exclude": ["node_modules", "**/dist", ".next"]
+}

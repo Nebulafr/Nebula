@@ -1,0 +1,312 @@
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { makeRequest } from "@/lib/utils";
+import { handleAndToastError } from "@/lib/utils";
+
+export const ADMIN_REVIEWS_QUERY_KEY = "admin-reviews";
+export const ADMIN_USERS_QUERY_KEY = "admin-users";
+export const ADMIN_DASHBOARD_STATS_QUERY_KEY = "admin-dashboard-stats";
+export const ADMIN_RECENT_SIGNUPS_QUERY_KEY = "admin-recent-signups";
+export const ADMIN_PLATFORM_ACTIVITY_QUERY_KEY = "admin-platform-activity";
+export const ADMIN_EVENTS_QUERY_KEY = "admin-events";
+export const ADMIN_TRANSACTIONS_QUERY_KEY = "admin-transactions";
+export type { AdminDashboardStats, AdminEvent, AdminReview, AdminTransaction, AdminUser, PlatformActivity, RecentSignup } from "@/types";
+import { AdminDashboardStats, AdminEvent, AdminReview, AdminTransaction, AdminUser, PlatformActivity, RecentSignup } from "@/types";
+
+export function useAdminReviews(params?: {
+  search?: string;
+  targetType?: string;
+  status?: string;
+  rating?: string;
+  page?: number;
+  limit?: number;
+}) {
+  return useQuery({
+    queryKey: [ADMIN_REVIEWS_QUERY_KEY, params],
+    queryFn: async () => {
+      const queryParams = new URLSearchParams();
+      if (params?.search) queryParams.append("search", params.search);
+      if (params?.targetType)
+        queryParams.append("targetType", params.targetType);
+      if (params?.status) queryParams.append("status", params.status);
+      if (params?.rating) queryParams.append("rating", params.rating);
+      if (params?.page) queryParams.append("page", params.page.toString());
+      if (params?.limit) queryParams.append("limit", params.limit.toString());
+
+      const url = `/admin/reviews${queryParams.toString() ? `?${queryParams.toString()}` : ""
+        }`;
+      const response = await makeRequest(url, "GET");
+
+      if (!response.success) {
+        throw new Error(response.message || "Failed to fetch reviews");
+      }
+
+      return response.data;
+    },
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
+}
+
+export function useAdminUsers(params?: {
+  search?: string;
+  role?: string;
+  status?: string;
+  limit?: number;
+  page?: number;
+}) {
+  return useQuery({
+    queryKey: [ADMIN_USERS_QUERY_KEY, params],
+    queryFn: async () => {
+      const queryParams = new URLSearchParams();
+      if (params?.search) queryParams.append("search", params.search);
+      if (params?.role) queryParams.append("role", params.role);
+      if (params?.status) queryParams.append("status", params.status);
+      if (params?.limit) queryParams.append("limit", params.limit.toString());
+      if (params?.page) queryParams.append("page", params.page.toString());
+
+      const url = `/admin/users${queryParams.toString() ? `?${queryParams.toString()}` : ""
+        }`;
+      const response = await makeRequest(url, "GET");
+
+      if (!response.success) {
+        throw new Error(response.message || "Failed to fetch users");
+      }
+
+      return response.data;
+    },
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
+}
+
+export function useCreateUser() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (userData: {
+      firstName: string;
+      lastName: string;
+      email: string;
+      role: string;
+      password: string;
+    }) => {
+      const response = await makeRequest("/admin/users", "POST", {
+        body: {
+          email: userData.email,
+          password: userData.password,
+          firstName: userData.firstName,
+          lastName: userData.lastName,
+          role: userData.role.toUpperCase(),
+        },
+      });
+
+      if (!response.success) {
+        throw new Error(response.message || "Failed to create user");
+      }
+
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [ADMIN_USERS_QUERY_KEY] });
+    },
+
+    onError: (error: any) => {
+      handleAndToastError(error, "Failed to create user.");
+    },
+  });
+}
+
+export function useDashboardStats() {
+  return useQuery({
+    queryKey: [ADMIN_DASHBOARD_STATS_QUERY_KEY],
+    queryFn: async () => {
+      const response = await makeRequest("/admin/dashboard/stats", "GET");
+
+      if (!response.success) {
+        throw new Error(response.message || "Failed to fetch dashboard stats");
+      }
+
+      return response.data.stats as AdminDashboardStats;
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+}
+
+export function useRecentSignups(limit: number = 5) {
+  return useQuery({
+    queryKey: [ADMIN_RECENT_SIGNUPS_QUERY_KEY, limit],
+    queryFn: async () => {
+      const url = `/admin/dashboard/recent-signups?limit=${limit}`;
+      const response = await makeRequest(url, "GET");
+
+      if (!response.success) {
+        throw new Error(response.message || "Failed to fetch recent signups");
+      }
+
+      return response.data.signups as RecentSignup[];
+    },
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
+}
+
+export function usePlatformActivity(limit: number = 10) {
+  return useQuery({
+    queryKey: [ADMIN_PLATFORM_ACTIVITY_QUERY_KEY, limit],
+    queryFn: async () => {
+      const url = `/admin/dashboard/activity?limit=${limit}`;
+      const response = await makeRequest(url, "GET");
+
+      if (!response.success) {
+        throw new Error(
+          response.message || "Failed to fetch platform activity",
+        );
+      }
+
+      return response.data.activities as PlatformActivity[];
+    },
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
+}
+
+export function useAdminEvents(params?: {
+  search?: string;
+  eventType?: string;
+  status?: string;
+  page?: number;
+  limit?: number;
+}) {
+  return useQuery({
+    queryKey: [ADMIN_EVENTS_QUERY_KEY, params],
+    queryFn: async () => {
+      const queryParams = new URLSearchParams();
+      if (params?.search) queryParams.append("search", params.search);
+      if (params?.eventType) queryParams.append("eventType", params.eventType);
+      if (params?.status) queryParams.append("status", params.status);
+      if (params?.page) queryParams.append("page", params.page.toString());
+      if (params?.limit) queryParams.append("limit", params.limit.toString());
+
+      const url = `/admin/events${queryParams.toString() ? `?${queryParams.toString()}` : ""
+        }`;
+      const response = await makeRequest(url, "GET");
+
+      if (!response.success) {
+        throw new Error(response.message || "Failed to fetch events");
+      }
+
+      return response.data;
+    },
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
+}
+
+export function useDeleteReview() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (reviewId: string) => {
+      const response = await makeRequest(`/admin/reviews/${reviewId}`, "DELETE");
+
+      if (!response.success) {
+        throw new Error(response.message || "Failed to delete review");
+      }
+
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [ADMIN_REVIEWS_QUERY_KEY] });
+    },
+
+    onError: (error: any) => {
+      handleAndToastError(error, "Failed to delete review.");
+    },
+  });
+}
+
+export function useAdminTransactions(params?: {
+  search?: string;
+  type?: string;
+  status?: string;
+  sourceType?: string;
+  page?: number;
+  limit?: number;
+}) {
+  return useQuery({
+    queryKey: [ADMIN_TRANSACTIONS_QUERY_KEY, params],
+    queryFn: async () => {
+      const queryParams = new URLSearchParams();
+      if (params?.search) queryParams.append("search", params.search);
+      if (params?.type) queryParams.append("type", params.type);
+      if (params?.status) queryParams.append("status", params.status);
+      if (params?.sourceType) queryParams.append("sourceType", params.sourceType);
+      if (params?.page) queryParams.append("page", params.page.toString());
+      if (params?.limit) queryParams.append("limit", params.limit.toString());
+
+      const url = `/admin/transactions${queryParams.toString() ? `?${queryParams.toString()}` : ""
+        }`;
+      const response = await makeRequest(url, "GET");
+
+      if (!response.success) {
+        throw new Error(response.message || "Failed to fetch transactions");
+      }
+
+      return response.data;
+    },
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
+}
+
+export function useDeleteUser() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (userId: string) => {
+      const response = await makeRequest(`/admin/users/${userId}`, "DELETE");
+
+      if (!response.success) {
+        throw new Error(response.message || "Failed to delete user");
+      }
+
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [ADMIN_USERS_QUERY_KEY] });
+    },
+    onError: (error: any) => {
+      handleAndToastError(error, "Failed to delete user.");
+    },
+  });
+}
+
+export function useUpdateUser() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      userId,
+      userData,
+    }: {
+      userId: string;
+      userData: {
+        firstName?: string;
+        lastName?: string;
+        email?: string;
+        role?: string;
+        status?: string;
+      };
+    }) => {
+      const response = await makeRequest(`/admin/users/${userId}`, "PATCH", {
+        body: userData,
+      });
+
+      if (!response.success) {
+        throw new Error(response.message || "Failed to update user");
+      }
+
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [ADMIN_USERS_QUERY_KEY] });
+    },
+    onError: (error: any) => {
+      handleAndToastError(error, "Failed to update user.");
+    },
+  });
+}

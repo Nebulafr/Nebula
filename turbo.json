@@ -1,0 +1,86 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "globalEnv": [
+    "NODE_ENV",
+    "DATABASE_URL",
+    "PORT"
+  ],
+  "globalDependencies": [
+    ".env",
+    ".env.*"
+  ],
+  "tasks": {
+    "build": {
+      "dependsOn": [
+        "^build",
+        "db:generate"
+      ],
+      "outputs": [
+        "dist/**",
+        ".next/**",
+        "!.next/cache/**"
+      ],
+      "env": [
+        "ACCESS_TOKEN_SECRET",
+        "PINECONE_API_KEY",
+        "PINECONE_INDEX_NAME",
+        "STRIPE_SECRET_KEY",
+        "STRIPE_PUBLISHABLE_KEY",
+        "OPENAI_API_KEY",
+        "REFRESH_TOKEN_SECRET",
+        "GOOGLE_CLIENT_ID",
+        "GOOGLE_CLIENT_SECRET",
+        "CLOUDINARY_API_KEY",
+        "CLOUDINARY_API_SECRET",
+        "ZEPTOMAIL_API_KEY",
+        "ZEPTOMAIL_FROM_ADDRESS",
+        "STRIPE_WEBHOOK_SECRET",
+        "NEXTAUTH_URL",
+        "NEXT_PUBLIC_*"
+      ]
+    },
+    "lint": {
+      "cache": true
+    },
+    "type-check": {
+      "cache": true
+    },
+    "db:generate": {
+      "cache": true,
+      "inputs": [
+        "prisma/schema.prisma"
+      ],
+      "outputs": [
+        "src/generated/prisma/**"
+      ]
+    },
+    "db:push": {
+      "cache": false
+    },
+    "db:studio": {
+      "cache": false,
+      "persistent": true
+    },
+    "seed:admin": {
+      "cache": false
+    },
+    "seed:categories": {
+      "cache": false
+    },
+    "dev": {
+      "dependsOn": [
+        "db:generate"
+      ],
+      "cache": false,
+      "persistent": true
+    },
+    "start": {
+      "cache": false,
+      "persistent": true
+    },
+    "start:prod": {
+      "cache": false,
+      "persistent": true
+    }
+  }
+}
