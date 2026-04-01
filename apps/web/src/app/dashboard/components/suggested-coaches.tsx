@@ -121,8 +121,8 @@ export function SuggestedCoaches({
                 <Link href={`/coaches/${coach.id}`} className="flex h-full">
                   <CoachCard coach={{
                     id: coach.id,
-                    fullName: coach.user?.fullName || "Coach",
-                    avatarUrl: coach.user?.avatarUrl || undefined,
+                    fullName: coach.fullName || "Coach",
+                    avatarUrl: coach.avatarUrl || undefined,
                     title: coach.title,
                     rating: coach.rating,
                     specialties: coach.specialties || [],
