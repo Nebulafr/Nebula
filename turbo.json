@@ -3,7 +3,9 @@
   "globalEnv": [
     "NODE_ENV",
     "DATABASE_URL",
-    "PORT"
+    "PORT",
+    "ACCESS_TOKEN_SECRET",
+    "REFRESH_TOKEN_SECRET",
   ],
   "globalDependencies": [
     ".env",
@@ -21,7 +23,6 @@
         "!.next/cache/**"
       ],
       "env": [
-        "ACCESS_TOKEN_SECRET",
         "PINECONE_API_KEY",
         "PINECONE_INDEX_NAME",
         "STRIPE_SECRET_KEY",
@@ -36,7 +37,17 @@
         "ZEPTOMAIL_FROM_ADDRESS",
         "STRIPE_WEBHOOK_SECRET",
         "NEXTAUTH_URL",
-        "NEXT_PUBLIC_*"
+        "NEXT_PUBLIC_WS_URL",
+        "NEXT_PUBLIC_CALENDLY_URL",
+        "NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME",
+        "NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET",
+        "NEXT_PUBLIC_FIREBASE_API_KEY",
+        "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN",
+        "NEXT_PUBLIC_FIREBASE_PROJECT_ID",
+        "NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET",
+        "NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID",
+        "NEXT_PUBLIC_FIREBASE_APP_ID",
+        "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY"
       ]
     },
     "lint": {
