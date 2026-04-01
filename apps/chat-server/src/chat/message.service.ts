@@ -12,7 +12,7 @@ import { MessagesLoadedResponse, NewMessageEmit } from '../types/index.js';
 export class MessageService {
   private readonly logger = new Logger(MessageService.name);
 
-  constructor() { }
+  constructor() {}
 
   async getMessages(
     conversationId: string,
@@ -44,9 +44,10 @@ export class MessageService {
         messages: formattedMessages,
         hasMore: hasMoreMessages(messages.length, limit),
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
       this.logger.error(
-        `Error loading messages for conversation ${conversationId}: ${error.message}`,
+        `Error loading messages for conversation ${conversationId}: ${message}`,
       );
       throw new Error('Failed to load messages');
     }
@@ -64,6 +65,7 @@ export class MessageService {
           conversationId,
           senderId,
           content,
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           type,
           isRead: false,
         },
@@ -75,8 +77,9 @@ export class MessageService {
       });
 
       return transformToNewMessageEmit(message, senderId);
-    } catch (error: any) {
-      this.logger.error(`Error creating message: ${error.message}`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Error creating message: ${message}`);
       throw new Error('Failed to create message');
     }
   }
@@ -97,8 +100,9 @@ export class MessageService {
           readAt: new Date(),
         },
       });
-    } catch (error: any) {
-      this.logger.error(`Error marking messages as read: ${error.message}`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Error marking messages as read: ${message}`);
       throw new Error('Failed to mark messages as read');
     }
   }
@@ -116,10 +120,9 @@ export class MessageService {
         data: { isDeleted: true },
       });
       return true;
-    } catch (error: any) {
-      this.logger.error(
-        `Error deleting message ${messageId}: ${error.message}`,
-      );
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Error deleting message ${messageId}: ${message}`);
       return false;
     }
   }
@@ -145,8 +148,9 @@ export class MessageService {
         },
       });
       return true;
-    } catch (error: any) {
-      this.logger.error(`Error editing message ${messageId}: ${error.message}`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Error editing message ${messageId}: ${message}`);
       return false;
     }
   }

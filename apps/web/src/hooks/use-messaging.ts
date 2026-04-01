@@ -172,9 +172,10 @@ export function useMessaging(currentUser: MessagingUser, conversationId: string 
 
   // Join/Leave conversation rooms
   useEffect(() => {
-    if (selectedConversation && socket?.connected) {
+    if (selectedConversation && socket) {
       socket.emit("join_conversation", selectedConversation.id);
       socket.emit("load_messages", { conversationId: selectedConversation.id });
+      socket.emit("mark_read", selectedConversation.id);
 
       return () => {
         socket.emit("leave_conversation", selectedConversation.id);
@@ -183,7 +184,7 @@ export function useMessaging(currentUser: MessagingUser, conversationId: string 
   }, [selectedConversation, socket]);
 
   const handleTypingStart = useCallback(() => {
-    if (!socket?.connected || !selectedConversation) return;
+    if (!socket || !selectedConversation) return;
 
     if (!isTypingRef.current) {
       isTypingRef.current = true;
@@ -195,7 +196,7 @@ export function useMessaging(currentUser: MessagingUser, conversationId: string 
     }
 
     typingTimeoutRef.current = setTimeout(() => {
-      if (isTypingRef.current && socket?.connected && selectedConversation) {
+      if (isTypingRef.current && socket && selectedConversation) {
         isTypingRef.current = false;
         socket.emit("typing_stop", selectedConversation.id);
       }
@@ -203,7 +204,7 @@ export function useMessaging(currentUser: MessagingUser, conversationId: string 
   }, [socket, selectedConversation]);
 
   const handleSendMessage = async (messageText: string) => {
-    if (!selectedConversation || sending || !socket?.connected) return;
+    if (!selectedConversation || sending || !socket) return;
 
     try {
       setSending(true);
