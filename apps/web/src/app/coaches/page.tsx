@@ -329,8 +329,8 @@ function CoachesPageContent() {
                 <Link key={coach.id} href={`/coaches/${coach.id}`}>
                   <CoachCard coach={{
                     id: coach.id,
-                    fullName: coach.user?.fullName || "Coach",
-                    avatarUrl: coach.user?.avatarUrl || undefined,
+                    fullName: coach.fullName || "Coach",
+                    avatarUrl: coach.avatarUrl || undefined,
                     title: coach.title,
                     rating: coach.rating,
                     specialties: coach.specialties || [],
