@@ -482,8 +482,8 @@ export class AdminService {
       refundsAggregate,
       totalUsers,
       usersLastMonth,
-      newSignupsThisMonth,
-      newSignupsLastMonth,
+      activeStudents,
+      activeStudentsLastMonth,
       activeCoaches,
       activeCoachesLastMonth,
       earningsLastMonth,
@@ -508,22 +508,22 @@ export class AdminService {
         where: { createdAt: { lt: lastMonth } },
       }),
       prisma.user.count({
-        where: { createdAt: { gte: thisMonth } },
+        where: { role: UserRole.STUDENT, status: UserStatus.ACTIVE },
       }),
       prisma.user.count({
         where: {
-          createdAt: {
-            gte: lastMonthStart,
-            lt: thisMonth,
-          },
+          role: UserRole.STUDENT,
+          status: UserStatus.ACTIVE,
+          createdAt: { lt: lastMonth },
         },
       }),
-      prisma.coach.count({
-        where: { isActive: true },
+      prisma.user.count({
+        where: { role: UserRole.COACH, status: UserStatus.ACTIVE },
       }),
-      prisma.coach.count({
+      prisma.user.count({
         where: {
-          isActive: true,
+          role: UserRole.COACH,
+          status: UserStatus.ACTIVE,
           createdAt: { lt: lastMonth },
         },
       }),
@@ -550,13 +550,7 @@ export class AdminService {
     const totalRevenue = totalRevenueCents / 100;
 
     const userGrowth = totalUsers - usersLastMonth;
-
-    const signupGrowthPercent =
-      newSignupsLastMonth > 0
-        ? ((newSignupsThisMonth - newSignupsLastMonth) / newSignupsLastMonth) *
-        100
-        : 0;
-
+    const studentGrowth = activeStudents - activeStudentsLastMonth;
     const coachGrowth = activeCoaches - activeCoachesLastMonth;
 
     const revenueLastMonthCents =
@@ -568,30 +562,25 @@ export class AdminService {
         ? ((totalRevenue - revenueLastMonth) / revenueLastMonth) * 100
         : 0;
 
-
     const statsResult: AdminDashboardStats = {
       revenue: {
         value: `€${totalRevenue.toLocaleString(undefined, {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2,
         })}`,
-        change: `${revenueGrowthPercent >= 0 ? '+' : ''
-          }${revenueGrowthPercent.toFixed(1)}% from last month`,
+        change: `${revenueGrowthPercent >= 0 ? '+' : ''}${revenueGrowthPercent.toFixed(1)}% from last month`,
       },
       users: {
         value: totalUsers.toLocaleString(),
-        change: `${userGrowth >= 0 ? '+' : ''
-          }${userGrowth} from last month`,
+        change: `${userGrowth >= 0 ? '+' : ''}${userGrowth} from last month`,
       },
-      signups: {
-        value: `+${newSignupsThisMonth}`,
-        change: `${signupGrowthPercent >= 0 ? '+' : ''
-          }${signupGrowthPercent.toFixed(1)}% from last month`,
+      activeStudents: {
+        value: activeStudents.toLocaleString(),
+        change: `${studentGrowth >= 0 ? '+' : ''}${studentGrowth} since last month`,
       },
       coaches: {
         value: activeCoaches.toString(),
-        change: `${coachGrowth >= 0 ? '+' : ''
-          }${coachGrowth} since last month`,
+        change: `${coachGrowth >= 0 ? '+' : ''}${coachGrowth} since last month`,
       },
     };
     return { stats: statsResult };

@@ -27,7 +27,8 @@ export default function catchError(fn: Function) {
           "VALIDATION_ERROR"
         );
       }
-      return sendError("Internal server error", 500, "INTERNAL_SERVER_ERROR");
+      const errorMessage = err instanceof Error ? err.message : String(err || "Internal server error");
+      return sendError(errorMessage, 500, "INTERNAL_SERVER_ERROR");
     }
   };
 }

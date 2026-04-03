@@ -1,8 +1,8 @@
- 
+
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, CreditCard, UserPlus, GraduationCap, Loader2 } from "lucide-react";
+import { Users, CreditCard, GraduationCap } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 interface StatCardProps {
@@ -13,9 +13,9 @@ interface StatCardProps {
   changeType?: 'positive' | 'negative' | 'neutral';
 }
 function StatCard({ title, value, change, icon, changeType = 'positive' }: StatCardProps) {
-  const changeColor = changeType === 'positive' ? 'text-green-600' : 
-                     changeType === 'negative' ? 'text-red-600' : 
-                     'text-muted-foreground';
+  const changeColor = changeType === 'positive' ? 'text-green-600' :
+    changeType === 'negative' ? 'text-red-600' :
+      'text-muted-foreground';
 
   return (
     <Card>
@@ -35,7 +35,7 @@ interface StatsCardsProps {
   stats: {
     revenue: { value: string; change: string };
     users: { value: string; change: string };
-    signups: { value: string; change: string };
+    activeStudents: { value: string; change: string };
     coaches: { value: string; change: string };
   };
   loading?: boolean;
@@ -67,56 +67,30 @@ export function StatsCards({ stats, loading }: StatsCardsProps) {
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">{td("totalRevenue")}</CardTitle>
-          <CreditCard className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{stats.revenue.value}</div>
-          <p className="text-xs text-muted-foreground">
-            {stats.revenue.change}
-          </p>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">{td("users")}</CardTitle>
-          <Users className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{stats.users.value}</div>
-          <p className="text-xs text-muted-foreground">
-            {stats.users.change}
-          </p>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">{td("signups")}</CardTitle>
-          <UserPlus className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{stats.signups.value}</div>
-          <p className="text-xs text-muted-foreground">
-            {stats.signups.change}
-          </p>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">
-            {td("activeCoaches")}
-          </CardTitle>
-          <GraduationCap className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{stats.coaches.value}</div>
-          <p className="text-xs text-muted-foreground">
-            {stats.coaches.change}
-          </p>
-        </CardContent>
-      </Card>
+      <StatCard
+        title={td("totalRevenue")}
+        value={stats.revenue.value}
+        change={stats.revenue.change}
+        icon={<CreditCard className="h-4 w-4 text-muted-foreground" />}
+      />
+      <StatCard
+        title={td("users")}
+        value={stats.users.value}
+        change={stats.users.change}
+        icon={<Users className="h-4 w-4 text-muted-foreground" />}
+      />
+      <StatCard
+        title={td("activeStudents")}
+        value={stats.activeStudents.value}
+        change={stats.activeStudents.change}
+        icon={<GraduationCap className="h-4 w-4 text-muted-foreground" />}
+      />
+      <StatCard
+        title={td("activeCoaches")}
+        value={stats.coaches.value}
+        change={stats.coaches.change}
+        icon={<GraduationCap className="h-4 w-4 text-muted-foreground" />}
+      />
     </div>
   );
 }

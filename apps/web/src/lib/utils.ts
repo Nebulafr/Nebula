@@ -41,6 +41,18 @@ interface RequestOptions {
   timeout?: number;
 }
 
+export class ApiError<T = any> extends Error {
+  public response: ApiResponse<T>;
+  public status: number;
+
+  constructor(response: ApiResponse<T>, status: number) {
+    super(response.message || response.error || "API Request failed");
+    this.name = "ApiError";
+    this.response = response;
+    this.status = status;
+  }
+}
+
 export async function makeRequest<T = any>(
   endpoint: string,
   method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH",
@@ -65,7 +77,7 @@ export async function makeRequest<T = any>(
     const token = getAccessToken();
     if (!token) {
       const err = { success: false, error: "Authentication required", message: "Please log in to continue" };
-      if (throwOnError) throw new Error(err.message);
+      if (throwOnError) throw new ApiError(err, 401);
       return err;
     }
     requestHeaders.Authorization = `Bearer ${token}`;
@@ -101,7 +113,15 @@ export async function makeRequest<T = any>(
     try {
       result = await response.json();
     } catch {
-      result = { success: response.ok };
+      try {
+        const text = await response.text();
+        result = { 
+          success: response.ok, 
+          message: text?.length < 200 ? text : (response.statusText || "Request failed") 
+        };
+      } catch {
+        result = { success: response.ok, message: response.statusText || "Request failed" };
+      }
     }
 
     if (!response.ok || result.success === false) {
@@ -112,7 +132,7 @@ export async function makeRequest<T = any>(
         message: errorMsg,
         code: result.code || `HTTP_${response.status}`,
       };
-      if (throwOnError) throw new Error(errorResponse.message);
+      if (throwOnError) throw new ApiError(errorResponse, response.status);
       return errorResponse;
     }
 
@@ -401,7 +421,9 @@ export const getMaterialIcon = (type: string, size: number = 5) => {
 export function handleAndToastError(error: unknown, defaultMessage: string) {
   let errorMessage = defaultMessage;
 
-  if (error && typeof error === "object" && "message" in error) {
+  if (error instanceof ApiError) {
+    errorMessage = error.response.message || error.response.error || error.message;
+  } else if (error && typeof error === "object" && "message" in error) {
     errorMessage = (error as { message: string }).message;
   } else if (error instanceof Error) {
     errorMessage = error.message;
