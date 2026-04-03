@@ -10,7 +10,7 @@ import {
 import { RESPONSE_CODE } from "@/types";
 import HttpException from "../utils/http-exception";
 import { generateSlug } from "@/lib/utils";
-import { uploadService } from "./upload.service";
+import { uploadService } from "@nebula/integrations";
 
 export class CategoryService {
   private async handleImageUpload(assetUrl?: string | null): Promise<string | null> {
@@ -68,7 +68,6 @@ export class CategoryService {
       } : {}),
     };
 
-    // If no pagination provided, fetch all (common for public dropdowns/lists)
     if (!page || !limit) {
       const categories = await prisma.category.findMany({
         where,

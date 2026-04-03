@@ -113,7 +113,9 @@ export default function DashboardLayout({
   };
 
   return (
-    <SidebarProvider>
+    <SidebarProvider className={cn(
+      (pathname.includes("/messaging") || pathname.includes("/lucy")) && "h-svh overflow-hidden"
+    )}>
       <Sidebar collapsible="icon">
         <SidebarHeader>
           <div className="flex items-center justify-between">
@@ -249,7 +251,7 @@ export default function DashboardLayout({
         <main
           className={cn(
             "flex-1",
-            pathname.includes("/messaging")
+            pathname.includes("/messaging") || pathname.includes("/lucy")
               ? "overflow-hidden"
               : "overflow-auto",
           )}
@@ -257,7 +259,7 @@ export default function DashboardLayout({
           <div
             className={cn(
               "h-full",
-              !pathname.includes("/messaging") && "dashboard-container py-6",
+              !pathname.includes("/messaging") && !pathname.includes("/lucy") && "dashboard-container py-6",
             )}
           >
             {children}

@@ -214,7 +214,7 @@ export default function AdminReviewsPage() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <p className="truncate-multiline">{review.review}</p>
+                      <p className="line-clamp-2">{review.review}</p>
                     </TableCell>
                     <TableCell>
                       <StarRating rating={review.rating} />
@@ -317,16 +317,6 @@ export default function AdminReviewsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      <style jsx>{`
-        .truncate-multiline {
-          display: -webkit-box;
-          -webkit-line-clamp: 2;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-      `}</style>
     </div>
   );
 }

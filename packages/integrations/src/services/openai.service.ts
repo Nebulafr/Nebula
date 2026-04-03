@@ -1,7 +1,7 @@
-import { openai } from '@nebula/integrations';
+import { openai } from '../index.js';
 
 export class OpenAIService {
-  private readonly defaultModel = 'gpt-4-turbo-preview';
+  private readonly defaultModel = 'gpt-4o';
   private readonly defaultEmbeddingModel = 'text-embedding-3-small';
 
   /**

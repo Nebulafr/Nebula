@@ -5,12 +5,11 @@ import {
   NotFoundException,
 } from "../utils/http-exception";
 import { createProgramSchema, updateProgramSchema, CreateProgramData, UpdateProgramData } from "@/lib/validations";
-import { prisma, Program, Prisma, User } from "@nebula/database";
+import { prisma, Prisma } from "@nebula/database";
 import { generateSlug } from "@/lib/utils";
-import { extractUserFromRequest } from "../utils/extract-user";
 import { emailService } from "./email.service";
-import { uploadService } from "./upload.service";
-import { ProgramWithRelations, DashboardProgram, ProgramReviewWithUser } from "@/types";
+import { uploadService, vectorHubService } from "@nebula/integrations";
+import { DashboardProgram } from "@/types";
 
 export class ProgramService {
   async createProgram(coachId: string, coachRole: string, body: any): Promise<{ programId: string; program: DashboardProgram }> {
@@ -48,21 +47,14 @@ export class ProgramService {
     let validCoCoachIds: string[] = [];
     if (coCoachUserIds && coCoachUserIds.length > 0) {
       const validCoaches = await prisma.coach.findMany({
-        where: {
-          OR: [
-            { id: { in: coCoachUserIds } },
-            { userId: { in: coCoachUserIds } },
-          ],
-        },
-        select: { id: true, userId: true },
+        where: { id: { in: coCoachUserIds } },
+        select: { id: true },
       });
 
-      const validCoachIds = validCoaches.map((c) => c.id);
-      const validUserIds = validCoaches.map((c) => c.userId);
-      validCoCoachIds = validCoachIds;
+      validCoCoachIds = validCoaches.map((c) => c.id);
 
       const invalidIds = coCoachUserIds.filter(
-        (id) => !validCoachIds.includes(id) && !validUserIds.includes(id),
+        (id) => !validCoCoachIds.includes(id),
       );
       if (invalidIds.length > 0) {
         throw new BadRequestException(
@@ -171,8 +163,12 @@ export class ProgramService {
       );
     } catch (error) {
       console.error("Failed to send application received email:", error);
-      // Don't fail the program creation if email fails
     }
+
+    // Sync to vector DB
+    this.getById(program.id).then(({ program }) => {
+      vectorHubService.syncProgramToVector(program);
+    }).catch(err => console.error("Vector sync failed:", err));
 
     return {
       programId: program.id,
@@ -751,6 +747,11 @@ export class ProgramService {
       });
     });
 
+    // Sync to vector DB
+    this.getById(id).then(({ program }) => {
+      vectorHubService.syncProgramToVector(program);
+    }).catch(err => console.error("Vector sync failed:", err));
+
     return { program: result };
   }
 
@@ -830,15 +831,14 @@ export class ProgramService {
     let validCoCoachIds: string[] = [];
     if (coCoachIds && coCoachIds.length > 0) {
       const validCoaches = await prisma.coach.findMany({
-        where: {
-          OR: [{ id: { in: coCoachIds } }, { userId: { in: coCoachIds } }],
-        },
-        select: { id: true, userId: true },
+        where: { id: { in: coCoachIds } },
+        select: { id: true },
       });
+
       validCoCoachIds = validCoaches.map((c) => c.id);
-      const validUserIds = validCoaches.map((c) => c.userId);
+
       const invalidIds = coCoachIds.filter(
-        (id) => !validCoCoachIds.includes(id) && !validUserIds.includes(id),
+        (id) => !validCoCoachIds.includes(id),
       );
       if (invalidIds.length > 0) {
         throw new BadRequestException(

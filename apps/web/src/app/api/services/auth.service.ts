@@ -14,7 +14,7 @@ import HttpException, {
 } from "../utils/http-exception";
 import { RESPONSE_CODE, User, AuthResponse, UserProfile, UserProfileResponse, UserRole } from "@/types";
 import { emailService } from "./email.service";
-import { uploadService } from "./upload.service";
+import { uploadService } from "@nebula/integrations";
 import crypto from "crypto";
 
 export class AuthService {

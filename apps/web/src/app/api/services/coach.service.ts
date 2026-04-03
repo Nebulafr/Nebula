@@ -1,4 +1,3 @@
-import { NextRequest } from "next/server";
 import { prisma, Prisma } from "@nebula/database";
 import {
   CoachQueryData,
@@ -6,26 +5,9 @@ import {
   CreateCoachData,
 } from "@/lib/validations";
 import HttpException, { NotFoundException } from "../utils/http-exception";
-import { stripeAccountService } from "./stripe-account.service";
+import { stripeAccountService, vectorHubService } from "@nebula/integrations";
 import { RESPONSE_CODE } from "@/types";
 
-// type CoachWithUserAndSpecialties = Prisma.CoachGetPayload<{
-//   include: {
-//     user: {
-//       select: {
-//         fullName: true;
-//         email: true;
-//         avatarUrl: true;
-//         role: true;
-//       };
-//     };
-//     specialties: {
-//       include: {
-//         category: true;
-//       };
-//     };
-//   };
-// }>;
 
 export class CoachService {
   async findByUserId(userId: string): Promise<any> {
@@ -201,9 +183,21 @@ export class CoachService {
       return coach;
     }, { timeout: 10000 });
 
-    stripeAccountService.createAccount(userId).catch((err) => {
+    stripeAccountService.createAccount({
+      userId,
+      email: data.email,
+      fullName: data.fullName || `${data.firstName} ${data.lastName}`,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      countryIso: data.countryIso,
+    }).catch((err) => {
       console.error("Failed to create Stripe account in coach service:", err);
     });
+
+    // Sync to vector DB
+    this.getProfile(userId).then(({ coach }) => {
+      vectorHubService.syncCoachToVector(coach);
+    }).catch(err => console.error("Vector sync failed:", err));
 
     return newProfile;
   }
@@ -225,6 +219,11 @@ export class CoachService {
 
       return coach;
     }, { timeout: 10000 });
+
+    // Sync to vector DB
+    this.getProfile(userId).then(({ coach }) => {
+      vectorHubService.syncCoachToVector(coach);
+    }).catch(err => console.error("Vector sync failed:", err));
 
     return updatedProfile;
   }

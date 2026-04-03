@@ -12,8 +12,7 @@ import {
 } from "../utils/http-exception";
 import { generateSlug } from "@/lib/utils";
 import { paymentService } from "./payment.service";
-import { uploadService } from "./upload.service";
-import { AuthenticatedRequest } from "@/types";
+import { uploadService } from "@nebula/integrations";
 
 export class EventService {
   create = async (userId: string, userRole: string, data: CreateEventData): Promise<any> => {
@@ -58,14 +57,13 @@ export class EventService {
       );
     }
 
-    // Robustness: If organizerId is a Coach.id, resolve it to User.id
     if (organizerId) {
-      const coach = await prisma.coach.findUnique({
+      const organizer = await prisma.user.findUnique({
         where: { id: organizerId },
-        select: { userId: true },
+        select: { id: true },
       });
-      if (coach) {
-        organizerId = coach.userId;
+      if (!organizer) {
+        throw new NotFoundException("Organizer not found");
       }
     }
 
@@ -472,6 +470,16 @@ export class EventService {
     }
 
     const eventData = data as Record<string, any>;
+
+    if (eventData.organizerId) {
+      const organizer = await prisma.user.findUnique({
+        where: { id: eventData.organizerId },
+        select: { id: true },
+      });
+      if (!organizer) {
+        throw new NotFoundException("Organizer not found");
+      }
+    }
 
     if (eventData.images && eventData.images.length > 0) {
       eventData.images = await Promise.all(

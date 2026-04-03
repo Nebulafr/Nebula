@@ -7,6 +7,7 @@ import { coachService } from "./coach.service";
 import { programService } from "./program.service";
 import { eventService } from "./event.service";
 import { authService } from "./auth.service";
+import { categoryService } from "./category.service";
 import { EventType } from "@/types/event";
 import { NEBULA_AI_SYSTEM_PROMPT } from "../prompts/nebula-ai";
 import { prisma, ConversationType } from "@nebula/database";
@@ -44,6 +45,7 @@ class AgentsService {
         this.searchProgramsTool(),
         this.searchEventsTool(),
         this.getUserProfileTool(),
+        this.getAllCategoriesTool(),
       ],
     });
   }
@@ -109,6 +111,17 @@ class AgentsService {
     );
   }
 
+  private getAllCategoriesTool() {
+    return tool(
+      async () => this.getAllCategories(),
+      {
+        name: "get_all_categories",
+        description: "Get all active categories on the platform. Useful for showing what specialties or fields are available for coaching and programs.",
+        schema: z.object({}),
+      }
+    );
+  }
+
   /**
    * Tool Implementations
    */
@@ -157,6 +170,15 @@ class AgentsService {
       return response.user || null;
     } catch (error: any) {
       return { error: `Error fetching user profile: ${error.message}` };
+    }
+  }
+
+  private async getAllCategories() {
+    try {
+      const response = await categoryService.getAll();
+      return response.categories || [];
+    } catch (error: any) {
+      return { error: `Error fetching categories: ${error.message}` };
     }
   }
 
@@ -243,6 +265,14 @@ class AgentsService {
 
     // 3. Get history for context
     const history = await this.getConversationHistory(conversation.id);
+
+    // Intersect the last human message with context parameters
+    if (history.length > 0) {
+      const lastMessage = history[history.length - 1];
+      if (lastMessage instanceof HumanMessage) {
+        lastMessage.content = `${lastMessage.content}\n\n[Context - UserID: ${payload.userId}, Role: ${payload.userRole}]`;
+      }
+    }
 
     // 4. Invoke agent with history
     const response = await this.agent.invoke({

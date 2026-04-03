@@ -1,20 +1,19 @@
-import { getPineconeIndex } from '../config/pinecone';
+import { getPineconeIndex } from '../index.js';
 import {
   VectorRecord,
   QueryResult,
   FetchResult,
   VectorNamespace,
-} from '../types/vector-store';
+} from '../types.js';
 
 class VectorDbService {
   private async getIndex(namespace?: VectorNamespace) {
-    const index = await getPineconeIndex();
-    return namespace ? index.namespace(namespace) : index;
+    return getPineconeIndex(namespace || '');
   }
 
   async upsert(records: VectorRecord[], namespace?: VectorNamespace): Promise<void> {
     const index = await this.getIndex(namespace);
-    await index.upsert({ records });
+    await index?.upsert(records as any);
   }
 
   async query<T = Record<string, any>>(
@@ -29,7 +28,7 @@ class VectorDbService {
     const { topK = 10, filter, includeMetadata = true, namespace } = options;
     const index = await this.getIndex(namespace);
 
-    const results = await index.query({
+    const results = await index?.query({
       vector,
       topK,
       filter,
@@ -47,12 +46,12 @@ class VectorDbService {
 
   async deleteById(ids: string[], namespace?: VectorNamespace): Promise<void> {
     const index = await this.getIndex(namespace);
-    await index.deleteMany(ids);
+    await index?.deleteMany(ids);
   }
 
   async fetchByIds(ids: string[], namespace?: VectorNamespace): Promise<FetchResult[]> {
     const index = await this.getIndex(namespace);
-    const results = await index.fetch({ ids });
+    const results = await index?.fetch({ ids });
 
     return Object.values(results.records || {}).map((record: any) => ({
       id: record.id,
@@ -76,7 +75,7 @@ class VectorDbService {
       ) {
         sanitized[key] = value;
       } else if (Array.isArray(value)) {
-        sanitized[key] = value.filter((v) => typeof v === 'string');
+        sanitized[key] = value.filter((v: any) => typeof v === 'string');
       } else if (value instanceof Date) {
         sanitized[key] = value.getTime();
       }
@@ -87,5 +86,4 @@ class VectorDbService {
 }
 
 export const vectorDbService = new VectorDbService();
-export const vectorDBService = vectorDbService; // Maintain backwards compatibility if needed
-export default vectorDbService;
+export const vectorDBService = vectorDbService;
