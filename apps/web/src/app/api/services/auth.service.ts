@@ -18,7 +18,7 @@ import { uploadService } from "@nebula/integrations";
 import crypto from "crypto";
 
 export class AuthService {
-// --- generateAccessToken moved to signup/signin calls, or kept as wrapper ---
+  // --- generateAccessToken moved to signup/signin calls, or kept as wrapper ---
 
   async hashPassword(password: string): Promise<string> {
     return bcrypt.hash(password, 12);
@@ -106,11 +106,11 @@ export class AuthService {
       throw new UnauthorizedException("Invalid email or password");
     }
 
-    if (user.status === "PENDING") {
-      throw new UnauthorizedException(
-        "Please verify your email address to sign in",
-      );
-    }
+    // if (user.status === "PENDING") {
+    //   throw new UnauthorizedException(
+    //     "Please verify your email address to sign in",
+    //   );
+    // }
 
     if (user.status === "SUSPENDED" || user.status === "INACTIVE") {
       throw new UnauthorizedException("Your account is not active");
