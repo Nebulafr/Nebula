@@ -48,7 +48,7 @@ export function ChatInput({ input, setInput, onSend, loading }: ChatInputProps) 
             >
               <Mic className="h-5 w-5 opacity-70 group-hover:opacity-100 transition-opacity" />
             </Button>
-            
+
             {input.trim() ? (
               <Button
                 size="icon"
@@ -70,7 +70,7 @@ export function ChatInput({ input, setInput, onSend, loading }: ChatInputProps) 
             )}
           </div>
         </div>
-        
+
         <p className="text-[11px] text-center text-muted-foreground/60 mt-3 font-medium">
           Lucy can make mistakes. Check important info.
         </p>

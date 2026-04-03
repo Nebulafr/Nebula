@@ -14,6 +14,10 @@ import { UpcomingEventsSection } from "@/components/sections/upcoming-events-sec
 import { TestimonialsSection } from "@/components/sections/testimonials-section";
 import { CompanyLogosSection } from "@/components/sections/company-logo-section";
 
+import checkMarkIcon from "@/lib/images/icons/check-mark.svg";
+import learningPathIcon from "@/lib/images/icons/learning-path.svg";
+import calendarIcon from "@/lib/images/icons/calendar.svg";
+
 export default function Home() {
   const t = useTranslations("home");
 
@@ -21,7 +25,7 @@ export default function Home() {
     {
       icon: (
         <Image
-          src="/custom-images/check-mark.svg"
+          src={checkMarkIcon}
           alt="Check mark"
           width={32}
           height={32}
@@ -33,7 +37,7 @@ export default function Home() {
     {
       icon: (
         <Image
-          src="/custom-images/learning-path.svg"
+          src={learningPathIcon}
           alt="Learning Path"
           width={32}
           height={32}
@@ -46,7 +50,7 @@ export default function Home() {
     {
       icon: (
         <Image
-          src="/custom-images/calendar.svg"
+          src={calendarIcon}
           alt="Calendar"
           width={32}
           height={32}

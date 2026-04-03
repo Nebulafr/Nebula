@@ -6,4 +6,31 @@ export const PINECONE_NAMESPACES = {
   PLATFORM_KNOWLEDGE: 'platform_knowledge',
 } as const;
 
-export type PineconeNamespace = keyof typeof PINECONE_NAMESPACES;
+export type PineconeNamespace = typeof PINECONE_NAMESPACES[keyof typeof PINECONE_NAMESPACES];
+export type VectorNamespace = PineconeNamespace;
+
+export interface VectorRecord {
+  id: string;
+  values: number[];
+  metadata?: Record<string, any>;
+}
+
+export interface QueryResult<T = Record<string, any>> {
+  id: string;
+  score: number;
+  metadata: T;
+}
+
+export interface FetchResult {
+  id: string;
+  values?: number[];
+  metadata: Record<string, any>;
+}
+
+export interface UploadResult {
+  url: string;
+  publicId: string;
+  fileName: string;
+  fileType: string;
+  fileSize: number;
+}

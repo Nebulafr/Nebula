@@ -1,15 +1,10 @@
 
 "use client";
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { useUser } from "@/hooks/use-user";
 import { useSendAgentMessage } from "@/hooks/use-agents-queries";
 
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ArrowUp, MessageSquare, User, Bot, Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 import { MessageList, type Message } from "./_components/message-list";
 import { ChatInput } from "./_components/chat-input";
@@ -74,6 +69,7 @@ export default function LucyPage() {
     sendMessage(
       {
         message: messageToSend,
+        userId: profile.id,
       },
       {
         onSuccess: (data: any) => {
@@ -128,10 +124,10 @@ export default function LucyPage() {
   const suggestions = profile?.role === "COACH" ? coachSuggestions : studentSuggestions;
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] md:h-[calc(100vh-2rem)] bg-background relative overflow-hidden">
+    <div className="flex flex-col h-full bg-background relative overflow-hidden">
       {/* Content Area */}
-      <div className="flex-1 relative overflow-hidden flex flex-col">
-        <ScrollArea className="flex-1">
+      <div className="flex-1 relative overflow-hidden flex flex-col h-full">
+        <ScrollArea className="flex-1 h-full">
           <div className="max-w-3xl mx-auto px-6 pt-12 pb-32">
             {messages.length === 0 ? (
               <WelcomeHero

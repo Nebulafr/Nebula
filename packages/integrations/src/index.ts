@@ -3,7 +3,7 @@ import Stripe from "stripe";
 import OpenAI from "openai";
 import { env } from './config/env.js';
 
-export * from './types.js';
+export * from './types';
 
 /* --- Pinecone (Vector Store) --- */
 
@@ -26,8 +26,15 @@ export const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
   typescript: true,
 });
 
-/* --- OpenAI (AI Service) --- */
-
 export const openai = new OpenAI({
   apiKey: env.OPENAI_API_KEY,
 });
+
+/* --- Services --- */
+
+export * from './services/openai.service';
+export * from './services/vector-db.service';
+export * from './services/vector-hub.service';
+export * from './services/upload.service';
+export * from './services/email.service';
+export * from './services/stripe-account.service';
