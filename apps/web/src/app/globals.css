@@ -38,6 +38,7 @@
     --sidebar-border: 0 0% 89%;
     --sidebar-ring: 158 93% 30%;
   }
+
   .dark {
     --background: 0 0% 7%;
     --foreground: 0 0% 93%;
@@ -92,38 +93,16 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }
+
   h2 {
     @apply text-5xl font-medium tracking-tighter;
   }
 }
 
-@layer utilities {
-  @keyframes marquee {
-    from {
-      transform: translateX(0);
-    }
-    to {
-      transform: translateX(-50%);
-    }
-  }
-
-  .animate-marquee {
-    animation: marquee 10s linear infinite;
-  }
-
-  .marquee-container {
-    mask-image: linear-gradient(
-      to right,
-      hsl(0 0% 0% / 0),
-      hsl(0 0% 0% / 1) 10%,
-      hsl(0 0% 0% / 1) 90%,
-      hsl(0 0% 0% / 0)
-    );
-  }
-}
 
 @layer components {
   .dashboard-container {
@@ -140,6 +119,7 @@
 .goog-tooltip:hover {
   display: none !important;
 }
+
 .goog-te-spinner,
 .goog-te-balloon-frame,
 #goog-gt-tt,
@@ -147,9 +127,11 @@
 .goog-logo-link {
   display: none !important;
 }
+
 #google-translate-script {
   display: none !important;
 }
+
 .goog-text-highlight {
   background-color: transparent !important;
   box-shadow: none !important;
