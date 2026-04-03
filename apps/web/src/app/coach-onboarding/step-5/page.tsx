@@ -24,7 +24,6 @@ import { createCoach } from "@/actions/coaches";
 import { useAuth } from "@/hooks/use-auth";
 import {
   AvailabilitySettings,
-  DayAvailability,
   CoachAvailability,
 } from "@/components/availability-settings";
 

@@ -536,20 +536,22 @@ export class SessionService {
 
     try {
       const availability = JSON.parse(coach.availability);
-      const dayName = sessionDateTime.format("dddd").toLowerCase();
+
+      // Normalize sessionDateTime to coach's local timezone
+      const coachTz = coach.timezone || "UTC";
+      const coachLocalTime = sessionDateTime.clone().tz(coachTz);
+
+      const dayName = coachLocalTime.format("dddd").toLowerCase();
+
       const dayAvail = availability[dayName];
 
+
       if (!dayAvail || !dayAvail.enabled) {
-        throw new BadRequestException(`Coach is not available on ${dayName}`);
+        throw new BadRequestException(`Coach is not available on ${dayName} (${coachTz})`);
       }
 
-      const [startHour, startMinute] = dayAvail.startTime
-        .split(":")
-        .map(Number);
-      const [endHour, endMinute] = dayAvail.endTime.split(":").map(Number);
-
       const slotStartMinutes =
-        sessionDateTime.hours() * 60 + sessionDateTime.minutes();
+        coachLocalTime.hours() * 60 + coachLocalTime.minutes();
       const slotEndMinutes = slotStartMinutes + duration;
 
       // Use new intervals-based logic only
@@ -563,15 +565,12 @@ export class SessionService {
         });
 
         if (!isWithinAnyInterval) {
+          const startTimeStr = coachLocalTime.format("HH:mm");
+          const endTimeStr = coachLocalTime.clone().add(duration, "minutes").format("HH:mm");
           throw new BadRequestException(
-            `Requested time ${sessionDateTime.format("HH:mm")} - ${sessionDateTime
-              .clone()
-              .add(duration, "minutes")
-              .format("HH:mm")} is outside of coach's available intervals`,
+            `Requested time ${startTimeStr} - ${endTimeStr} is outside of coach's available intervals in their local timezone (${coachTz})`,
           );
         }
-      } else {
-        throw new BadRequestException(`Coach has no available time slots set for ${dayName}`);
       }
     } catch (error) {
       if (error instanceof BadRequestException) {
