@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Euro, Star } from "lucide-react";
 import Link from "next/link";
-import { truncateText, getUserAvatar, getInitials } from "@/lib/utils";
+import { truncateText } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 
 export interface ProgramCardData {
@@ -78,12 +78,11 @@ export function ProgramCard({ program }: ProgramCardProps) {
                   <Avatar className="h-12 w-12">
                     <AvatarImage
                       src={
-                        program.coach.user.avatarUrl ||
-                        getUserAvatar(program.coach.user.fullName || "")
+                        program.coach.user.avatarUrl || undefined
                       }
                     />
-                    <AvatarFallback>
-                      {getInitials(program.coach.user.fullName || "")}
+                    <AvatarFallback name={program.coach.user.fullName || undefined}>
+                      {program.coach.user.fullName?.charAt(0) || "C"}
                     </AvatarFallback>
                   </Avatar>
                   <div>

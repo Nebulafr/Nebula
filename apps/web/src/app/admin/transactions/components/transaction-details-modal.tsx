@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { formatUserName, getInitials, getDefaultAvatar } from "@/lib/utils";
+import { formatUserName, getInitials } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 import { AdminTransaction } from "@/hooks/use-admin-queries";
 import { useToast } from "@/hooks/use-toast";
@@ -83,9 +83,9 @@ export function TransactionDetailsModal({
           <div className="flex items-center gap-4 p-3 border rounded-lg bg-slate-50">
             <Avatar className="h-12 w-12">
               <AvatarImage
-                src={transaction.user.avatarUrl || getDefaultAvatar(transaction.user.fullName || undefined)}
+                src={transaction.user.avatarUrl || undefined}
               />
-              <AvatarFallback>{initials}</AvatarFallback>
+              <AvatarFallback name={transaction.user.fullName || undefined}>{initials}</AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
               <p className="font-semibold truncate">{displayName}</p>

@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Calendar, Clock, Video } from "lucide-react";
-import { getDefaultAvatar } from "@/lib/utils";
+import { getInitials } from "@/lib/utils";
 
 interface Session {
   id: string;
@@ -126,13 +126,10 @@ function SessionItem({
     <div className="flex items-center space-x-4 p-3 rounded-lg border">
       <Avatar>
         <AvatarImage
-          src={session.student.avatar || getDefaultAvatar(session.student.name)}
+          src={session.student.avatar || undefined}
         />
-        <AvatarFallback>
-          {session.student.name
-            .split(" ")
-            .map((n) => n[0])
-            .join("")}
+        <AvatarFallback name={session.student.name || undefined}>
+          {getInitials(session.student.name)}
         </AvatarFallback>
       </Avatar>
 

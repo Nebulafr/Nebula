@@ -11,7 +11,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { MessageSquare, Calendar } from "lucide-react";
-import { getUserAvatar, getInitials } from "@/lib/utils";
+import { getInitials } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 
 export interface Student {
@@ -84,9 +84,9 @@ export function StudentsTable({
               <div className="flex items-center space-x-3">
                 <Avatar>
                   <AvatarImage
-                    src={student.avatar || getUserAvatar(student.name)}
+                    src={student.avatar || undefined}
                   />
-                  <AvatarFallback>
+                  <AvatarFallback name={student.name || undefined}>
                     {getInitials(student.name)}
                   </AvatarFallback>
                 </Avatar>

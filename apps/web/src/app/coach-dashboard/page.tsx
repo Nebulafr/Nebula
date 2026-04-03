@@ -46,7 +46,7 @@ import {
   useRejectSession,
 } from "@/hooks/use-session-queries";
 import { useCoachPayouts } from "@/hooks/use-coach-queries";
-import { getDefaultAvatar } from "@/lib/utils";
+import { getInitials } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 
 function CoachDashboardContent() {
@@ -98,8 +98,6 @@ function CoachDashboardContent() {
   };
 
   const stats = statsData;
-
-  console.log({ todaySessionsData, statsData });
 
   useEffect(() => {
     const accessToken = searchParams.get("access_token");
@@ -258,13 +256,10 @@ function CoachDashboardContent() {
                                 <Avatar>
                                   <AvatarImage
                                     src={
-                                      session.students[0]?.avatarUrl ||
-                                      getDefaultAvatar(
-                                        session.students[0]?.fullName,
-                                      )
+                                      session.students[0]?.avatarUrl || undefined
                                     }
                                   />
-                                  <AvatarFallback>
+                                  <AvatarFallback name={session.students[0]?.fullName || undefined}>
                                     {session.students[0]?.fullName?.charAt(0) ||
                                       "S"}
                                   </AvatarFallback>
@@ -434,12 +429,8 @@ function CoachDashboardContent() {
                   payoutsData.payouts.map((payout: any, i: number) => (
                     <div key={payout.id} className="flex items-center">
                       <Avatar className="h-9 w-9">
-                        <AvatarImage
-                          src={`https://i.pravatar.cc/40?u=payout${i + 1}`}
-                          alt="Avatar"
-                        />
-                        <AvatarFallback>
-                          {payout.status.charAt(0)}
+                        <AvatarFallback name={payout.month}>
+                          {payout.month.charAt(0)}
                         </AvatarFallback>
                       </Avatar>
                       <div className="ml-4 space-y-1">

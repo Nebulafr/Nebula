@@ -30,13 +30,10 @@ export function LucyCoachCard({ coach }: LucyCoachCardProps) {
         <div className="flex gap-4">
           <Avatar className="h-12 w-12 shrink-0 border border-border/50">
             <AvatarImage
-              src={
-                coach.avatarUrl ||
-                `https://i.pravatar.cc/150?u=${coach.id}`
-              }
+              src={coach.avatarUrl || undefined}
               alt={coach.fullName}
             />
-            <AvatarFallback>
+            <AvatarFallback name={coach.fullName || undefined}>
               {coach.fullName
                 .split(" ")
                 .map((n: string) => n[0])

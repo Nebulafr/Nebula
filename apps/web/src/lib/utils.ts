@@ -236,12 +236,21 @@ export function formatChatTime(date: string | Date | null | undefined): string {
 
 /* --- Avatar / Image Utilities --- */
 
-const avatarColors = ["0EA5E9", "8B5CF6", "EC4899", "F97316", "22C55E", "06B6D4", "EAB308", "EF4444", "6366F1", "14B8A6"];
+export const avatarColorPairs = [
+  { from: "#4F46E5", to: "#7C3AED" }, // Indigo to Violet
+  { from: "#EC4899", to: "#8B5CF6" }, // Pink to Violet
+  { from: "#3B82F6", to: "#06B6D4" }, // Blue to Cyan
+  { from: "#10B981", to: "#3B82F6" }, // Emerald to Blue
+  { from: "#F59E0B", to: "#EF4444" }, // Amber to Red
+  { from: "#8B5CF6", to: "#D946EF" }, // Violet to Fuchsia
+  { from: "#0EA5E9", to: "#2563EB" }, // Sky to Blue
+  { from: "#F43F5E" , to: "#FB923C" }, // Rose to Orange
+];
 
-function getAvatarColor(str: string): string {
+export function getAvatarColor(str: string) {
   let hash = 0;
   for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
-  return avatarColors[Math.abs(hash) % avatarColors.length];
+  return avatarColorPairs[Math.abs(hash) % avatarColorPairs.length];
 }
 
 export function getInitials(name?: string | null): string {
@@ -251,11 +260,8 @@ export function getInitials(name?: string | null): string {
   return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
 }
 
-export function getUserAvatar(name?: string | null, size: number = 128): string {
-  const displayName = name || "User";
-  const initials = getInitials(displayName);
-  const color = getAvatarColor(displayName.toLowerCase());
-  return `https://ui-avatars.com/api/?name=${encodeURIComponent(initials)}&size=${size}&background=${color}&color=ffffff&bold=true&format=png`;
+export function getUserAvatar(name?: string | null, size: number = 128): string | undefined {
+  return undefined;
 }
 
 /* --- Chat Specific Utilities --- */
@@ -340,7 +346,7 @@ export function getEventGradientBackgrounds(count: number): string[] {
   return gradients;
 }
 
-export const getDefaultAvatar = (name?: string) => getUserAvatar(name, 400);
+export const getDefaultAvatar = (name?: string) => undefined;
 
 export function getDefaultCategoryImage(name?: string): string {
   const seed = name ? name.replace(/\s/g, "").toLowerCase() : "default";

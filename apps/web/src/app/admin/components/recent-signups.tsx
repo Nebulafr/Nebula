@@ -23,7 +23,7 @@ import { format } from "date-fns/format"; // Added format
 import { enUS, fr } from "date-fns/locale"; // Added date-fns locales
 import { useTranslations, useLocale } from "next-intl"; // Added next-intl hooks
 import Link from "next/link";
-import { formatUserName, getInitials, getDefaultAvatar } from "@/lib/utils";
+import { formatUserName, getInitials } from "@/lib/utils";
 
 interface RecentSignup {
   name: string;
@@ -112,9 +112,9 @@ export function RecentSignups({ signups, loading, onUserAction }: RecentSignupsP
                         <div className="flex items-center gap-3">
                           <Avatar>
                             <AvatarImage
-                              src={user.avatar || getDefaultAvatar(user.name)}
+                              src={user.avatar}
                             />
-                            <AvatarFallback>{initials}</AvatarFallback>
+                            <AvatarFallback name={user.name}>{initials}</AvatarFallback>
                           </Avatar>
                           <div className="flex flex-col">
                             <span className="font-medium text-sm">{displayName}</span>

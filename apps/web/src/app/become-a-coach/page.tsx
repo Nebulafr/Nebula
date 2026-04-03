@@ -152,10 +152,10 @@ export default function BecomeACoachPage() {
                     <div className="flex items-center gap-4 mt-6">
                       <Avatar className="h-12 w-12">
                         <AvatarImage
-                          src={testimonial.avatar}
+                          src={testimonial.avatar || undefined}
                           alt={testimonial.name}
                         />
-                        <AvatarFallback>{testimonial.name[0]}</AvatarFallback>
+                        <AvatarFallback name={testimonial.name || undefined}>{testimonial.name[0]}</AvatarFallback>
                       </Avatar>
                       <div>
                         <h4 className="font-headline text-lg font-semibold">

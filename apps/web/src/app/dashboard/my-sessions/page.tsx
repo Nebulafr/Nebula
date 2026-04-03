@@ -34,7 +34,6 @@ import {
   useStudentSessions,
   useCancelSession,
 } from "@/hooks/use-session-queries";
-import { getDefaultAvatar } from "@/lib/utils";
 import {
   useActiveEnrollments,
   useCompletedEnrollments,
@@ -96,12 +95,9 @@ function SessionCard({
           <div className="md:col-span-1 flex items-center gap-4">
             <Avatar className="h-16 w-16">
               <AvatarImage
-                src={
-                  session.coach?.avatarUrl ||
-                  getDefaultAvatar(session.coach?.fullName || undefined)
-                }
+                src={session.coach?.avatarUrl || undefined}
               />
-              <AvatarFallback>
+              <AvatarFallback name={session.coach?.fullName || undefined}>
                 {session.coach?.fullName?.charAt(0) || "C"}
               </AvatarFallback>
             </Avatar>
@@ -264,12 +260,9 @@ function UpcomingProgramCard({ program }: { program: EnrollmentWithRelations }) 
               <div className="flex items-center gap-2 mt-2">
                 <Avatar className="h-6 w-6">
                   <AvatarImage
-                    src={
-                      program.coach?.avatarUrl ||
-                      getDefaultAvatar(program.coach?.fullName || "")
-                    }
+                    src={program.coach?.avatarUrl || undefined}
                   />
-                  <AvatarFallback>
+                  <AvatarFallback name={program.coach?.fullName || undefined}>
                     {program.coach?.fullName?.charAt(0) || "C"}
                   </AvatarFallback>
                 </Avatar>
@@ -418,12 +411,9 @@ function CompletedProgramCard({ program }: { program: EnrollmentWithRelations })
             <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
               <Avatar className="h-6 w-6">
                 <AvatarImage
-                  src={
-                    program.coach?.avatarUrl ||
-                    getDefaultAvatar(program.coach?.fullName || undefined)
-                  }
+                  src={program.coach?.avatarUrl || undefined}
                 />
-                <AvatarFallback>
+                <AvatarFallback name={program.coach?.fullName || undefined}>
                   {program.coach?.fullName?.charAt(0) || "C"}
                 </AvatarFallback>
               </Avatar>

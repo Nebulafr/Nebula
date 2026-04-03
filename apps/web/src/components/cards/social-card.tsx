@@ -11,7 +11,7 @@ import { useTranslations, useLocale, useFormatter } from "next-intl";
 import { Event } from "@/types/event";
 import {
   getEventGradientBackground,
-  getDefaultAvatar,
+  getInitials,
   getDefaultBanner,
 } from "@/lib/utils";
 
@@ -73,9 +73,9 @@ export function SocialCard({
           </h3>
           <div className="flex items-center gap-2 mt-2">
             <Avatar className="h-6 w-6">
-              <AvatarImage src={event.organizer?.avatarUrl || getDefaultAvatar(event.organizer?.fullName)} />
-              <AvatarFallback>
-                {event.organizer?.fullName?.charAt(0) || "A"}
+              <AvatarImage src={event.organizer?.avatarUrl || undefined} />
+              <AvatarFallback name={event.organizer?.fullName || undefined}>
+                {getInitials(event.organizer?.fullName)}
               </AvatarFallback>
             </Avatar>
             <p className="text-sm text-muted-foreground">
@@ -101,8 +101,8 @@ export function SocialCard({
               <div className="flex -space-x-2">
                 {event.attendeesList?.slice(0, 3).map((attendee, i) => (
                   <Avatar key={i} className="h-8 w-8 border-2 border-white">
-                    <AvatarImage src={attendee.avatarUrl} />
-                    <AvatarFallback>
+                    <AvatarImage src={attendee.avatarUrl || undefined} />
+                    <AvatarFallback name={attendee.fullName || undefined}>
                       {attendee.fullName?.charAt(0) || "A"}
                     </AvatarFallback>
                   </Avatar>

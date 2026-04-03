@@ -26,7 +26,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { formatUserName, getInitials, getDefaultAvatar } from "@/lib/utils";
+import { formatUserName, getInitials } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 import { AdminPagination } from "../../components/admin-pagination";
 
@@ -172,9 +172,9 @@ export function UsersTable({
                       <div className="flex items-center gap-3">
                         <Avatar>
                           <AvatarImage
-                            src={user.avatar || getDefaultAvatar(user!.name)}
+                            src={user.avatar}
                           />
-                          <AvatarFallback>{initials}</AvatarFallback>
+                          <AvatarFallback name={displayName}>{initials}</AvatarFallback>
                         </Avatar>
                         <div>
                           <span className="font-medium">{displayName}</span>

@@ -17,8 +17,8 @@ import {
 import { Event } from "@/types/event";
 import {
   getEventBackgroundColor,
-  getDefaultAvatar,
   getAccessTypeText,
+  getInitials,
 } from "@/lib/utils";
 import { useTranslations, useLocale } from "next-intl";
 
@@ -68,18 +68,18 @@ function EventCard({
         </Badge>
         <div className="flex items-start gap-4 pt-6 pb-4 flex-grow">
           <div className="flex-shrink-0">
-            <div className="w-[120px] h-[120px]">
-              <Image
-                src={
-                  event.organizer?.avatarUrl ||
-                  getDefaultAvatar(event.organizer?.fullName)
-                }
+            <Avatar className="w-[120px] h-[120px] rounded-lg">
+              <AvatarImage
+                src={event.organizer?.avatarUrl || undefined}
                 alt={event.organizer?.fullName || "Organizer"}
-                width={120}
-                height={120}
-                className="rounded-lg object-cover aspect-square w-full h-full"
               />
-            </div>
+              <AvatarFallback
+                name={event.organizer?.fullName || undefined}
+                className="rounded-lg text-2xl"
+              >
+                {getInitials(event.organizer?.fullName)}
+              </AvatarFallback>
+            </Avatar>
           </div>
           <div className="flex flex-col gap-2">
             <p className="text-xs text-gray-600">
@@ -99,8 +99,8 @@ function EventCard({
             {event.attendeesList && event.attendeesList.length > 0
               ? event.attendeesList.slice(0, 3).map((attendee, i) => (
                   <Avatar key={i} className="h-8 w-8 border-2 border-white">
-                    <AvatarImage src={attendee.avatarUrl} />
-                    <AvatarFallback>
+                    <AvatarImage src={attendee.avatarUrl || undefined} />
+                    <AvatarFallback name={attendee.fullName || undefined}>
                       {attendee.fullName?.charAt(0) || "A"}
                     </AvatarFallback>
                   </Avatar>

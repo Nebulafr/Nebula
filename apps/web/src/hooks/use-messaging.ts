@@ -14,7 +14,7 @@ interface TypingUser {
 interface MessagingUser {
   id: string;
   name: string;
-  avatar: string;
+  avatar?: string;
   token: string;
 }
 
