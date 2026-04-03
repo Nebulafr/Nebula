@@ -86,7 +86,7 @@ const config: Config = {
         "accordion-up": "accordion-up 0.2s ease-out",
         "collapsible-down": "collapsible-down 0.2s ease-out",
         "collapsible-up": "collapsible-up 0.2s ease-out",
-        marquee: "marquee 100s linear infinite",
+        marquee: "marquee 30s linear infinite",
       },
     },
   },

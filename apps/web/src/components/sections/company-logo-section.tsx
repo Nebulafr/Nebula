@@ -23,7 +23,7 @@ export function CompanyLogosSection() {
             {/* First set of logos */}
             {companyList.map((company, index) => (
               <div key={`first-${index}`} className="flex-shrink-0 px-8">
-                <div className="relative h-12 w-40">
+                <div className="relative h-10 w-40">
                   <Image
                     src={company.logo}
                     alt={company.name}
@@ -37,7 +37,7 @@ export function CompanyLogosSection() {
             {/* Second set of logos for seamless loop */}
             {companyList.map((company, index) => (
               <div key={`second-${index}`} className="flex-shrink-0 px-8" aria-hidden="true">
-                <div className="relative h-12 w-40">
+                <div className="relative h-10 w-40">
                   <Image
                     src={company.logo}
                     alt={company.name}
