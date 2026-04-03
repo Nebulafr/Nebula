@@ -11,7 +11,7 @@ export interface AdminDashboardStats {
     value: string;
     change: string;
   };
-  signups: {
+  activeStudents: {
     value: string;
     change: string;
   };

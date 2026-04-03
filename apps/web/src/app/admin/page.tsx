@@ -23,7 +23,7 @@ export default function AdminDashboardPage() {
   const defaultStats = {
     revenue: { value: "€0", change: t("fromLastMonthShort", { change: "0" }) },
     users: { value: "0", change: t("fromLastMonthShort", { change: "0" }) },
-    signups: { value: "+0", change: t("fromLastMonthShort", { change: "0" }) },
+    activeStudents: { value: "0", change: t("sinceLastMonthShort", { count: "0" }) },
     coaches: { value: "0", change: t("sinceLastMonthShort", { count: "0" }) },
   };
 
