@@ -38,18 +38,17 @@ const AvatarFallback = React.forwardRef<
     name?: string;
   }
 >(({ className, name, ...props }, ref) => {
-  const colors = name ? getAvatarColor(name) : null;
+  const color = name ? getAvatarColor(name) : null;
 
   return (
     <AvatarPrimitive.Fallback
       ref={ref}
-      style={colors ? {
-        background: `linear-gradient(135deg, ${colors.from}, ${colors.to})`,
-        boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.2)'
+      style={color ? {
+        backgroundColor: color,
       } : undefined}
       className={cn(
-        "flex h-full w-full items-center justify-center rounded-full bg-slate-200 text-white font-semibold text-sm shadow-sm",
-        !colors && "text-slate-400",
+        "flex h-full w-full items-center justify-center rounded-full bg-slate-200 text-white font-medium text-lg leading-none select-none",
+        !color && "text-slate-400",
         className
       )}
       {...props}

@@ -236,28 +236,27 @@ export function formatChatTime(date: string | Date | null | undefined): string {
 
 /* --- Avatar / Image Utilities --- */
 
-export const avatarColorPairs = [
-  { from: "#4F46E5", to: "#7C3AED" }, // Indigo to Violet
-  { from: "#EC4899", to: "#8B5CF6" }, // Pink to Violet
-  { from: "#3B82F6", to: "#06B6D4" }, // Blue to Cyan
-  { from: "#10B981", to: "#3B82F6" }, // Emerald to Blue
-  { from: "#F59E0B", to: "#EF4444" }, // Amber to Red
-  { from: "#8B5CF6", to: "#D946EF" }, // Violet to Fuchsia
-  { from: "#0EA5E9", to: "#2563EB" }, // Sky to Blue
-  { from: "#F43F5E" , to: "#FB923C" }, // Rose to Orange
+export const avatarColors = [
+  "#1a73e8", // Blue 600
+  "#d93025", // Red 600
+  "#f9ab00", // Yellow 700
+  "#1e8e3e", // Green 700
+  "#e37400", // Orange 700
+  "#a142f4", // Purple 500
+  "#f06292", // Pink 400
+  "#0097a7", // Teal 600
 ];
 
 export function getAvatarColor(str: string) {
   let hash = 0;
   for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
-  return avatarColorPairs[Math.abs(hash) % avatarColorPairs.length];
+  return avatarColors[Math.abs(hash) % avatarColors.length];
 }
 
 export function getInitials(name?: string | null): string {
   if (!name || name.trim().length === 0) return "U";
   const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
-  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+  return parts[0].charAt(0).toUpperCase();
 }
 
 export function getUserAvatar(name?: string | null, size: number = 128): string | undefined {
