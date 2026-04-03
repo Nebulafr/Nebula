@@ -26,7 +26,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { formatUserName, getInitials, getDefaultAvatar } from "@/lib/utils";
+import { formatUserName, getInitials } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 import { AdminPagination } from "../../components/admin-pagination";
 import { AdminTransaction } from "@/hooks/use-admin-queries";
@@ -194,9 +194,9 @@ export function TransactionsTable({
                         <div className="flex items-center gap-3">
                           <Avatar>
                             <AvatarImage
-                              src={transaction.user.avatarUrl || getDefaultAvatar(transaction.user.fullName || undefined)}
+                              src={transaction.user.avatarUrl || undefined}
                             />
-                            <AvatarFallback>{initials}</AvatarFallback>
+                            <AvatarFallback name={transaction.user.fullName || undefined}>{initials}</AvatarFallback>
                           </Avatar>
                           <div>
                             <span className="font-medium text-sm">{displayName}</span>

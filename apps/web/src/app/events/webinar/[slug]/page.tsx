@@ -14,7 +14,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { useTranslations, useLocale } from "next-intl";
 import {
-  getDefaultAvatar,
+  getInitials,
   getDefaultBanner,
   getEventBackgroundColor,
 } from "@/lib/utils";
@@ -165,12 +165,11 @@ export default function WebinarPage() {
                   <Avatar className="h-12 w-12">
                     <AvatarImage
                       src={
-                        event.organizer?.avatarUrl ||
-                        getDefaultAvatar(event.organizer?.fullName)
+                        event.organizer?.avatarUrl || undefined
                       }
                     />
-                    <AvatarFallback>
-                      {event.organizer?.fullName?.charAt(0) || "H"}
+                    <AvatarFallback name={event.organizer?.fullName || undefined}>
+                      {getInitials(event.organizer?.fullName)}
                     </AvatarFallback>
                   </Avatar>
                   <div>

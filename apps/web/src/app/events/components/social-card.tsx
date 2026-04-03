@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ExternalLink, Star } from "lucide-react";
 import { useTranslations, useLocale } from "next-intl";
 import { Event } from "@/types/event";
-import { getEventGradientBackground, getDefaultAvatar, getDefaultBanner, getAccessTypeText } from "@/lib/utils";
+import { getEventGradientBackground, getInitials, getDefaultBanner, getAccessTypeText } from "@/lib/utils";
 
 interface SocialCardProps {
   event: Event;
@@ -44,9 +44,9 @@ export function SocialCard({ event, index, previousIndex }: SocialCardProps) {
           </h3>
           <div className="flex items-center gap-2 mt-2">
             <Avatar className="h-6 w-6">
-              <AvatarImage src={event.organizer?.avatarUrl || getDefaultAvatar(event.organizer?.fullName)} />
-              <AvatarFallback>
-                {event.organizer?.fullName?.charAt(0) || "A"}
+              <AvatarImage src={event.organizer?.avatarUrl || undefined} />
+              <AvatarFallback name={event.organizer?.fullName || undefined}>
+                {getInitials(event.organizer?.fullName)}
               </AvatarFallback>
             </Avatar>
             <p className="text-sm text-muted-foreground">
@@ -78,8 +78,8 @@ export function SocialCard({ event, index, previousIndex }: SocialCardProps) {
                 {event.attendeesList && event.attendeesList.length > 0
                   ? event.attendeesList.slice(0, 3).map((attendee, i) => (
                       <Avatar key={i} className="h-8 w-8 border-2 border-white">
-                        <AvatarImage src={attendee.avatarUrl} />
-                        <AvatarFallback>
+                        <AvatarImage src={attendee.avatarUrl || undefined} />
+                        <AvatarFallback name={attendee.fullName || undefined}>
                           {attendee.fullName?.charAt(0) || "A"}
                         </AvatarFallback>
                       </Avatar>

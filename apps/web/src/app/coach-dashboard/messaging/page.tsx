@@ -27,7 +27,7 @@ function CoachMessagingPageContent() {
   const currentUser = {
     id: profile?.id || "",
     name: profile?.fullName || "Coach",
-    avatar: profile?.avatarUrl || "https://i.pravatar.cc/150?u=coach",
+    avatar: profile?.avatarUrl || undefined,
     token: accessToken || "",
   };
 

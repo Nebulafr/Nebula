@@ -24,7 +24,7 @@ function StudentMessagingPageContent() {
   const currentUser = {
     id: profile?.id || "",
     name: profile?.fullName || "Student",
-    avatar: profile?.avatarUrl || "https://i.pravatar.cc/150?u=student",
+    avatar: profile?.avatarUrl || undefined,
     token: accessToken || "",
   };
 

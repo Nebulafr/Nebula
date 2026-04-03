@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ExternalLink } from "lucide-react";
 import { useTranslations, useLocale } from "next-intl";
 import { Event } from "@/types/event";
-import { getEventBackgroundColor, getDefaultAvatar, getAccessTypeText } from "@/lib/utils";
+import { getEventBackgroundColor, getInitials, getAccessTypeText } from "@/lib/utils";
 
 interface WebinarCardProps {
   event: Event;
@@ -32,15 +32,12 @@ export function WebinarCard({ event, index, previousIndex }: WebinarCardProps) {
           </Badge>
           <div className="flex items-start gap-4 pt-6 pb-4 flex-grow">
             <div className="flex-shrink-0">
-              <div className="w-[120px] h-[120px]">
-                <Image
-                  src={event.organizer?.avatarUrl || getDefaultAvatar(event.organizer?.fullName)}
-                  alt={event.organizer?.fullName || "Organizer"}
-                  width={120}
-                  height={120}
-                  className="rounded-lg object-cover aspect-square w-full h-full"
-                />
-              </div>
+                <Avatar className="w-[120px] h-[120px] rounded-lg">
+                  <AvatarImage src={event.organizer?.avatarUrl || undefined} alt={event.organizer?.fullName || "Organizer"} />
+                  <AvatarFallback name={event.organizer?.fullName || undefined} className="rounded-lg text-2xl">
+                    {getInitials(event.organizer?.fullName)}
+                  </AvatarFallback>
+                </Avatar>
             </div>
             <div className="flex flex-col gap-2">
               <p className="text-xs text-gray-600">
@@ -72,8 +69,8 @@ export function WebinarCard({ event, index, previousIndex }: WebinarCardProps) {
               {event.attendeesList && event.attendeesList.length > 0
                 ? event.attendeesList.slice(0, 3).map((attendee, i) => (
                     <Avatar key={i} className="h-8 w-8 border-2 border-white">
-                      <AvatarImage src={attendee.avatarUrl} />
-                      <AvatarFallback>
+                      <AvatarImage src={attendee.avatarUrl || undefined} />
+                      <AvatarFallback name={attendee.fullName || undefined}>
                         {attendee.fullName?.charAt(0) || "A"}
                       </AvatarFallback>
                     </Avatar>

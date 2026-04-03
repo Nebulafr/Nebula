@@ -355,8 +355,8 @@ export default function SimulationPage() {
                 <div className="relative p-8 rounded-2xl bg-[#0A0A0A] border border-white/10 space-y-6">
                   <div className="flex items-start gap-4 p-4 rounded-lg bg-white/5 border border-white/5">
                     <Avatar className="w-10 h-10">
-                      <AvatarImage src="https://i.pravatar.cc/40?u=john-doe-ai" />
-                      <AvatarFallback>JD</AvatarFallback>
+                      <AvatarImage src={undefined} />
+                      <AvatarFallback name="John Doe (AI)">JD</AvatarFallback>
                     </Avatar>
                     <div>
                       <div className="flex justify-between items-center mb-1">
@@ -371,8 +371,8 @@ export default function SimulationPage() {
                   </div>
                   <div className="flex items-start gap-4 p-4 rounded-lg bg-white/5 border border-white/5 opacity-60">
                     <Avatar className="w-10 h-10">
-                      <AvatarImage src="https://i.pravatar.cc/40?u=sarah-ai" />
-                      <AvatarFallback>SA</AvatarFallback>
+                      <AvatarImage src={undefined} />
+                      <AvatarFallback name="Sarah Al-Fayed (AI)">SA</AvatarFallback>
                     </Avatar>
                     <div>
                       <div className="flex justify-between items-center mb-1">

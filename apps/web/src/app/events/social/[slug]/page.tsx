@@ -23,7 +23,7 @@ import { useEventBySlug, useEventCheckout, useAuth } from "@/hooks";
 import { Loading } from "@/components/shared/loading";
 import { useTranslations, useLocale } from "next-intl";
 import {
-  getDefaultAvatar,
+  getInitials,
   getDefaultBanner,
 } from "@/lib/utils";
 import { toast } from "react-toastify";
@@ -128,12 +128,11 @@ export default function SocialEventPage() {
             <Avatar className="h-8 w-8">
               <AvatarImage
                 src={
-                  event.organizer?.avatarUrl ||
-                  getDefaultAvatar(event.organizer?.fullName)
+                  event.organizer?.avatarUrl || undefined
                 }
               />
-              <AvatarFallback>
-                {event.organizer?.fullName?.charAt(0) || "O"}
+              <AvatarFallback name={event.organizer?.fullName || undefined}>
+                {getInitials(event.organizer?.fullName)}
               </AvatarFallback>
             </Avatar>
             <p className="font-semibold">

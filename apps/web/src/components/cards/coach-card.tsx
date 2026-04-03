@@ -21,7 +21,6 @@ interface CoachCardProps {
 }
 
 export function CoachCard({ coach }: CoachCardProps) {
-  console.log({ coach });
   const t = useTranslations('coaches');
 
   return (
@@ -30,10 +29,10 @@ export function CoachCard({ coach }: CoachCardProps) {
         <div className="flex flex-col items-center text-center">
           <Avatar className="h-24 w-24">
             <AvatarImage
-              src={coach.avatarUrl || `https://i.pravatar.cc/150?u=${coach.id}`}
+              src={coach.avatarUrl || undefined}
               alt={coach.fullName}
             />
-            <AvatarFallback>
+            <AvatarFallback name={coach.fullName || undefined}>
               {coach.fullName
                 .split(' ')
                 .map((n: string) => n[0])
