@@ -32,7 +32,7 @@ export function ChatHeader({ conversation, onBack }: ChatHeaderProps) {
         <div className="relative">
           <Avatar className="h-10 w-10 ring-2 ring-gray-50">
             <AvatarImage src={conversation.avatar ?? undefined} />
-            <AvatarFallback className="bg-primary/5 text-primary font-medium">
+            <AvatarFallback name={conversation.name || undefined}>
               {initials}
             </AvatarFallback>
           </Avatar>

@@ -115,9 +115,9 @@ export async function makeRequest<T = any>(
     } catch {
       try {
         const text = await response.text();
-        result = { 
-          success: response.ok, 
-          message: text?.length < 200 ? text : (response.statusText || "Request failed") 
+        result = {
+          success: response.ok,
+          message: text?.length < 200 ? text : (response.statusText || "Request failed")
         };
       } catch {
         result = { success: response.ok, message: response.statusText || "Request failed" };
