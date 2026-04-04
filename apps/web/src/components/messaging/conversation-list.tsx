@@ -138,7 +138,7 @@ function ConversationItem({
       <div className="flex items-center gap-3">
         <Avatar className="h-12 w-12 border-2 border-gray-100">
           <AvatarImage src={conversation.avatar || undefined} />
-          <AvatarFallback className="font-medium text-gray-600 bg-gray-100">
+          <AvatarFallback name={conversation.name || undefined}>
             {initials}
           </AvatarFallback>
         </Avatar>

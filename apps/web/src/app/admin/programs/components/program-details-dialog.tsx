@@ -79,7 +79,9 @@ export function ProgramDetailsDialog({
             <div className="flex items-center gap-2 mt-2">
               <Avatar className="h-6 w-6">
                 <AvatarImage src={program.coach.user.avatarUrl} />
-                <AvatarFallback>{coachInitials}</AvatarFallback>
+                <AvatarFallback name={program.coach.user.fullName || undefined}>
+                  {coachInitials}
+                </AvatarFallback>
               </Avatar>
               <span>{coachName}</span>
             </div>

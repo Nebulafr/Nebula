@@ -356,7 +356,7 @@ export default function SimulationPage() {
                   <div className="flex items-start gap-4 p-4 rounded-lg bg-white/5 border border-white/5">
                     <Avatar className="w-10 h-10">
                       <AvatarImage src={undefined} />
-                      <AvatarFallback name="John Doe (AI)">JD</AvatarFallback>
+                      <AvatarFallback name="John Doe (AI)">J</AvatarFallback>
                     </Avatar>
                     <div>
                       <div className="flex justify-between items-center mb-1">
@@ -372,7 +372,7 @@ export default function SimulationPage() {
                   <div className="flex items-start gap-4 p-4 rounded-lg bg-white/5 border border-white/5 opacity-60">
                     <Avatar className="w-10 h-10">
                       <AvatarImage src={undefined} />
-                      <AvatarFallback name="Sarah Al-Fayed (AI)">SA</AvatarFallback>
+                      <AvatarFallback name="Sarah Al-Fayed (AI)">S</AvatarFallback>
                     </Avatar>
                     <div>
                       <div className="flex justify-between items-center mb-1">

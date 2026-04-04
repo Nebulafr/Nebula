@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { getInitials } from '@/lib/utils';
 import { Euro, Star, Users } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
@@ -32,11 +33,8 @@ export function CoachCard({ coach }: CoachCardProps) {
               src={coach.avatarUrl || undefined}
               alt={coach.fullName}
             />
-            <AvatarFallback name={coach.fullName || undefined}>
-              {coach.fullName
-                .split(' ')
-                .map((n: string) => n[0])
-                .join('')}
+            <AvatarFallback name={coach.fullName || undefined} className='text-4xl font-bold'>
+              {getInitials(coach.fullName)}
             </AvatarFallback>
           </Avatar>
           <div className="mt-4">

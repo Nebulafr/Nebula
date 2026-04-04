@@ -1,4 +1,4 @@
- 
+
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -15,6 +15,7 @@ import { User, Settings, LogOut } from "lucide-react";
 import Link from "next/link";
 import { LogoutButton } from "./logout-button";
 import { useAuth } from "@/hooks/use-auth";
+import { getInitials } from "@/lib/utils";
 
 export function AuthStatus() {
   const { isAuthenticated, loading, profile } = useAuth();
@@ -40,21 +41,14 @@ export function AuthStatus() {
     );
   }
 
-  const initials =
-    profile?.fullName
-      ?.split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase() ||
-    profile?.email?.[0].toUpperCase() ||
-    "U";
+  const initials = getInitials(profile?.fullName || profile?.email);
 
   const dashboardPath =
     profile?.role === "COACH"
       ? "/coach-dashboard"
       : profile?.role === "ADMIN"
-      ? "/admin"
-      : "/dashboard";
+        ? "/admin"
+        : "/dashboard";
 
   return (
     <DropdownMenu>
@@ -65,7 +59,9 @@ export function AuthStatus() {
               src={profile?.avatarUrl || ""}
               alt={profile?.fullName || ""}
             />
-            <AvatarFallback>{initials}</AvatarFallback>
+            <AvatarFallback name={profile?.fullName || profile?.email || undefined}>
+              {initials}
+            </AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>

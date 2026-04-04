@@ -149,7 +149,9 @@ export function ProgramsTable({
                   <div className="flex items-center gap-3">
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={program.coach.user.avatarUrl} />
-                      <AvatarFallback>{coachInitials}</AvatarFallback>
+                      <AvatarFallback name={program.coach.user.fullName || undefined}>
+                        {coachInitials}
+                      </AvatarFallback>
                     </Avatar>
                     <span>{coachName}</span>
                   </div>

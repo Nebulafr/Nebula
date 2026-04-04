@@ -8,6 +8,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Star, Euro } from "lucide-react";
 import { useTranslations } from "next-intl";
 
+import { cn, formatUserName, getInitials } from "@/lib/utils";
+
 interface LucyCoachCardProps {
   coach: {
     id: string;
@@ -34,10 +36,7 @@ export function LucyCoachCard({ coach }: LucyCoachCardProps) {
               alt={coach.fullName}
             />
             <AvatarFallback name={coach.fullName || undefined}>
-              {coach.fullName
-                .split(" ")
-                .map((n: string) => n[0])
-                .join("")}
+              {getInitials(coach.fullName)}
             </AvatarFallback>
           </Avatar>
           

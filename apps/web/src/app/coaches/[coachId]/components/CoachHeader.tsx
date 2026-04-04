@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Star } from "lucide-react";
 import { useTranslations } from "next-intl";
 
+import { getInitials } from "@/lib/utils";
+
 interface CoachHeaderProps {
     coach: any;
 }
@@ -18,7 +20,7 @@ export function CoachHeader({ coach }: CoachHeaderProps) {
             <div className="flex items-center gap-6">
                 <Avatar className="h-24 w-24">
                     <AvatarImage src={coach.avatarUrl} />
-                    <AvatarFallback>{coach.fullName.charAt(0)}</AvatarFallback>
+                    <AvatarFallback name={coach.fullName || undefined}>{getInitials(coach.fullName)}</AvatarFallback>
                 </Avatar>
                 <div>
                     <h1 className="font-headline text-4xl font-bold tracking-tighter text-primary md:text-5xl">
