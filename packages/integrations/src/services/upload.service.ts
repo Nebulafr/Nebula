@@ -96,8 +96,8 @@ export class UploadService {
       folder: "nebula-avatars",
       publicId: userId ? `avatar-${userId}` : undefined,
       transformation: {
-        width: 200,
-        height: 200,
+        width: 400,
+        height: 400,
         crop: "fill",
         gravity: "face",
       },

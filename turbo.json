@@ -6,6 +6,18 @@
     "PORT",
     "ACCESS_TOKEN_SECRET",
     "REFRESH_TOKEN_SECRET",
+    "GOOGLE_CLIENT_ID",
+    "GOOGLE_CLIENT_SECRET",
+    "CLOUDINARY_API_KEY",
+    "CLOUDINARY_API_SECRET",
+    "ZEPTOMAIL_API_KEY",
+    "ZEPTOMAIL_FROM_ADDRESS",
+    "STRIPE_SECRET_KEY",
+    "STRIPE_WEBHOOK_SECRET",
+    "PINECONE_API_KEY",
+    "PINECONE_INDEX_NAME",
+    "OPENAI_API_KEY",
+    "NEXTAUTH_URL"
   ],
   "globalDependencies": [
     ".env",
@@ -23,20 +35,7 @@
         "!.next/cache/**"
       ],
       "env": [
-        "PINECONE_API_KEY",
-        "PINECONE_INDEX_NAME",
-        "STRIPE_SECRET_KEY",
         "STRIPE_PUBLISHABLE_KEY",
-        "OPENAI_API_KEY",
-        "REFRESH_TOKEN_SECRET",
-        "GOOGLE_CLIENT_ID",
-        "GOOGLE_CLIENT_SECRET",
-        "CLOUDINARY_API_KEY",
-        "CLOUDINARY_API_SECRET",
-        "ZEPTOMAIL_API_KEY",
-        "ZEPTOMAIL_FROM_ADDRESS",
-        "STRIPE_WEBHOOK_SECRET",
-        "NEXTAUTH_URL",
         "NEXT_PUBLIC_*"
       ]
     },
