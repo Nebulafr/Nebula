@@ -3,12 +3,17 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, ArrowRight, BarChart3, Bot, Leaf } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/images/placeholder-images";
 import { useRouter } from "next/navigation";
+
+// Assets
+import beginnerIcon from "@/lib/images/custom-images/beginner.svg";
+import intermediateIcon from "@/lib/images/custom-images/intermediate.svg";
+import advancedIcon from "@/lib/images/custom-images/advanced.svg";
 import React from "react";
 import { ExperienceLevel } from "@/types/index";
 import { useForm } from "react-hook-form";
@@ -20,19 +25,43 @@ import {
 
 const skillLevelConfig = {
   [ExperienceLevel.BEGINNER]: {
-    icon: <Leaf className="h-5 w-5 text-green-500" />,
+    icon: (
+      <Image
+        src={beginnerIcon}
+        alt="Beginner"
+        width={28}
+        height={28}
+        className="transition-transform duration-300 group-hover:scale-110"
+      />
+    ),
     titleKey: "beginner.title",
     descriptionKey: "beginner.description",
     color: "bg-green-500/10",
   },
   [ExperienceLevel.INTERMEDIATE]: {
-    icon: <BarChart3 className="h-5 w-5 text-blue-500" />,
+    icon: (
+      <Image
+        src={intermediateIcon}
+        alt="Intermediate"
+        width={28}
+        height={28}
+        className="transition-transform duration-300 group-hover:scale-110"
+      />
+    ),
     titleKey: "intermediate.title",
     descriptionKey: "intermediate.description",
     color: "bg-blue-500/10",
   },
   [ExperienceLevel.ADVANCED]: {
-    icon: <Bot className="h-5 w-5 text-purple-500" />,
+    icon: (
+      <Image
+        src={advancedIcon}
+        alt="Advanced"
+        width={28}
+        height={28}
+        className="transition-transform duration-300 group-hover:scale-110"
+      />
+    ),
     titleKey: "advanced.title",
     descriptionKey: "advanced.description",
     color: "bg-purple-500/10",
@@ -150,9 +179,7 @@ function OnboardingStep2Content() {
                   <div
                     className={`flex h-14 w-14 items-center justify-center rounded-2xl transition-transform duration-500 group-hover:rotate-6 ${level.color} shadow-inner backdrop-blur-sm`}
                   >
-                    {React.cloneElement(level.icon as React.ReactElement, {
-                      className: "h-7 w-7 transition-transform duration-300 group-hover:scale-110",
-                    })}
+                    {level.icon}
                   </div>
                   <div className="flex-1">
                     <h3 className="font-headline text-xl font-bold tracking-tight">

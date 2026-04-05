@@ -21,6 +21,11 @@ import { universityLogosArray } from "@/lib/images/universities";
 import { Header } from "@/components/layout/header";
 import { useRouter } from "next/navigation";
 
+// Benefits Icons
+import careerPrepIcon from "@/lib/images/custom-images/career-prep.svg";
+import schoolIcon from "@/lib/images/custom-images/school.svg";
+import getMatchedIcon from "@/lib/images/custom-images/get-matched.svg";
+
 export default function UniversitiesPage() {
   const t = useTranslations("universities");
   const router = useRouter();
@@ -28,19 +33,19 @@ export default function UniversitiesPage() {
 
   const benefits = [
     {
-      icon: "/custom-images/career-prep.svg",
+      icon: careerPrepIcon,
       title: t("benefits.employability.title"),
       description: t("benefits.employability.description"),
       color: "bg-primary/10",
     },
     {
-      icon: "/custom-images/school.svg",
+      icon: schoolIcon,
       title: t("benefits.alumni.title"),
       description: t("benefits.alumni.description"),
       color: "bg-blue-500/10",
     },
     {
-      icon: "/custom-images/get-matched.svg",
+      icon: getMatchedIcon,
       title: t("benefits.scale.title"),
       description: t("benefits.scale.description"),
       color: "bg-purple-500/10",
