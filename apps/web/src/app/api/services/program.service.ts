@@ -899,6 +899,11 @@ export class ProgramService {
       },
     });
 
+    // Sync to vector DB
+    this.getById(updatedProgram.id).then(({ program }) => {
+      vectorHubService.syncProgramToVector(program);
+    }).catch(err => console.error("Vector sync failed:", err));
+
     return { program: updatedProgram };
   }
 

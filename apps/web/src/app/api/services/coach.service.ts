@@ -305,6 +305,12 @@ export class CoachService {
         where: { coachId: coach.id },
         orderBy: { startDate: "desc" },
       });
+    }).then((experiences) => {
+      // Sync to vector DB
+      this.getProfile(userId).then(({ coach }) => {
+        vectorHubService.syncCoachToVector(coach);
+      }).catch(err => console.error("Vector sync failed:", err));
+      return experiences;
     });
   }
 

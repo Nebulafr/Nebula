@@ -11,6 +11,13 @@ import { categoryService } from "./category.service";
 import { EventType } from "@/types/event";
 import { NEBULA_AI_SYSTEM_PROMPT } from "../prompts/nebula-ai";
 import { prisma, ConversationType } from "@nebula/database";
+import { vectorHubService } from "@nebula/integrations";
+
+export interface AgentResponse {
+  message: string;
+  isError: boolean;
+  data?: any;
+}
 
 /**
  * Service Class for Nebula AI Agent
@@ -46,6 +53,7 @@ class AgentsService {
         this.searchEventsTool(),
         this.getUserProfileTool(),
         this.getAllCategoriesTool(),
+        this.searchMemoryTool(),
       ],
     });
   }
@@ -55,12 +63,12 @@ class AgentsService {
    */
   private searchCoachesTool() {
     return tool(
-      async (args: { specialty?: string; search?: string; limit?: number }) => this.searchCoaches(args),
+      async (args: { categoryId?: string; search?: string; limit?: number }) => this.searchCoaches({ specialty: args.categoryId, search: args.search, limit: args.limit }),
       {
         name: "search_coaches",
         description: "Search for coaches based on specialty, price range, or general search terms.",
         schema: z.object({
-          specialty: z.string().optional().describe("Specialty or category"),
+          categoryId: z.string().optional().describe("Category ID (use get_all_categories tool to find IDs)"),
           search: z.string().optional().describe("General search term"),
           limit: z.number().optional().default(5).describe("Limit the number of results"),
         }),
@@ -70,12 +78,12 @@ class AgentsService {
 
   private searchProgramsTool() {
     return tool(
-      async (args: { category?: string; search?: string; limit?: number }) => this.searchPrograms(args),
+      async (args: { categoryId?: string; search?: string; limit?: number }) => this.searchPrograms({ category: args.categoryId, search: args.search, limit: args.limit }),
       {
         name: "search_programs",
         description: "Search for active programs such as courses or bootcamps by category or keyword.",
         schema: z.object({
-          category: z.string().optional().describe("Program category"),
+          categoryId: z.string().optional().describe("Category ID (use get_all_categories tool to find IDs)"),
           search: z.string().optional().describe("Search term"),
           limit: z.number().optional().default(5).describe("Limit the number of results"),
         }),
@@ -122,6 +130,20 @@ class AgentsService {
     );
   }
 
+  private searchMemoryTool() {
+    return tool(
+      async (args: { query: string; limit?: number }, { context }: any) => this.searchMemory({ ...args, userId: context.userId }),
+      {
+        name: "search_memory",
+        description: "Search through previous conversations to recall user interests, goals, and shared information.",
+        schema: z.object({
+          query: z.string().describe("The semantic search query"),
+          limit: z.number().optional().default(5).describe("Number of memories to recall"),
+        }),
+      }
+    );
+  }
+
   /**
    * Tool Implementations
    */
@@ -141,7 +163,7 @@ class AgentsService {
   private async searchPrograms({ category, search, limit = 5 }: { category?: string; search?: string; limit?: number }) {
     try {
       const response = await programService.getPrograms({
-        category,
+        categoryId: category,
         search,
         limit,
       });
@@ -179,6 +201,19 @@ class AgentsService {
       return response.categories || [];
     } catch (error: any) {
       return { error: `Error fetching categories: ${error.message}` };
+    }
+  }
+
+  private async searchMemory({ userId, query, limit = 5 }: { userId: string; query: string; limit?: number }) {
+    try {
+      const results = await vectorHubService.searchMemory(userId, query, limit);
+      return results.map((r: any) => ({
+        content: r.metadata?.userContent || r.metadata?.assistantContent || "",
+        timestamp: r.metadata?.timestamp,
+        relevance: r.score,
+      }));
+    } catch (error: any) {
+      return { error: `Error searching memory: ${error.message}` };
     }
   }
 
@@ -254,43 +289,81 @@ class AgentsService {
   /**
    * Public API
    */
-  public async processAgentRequest(payload: AgentInput & { userId: string }): Promise<any> {
+  public async processAgentRequest(payload: AgentInput & { userId: string }): Promise<AgentResponse> {
     console.log("Processing agent request:", payload);
 
-    // 1. Get or create AI conversation
+    // 1. Fetch or create a default conversation for the user to maintain state
     const conversation = await this.getOrCreateAiConversation(payload.userId);
 
-    // 2. Save human message
-    await this.saveMessage(conversation.id, payload.message, false, payload.userId);
+    // 2. Process the user's message through the AI Agent Service.
+    // Errors inside the agent are caught there and returned as { isError: true, message: "..." }
+    const agentResponse = await this.processAgentMessage(payload);
 
-    // 3. Get history for context
-    const history = await this.getConversationHistory(conversation.id);
+    const responseText = agentResponse.message;
 
-    // Intersect the last human message with context parameters
-    if (history.length > 0) {
-      const lastMessage = history[history.length - 1];
-      if (lastMessage instanceof HumanMessage) {
-        lastMessage.content = `${lastMessage.content}\n\n[Context - UserID: ${payload.userId}, Role: ${payload.userRole}]`;
-      }
+    // 3. Persist both the user message and the system's response (success or error) to the database
+    const [userMsg, assistantMsg] = await Promise.all([
+      this.saveMessage(conversation.id, payload.message, false, payload.userId),
+      this.saveMessage(conversation.id, responseText, true)
+    ]);
+
+    // 4. If the processing was successful (not an error), queue the conversation turn for RAG indexing
+    if (userMsg && assistantMsg && !agentResponse.isError) {
+      vectorHubService.syncConversationToVector({
+        conversationId: conversation.id,
+        userId: payload.userId,
+        userContent: payload.message,
+        assistantContent: assistantMsg.content,
+        assistantMessageId: assistantMsg.id,
+      }).catch((err: any) => console.error('Background indexing failed', err));
     }
 
-    // 4. Invoke agent with history
-    const response = await this.agent.invoke({
-      messages: history
-    }, {
-      context: {
-        userRole: payload.userRole,
-        userId: payload.userId,
-      }
-    });
+    // 5. Return the agent's response to the caller
+    return agentResponse;
+  }
 
-    const agentContent = response.messages.at(-1)?.content as string || "";
-    console.log("Agent response:", agentContent);
+  /**
+   * Internal Agent Processing
+   */
+  private async processAgentMessage(payload: AgentInput & { userId: string }): Promise<AgentResponse> {
+    try {
+      // Get history for context
+      const conversation = await this.getOrCreateAiConversation(payload.userId);
+      const history = await this.getConversationHistory(conversation.id);
 
-    // 5. Save agent response
-    await this.saveMessage(conversation.id, agentContent, true);
+      // Create the current message with embedded context
+      const currentMessage = new HumanMessage({
+        content: `${payload.message}\n\n[Context - UserID: ${payload.userId}, Role: ${payload.userRole}]`
+      });
 
-    return { data: agentContent };
+      // Combine history with current message
+      const messages = [...history, currentMessage];
+
+      // Invoke agent with full history including current turn
+      const response = await this.agent.invoke({
+        messages: messages
+      }, {
+        context: {
+          userRole: payload.userRole,
+          userId: payload.userId,
+        }
+      });
+
+      const agentContent = response.messages.at(-1)?.content as string || "";
+      console.log("Agent response:", agentContent);
+
+      return {
+        message: agentContent,
+        isError: false,
+        data: agentContent
+      };
+    } catch (error: any) {
+      console.error("Error in processAgentMessage:", error);
+      return {
+        message: `I'm sorry, I encountered an error processing your request: ${error.message}`,
+        isError: true
+      };
+    }
   }
 }
 

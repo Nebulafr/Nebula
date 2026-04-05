@@ -3,6 +3,7 @@ export const PINECONE_NAMESPACES = {
   USER_MEMORY: 'user_memory',
   COACH_PROFILES: 'coach_profiles',
   PROGRAM_EMBEDDINGS: 'program_embeddings',
+  EVENT_EMBEDDINGS: 'event_embeddings',
   PLATFORM_KNOWLEDGE: 'platform_knowledge',
 } as const;
 

@@ -12,7 +12,7 @@ import {
   PlaceHolderImages,
   type ImagePlaceholder,
 } from "@/lib/images/placeholder-images";
-import { PlayCircle } from "lucide-react";
+import { PlayCircle, Briefcase, HeartHandshake, ExternalLink } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { Footer } from "@/components/layout/footer";
@@ -21,10 +21,7 @@ import { universityLogosArray } from "@/lib/images/universities";
 import { Header } from "@/components/layout/header";
 import { useRouter } from "next/navigation";
 
-// Benefits Icons
-import careerPrepIcon from "@/lib/images/custom-images/career-prep.svg";
-import schoolIcon from "@/lib/images/custom-images/school.svg";
-import getMatchedIcon from "@/lib/images/custom-images/get-matched.svg";
+// Benefits Icons deleted
 
 export default function UniversitiesPage() {
   const t = useTranslations("universities");
@@ -33,22 +30,25 @@ export default function UniversitiesPage() {
 
   const benefits = [
     {
-      icon: careerPrepIcon,
+      icon: Briefcase,
       title: t("benefits.employability.title"),
       description: t("benefits.employability.description"),
       color: "bg-primary/10",
+      iconColor: "text-primary",
     },
     {
-      icon: schoolIcon,
+      icon: HeartHandshake,
       title: t("benefits.alumni.title"),
       description: t("benefits.alumni.description"),
       color: "bg-blue-500/10",
+      iconColor: "text-blue-500",
     },
     {
-      icon: getMatchedIcon,
+      icon: ExternalLink,
       title: t("benefits.scale.title"),
       description: t("benefits.scale.description"),
       color: "bg-purple-500/10",
+      iconColor: "text-purple-500",
     },
   ];
 
@@ -196,13 +196,7 @@ export default function UniversitiesPage() {
                     <div
                       className={`flex h-12 w-12 items-center justify-center rounded-full ${benefit.color}`}
                     >
-                      <Image
-                        src={benefit.icon}
-                        alt={benefit.title}
-                        width={24}
-                        height={24}
-                        className="object-contain"
-                      />
+                      <benefit.icon className={`h-6 w-6 ${benefit.iconColor}`} />
                     </div>
                     <h3 className="mt-6 font-headline text-2xl font-semibold">
                       {benefit.title}
