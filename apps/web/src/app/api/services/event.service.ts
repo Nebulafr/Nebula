@@ -12,7 +12,7 @@ import {
 } from "../utils/http-exception";
 import { generateSlug } from "@/lib/utils";
 import { paymentService } from "./payment.service";
-import { uploadService } from "@nebula/integrations";
+import { uploadService, vectorHubService } from "@nebula/integrations";
 
 export class EventService {
   create = async (userId: string, userRole: string, data: CreateEventData): Promise<any> => {
@@ -112,6 +112,9 @@ export class EventService {
       createdAt: event.createdAt.toISOString(),
       updatedAt: event.updatedAt.toISOString(),
     };
+
+    // Sync to vector DB
+    vectorHubService.syncEventToVector(transformedEvent).catch((err: any) => console.error("Vector sync failed:", err));
 
     return { event: transformedEvent };
   };
@@ -555,6 +558,9 @@ export class EventService {
       createdAt: event!.createdAt.toISOString(),
       updatedAt: event!.updatedAt.toISOString(),
     };
+
+    // Sync to vector DB
+    vectorHubService.syncEventToVector(transformedEvent).catch((err: any) => console.error("Vector sync failed:", err));
 
     return { event: transformedEvent };
   };

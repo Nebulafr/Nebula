@@ -43,7 +43,7 @@ export function useProgramById(id: string) {
 
 export function usePrograms(params?: {
   coachId?: string;
-  category?: string;
+  categoryId?: string;
   search?: string;
   limit?: number;
 }) {
@@ -59,7 +59,7 @@ export function usePrograms(params?: {
 }
 
 export function useGroupedPrograms(params?: {
-  category?: string;
+  categoryId?: string;
   search?: string;
   limit?: number;
   page?: number;
@@ -102,7 +102,7 @@ export function useProgramBySlug(slug: string) {
 
 export function useAdminPrograms(filters?: {
   status?: string;
-  category?: string;
+  categoryId?: string;
   search?: string;
   page?: number;
   limit?: number;

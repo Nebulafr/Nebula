@@ -71,7 +71,7 @@ export default function AdminProgramsPage() {
 
   const { data: programsResponse, isLoading } = useAdminPrograms({
     search: searchTerm || undefined,
-    category: activeCategory !== "All" ? activeCategory : undefined,
+    categoryId: activeCategory !== "All" ? activeCategory : undefined,
     page,
     limit,
   });
@@ -207,7 +207,7 @@ export default function AdminProgramsPage() {
                       activeCategory !== "All" && "bg-muted font-bold"
                     )}
                   >
-                    {t("categories")} <ChevronDown className="h-4 w-4" />
+                    {activeCategory === "All" ? t("categories") : (categories.find((c: any) => c.id === activeCategory)?.name || t("categories"))} <ChevronDown className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
@@ -237,7 +237,7 @@ export default function AdminProgramsPage() {
                           onSelect={(e) => e.preventDefault()}
                         >
                           <span
-                            onClick={() => handleCategorySelect(cat.name)}
+                            onClick={() => handleCategorySelect(cat.id)}
                             className="flex-grow p-2 -m-2"
                           >
                             {cat.name}

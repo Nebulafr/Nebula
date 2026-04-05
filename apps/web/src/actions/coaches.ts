@@ -3,7 +3,7 @@ import { CoachUpdateData, CreateCoachData } from "@/lib/validations";
 import { CoachesResponse, CoachDetailResponse } from "@/types/coach";
 
 export async function getCoaches(filters?: {
-  category?: string;
+  categoryId?: string;
   search?: string;
   minPrice?: number;
   maxPrice?: number;
@@ -14,8 +14,8 @@ export async function getCoaches(filters?: {
 }): Promise<CoachesResponse> {
   const params = new URLSearchParams();
 
-  if (filters?.category && filters.category !== "All") {
-    params.append("category", filters.category);
+  if (filters?.categoryId && filters.categoryId !== "All") {
+    params.append("categoryId", filters.categoryId);
   }
   if (filters?.search) {
     params.append("search", filters.search);

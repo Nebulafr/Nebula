@@ -9,14 +9,14 @@ export async function createProgram(programData: CreateProgramData) {
 
 export async function getPrograms(params?: {
   coachId?: string;
-  category?: string;
+  categoryId?: string;
   search?: string;
   limit?: number;
 }): Promise<ProgramsResponse> {
   const searchParams = new URLSearchParams();
 
   if (params?.coachId) searchParams.set("coachId", params.coachId);
-  if (params?.category) searchParams.set("category", params.category);
+  if (params?.categoryId) searchParams.set("categoryId", params.categoryId);
   if (params?.search) searchParams.set("search", params.search);
   if (params?.limit) searchParams.set("limit", params.limit.toString());
 
@@ -25,14 +25,14 @@ export async function getPrograms(params?: {
 }
 
 export async function getGroupedPrograms(params?: {
-  category?: string;
+  categoryId?: string;
   search?: string;
   limit?: number;
   page?: number;
 }): Promise<GroupedProgramsResponse> {
   const searchParams = new URLSearchParams();
 
-  if (params?.category) searchParams.set("category", params.category);
+  if (params?.categoryId) searchParams.set("categoryId", params.categoryId);
   if (params?.search) searchParams.set("search", params.search);
   if (params?.limit) searchParams.set("limit", params.limit.toString());
   if (params?.page) searchParams.set("page", params.page.toString());
@@ -77,7 +77,7 @@ export async function deleteProgram(programId: string) {
 
 export async function getAdminPrograms(filters?: {
   status?: string;
-  category?: string;
+  categoryId?: string;
   search?: string;
   page?: number;
   limit?: number;
@@ -87,8 +87,8 @@ export async function getAdminPrograms(filters?: {
   if (filters?.status && filters.status !== "all") {
     params.set("status", filters.status);
   }
-  if (filters?.category && filters.category !== "all") {
-    params.set("category", filters.category);
+  if (filters?.categoryId && filters.categoryId !== "all") {
+    params.set("categoryId", filters.categoryId);
   }
   if (filters?.search) {
     params.set("search", filters.search);

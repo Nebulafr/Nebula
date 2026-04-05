@@ -114,6 +114,108 @@ export class VectorHubService {
 
     return results;
   }
+
+  /**
+   * Synchronizes a conversation turn to Pinecone for RAG
+   */
+  async syncConversationToVector(params: {
+    userId: string;
+    conversationId: string;
+    userContent: string;
+    assistantContent: string;
+    assistantMessageId: string;
+  }): Promise<void> {
+    try {
+      const { userId, conversationId, userContent, assistantContent, assistantMessageId } = params;
+
+      const textToEmbed = `
+        User: ${userContent}
+        Assistant: ${assistantContent}
+      `.trim();
+
+      const values = await openAIService.generateEmbeddings(textToEmbed);
+
+      const metadata = vectorDbService.sanitizeMetadata({
+        userId,
+        conversationId,
+        messageId: assistantMessageId,
+        type: 'conversation_turn',
+        timestamp: new Date().toISOString(),
+      });
+
+      const record: VectorRecord = {
+        id: `conv_${assistantMessageId}`,
+        values,
+        metadata,
+      };
+
+      await vectorDbService.upsert([record], PINECONE_NAMESPACES.CONVERSATION_MEMORY);
+      console.log(`Successfully indexed conversation turn ${assistantMessageId} to Pinecone`);
+    } catch (error) {
+      console.error(`Error indexing conversation turn:`, error);
+    }
+  }
+
+  /**
+   * Performs semantic search for conversation memory (RAG)
+   */
+  async searchMemory(userId: string, query: string, limit: number = 5): Promise<any[]> {
+    try {
+      const vector = await openAIService.generateEmbeddings(query);
+      const results = await vectorDbService.query(vector, {
+        topK: limit,
+        namespace: PINECONE_NAMESPACES.CONVERSATION_MEMORY,
+        includeMetadata: true,
+        filter: {
+          userId: { $eq: userId },
+        },
+      });
+
+      return results;
+    } catch (error) {
+      console.error(`Error searching conversation memory for user ${userId}:`, error);
+      return [];
+    }
+  }
+
+  /**
+   * Synchronizes an event to Pinecone
+   */
+  async syncEventToVector(event: any): Promise<void> {
+    try {
+      if (!event) return;
+
+      const textToEmbed = `
+        Event: ${event.title}
+        Type: ${event.eventType}
+        Description: ${event.description}
+        Date: ${event.date}
+        Location: ${event.location || "Online"}
+        Tags: ${event.tags?.join(", ") || ""}
+      `.trim();
+
+      const values = await openAIService.generateEmbeddings(textToEmbed);
+
+      const metadata = vectorDbService.sanitizeMetadata({
+        eventId: event.id,
+        title: event.title,
+        eventType: event.eventType,
+        date: event.date,
+        type: "event",
+      });
+
+      const record: VectorRecord = {
+        id: event.id,
+        values,
+        metadata,
+      };
+
+      await vectorDbService.upsert([record], PINECONE_NAMESPACES.EVENT_EMBEDDINGS);
+      console.log(`Successfully synced event ${event.id} to Pinecone`);
+    } catch (error) {
+      console.error(`Error syncing event ${event?.id} to Pinecone:`, error);
+    }
+  }
 }
 
 export const vectorHubService = new VectorHubService();

@@ -80,11 +80,11 @@ export class CoachService {
 
 
   private buildCoachFilters(params: CoachQueryData): Prisma.CoachWhereInput {
-    const { category, minPrice, maxPrice, company, school } = params;
+    const { categoryId, minPrice, maxPrice, company, school } = params;
     const whereClause: Prisma.CoachWhereInput = { isActive: true };
 
-    if (category && category !== "All") {
-      whereClause.specialties = { some: { categoryId: category } };
+    if (categoryId && categoryId !== "All") {
+      whereClause.specialties = { some: { categoryId: categoryId } };
     }
 
     if (minPrice !== undefined || maxPrice !== undefined) {
@@ -305,6 +305,12 @@ export class CoachService {
         where: { coachId: coach.id },
         orderBy: { startDate: "desc" },
       });
+    }).then((experiences) => {
+      // Sync to vector DB
+      this.getProfile(userId).then(({ coach }) => {
+        vectorHubService.syncCoachToVector(coach);
+      }).catch(err => console.error("Vector sync failed:", err));
+      return experiences;
     });
   }
 

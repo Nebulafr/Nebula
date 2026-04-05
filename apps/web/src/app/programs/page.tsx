@@ -12,6 +12,7 @@ import { useTranslations } from "next-intl";
 import { ProgramCard } from "@/components/cards/program-card";
 
 interface Category {
+  id: string;
   name: string;
   slug: string;
 }
@@ -30,12 +31,20 @@ export default function ProgramsPage() {
   const { data: categoriesResponse } = useCategories();
   const { data: programsResponse, isLoading: loading } = useGroupedPrograms({
     limit: 50,
-    category: activeCategory === "all" ? undefined : activeCategory,
+    categoryId: activeCategory === "all" ? undefined : activeCategory,
     search: searchTerm || undefined,
   });
 
   const categories = categoriesResponse?.data?.categories || [];
   const filteredGroups = programsResponse?.data?.groupedPrograms || [];
+
+  const getActiveCategoryName = () => {
+    if (activeCategory === "all") return t("all");
+    const category = categories.find((c: Category) => c.id === activeCategory);
+    return category?.name || activeCategory;
+  };
+
+  const activeCategoryName = getActiveCategoryName();
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -74,16 +83,16 @@ export default function ProgramsPage() {
             </Button>
             {categories.map((category: Category) => (
               <Button
-                key={category.slug}
+                key={category.id}
                 variant="outline"
                 className={cn(
                   "rounded-full",
-                  activeCategory === category?.name && "bg-muted font-bold",
+                  activeCategory === category?.id && "bg-muted font-bold",
                 )}
-                onClick={() => setActiveCategory(category?.name)}
+                onClick={() => setActiveCategory(category?.id)}
                 disabled={loading}
               >
-                {loading && activeCategory === category.name && (
+                {loading && activeCategory === category.id && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 )}
                 {category.name}
@@ -117,10 +126,10 @@ export default function ProgramsPage() {
               </h3>
               <p className="text-muted-foreground">
                 {searchTerm
-                  ? t("noProgramsMatching", { search: searchTerm, category: activeCategory })
+                  ? t("noProgramsMatching", { search: searchTerm, category: activeCategoryName })
                   : activeCategory === "all"
                     ? t("noProgramsAvailable")
-                    : t("noProgramsInCategory", { category: activeCategory })}
+                    : t("noProgramsInCategory", { category: activeCategoryName })}
               </p>
             </div>
           )}

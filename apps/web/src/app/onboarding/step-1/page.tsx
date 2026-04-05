@@ -23,6 +23,9 @@ import { CountrySelect } from "@/components/ui/country-select";
 
 import { useStudentOnboarding } from "@/contexts/student-onboarding-context";
 
+// Assets
+import skillAssessmentIcon from "@/lib/images/custom-images/skill-assessment.svg";
+
 const categoryColors: Record<string, string> = {
   "Career Prep": "bg-primary/10",
   "School Admissions": "bg-blue-500/10",
@@ -199,7 +202,7 @@ export default function OnboardingStep1() {
                         src={
                           category.assetUrl ||
                           getDefaultCategoryImage(category.name) ||
-                          "/custom-images/skills-assessment.svg"
+                          skillAssessmentIcon
                         }
                         alt={category.name}
                         width={28}

@@ -3,12 +3,17 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, CheckCircle, Clock, Zap, Loader2 } from "lucide-react";
+import { ArrowLeft, CheckCircle, Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/images/placeholder-images";
 import { useRouter } from "next/navigation";
+
+// Assets
+import shortIcon from "@/lib/images/custom-images/30min.svg";
+import standardIcon from "@/lib/images/custom-images/1hrs.svg";
+import longIcon from "@/lib/images/custom-images/2h+.svg";
 import React, { useState } from "react";
 import { createStudent } from "@/actions/student";
 import { toast } from "react-toastify";
@@ -23,21 +28,45 @@ import {
 const availabilityOptions = [
   {
     id: "short",
-    icon: <Clock className="h-5 w-5 text-yellow-500" />,
+    icon: (
+      <Image
+        src={shortIcon}
+        alt="30 mins"
+        width={28}
+        height={28}
+        className="transition-transform duration-300 group-hover:scale-110"
+      />
+    ),
     titleKey: "availability.short.title",
     descriptionKey: "availability.short.description",
     color: "bg-yellow-500/10",
   },
   {
     id: "standard",
-    icon: <Clock className="h-5 w-5 text-blue-500" />,
+    icon: (
+      <Image
+        src={standardIcon}
+        alt="1 hour"
+        width={28}
+        height={28}
+        className="transition-transform duration-300 group-hover:scale-110"
+      />
+    ),
     titleKey: "availability.standard.title",
     descriptionKey: "availability.standard.description",
     color: "bg-blue-500/10",
   },
   {
     id: "long",
-    icon: <Zap className="h-5 w-5 text-purple-500" />,
+    icon: (
+      <Image
+        src={longIcon}
+        alt="2+ hours"
+        width={28}
+        height={28}
+        className="transition-transform duration-300 group-hover:scale-110"
+      />
+    ),
     titleKey: "availability.long.title",
     descriptionKey: "availability.long.description",
     color: "bg-purple-500/10",
@@ -187,9 +216,7 @@ function OnboardingStep3Content() {
                   <div
                     className={`flex h-14 w-14 items-center justify-center rounded-2xl transition-transform duration-500 group-hover:rotate-6 ${option.color} shadow-inner backdrop-blur-sm`}
                   >
-                    {React.cloneElement(option.icon as React.ReactElement, {
-                      className: "h-7 w-7 transition-transform duration-300 group-hover:scale-110",
-                    })}
+                    {option.icon}
                   </div>
                   <div className="flex-1">
                     <h3 className="font-headline text-xl font-bold tracking-tight">
