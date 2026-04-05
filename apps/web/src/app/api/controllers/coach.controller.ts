@@ -17,7 +17,7 @@ export class CoachController {
     const { searchParams } = new URL(request.url);
 
     const queryParams = {
-      category: searchParams.get("category") || undefined,
+      categoryId: searchParams.get("categoryId") || undefined,
       search: searchParams.get("search") || undefined,
       minPrice: searchParams.get("minPrice") || undefined,
       maxPrice: searchParams.get("maxPrice") || undefined,
