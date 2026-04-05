@@ -128,7 +128,7 @@ class AgentsService {
   private async searchCoaches({ specialty, search, limit = 5 }: { specialty?: string; search?: string; limit?: number }) {
     try {
       const response = await coachService.getCoaches({
-        category: specialty,
+        categoryId: specialty,
         search,
         limit,
       });
