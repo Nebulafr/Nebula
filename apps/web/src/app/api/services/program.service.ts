@@ -217,7 +217,7 @@ export class ProgramService {
 
   private async fetchProgramsData(params: {
     coachId?: string;
-    category?: string;
+    categoryId?: string;
     search?: string;
     limit?: number;
     offset?: number;
@@ -225,7 +225,7 @@ export class ProgramService {
   }): Promise<any> {
     const {
       coachId,
-      category,
+      categoryId,
       search,
       limit = 10,
       offset = 0,
@@ -241,8 +241,8 @@ export class ProgramService {
       whereClause.status = "ACTIVE";
     }
 
-    if (category) {
-      whereClause.categoryId = category;
+    if (categoryId) {
+      whereClause.categoryId = categoryId;
     }
 
     if (interestedCategoryIds && interestedCategoryIds.length > 0) {
@@ -348,7 +348,7 @@ export class ProgramService {
   }
 
   async getGroupedPrograms(params: any): Promise<any> {
-    const { coachId, category: categoryFilter, search, limit, page = 1 } = params;
+    const { coachId, categoryId: categoryFilter, search, limit, page = 1 } = params;
     const skip = limit ? (page - 1) * limit : undefined;
 
     const whereClause: Prisma.ProgramWhereInput = {};

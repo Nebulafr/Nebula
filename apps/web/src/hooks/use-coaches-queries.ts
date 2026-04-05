@@ -17,7 +17,7 @@ export const COACH_BY_ID_QUERY_KEY = "coach-by-id";
 export const SUGGESTED_COACHES_QUERY_KEY = "suggested-coaches";
 
 export function useCoaches(filters?: {
-  category?: string;
+  categoryId?: string;
   search?: string;
   minPrice?: number;
   maxPrice?: number;

@@ -16,7 +16,7 @@ export class ProgramController {
     const { searchParams } = new URL(request.url);
     const params = {
       coachId: searchParams.get("coachId") || undefined,
-      category: searchParams.get("category") || undefined,
+      categoryId: searchParams.get("category") || searchParams.get("categoryId") || undefined,
       search: searchParams.get("search") || undefined,
       limit: searchParams.get("limit") ? parseInt(searchParams.get("limit")!) : undefined,
       offset: searchParams.get("offset") ? parseInt(searchParams.get("offset")!) : undefined,
@@ -29,7 +29,7 @@ export class ProgramController {
     const { searchParams } = new URL(request.url);
     const params = {
       coachId: searchParams.get("coachId") || undefined,
-      category: searchParams.get("category") || undefined,
+      categoryId: searchParams.get("category") || searchParams.get("categoryId") || undefined,
       search: searchParams.get("search") || undefined,
       limit: searchParams.get("limit") ? parseInt(searchParams.get("limit")!) : undefined,
       page: searchParams.get("page") ? parseInt(searchParams.get("page")!) : 1,

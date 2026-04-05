@@ -62,7 +62,7 @@ export const updateCoachExperiencesSchema = z.object({
 });
 
 export const coachQuerySchema = z.object({
-  category: z.string().optional(),
+  categoryId: z.string().optional(),
   search: z.string().optional(),
   minPrice: z
     .string()

@@ -48,16 +48,16 @@ function SearchableFilter({
   placeholder: string;
   value: string;
   onValueChange: (val: string) => void;
-  options: string[];
+  options: { id: string; name: string }[];
 }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
 
   const filteredOptions = options.filter((opt) =>
-    opt.toLowerCase().includes(search.toLowerCase()),
+    opt.name.toLowerCase().includes(search.toLowerCase()),
   );
 
-  const displayValue = value === "all" ? placeholder : value;
+  const displayValue = value === "all" ? placeholder : options.find(opt => opt.id === value)?.name || value;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -113,13 +113,13 @@ function SearchableFilter({
             {filteredOptions.length > 0 ? (
               filteredOptions.map((opt) => (
                 <div
-                  key={opt}
+                  key={opt.id}
                   className={cn(
                     "relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-2 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground",
-                    value === opt && "bg-accent text-accent-foreground",
+                    value === opt.id && "bg-accent text-accent-foreground",
                   )}
                   onClick={() => {
-                    onValueChange(opt);
+                    onValueChange(opt.id);
                     setOpen(false);
                     setSearch("");
                   }}
@@ -127,10 +127,10 @@ function SearchableFilter({
                   <Check
                     className={cn(
                       "mr-2 h-4 w-4",
-                      value === opt ? "opacity-100" : "opacity-0",
+                      value === opt.id ? "opacity-100" : "opacity-0",
                     )}
                   />
-                  {opt}
+                  {opt.name}
                 </div>
               ))
             ) : (
@@ -181,7 +181,7 @@ function CoachesPageContent() {
 
   // Fetch coaches with filters
   const { data: coachesResponse, isLoading: loading } = useCoaches({
-    category: selectedSpecialty === "all" ? undefined : selectedSpecialty,
+    categoryId: selectedSpecialty === "all" ? undefined : selectedSpecialty,
     search: searchTerm || undefined,
     minPrice,
     maxPrice,
@@ -195,7 +195,7 @@ function CoachesPageContent() {
   const pagination = coachesResponse?.pagination;
 
   const specialties = React.useMemo(() => {
-    return categoriesData.map((c: { name: string }) => c.name).sort();
+    return categoriesData.map((c: { id: string, name: string }) => ({ id: c.id, name: c.name })).sort((a, b) => a.name.localeCompare(b.name));
   }, [categoriesData]);
 
   const companies: string[] = [];
@@ -280,22 +280,22 @@ function CoachesPageContent() {
                 </Select>
               </div>
 
-              {/* Company Filter */}
+              {/* Company Filter (still uses strings as it's not category-based) */}
               <SearchableFilter
                 label={t("companyBackground")}
                 placeholder={t("anyCompany")}
                 value={selectedCompany}
                 onValueChange={setSelectedCompany}
-                options={companies}
+                options={companies.map(c => ({ id: c, name: c }))}
               />
 
-              {/* School Filter */}
+              {/* School Filter (still uses strings) */}
               <SearchableFilter
                 label={t("academicBackground")}
                 placeholder={t("anySchool")}
                 value={selectedSchool}
                 onValueChange={setSelectedSchool}
-                options={schools}
+                options={schools.map(s => ({ id: s, name: s }))}
               />
             </div>
 
